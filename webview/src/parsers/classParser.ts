@@ -1,9 +1,12 @@
 /**
- * @fileoverview Parses Mermaid class diagram source text into spatial box data
- * and React Flow node models. Pure functions only — no React hooks, no VS Code
+ * @fileoverview Parses Mermaid class diagram source into spatial box data
+ * and React Flow node models. Class names are extracted from the Mermaid AST
+ * via mermaid.mermaidAPI.getDiagramFromText(); spatial annotations are
+ * extracted from source text using regex. No React hooks, no VS Code
  * dependencies.
  */
 
+import mermaid from "mermaid";
 import type { Node } from "@xyflow/react";
 import type { SpatialBox } from "../types";
 
@@ -11,12 +14,18 @@ export type ClassNodeData = {
   label: string;
 };
 
+// Minimal structural type for the class diagram DB.
+// We avoid importing from mermaid/dist internals to reduce coupling to mermaid's private API.
+type ClassDiagramDb = {
+  getClasses(): Map<string, { id: string }>;
+};
+
 /**
  * Extracts spatial box data for all declared classes that have a matching
  * spatial annotation. Classes without an annotation are omitted.
  */
-export function extractSpatialBoxes(source: string): SpatialBox[] {
-  const classNames = extractClassNames(source);
+export async function extractSpatialBoxes(source: string): Promise<SpatialBox[]> {
+  const classNames = await extractClassNamesFromAst(source);
   const spatialByClassName = extractSpatialAnnotations(source);
 
   return classNames.flatMap((className) => {
@@ -56,18 +65,13 @@ export function toReactFlowNodes(boxes: SpatialBox[]): Array<Node<ClassNodeData,
 }
 
 /**
- * Extracts unique class names declared with a class block in Mermaid source.
+ * Extracts unique class names from the Mermaid AST.
+ * Uses Mermaid's own parser rather than a regex reimplementation.
  */
-function extractClassNames(source: string): string[] {
-  const names = new Set<string>();
-  const classBlockPattern = /^\s*class\s+([A-Za-z_][\w]*)\s*(?:\{|$)/gm;
-  let match: RegExpExecArray | null;
-
-  while ((match = classBlockPattern.exec(source)) !== null) {
-    names.add(match[1]);
-  }
-
-  return [...names];
+async function extractClassNamesFromAst(source: string): Promise<string[]> {
+  const diagram = await mermaid.mermaidAPI.getDiagramFromText(source);
+  const db = diagram.db as unknown as ClassDiagramDb;
+  return [...db.getClasses().keys()];
 }
 
 /**

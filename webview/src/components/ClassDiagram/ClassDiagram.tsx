@@ -1,24 +1,20 @@
-import { useMemo } from "react";
 import type { ReactElement } from "react";
+import type { Node } from "@xyflow/react";
 import { Background, Controls, ReactFlow, ReactFlowProvider } from "@xyflow/react";
-import { extractSpatialBoxes, toReactFlowNodes } from "../parsers/classParser";
-import ClassBox from "../components/ClassBox/ClassBox";
-import styles from "./EditorView.module.css";
+import ClassBox from "./ClassBox/ClassBox";
+import styles from "./ClassDiagram.module.css";
 
-type EditorViewProps = {
-  sourceText: string;
+type ClassDiagramProps = {
+  nodes: Node[];
 };
 
 /**
- * Renders the Editor mode canvas: a React Flow diagram populated from
- * spatial annotations in the Mermaid source.
+ * Renders the React Flow canvas populated with ClassBox node types.
+ * Owns the ReactFlowProvider boundary and empty-state guard.
  */
-export default function EditorView({ sourceText }: EditorViewProps): ReactElement {
-  const boxes = useMemo(() => extractSpatialBoxes(sourceText), [sourceText]);
-  const nodes = useMemo(() => toReactFlowNodes(boxes), [boxes]);
-
+export default function ClassDiagram({ nodes }: ClassDiagramProps): ReactElement {
   return (
-    <section className={styles.editorShell} aria-label="Static editor boxes">
+    <section className={styles.diagramShell} aria-label="Static editor boxes">
       {nodes.length === 0 ? (
         <p className={styles.emptyState}>No spatial annotations found.</p>
       ) : (

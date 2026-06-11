@@ -1,0 +1,17 @@
+.canvas {
+  min-height: 420px;
+  padding: 20px;
+  border: 1px solid var(--shiny-box-stroke);
+  background: var(--shiny-box-fill);
+  overflow: auto;
+}
+
+.error {
+  white-space: pre-wrap;
+  color: var(--shiny-error-text);
+}
+
+.mermaidOutput :global(svg) {
+  max-width: 100%;
+  height: auto;
+}

@@ -1,0 +1,58 @@
+/**
+ * @fileoverview Visual shell for the inactive editor tool palette.
+ * Uses existing Shiny design tokens only.
+ */
+
+.toolPane {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 104px;
+  max-height: 620px;
+  padding: 8px;
+  overflow: hidden;
+  border: 1px solid var(--shiny-box-stroke);
+  background: var(--shiny-box-fill);
+}
+
+.toolGroup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.toolGroup + .toolGroup {
+  padding-top: 10px;
+  border-top: 1px solid var(--shiny-box-stroke);
+}
+
+.toolButton {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  min-width: 40px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  border: 1px solid var(--shiny-button-border);
+  color: var(--shiny-description-text);
+  background: var(--shiny-button-secondary-bg);
+  cursor: default;
+  opacity: 0.72;
+}
+
+.toolButton:hover {
+  border-color: var(--shiny-hover-border);
+}
+
+.toolIcon {
+  max-width: 36px;
+  overflow: hidden;
+  font-family: var(--shiny-font-family);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

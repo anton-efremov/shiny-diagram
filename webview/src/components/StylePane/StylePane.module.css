@@ -1,0 +1,27 @@
+/**
+ * @fileoverview Visual shell for the editor style pane empty state.
+ * Contains layout styles only; controls are introduced by later milestones.
+ */
+
+.stylePane {
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  max-height: 620px;
+  border: 1px solid var(--shiny-box-stroke);
+  background: var(--shiny-box-fill);
+}
+
+.header {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--shiny-box-stroke);
+  color: var(--shiny-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.emptySelection {
+  flex: 1;
+  min-height: 120px;
+  background: var(--shiny-canvas-tint);
+}

@@ -1,0 +1,15 @@
+/**
+ * @fileoverview Three-panel layout shell for Editor mode.
+ * Canvas internals remain owned by ClassDiagram.module.css.
+ */
+
+.editorShell {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr) minmax(220px, 260px);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.canvasRegion {
+  min-width: 0;
+}

@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import type { ClassNodeData } from "../../parsers/classParser";
+import type { ClassNodeData } from "../../../parsers/classParser";
 import styles from "./ClassBox.module.css";
 
 type ClassBoxProps = {
