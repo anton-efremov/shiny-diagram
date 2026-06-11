@@ -74,7 +74,7 @@ If the user provides a scope, analyze only that scope plus directly related impo
 If the user does not provide a scope, use this default scope:
 
 ```txt
-src/
+extension-host/
 webview/src/
 ```
 

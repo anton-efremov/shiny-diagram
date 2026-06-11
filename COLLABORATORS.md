@@ -35,7 +35,7 @@ This document serves as the primary engineering entry point for human developers
 │
 ├── examples/                       # .mmd files for testing
 |
-├── src/                            # CONTROL PLANE (VS Code Extension Host / Node.js)
+├── extension-host/                 # CONTROL PLANE (VS Code Extension Host / Node.js)
 │
 └── webview/                        # DATA PROJECTION PLANE (Chromium Renderer UI Canvas)
 ```

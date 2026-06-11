@@ -1,29 +1,21 @@
+/**
+ * @fileoverview Generates the HTML document served to the Shiny webview panel.
+ * Handles content security policy, asset URI resolution, nonce generation,
+ * and safe serialization of initial data into the page.
+ */
+
 import * as vscode from "vscode";
 
-export function activate(context: vscode.ExtensionContext): void {
-  const disposable = vscode.commands.registerCommand("shiny.openDiagram", () => {
-    const activeDocument = vscode.window.activeTextEditor?.document;
-    const panel = vscode.window.createWebviewPanel(
-      "shinyDiagram",
-      "Shiny Diagram",
-      vscode.ViewColumn.Beside,
-      {
-        enableScripts: true,
-        localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "out", "webview")],
-      }
-    );
-
-    panel.webview.html = getWebviewHtml(context, panel.webview, activeDocument);
-  });
-
-  context.subscriptions.push(disposable);
-}
-
-export function deactivate(): void {
-  // No cleanup needed for the initial scaffold.
-}
-
-function getWebviewHtml(
+/**
+ * Builds the full HTML document for the Shiny webview panel.
+ *
+ * @param context - Extension context used to resolve local asset URIs.
+ * @param webview - Webview instance used to convert URIs and form the CSP source.
+ * @param document - Active text document whose content is passed to the webview
+ *   as initial data; undefined when no editor is open.
+ * @returns Complete HTML string ready to assign to `panel.webview.html`.
+ */
+export function getWebviewHtml(
   context: vscode.ExtensionContext,
   webview: vscode.Webview,
   document: vscode.TextDocument | undefined
@@ -35,6 +27,7 @@ function getWebviewHtml(
   const firstLine = sourceText.split(/\r?\n/, 1)[0] ?? "";
   const lineCount = document?.lineCount ?? 0;
   const characterCount = sourceText.length;
+
   const scriptUri = webview.asWebviewUri(
     vscode.Uri.joinPath(context.extensionUri, "out", "webview", "assets", "index.js")
   );
@@ -67,15 +60,10 @@ function getWebviewHtml(
 </html>`;
 }
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
+/**
+ * Generates a pseudorandom nonce string for use in the CSP header.
+ * Sufficient for replay prevention within a single webview session.
+ */
 function getNonce(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let nonce = "";
@@ -87,6 +75,10 @@ function getNonce(): string {
   return nonce;
 }
 
+/**
+ * Serializes a value to JSON safe for embedding inside an HTML script tag.
+ * Escapes characters that would break out of a script context or trigger XSS.
+ */
 function serializeJsonForHtml(value: unknown): string {
   return JSON.stringify(value)
     .replace(/</g, "\\u003c")

@@ -39,7 +39,7 @@
     "typecheck": "tsc -p ./ --noEmit && tsc -p ./tsconfig.webview.json --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint src webview/src",
+    "lint": "eslint extension-host webview/src",
     "check": "npm run format:check && npm run lint && npm run typecheck"
   },
   "devDependencies": {

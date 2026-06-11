@@ -17,7 +17,7 @@
 
 Shiny follows the standard VS Code extension model: an extension host process running in Node.js, paired with a Chromium WebView for the visual interface. These are isolated runtimes with no shared memory. All communication crosses the boundary via `postMessage` as JSON messages with a `type` discriminant field.
 
-The boundary is hard. `src/` has no browser APIs. `webview/src/` has no `vscode` module imports.
+The boundary is hard. `extension-host/` has no browser APIs. `webview/src/` has no `vscode` module imports.
 
 ### Data flow
 
@@ -80,7 +80,7 @@ Logic that does not involve React state or side effects is a pure function in `p
 
 ### Folder structure
 
-**`src/`** — extension host. `extension.ts` wires the extension. Dedicated modules handle document listening, webview lifecycle, and diff application. No Mermaid knowledge lives here.
+**`extension-host/`** — extension host. `extension.ts` wires the extension. Dedicated modules handle document listening, webview lifecycle, and diff application. No Mermaid knowledge lives here.
 
 **`webview/src/`** — five categories:
 
