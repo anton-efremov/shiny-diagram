@@ -1,38 +1,43 @@
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import mermaid from "mermaid";
+import EditorView from "./modes/EditorView";
 import { vscode } from "./vscodeApi";
 
 type Mode = "autorender" | "editor";
 
-type AppProps = {
-  rootElement: HTMLElement;
+type InitialData = {
+  fileName: string;
+  firstLine: string;
+  lineCount: number;
+  characterCount: number;
+  sourceText: string;
 };
 
-const hardcodedDiagram = `classDiagram
-direction LR
-class ConversationThread
-class TextMessage
-class UserContact
-ConversationThread --> TextMessage : contains
-ConversationThread --> UserContact : involves`;
-
-export default function App({ rootElement }: AppProps): ReactElement {
+export default function App(): ReactElement {
   const [mode, setMode] = useState<Mode>("autorender");
   const [renderError, setRenderError] = useState<string | null>(null);
   const mermaidContainerRef = useRef<HTMLDivElement | null>(null);
-  const renderIdRef = useRef(`shiny-hardcoded-diagram-${Math.random().toString(36).slice(2)}`);
+  const renderIdRef = useRef(`shiny-source-diagram-${Math.random().toString(36).slice(2)}`);
 
-  const fileName = rootElement.dataset.fileName ?? "No active document";
-  const firstLine = rootElement.dataset.firstLine ?? "";
-  const lineCount = rootElement.dataset.lineCount ?? "0";
-  const characterCount = rootElement.dataset.characterCount ?? "0";
+  const initialData = useMemo(() => readInitialData(), []);
+  const { fileName, firstLine, lineCount, characterCount, sourceText } = initialData;
+  const renderableSourceText = useMemo(() => normalizeClassDefStyleProperties(sourceText), [sourceText]);
 
   useEffect(() => {
     mermaid.initialize({
       startOnLoad: false,
       securityLevel: "strict",
-      theme: "default"
+      htmlLabels: false,
+      theme: "base",
+      themeVariables: {
+        primaryColor: "#f8fafc",
+        primaryBorderColor: "#64748b",
+        primaryTextColor: "#111827",
+        lineColor: "#475569",
+        textColor: "#111827",
+        fontFamily: "Arial, sans-serif"
+      }
     });
   }, []);
 
@@ -45,7 +50,11 @@ export default function App({ rootElement }: AppProps): ReactElement {
 
     async function renderDiagram(): Promise<void> {
       try {
-        const { svg } = await mermaid.render(renderIdRef.current, hardcodedDiagram);
+        if (!renderableSourceText.trim()) {
+          throw new Error("No Mermaid source text was available from the active document.");
+        }
+
+        const { svg } = await mermaid.render(renderIdRef.current, renderableSourceText);
 
         if (!disposed && mermaidContainerRef.current) {
           mermaidContainerRef.current.innerHTML = svg;
@@ -63,7 +72,7 @@ export default function App({ rootElement }: AppProps): ReactElement {
     return () => {
       disposed = true;
     };
-  }, [mode]);
+  }, [mode, renderableSourceText]);
 
   function handleRenderClick(): void {
     vscode.postMessage({ type: "renderRequested" });
@@ -71,6 +80,7 @@ export default function App({ rootElement }: AppProps): ReactElement {
 
   return (
     <main style={styles.shell}>
+      <style>{mermaidStyles}</style>
       <header style={styles.header}>
         <div>
           <h1 style={styles.title}>Shiny Diagram</h1>
@@ -103,14 +113,12 @@ export default function App({ rootElement }: AppProps): ReactElement {
       <section style={styles.modeLabel}>Mode: {mode === "autorender" ? "Autorender" : "Editor"}</section>
 
       {mode === "autorender" ? (
-        <section style={styles.canvas} aria-label="Hardcoded Mermaid autorender">
+        <section style={styles.canvas} aria-label="Mermaid autorender">
           {renderError ? <pre style={styles.error}>{renderError}</pre> : null}
-          <div ref={mermaidContainerRef} />
+          <div className="shiny-mermaid-output" ref={mermaidContainerRef} />
         </section>
       ) : (
-        <section style={styles.canvas} aria-label="Editor placeholder">
-          <p style={styles.placeholder}>Editor mode placeholder</p>
-        </section>
+        <EditorView sourceText={sourceText} />
       )}
     </main>
   );
@@ -175,8 +183,54 @@ const styles = {
     whiteSpace: "pre-wrap",
     color: "var(--vscode-errorForeground)"
   },
-  placeholder: {
-    margin: 0,
-    color: "var(--vscode-descriptionForeground)"
-  }
 } satisfies Record<string, React.CSSProperties>;
+
+const mermaidStyles = `
+  .shiny-mermaid-output svg {
+    max-width: 100%;
+    height: auto;
+  }
+`;
+
+function normalizeClassDefStyleProperties(source: string): string {
+  return source.replace(/^(\s*classDef\s+\S+\s+)(.*)$/gm, (_line, prefix: string, styles: string) => {
+    const normalizedStyles = styles
+      .replace(/\bstroke-width:/g, "strokeWidth:")
+      .replace(/\bstroke-dasharray:/g, "strokeDasharray:");
+
+    return `${prefix}${normalizedStyles}`;
+  });
+}
+
+function readInitialData(): InitialData {
+  const dataElement = document.getElementById("shiny-initial-data");
+
+  if (!dataElement?.textContent) {
+    return {
+      fileName: "No active document",
+      firstLine: "",
+      lineCount: 0,
+      characterCount: 0,
+      sourceText: ""
+    };
+  }
+
+  let parsed: Partial<InitialData>;
+
+  try {
+    parsed = JSON.parse(dataElement.textContent) as Partial<InitialData>;
+  } catch {
+    parsed = {
+      sourceText: "",
+      fileName: "Invalid initial webview data"
+    };
+  }
+
+  return {
+    fileName: typeof parsed.fileName === "string" ? parsed.fileName : "No active document",
+    firstLine: typeof parsed.firstLine === "string" ? parsed.firstLine : "",
+    lineCount: typeof parsed.lineCount === "number" ? parsed.lineCount : 0,
+    characterCount: typeof parsed.characterCount === "number" ? parsed.characterCount : 0,
+    sourceText: typeof parsed.sourceText === "string" ? parsed.sourceText : ""
+  };
+}

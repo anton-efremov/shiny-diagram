@@ -34,7 +34,15 @@ function getWebviewHtml(
   const lineCount = document?.lineCount ?? 0;
   const characterCount = sourceText.length;
   const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "out", "webview", "assets", "index.js"));
+  const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "out", "webview", "assets", "index.css"));
   const nonce = getNonce();
+  const initialData = serializeJsonForHtml({
+    fileName,
+    firstLine,
+    lineCount,
+    characterCount,
+    sourceText
+  });
 
   return /* html */ `<!DOCTYPE html>
 <html lang="en">
@@ -42,16 +50,12 @@ function getWebviewHtml(
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} data:; script-src ${webview.cspSource} 'nonce-${nonce}'; style-src ${webview.cspSource} 'unsafe-inline';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="${styleUri}">
   <title>Shiny Diagram</title>
 </head>
 <body>
-  <div
-    id="root"
-    data-file-name="${escapeHtml(fileName)}"
-    data-first-line="${escapeHtml(firstLine)}"
-    data-line-count="${lineCount}"
-    data-character-count="${characterCount}"
-  ></div>
+  <script id="shiny-initial-data" type="application/json">${initialData}</script>
+  <div id="root"></div>
   <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`;
@@ -75,4 +79,13 @@ function getNonce(): string {
   }
 
   return nonce;
+}
+
+function serializeJsonForHtml(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
 }

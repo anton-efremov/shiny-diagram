@@ -10,6 +10,6 @@ if (!root) {
 
 createRoot(root).render(
   <React.StrictMode>
-    <App rootElement={root} />
+    <App />
   </React.StrictMode>
 );
