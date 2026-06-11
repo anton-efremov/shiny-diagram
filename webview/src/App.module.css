@@ -1,0 +1,71 @@
+.shell {
+  min-height: 100vh;
+  padding: 24px;
+  font-family: var(--shiny-font-family);
+  color: var(--shiny-text);
+  background: var(--shiny-shell-bg);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.title {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.meta {
+  margin: 4px 0;
+  color: var(--shiny-description-text);
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.button {
+  padding: 7px 12px;
+  border: 1px solid var(--shiny-button-border);
+  color: var(--shiny-button-secondary-fg);
+  background: var(--shiny-button-secondary-bg);
+  cursor: pointer;
+}
+
+.activeButton {
+  padding: 7px 12px;
+  border: 1px solid var(--shiny-selection-color);
+  color: var(--shiny-button-fg);
+  background: var(--shiny-button-bg);
+  cursor: pointer;
+}
+
+.modeLabel {
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.canvas {
+  min-height: 420px;
+  padding: 20px;
+  border: 1px solid var(--shiny-box-stroke);
+  background: var(--shiny-box-fill);
+  overflow: auto;
+}
+
+.error {
+  white-space: pre-wrap;
+  color: var(--shiny-error-text);
+}
+
+.mermaidOutput :global(svg) {
+  max-width: 100%;
+  height: auto;
+}

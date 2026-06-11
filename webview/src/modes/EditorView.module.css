@@ -1,0 +1,12 @@
+.editorShell {
+  height: 620px;
+  border: 1px solid var(--shiny-box-stroke);
+  background: var(--shiny-box-fill);
+  overflow: hidden;
+}
+
+.emptyState {
+  margin: 0;
+  padding: 20px;
+  color: var(--shiny-description-text);
+}

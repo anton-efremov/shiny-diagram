@@ -1,1 +1,52 @@
 @import "@xyflow/react/dist/style.css";
+
+/* --- Design tokens --- */
+
+:root {
+  /* Diagram domain */
+  --shiny-box-fill: var(--vscode-editorWidget-background);
+  --shiny-box-stroke: var(--vscode-panel-border);
+  --shiny-box-text: var(--vscode-editor-foreground);
+  --shiny-selection-color: var(--vscode-focusBorder);
+  --shiny-hover-border: var(--vscode-focusBorder);
+  --shiny-edge-color: var(--vscode-editor-foreground);
+
+  /* Shell / chrome */
+  --shiny-font-family: var(--vscode-font-family);
+  --shiny-shell-bg: var(--vscode-editor-background);
+  --shiny-text: var(--vscode-editor-foreground);
+  --shiny-description-text: var(--vscode-descriptionForeground);
+  --shiny-error-text: var(--vscode-errorForeground);
+
+  /* Buttons */
+  --shiny-button-bg: var(--vscode-button-background);
+  --shiny-button-fg: var(--vscode-button-foreground);
+  --shiny-button-secondary-bg: var(--vscode-button-secondaryBackground);
+  --shiny-button-secondary-fg: var(--vscode-button-secondaryForeground);
+  --shiny-button-border: var(--vscode-button-border, transparent);
+}
+
+/* Canvas tint has no direct VS Code token equivalent; defined per theme kind. */
+body[data-vscode-theme-kind="vscode-light"] {
+  --shiny-canvas-tint: rgba(0, 0, 0, 0.03);
+}
+
+body[data-vscode-theme-kind="vscode-dark"] {
+  --shiny-canvas-tint: rgba(255, 255, 255, 0.03);
+}
+
+body[data-vscode-theme-kind="vscode-high-contrast"] {
+  --shiny-canvas-tint: transparent;
+}
+
+/* --- Browser resets --- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}

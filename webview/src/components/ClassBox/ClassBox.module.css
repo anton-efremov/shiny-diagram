@@ -1,0 +1,21 @@
+.classBox {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--shiny-box-stroke);
+  background: var(--shiny-box-fill);
+  color: var(--shiny-box-text);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10px;
+  font-family: var(--shiny-font-family);
+  font-size: 13px;
+}
+
+.className {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}

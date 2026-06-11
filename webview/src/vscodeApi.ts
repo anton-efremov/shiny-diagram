@@ -1,9 +1,15 @@
+/**
+ * @fileoverview Acquires the VS Code webview API instance, with a no-op fallback
+ * for local Vite development outside the extension host.
+ */
+
 type VsCodeApi = {
   postMessage(message: unknown): void;
 };
 
 declare function acquireVsCodeApi(): VsCodeApi;
 
+/** VS Code webview API instance. Posts messages to the extension host. */
 export const vscode: VsCodeApi =
   typeof acquireVsCodeApi === "function"
     ? acquireVsCodeApi()
