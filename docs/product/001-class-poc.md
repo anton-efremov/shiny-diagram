@@ -81,7 +81,7 @@ classDef ShinyTextMessageStyle fill:#DFF7FF,stroke:#2563EB,color:#111827
   - new classes
   - new connections
   - change style
-  - change position 
+  - change position
   - change size
 - WebView status becomes `Rendering`.
 - Shiny waits briefly for typing to settle.

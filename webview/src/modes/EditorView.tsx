@@ -64,8 +64,8 @@ function extractSpatialBoxes(source: string): SpatialBox[] {
     return [
       {
         className,
-        ...spatial
-      }
+        ...spatial,
+      },
     ];
   });
 }
@@ -132,10 +132,10 @@ function toReactFlowNodes(boxes: SpatialBox[]): Array<Node<ClassNodeData, "class
     height: box.height,
     style: {
       width: box.width,
-      height: box.height
+      height: box.height,
     },
     draggable: false,
-    selectable: false
+    selectable: false,
   }));
 }
 
@@ -144,12 +144,12 @@ const styles = {
     height: "620px",
     border: "1px solid var(--vscode-panel-border)",
     background: "var(--vscode-editorWidget-background)",
-    overflow: "hidden"
+    overflow: "hidden",
   },
   emptyState: {
     margin: 0,
     padding: "20px",
-    color: "var(--vscode-descriptionForeground)"
+    color: "var(--vscode-descriptionForeground)",
   },
   classBox: {
     boxSizing: "border-box",
@@ -163,12 +163,12 @@ const styles = {
     justifyContent: "center",
     padding: "10px",
     fontFamily: "Arial, sans-serif",
-    fontSize: "13px"
+    fontSize: "13px",
   },
   className: {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
-    maxWidth: "100%"
-  }
+    maxWidth: "100%",
+  },
 } satisfies Record<string, CSSProperties>;

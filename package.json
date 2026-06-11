@@ -36,14 +36,25 @@
     "build": "npm run compile && npm run build:webview",
     "build:webview": "vite build",
     "compile": "tsc -p ./",
-    "typecheck": "tsc -p ./ --noEmit && tsc -p ./tsconfig.webview.json --noEmit"
+    "typecheck": "tsc -p ./ --noEmit && tsc -p ./tsconfig.webview.json --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint src webview/src",
+    "check": "npm run format:check && npm run lint && npm run typecheck"
   },
   "devDependencies": {
     "@types/node": "^20.14.8",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@types/vscode": "^1.90.0",
+    "@typescript-eslint/eslint-plugin": "^8.61.0",
+    "@typescript-eslint/parser": "^8.61.0",
     "@vitejs/plugin-react": "^6.0.2",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "prettier": "^3.8.4",
     "typescript": "^5.5.2",
     "vite": "^8.0.16"
   },

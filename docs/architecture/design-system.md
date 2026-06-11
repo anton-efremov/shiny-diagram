@@ -20,7 +20,7 @@ Usage inside components:
 ```tsx
 import styles from "./ClassBox.module.css";
 
-<div className={styles.box}>...</div>
+<div className={styles.box}>...</div>;
 ```
 
 No inline `style` objects inside `.tsx` files. No central component stylesheet.
@@ -76,12 +76,12 @@ Two cases:
 
 ```css
 :root {
-  --shiny-box-fill:        var(--vscode-editorWidget-background);
-  --shiny-box-stroke:      var(--vscode-panel-border);
-  --shiny-box-text:        var(--vscode-editor-foreground);
+  --shiny-box-fill: var(--vscode-editorWidget-background);
+  --shiny-box-stroke: var(--vscode-panel-border);
+  --shiny-box-text: var(--vscode-editor-foreground);
   --shiny-selection-color: var(--vscode-focusBorder);
-  --shiny-hover-border:    var(--vscode-focusBorder);
-  --shiny-edge-color:      var(--vscode-editor-foreground);
+  --shiny-hover-border: var(--vscode-focusBorder);
+  --shiny-edge-color: var(--vscode-editor-foreground);
 }
 ```
 

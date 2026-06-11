@@ -22,7 +22,10 @@ export default function App(): ReactElement {
 
   const initialData = useMemo(() => readInitialData(), []);
   const { fileName, firstLine, lineCount, characterCount, sourceText } = initialData;
-  const renderableSourceText = useMemo(() => normalizeClassDefStyleProperties(sourceText), [sourceText]);
+  const renderableSourceText = useMemo(
+    () => normalizeClassDefStyleProperties(sourceText),
+    [sourceText]
+  );
 
   useEffect(() => {
     mermaid.initialize({
@@ -36,8 +39,8 @@ export default function App(): ReactElement {
         primaryTextColor: "#111827",
         lineColor: "#475569",
         textColor: "#111827",
-        fontFamily: "Arial, sans-serif"
-      }
+        fontFamily: "Arial, sans-serif",
+      },
     });
   }, []);
 
@@ -110,7 +113,9 @@ export default function App(): ReactElement {
         </div>
       </header>
 
-      <section style={styles.modeLabel}>Mode: {mode === "autorender" ? "Autorender" : "Editor"}</section>
+      <section style={styles.modeLabel}>
+        Mode: {mode === "autorender" ? "Autorender" : "Editor"}
+      </section>
 
       {mode === "autorender" ? (
         <section style={styles.canvas} aria-label="Mermaid autorender">
@@ -131,7 +136,7 @@ const styles = {
     padding: "24px",
     fontFamily: "var(--vscode-font-family)",
     color: "var(--vscode-editor-foreground)",
-    background: "var(--vscode-editor-background)"
+    background: "var(--vscode-editor-background)",
   },
   header: {
     display: "flex",
@@ -139,49 +144,49 @@ const styles = {
     justifyContent: "space-between",
     gap: "16px",
     alignItems: "flex-start",
-    marginBottom: "20px"
+    marginBottom: "20px",
   },
   title: {
     margin: "0 0 8px",
     fontSize: "22px",
-    fontWeight: 600
+    fontWeight: 600,
   },
   meta: {
     margin: "4px 0",
-    color: "var(--vscode-descriptionForeground)"
+    color: "var(--vscode-descriptionForeground)",
   },
   toolbar: {
     display: "flex",
-    gap: "8px"
+    gap: "8px",
   },
   button: {
     padding: "7px 12px",
     border: "1px solid var(--vscode-button-border, transparent)",
     color: "var(--vscode-button-secondaryForeground)",
     background: "var(--vscode-button-secondaryBackground)",
-    cursor: "pointer"
+    cursor: "pointer",
   },
   activeButton: {
     padding: "7px 12px",
     border: "1px solid var(--vscode-focusBorder)",
     color: "var(--vscode-button-foreground)",
     background: "var(--vscode-button-background)",
-    cursor: "pointer"
+    cursor: "pointer",
   },
   modeLabel: {
     marginBottom: "12px",
-    fontWeight: 600
+    fontWeight: 600,
   },
   canvas: {
     minHeight: "420px",
     padding: "20px",
     border: "1px solid var(--vscode-panel-border)",
     background: "var(--vscode-editorWidget-background)",
-    overflow: "auto"
+    overflow: "auto",
   },
   error: {
     whiteSpace: "pre-wrap",
-    color: "var(--vscode-errorForeground)"
+    color: "var(--vscode-errorForeground)",
   },
 } satisfies Record<string, React.CSSProperties>;
 
@@ -193,13 +198,16 @@ const mermaidStyles = `
 `;
 
 function normalizeClassDefStyleProperties(source: string): string {
-  return source.replace(/^(\s*classDef\s+\S+\s+)(.*)$/gm, (_line, prefix: string, styles: string) => {
-    const normalizedStyles = styles
-      .replace(/\bstroke-width:/g, "strokeWidth:")
-      .replace(/\bstroke-dasharray:/g, "strokeDasharray:");
+  return source.replace(
+    /^(\s*classDef\s+\S+\s+)(.*)$/gm,
+    (_line, prefix: string, styles: string) => {
+      const normalizedStyles = styles
+        .replace(/\bstroke-width:/g, "strokeWidth:")
+        .replace(/\bstroke-dasharray:/g, "strokeDasharray:");
 
-    return `${prefix}${normalizedStyles}`;
-  });
+      return `${prefix}${normalizedStyles}`;
+    }
+  );
 }
 
 function readInitialData(): InitialData {
@@ -211,7 +219,7 @@ function readInitialData(): InitialData {
       firstLine: "",
       lineCount: 0,
       characterCount: 0,
-      sourceText: ""
+      sourceText: "",
     };
   }
 
@@ -222,7 +230,7 @@ function readInitialData(): InitialData {
   } catch {
     parsed = {
       sourceText: "",
-      fileName: "Invalid initial webview data"
+      fileName: "Invalid initial webview data",
     };
   }
 
@@ -231,6 +239,6 @@ function readInitialData(): InitialData {
     firstLine: typeof parsed.firstLine === "string" ? parsed.firstLine : "",
     lineCount: typeof parsed.lineCount === "number" ? parsed.lineCount : 0,
     characterCount: typeof parsed.characterCount === "number" ? parsed.characterCount : 0,
-    sourceText: typeof parsed.sourceText === "string" ? parsed.sourceText : ""
+    sourceText: typeof parsed.sourceText === "string" ? parsed.sourceText : "",
   };
 }

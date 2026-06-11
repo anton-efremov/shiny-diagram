@@ -10,5 +10,5 @@ export const vscode: VsCodeApi =
     : {
         postMessage: () => {
           // Browser fallback for local Vite development.
-        }
+        },
       };

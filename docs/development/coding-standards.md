@@ -115,15 +115,17 @@ Non-exported functions: JSDoc block if non-trivial; omit for obvious one-liners.
 
 #### Inline comments
 
-Comments explain *why*, not *what*.
+Comments explain _why_, not _what_.
 
 Wrong:
+
 ```ts
 // Loop through all classes
 for (const cls of classes) {
 ```
 
 Right:
+
 ```ts
 // Class names are the stable identity for spatial annotations.
 // We iterate declared classes, not annotation keys, so undeclared
@@ -132,6 +134,7 @@ for (const cls of classes) {
 ```
 
 Required when:
+
 - Working around a library constraint or known bug (name the constraint)
 - Deviating intentionally from the documented architecture (state why)
 - A non-obvious invariant must hold for correctness

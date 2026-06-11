@@ -9,7 +9,7 @@ export function activate(context: vscode.ExtensionContext): void {
       vscode.ViewColumn.Beside,
       {
         enableScripts: true,
-        localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "out", "webview")]
+        localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "out", "webview")],
       }
     );
 
@@ -28,20 +28,26 @@ function getWebviewHtml(
   webview: vscode.Webview,
   document: vscode.TextDocument | undefined
 ): string {
-  const fileName = document ? document.fileName.split(/[\\/]/).pop() ?? document.fileName : "No active document";
+  const fileName = document
+    ? (document.fileName.split(/[\\/]/).pop() ?? document.fileName)
+    : "No active document";
   const sourceText = document?.getText() ?? "";
   const firstLine = sourceText.split(/\r?\n/, 1)[0] ?? "";
   const lineCount = document?.lineCount ?? 0;
   const characterCount = sourceText.length;
-  const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "out", "webview", "assets", "index.js"));
-  const styleUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, "out", "webview", "assets", "index.css"));
+  const scriptUri = webview.asWebviewUri(
+    vscode.Uri.joinPath(context.extensionUri, "out", "webview", "assets", "index.js")
+  );
+  const styleUri = webview.asWebviewUri(
+    vscode.Uri.joinPath(context.extensionUri, "out", "webview", "assets", "index.css")
+  );
   const nonce = getNonce();
   const initialData = serializeJsonForHtml({
     fileName,
     firstLine,
     lineCount,
     characterCount,
-    sourceText
+    sourceText,
   });
 
   return /* html */ `<!DOCTYPE html>

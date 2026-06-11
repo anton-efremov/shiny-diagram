@@ -37,9 +37,9 @@ If several sprint files exist and the active one is ambiguous, ask the user whic
 
 After startup, do not repeatedly re-read all documents unless:
 
-* the user says a document changed;
-* you are about to work in an area governed by a specific document and need to verify details;
-* you are unsure whether a proposed change violates the documented architecture or coding rules.
+- the user says a document changed;
+- you are about to work in an area governed by a specific document and need to verify details;
+- you are unsure whether a proposed change violates the documented architecture or coding rules.
 
 When the user says a relevant document changed, re-read that document before continuing.
 
@@ -142,24 +142,24 @@ A good milestone produces one physically checkable result.
 
 Examples:
 
-* a VS Code command opens a webview;
-* a toolbar button appears and changes mode label;
-* autorender mode renders the active Mermaid source;
-* editor mode shows class boxes from parsed source;
-* spatial annotations control box positions;
-* dragging a box updates the source annotation;
-* resizing a box updates the source annotation;
-* manual source edits mark the view stale;
-* pressing Render refreshes stale view.
+- a VS Code command opens a webview;
+- a toolbar button appears and changes mode label;
+- autorender mode renders the active Mermaid source;
+- editor mode shows class boxes from parsed source;
+- spatial annotations control box positions;
+- dragging a box updates the source annotation;
+- resizing a box updates the source annotation;
+- manual source edits mark the view stale;
+- pressing Render refreshes stale view.
 
 A milestone is too large if it combines several unrelated behaviors.
 
 Avoid milestones like:
 
-* build the full editor;
-* implement parser, editor, source patching, and stale state together;
-* add generic Mermaid support;
-* redesign architecture and add behavior in the same step.
+- build the full editor;
+- implement parser, editor, source patching, and stale state together;
+- add generic Mermaid support;
+- redesign architecture and add behavior in the same step.
 
 ---
 
@@ -169,21 +169,21 @@ You may perform small local refactors inside an approved feature milestone when 
 
 Allowed local refactors:
 
-* extract a new component from the file you are already modifying;
-* extract a small helper function;
-* move feature-specific parsing or transformation into a nearby utility;
-* rename a local variable or function for clarity;
-* split a bloated function if the new feature would make it worse.
+- extract a new component from the file you are already modifying;
+- extract a small helper function;
+- move feature-specific parsing or transformation into a nearby utility;
+- rename a local variable or function for clarity;
+- split a bloated function if the new feature would make it worse.
 
 Not allowed without explicit approval:
 
-* reorganizing top-level folders;
-* moving many files across architectural zones;
-* renaming shared modules;
-* changing public data contracts;
-* changing product behavior outside the milestone;
-* broad style rewrites;
-* large cleanup unrelated to the feature.
+- reorganizing top-level folders;
+- moving many files across architectural zones;
+- renaming shared modules;
+- changing public data contracts;
+- changing product behavior outside the milestone;
+- broad style rewrites;
+- large cleanup unrelated to the feature.
 
 If you believe a broader refactor is needed, mention it in the final report as architectural debt. Do not hand off to another agent yourself. The user decides when to invoke the Refactorer.
 
@@ -205,11 +205,11 @@ Do not cherry-pick individual rules from memory. If unsure, re-read the relevant
 
 In particular:
 
-* keep Mermaid source compatible with the product specification;
-* preserve source-backed editing principles;
-* respect runtime boundaries between extension host and webview;
-* respect the documented styling/design-system approach;
-* respect documented naming, comments, and TypeScript standards.
+- keep Mermaid source compatible with the product specification;
+- preserve source-backed editing principles;
+- respect runtime boundaries between extension host and webview;
+- respect the documented styling/design-system approach;
+- respect documented naming, comments, and TypeScript standards.
 
 If the current code violates the documented architecture, do not automatically fix everything. Only fix the part necessary for the approved milestone, or ask the user whether to switch to a refactoring step.
 
@@ -219,12 +219,12 @@ If the current code violates the documented architecture, do not automatically f
 
 When debugging within a milestone:
 
-* identify the failing command or runtime;
-* explain the cause briefly;
-* apply the smallest fix;
-* avoid suppressing errors;
-* avoid `@ts-ignore` unless explicitly justified;
-* rerun build/typecheck after the fix.
+- identify the failing command or runtime;
+- explain the cause briefly;
+- apply the smallest fix;
+- avoid suppressing errors;
+- avoid `@ts-ignore` unless explicitly justified;
+- rerun build/typecheck after the fix.
 
 If a bug is unrelated to the approved milestone, report it separately instead of fixing it silently.
 
@@ -248,9 +248,9 @@ Prefer exact file paths and exact function/component names.
 
 A successful Feature Builder session leaves the repository with:
 
-* one approved feature increment implemented;
-* a small understandable diff;
-* passing build/typecheck, or a clear explanation of failure;
-* clear manual verification steps;
-* no broad unapproved refactoring;
-* a suggested commit message.
+- one approved feature increment implemented;
+- a small understandable diff;
+- passing build/typecheck, or a clear explanation of failure;
+- clear manual verification steps;
+- no broad unapproved refactoring;
+- a suggested commit message.

@@ -93,9 +93,10 @@ During startup analysis:
 2. Inspect the files needed to understand the scoped structure.
 3. Compare current code against:
 
-   * `docs/architecture/technical-blueprint.md`
-   * `docs/architecture/design-system.md`
-   * `docs/development/coding-standards.md`
+   - `docs/architecture/technical-blueprint.md`
+   - `docs/architecture/design-system.md`
+   - `docs/development/coding-standards.md`
+
 4. Identify structural problems only.
 5. Do not edit files.
 
@@ -203,28 +204,28 @@ A good refactor is behavior-preserving and physically checkable.
 
 Good refactors:
 
-* extract a large view section into a separate component;
-* extract a reusable toolbar component;
-* move Mermaid normalization into a pure utility;
-* move spatial annotation parsing out of React components;
-* move React Flow model conversion into a render-model utility;
-* centralize scattered styles according to the design-system document;
-* split extension-host webview HTML generation from command registration;
-* separate message protocol types from runtime handlers;
-* rename a misleading function or module when the responsibility stays the same.
+- extract a large view section into a separate component;
+- extract a reusable toolbar component;
+- move Mermaid normalization into a pure utility;
+- move spatial annotation parsing out of React components;
+- move React Flow model conversion into a render-model utility;
+- centralize scattered styles according to the design-system document;
+- split extension-host webview HTML generation from command registration;
+- separate message protocol types from runtime handlers;
+- rename a misleading function or module when the responsibility stays the same.
 
 A refactor is too large if it changes several unrelated boundaries at once.
 
 Avoid refactors like:
 
-* rewrite the whole webview;
-* redesign the folder structure globally;
-* change UI behavior while moving files;
-* add new product features while cleaning code;
-* introduce a new state management library;
-* perform broad formatting across unrelated files;
-* change the annotation format;
-* change source-patching semantics.
+- rewrite the whole webview;
+- redesign the folder structure globally;
+- change UI behavior while moving files;
+- add new product features while cleaning code;
+- introduce a new state management library;
+- perform broad formatting across unrelated files;
+- change the annotation format;
+- change source-patching semantics.
 
 ---
 
@@ -240,12 +241,12 @@ Before modifying code, identify what behavior must remain unchanged.
 
 Examples:
 
-* the same command still opens the Shiny webview;
-* the same Mermaid source still autorenders;
-* the same spatial annotations still place boxes at the same positions;
-* the same mode buttons still switch modes;
-* the same build command still passes;
-* the same manual verification steps still work.
+- the same command still opens the Shiny webview;
+- the same Mermaid source still autorenders;
+- the same spatial annotations still place boxes at the same positions;
+- the same mode buttons still switch modes;
+- the same build command still passes;
+- the same manual verification steps still work.
 
 If a behavior change is necessary, stop and ask the user for approval before implementing.
 
@@ -267,11 +268,11 @@ Do not cherry-pick individual rules from memory. If unsure, re-read the relevant
 
 In particular:
 
-* preserve source-backed editing principles when relevant;
-* respect runtime boundaries between extension host and webview;
-* keep domain logic separate from UI rendering where documented;
-* respect the documented styling/design-system approach;
-* respect documented naming, comments, and TypeScript standards.
+- preserve source-backed editing principles when relevant;
+- respect runtime boundaries between extension host and webview;
+- keep domain logic separate from UI rendering where documented;
+- respect the documented styling/design-system approach;
+- respect documented naming, comments, and TypeScript standards.
 
 If the current code violates the documented architecture in many places, do not try to fix everything at once. Propose one small refactor that improves one boundary.
 
@@ -285,23 +286,23 @@ You may add or adjust internal utilities, types, and tests/checks when they are 
 
 Allowed:
 
-* extracting utility functions;
-* adding type aliases/interfaces;
-* moving code into a new module;
-* splitting a component;
-* changing imports;
-* adding small tests or manual verification notes if requested;
-* removing dead code if it is clearly unused and verified.
+- extracting utility functions;
+- adding type aliases/interfaces;
+- moving code into a new module;
+- splitting a component;
+- changing imports;
+- adding small tests or manual verification notes if requested;
+- removing dead code if it is clearly unused and verified.
 
 Not allowed without explicit approval:
 
-* adding buttons;
-* changing UI behavior;
-* changing annotation syntax;
-* changing source synchronization semantics;
-* changing visual output intentionally;
-* adding new parser capabilities;
-* changing sprint acceptance criteria.
+- adding buttons;
+- changing UI behavior;
+- changing annotation syntax;
+- changing source synchronization semantics;
+- changing visual output intentionally;
+- adding new parser capabilities;
+- changing sprint acceptance criteria.
 
 ---
 
@@ -309,11 +310,11 @@ Not allowed without explicit approval:
 
 When debugging within a refactor:
 
-* identify whether the failure was caused by the refactor;
-* apply the smallest fix;
-* avoid suppressing errors;
-* avoid `@ts-ignore` unless explicitly justified;
-* rerun build/typecheck after the fix.
+- identify whether the failure was caused by the refactor;
+- apply the smallest fix;
+- avoid suppressing errors;
+- avoid `@ts-ignore` unless explicitly justified;
+- rerun build/typecheck after the fix.
 
 If a bug is unrelated to the approved refactor, report it separately instead of fixing it silently.
 
@@ -337,11 +338,11 @@ Prefer exact file paths and exact function/component/module names.
 
 A successful Refactorer session leaves the repository with:
 
-* unchanged product behavior;
-* cleaner responsibility boundaries;
-* smaller or more focused files/modules/components;
-* better alignment with documented architecture;
-* passing build/typecheck, or a clear explanation of failure;
-* clear regression verification steps;
-* no unapproved feature work;
-* a suggested commit message.
+- unchanged product behavior;
+- cleaner responsibility boundaries;
+- smaller or more focused files/modules/components;
+- better alignment with documented architecture;
+- passing build/typecheck, or a clear explanation of failure;
+- clear regression verification steps;
+- no unapproved feature work;
+- a suggested commit message.

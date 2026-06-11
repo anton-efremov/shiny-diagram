@@ -5,16 +5,19 @@ Shiny is a software diagramming tool for AI-human co-creation around source-cont
 ## Product context
 
 Current diagramming tools leave a gap between visual editing and source-based automation.
+
 - **Human-first visual editors**, such as Excalidraw or whiteboarding tools, are optimized for manual layout and free-form manipulation. They are expressive and tactile, but the resulting artifact is difficult for AI to modify structurally and difficult for software teams to review meaningfully in version control.
 - **Diagram-as-a-code tools** like Mermaid are AI friendly but do not allow user to edit resulting diagram visually and do not encode/preserve layout of a diagram (important for human perception)
 - **AI-generated images** are even less suitable for software diagram workflows. They may look good, but they are not reliably editable - only through AI prompting with unstable outcomes
 
 Shiny solution:
+
 - Language for persistent visual annotations in Mermaid code
-- Visual editor synchronized with Mermaid code, that stays the single source of truth 
-The source file always remains a valid Mermaid. A standard Mermaid renderer should ignore Shiny annotations and still render the diagram. Shiny therefore extends Mermaid as a compatible authoring convention, not forking Mermaid syntax.
+- Visual editor synchronized with Mermaid code, that stays the single source of truth
+  The source file always remains a valid Mermaid. A standard Mermaid renderer should ignore Shiny annotations and still render the diagram. Shiny therefore extends Mermaid as a compatible authoring convention, not forking Mermaid syntax.
 
 The end-state loop AI-human co-creation loop:
+
 1. AI generates or edits Mermaid source.
 2. Shiny renders it visually inside VS Code.
 3. The user moves, resizes, and edits visual objects.
@@ -39,11 +42,13 @@ The product has three conceptual layers:
    The webview owns the visual interface: rendering modes, diagram canvas, drag/resize interactions, stale-state display, and user controls.
 
 The core editing loop should not require a backend server, external database, cloud storage, or non-local runtime.
+
 ## 1. Mermaid source layer
 
 Shiny uses Mermaid-compatible comment annotations.
 
 The base diagram remains normal Mermaid. Shiny annotations are comments that standard Mermaid renderers ignore.
+
 #### Example
 
 ```js
@@ -104,16 +109,17 @@ A spatial annotation has this form:
 
 Rules:
 
-* each annotation is a Mermaid comment;
-* line starts with `%% @spatial:`;
-* object ID follows immediately after `@spatial:`;
-* required keys are `x`, `y`, `w`, and `h`;
-* values are numbers;
-* coordinates use top-left origin;
-* units are CSS pixels;
-* for class diagrams, object identity is the class name;
-* unknown future keys should be ignored;
-* annotations might be placed anywhere, although canonical form should be grouping under `%% --- VISUAL ANNOTATIONS CORNERSTONE ---`; near the bottom of the file, close to Mermaid-native style declarations.
+- each annotation is a Mermaid comment;
+- line starts with `%% @spatial:`;
+- object ID follows immediately after `@spatial:`;
+- required keys are `x`, `y`, `w`, and `h`;
+- values are numbers;
+- coordinates use top-left origin;
+- units are CSS pixels;
+- for class diagrams, object identity is the class name;
+- unknown future keys should be ignored;
+- annotations might be placed anywhere, although canonical form should be grouping under `%% --- VISUAL ANNOTATIONS CORNERSTONE ---`; near the bottom of the file, close to Mermaid-native style declarations.
+
 #### Object identity
 
 For class diagrams, the object ID is the Mermaid class name:
@@ -159,13 +165,13 @@ Initial Shiny annotations are limited to position and size.
 
 Shiny should tolerate:
 
-* fully annotated files;
-* partially annotated files;
-* unannotated files;
-* incomplete annotation sections;
-* reordered annotation lines;
-* unknown future keys;
-* whitespace variations.
+- fully annotated files;
+- partially annotated files;
+- unannotated files;
+- incomplete annotation sections;
+- reordered annotation lines;
+- unknown future keys;
+- whitespace variations.
 
 Shiny should normalize annotations when it writes them, but preserve non-annotation Mermaid source as much as possible.
 
@@ -184,19 +190,20 @@ Shiny exposes two entry points to open a diagram panel beside the currently acti
 
 The extension host is responsible for:
 
-* reading the active `.mmd` document;
-* validating supported Mermaid diagram types;
-* parsing supported Mermaid structures into a diagram model;
-* parsing Shiny visual annotations;
-* completing missing visual annotations when required;
-* creating and managing the webview panel;
-* sending diagram/source data to the webview;
-* receiving visual edit messages from the webview;
-* patching the source file with updated annotations;
-* distinguishing manual source edits from Shiny-originated edits;
-* notifying the webview when its visual state is stale.
+- reading the active `.mmd` document;
+- validating supported Mermaid diagram types;
+- parsing supported Mermaid structures into a diagram model;
+- parsing Shiny visual annotations;
+- completing missing visual annotations when required;
+- creating and managing the webview panel;
+- sending diagram/source data to the webview;
+- receiving visual edit messages from the webview;
+- patching the source file with updated annotations;
+- distinguishing manual source edits from Shiny-originated edits;
+- notifying the webview when its visual state is stale.
 
 The extension host is the only layer that mutates source files. The webview must not directly access the filesystem.
+
 ## 3 WebView editor layer
 
 The Shiny webview is the product’s visual editing surface. It should feel like a diagram editor embedded inside VS Code, not like an external web application.
@@ -207,6 +214,7 @@ The webview has one shared layout and two mutually exclusive display modes:
 Mode: Autorender | Editor
 Status: Rendered | Rendering | Error
 ```
+
 ### Layout
 
 #### What it is
@@ -215,16 +223,16 @@ The WebView layout is the persistent frame around all Shiny diagram views. It co
 
 **Elements**:
 
-* **File header** — shows active file name and relevant metadata.
-* **Mode toggle** — switches between `Autorender` and `Editor`.
-* **Render status** — shows whether the current view matches the current source. Updated with some delay to let user finish typing (status: Rendering). After some time status becomes either "Rendered" or "Error"
-* **Canvas region** — hosts the active mode.
-* **Diagnostics region** — eventually shows parse errors, unsupported syntax, orphaned annotations, duplicate annotations, and Mermaid render errors.
+- **File header** — shows active file name and relevant metadata.
+- **Mode toggle** — switches between `Autorender` and `Editor`.
+- **Render status** — shows whether the current view matches the current source. Updated with some delay to let user finish typing (status: Rendering). After some time status becomes either "Rendered" or "Error"
+- **Canvas region** — hosts the active mode.
+- **Diagnostics region** — eventually shows parse errors, unsupported syntax, orphaned annotations, duplicate annotations, and Mermaid render errors.
 
 In Future elements may include:
 
-* canvas minimap;
-* command/search palette;
+- canvas minimap;
+- command/search palette;
 
 #### How it interacts with source code
 
@@ -256,7 +264,7 @@ When the user moves or resizes an object in Editor mode:
 
 #### What it is
 
-Autorender mode displays the current Mermaid source using the standard Mermaid renderer. 
+Autorender mode displays the current Mermaid source using the standard Mermaid renderer.
 It is a compatibility and debugging view, not a visual editing surface.
 
 #### Why we need it
@@ -267,8 +275,8 @@ Autorender mode proves that Shiny files remain valid Mermaid files. It lets the 
 
 Autorender mode contains:
 
-* Mermaid-rendered diagram canvas;
-* standard zoom/pan controls 
+- Mermaid-rendered diagram canvas;
+- standard zoom/pan controls
 
 It does not contain draggable objects, resize handles, creation tools, inspector controls, or style editing tools.
 
@@ -300,45 +308,45 @@ Editor mode is the core product experience. It gives humans direct manipulation 
 
 The goal is to let a user:
 
-* move objects;
-* resize objects;
-* inspect objects;
-* add, delete, and edit semantic diagram elements;
-* preserve visual intent across AI edits and Git commits.
+- move objects;
+- resize objects;
+- inspect objects;
+- add, delete, and edit semantic diagram elements;
+- preserve visual intent across AI edits and Git commits.
 
 #### Elements
 
 Initial Editor mode elements:
 
-* diagram canvas;
-* class boxes;
-* relationship edges;
-* move interaction;
-* resize interaction;
-* selection state;
-* zoom/pan controls.
+- diagram canvas;
+- class boxes;
+- relationship edges;
+- move interaction;
+- resize interaction;
+- selection state;
+- zoom/pan controls.
 
 Future Editor mode elements:
 
-* shape/class creation toolbar;
-* relationship creation tool;
-* color/style toolbar mapped to Mermaid-native style syntax;
-* object inspector panel;
-* diagnostics panel;
-* alignment/distribution tools;
-* snapping/grid controls;
-* AI instruction panel;
-* minimap.
+- shape/class creation toolbar;
+- relationship creation tool;
+- color/style toolbar mapped to Mermaid-native style syntax;
+- object inspector panel;
+- diagnostics panel;
+- alignment/distribution tools;
+- snapping/grid controls;
+- AI instruction panel;
+- minimap.
 
 For class diagrams, a class box should eventually display:
 
-* class name;
-* fields;
-* methods;
-* class styling derived from Mermaid-native style declarations where feasible;
-* resize affordance;
-* selection state;
-* diagnostic state if relevant.
+- class name;
+- fields;
+- methods;
+- class styling derived from Mermaid-native style declarations where feasible;
+- resize affordance;
+- selection state;
+- diagnostic state if relevant.
 
 #### How it interacts with source code
 
@@ -392,10 +400,10 @@ When a user moves or resizes an object in Editor mode, Shiny updates the matchin
 
 Expected outcome:
 
-* visual layout persists after reopening;
-* Git diff shows layout changes as text;
-* AI can see and preserve user layout;
-* the WebView remains synchronized because the source edit was produced by Shiny.
+- visual layout persists after reopening;
+- Git diff shows layout changes as text;
+- AI can see and preserve user layout;
+- the WebView remains synchronized because the source edit was produced by Shiny.
 
 ### 3. Edit source manually
 
@@ -435,9 +443,9 @@ Diagram changes are reviewed as text.
 
 Expected distinction:
 
-* Mermaid semantic changes show changed classes, relationships, labels, fields, or methods.
-* Mermaid style changes show changed `class`, `classDef`, or style syntax.
-* Shiny layout changes show changed `@spatial` coordinates.
+- Mermaid semantic changes show changed classes, relationships, labels, fields, or methods.
+- Mermaid style changes show changed `class`, `classDef`, or style syntax.
+- Shiny layout changes show changed `@spatial` coordinates.
 
 Expected outcome: reviewers can distinguish semantic, styling, and layout-only changes.
 
@@ -453,23 +461,22 @@ Malformed, duplicate, or orphaned annotations should be preserved and surfaced a
 
 Expected outcome: Shiny degrades safely and avoids destructive rewrites.
 
-
 ## Product principles and boundaries
 
 Shiny follows these product principles:
 
-* **Source-first:** the `.mmd` file is the durable artifact.
-* **Mermaid-compatible:** Shiny files remain valid Mermaid files.
-* **Layout separate from semantics:** Mermaid owns meaning and supported styling; Shiny owns persistent layout metadata.
-* **Human and AI symmetry:** humans edit visually; AI edits text; both work on the same artifact.
-* **Safe degradation:** unsupported syntax and malformed annotations must not cause destructive rewrites.
-* **Version-control readability:** Git diffs should reveal whether a change is semantic, stylistic, or spatial.
+- **Source-first:** the `.mmd` file is the durable artifact.
+- **Mermaid-compatible:** Shiny files remain valid Mermaid files.
+- **Layout separate from semantics:** Mermaid owns meaning and supported styling; Shiny owns persistent layout metadata.
+- **Human and AI symmetry:** humans edit visually; AI edits text; both work on the same artifact.
+- **Safe degradation:** unsupported syntax and malformed annotations must not cause destructive rewrites.
+- **Version-control readability:** Git diffs should reveal whether a change is semantic, stylistic, or spatial.
 
 Product boundaries:
 
-* Shiny is not a Mermaid replacement.
-* Shiny is not a free-form drawing tool.
-* Shiny is not an image-generation tool.
-* Shiny is not initially a collaborative cloud whiteboard.
+- Shiny is not a Mermaid replacement.
+- Shiny is not a free-form drawing tool.
+- Shiny is not an image-generation tool.
+- Shiny is not initially a collaborative cloud whiteboard.
 
 Shiny is a source-backed visual editing layer for structured Mermaid diagrams. The first supported diagram family is class diagrams. Future support may include flowcharts, sequence diagrams, entity-relationship diagrams, and architecture diagrams, but the product architecture should not assume all Mermaid diagram types have identical object identity or layout semantics.
