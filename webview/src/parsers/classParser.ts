@@ -69,6 +69,10 @@ export function toReactFlowNodes(boxes: SpatialBox[]): Array<Node<ClassNodeData,
  * Uses Mermaid's own parser rather than a regex reimplementation.
  */
 async function extractClassNamesFromAst(source: string): Promise<string[]> {
+  // addDiagrams() must run before getDiagramFromText() or the type detectors
+  // are not registered and the call throws. initialize() is the public entry
+  // point that calls addDiagrams(); it is idempotent.
+  mermaid.initialize({ startOnLoad: false });
   const diagram = await mermaid.mermaidAPI.getDiagramFromText(source);
   const db = diagram.db as unknown as ClassDiagramDb;
   return [...db.getClasses().keys()];
