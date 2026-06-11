@@ -84,16 +84,16 @@ export type ClassNode = {
 
 /** All Mermaid class diagram relationship types. */
 export type RelationshipType =
-  | "association"       // A --> B
-  | "solidLink"         // A -- B
-  | "dashedLink"        // A .. B
-  | "inheritance"       // A <|-- B
-  | "composition"       // A *-- B
-  | "aggregation"       // A o-- B
-  | "dependency"        // A ..> B
-  | "realization"       // A ..|> B
-  | "twoWay"            // A <|--|> B
-  | "lollipop";         // foo --() Interface
+  | "association" // A --> B
+  | "solidLink" // A -- B
+  | "dashedLink" // A .. B
+  | "inheritance" // A <|-- B
+  | "composition" // A *-- B
+  | "aggregation" // A o-- B
+  | "dependency" // A ..> B
+  | "realization" // A ..|> B
+  | "twoWay" // A <|--|> B
+  | "lollipop"; // foo --() Interface
 
 /**
  * A directed relationship between two classes.

@@ -29,6 +29,7 @@ When a build fails, the error output identifies which half failed.
 Open the repo in VS Code and press `F5`. This launches an Extension Development Host with Shiny loaded.
 
 To verify a change:
+
 1. Open any `.mmd` file in the Extension Development Host
 2. Trigger `Shiny: Open Diagram` via the command palette or the icon in the editor title bar
 3. The Shiny panel opens beside the source file

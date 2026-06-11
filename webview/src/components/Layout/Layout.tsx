@@ -27,7 +27,6 @@ export default function Layout({
   characterCount,
   sourceText,
 }: LayoutProps): ReactElement {
-
   return (
     <main className={styles.shell}>
       <header className={styles.header}>

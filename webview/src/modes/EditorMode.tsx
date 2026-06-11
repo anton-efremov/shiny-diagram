@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import type { ReactElement } from "react";
-import type { Node } from "@xyflow/react";
-import { extractSpatialBoxes, toReactFlowNodes } from "../parsers/classParser";
+import { parseDiagram } from "../parsers/classDiagram";
+import type { ClassBoxProps } from "../parsers/classDiagram/diagramModel";
 import ClassDiagram from "../components/ClassDiagram/ClassDiagram";
 import StylePane from "../components/StylePane/StylePane";
 import ToolPane from "../components/ToolPane/ToolPane";
@@ -12,40 +12,32 @@ type EditorModeProps = {
 };
 
 /**
- * Renders the Editor mode: parses spatial annotations from the source via the
- * Mermaid AST pipeline and delegates canvas rendering to ClassDiagram.
+ * Renders the Editor mode: parses source into DiagramModel, resolves
+ * ClassBoxProps for annotated classes, and delegates canvas rendering
+ * to ClassDiagram. Only classes with a matching spatial annotation are rendered.
  */
 export default function EditorMode({ sourceText }: EditorModeProps): ReactElement {
-  const [nodes, setNodes] = useState<Node[]>([]);
+  const classBoxes = useMemo((): ClassBoxProps[] => {
+    const model = parseDiagram(sourceText);
+    const result: ClassBoxProps[] = [];
 
-  useEffect(() => {
-    let cancelled = false;
+    for (const [id, node] of model.classes) {
+      const spatial = model.spatialAnnotations.get(id);
+      if (!spatial) continue;
 
-    async function parse(): Promise<void> {
-      try {
-        const boxes = await extractSpatialBoxes(sourceText);
-        if (!cancelled) {
-          setNodes(toReactFlowNodes(boxes));
-        }
-      } catch {
-        if (!cancelled) {
-          setNodes([]);
-        }
-      }
+      const style = node.styleDefName ? model.styleDefinitions.get(node.styleDefName) : undefined;
+
+      result.push({ node, spatial, style });
     }
 
-    void parse();
-
-    return () => {
-      cancelled = true;
-    };
+    return result;
   }, [sourceText]);
 
   return (
     <section className={styles.editorShell} aria-label="Class diagram editor">
       <ToolPane />
       <div className={styles.canvasRegion}>
-        <ClassDiagram nodes={nodes} />
+        <ClassDiagram classBoxes={classBoxes} />
       </div>
       <StylePane />
     </section>

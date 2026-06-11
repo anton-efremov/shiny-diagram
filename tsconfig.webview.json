@@ -16,5 +16,5 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["webview/src", "vite.config.ts"],
+  "include": ["webview/src", "vite.config.ts"]
 }
