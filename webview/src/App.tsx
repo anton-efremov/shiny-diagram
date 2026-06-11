@@ -1,77 +1,21 @@
-import { useMemo, useEffect, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import mermaid from "mermaid";
 import EditorView from "./modes/EditorView";
 import { vscode } from "./vscodeApi";
-import { normalizeClassDefStyleProperties } from "./parsers/classParser";
+import { useAutorender } from "./useAutorender";
 import { readInitialData } from "./utils/initialData";
 import styles from "./App.module.css";
 
 type Mode = "autorender" | "editor";
 
-/** Root application component. Manages mode selection and Mermaid autorender. */
+/** Root application component. Owns mode selection and delegates rendering to mode views. */
 export default function App(): ReactElement {
   const [mode, setMode] = useState<Mode>("autorender");
-  const [renderError, setRenderError] = useState<string | null>(null);
-  const mermaidContainerRef = useRef<HTMLDivElement | null>(null);
-  const renderIdRef = useRef(`shiny-source-diagram-${Math.random().toString(36).slice(2)}`);
 
   const initialData = useMemo(() => readInitialData(), []);
   const { fileName, firstLine, lineCount, characterCount, sourceText } = initialData;
-  const renderableSourceText = useMemo(
-    () => normalizeClassDefStyleProperties(sourceText),
-    [sourceText]
-  );
 
-  useEffect(() => {
-    mermaid.initialize({
-      startOnLoad: false,
-      securityLevel: "strict",
-      htmlLabels: false,
-      theme: "base",
-      themeVariables: {
-        primaryColor: "#f8fafc",
-        primaryBorderColor: "#64748b",
-        primaryTextColor: "#111827",
-        lineColor: "#475569",
-        textColor: "#111827",
-        fontFamily: "Arial, sans-serif",
-      },
-    });
-  }, []);
-
-  useEffect(() => {
-    if (mode !== "autorender" || !mermaidContainerRef.current) {
-      return;
-    }
-
-    let disposed = false;
-
-    async function renderDiagram(): Promise<void> {
-      try {
-        if (!renderableSourceText.trim()) {
-          throw new Error("No Mermaid source text was available from the active document.");
-        }
-
-        const { svg } = await mermaid.render(renderIdRef.current, renderableSourceText);
-
-        if (!disposed && mermaidContainerRef.current) {
-          mermaidContainerRef.current.innerHTML = svg;
-          setRenderError(null);
-        }
-      } catch (error) {
-        if (!disposed) {
-          setRenderError(error instanceof Error ? error.message : "Mermaid render failed.");
-        }
-      }
-    }
-
-    void renderDiagram();
-
-    return () => {
-      disposed = true;
-    };
-  }, [mode, renderableSourceText]);
+  const { mermaidContainerRef, renderError } = useAutorender(sourceText, mode === "autorender");
 
   function handleRenderClick(): void {
     vscode.postMessage({ type: "renderRequested" });
@@ -123,4 +67,3 @@ export default function App(): ReactElement {
     </main>
   );
 }
-

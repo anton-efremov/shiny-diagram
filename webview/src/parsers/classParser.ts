@@ -12,26 +12,6 @@ export type ClassNodeData = {
 };
 
 /**
- * Rewrites hyphenated CSS property names in classDef lines to camelCase so
- * Mermaid's parser accepts them without errors.
- *
- * @param source - Full .mmd file content.
- * @returns Source string with classDef property names normalized.
- */
-export function normalizeClassDefStyleProperties(source: string): string {
-  return source.replace(
-    /^(\s*classDef\s+\S+\s+)(.*)$/gm,
-    (_line, prefix: string, styleProps: string) => {
-      const normalized = styleProps
-        .replace(/\bstroke-width:/g, "strokeWidth:")
-        .replace(/\bstroke-dasharray:/g, "strokeDasharray:");
-
-      return `${prefix}${normalized}`;
-    }
-  );
-}
-
-/**
  * Extracts spatial box data for all declared classes that have a matching
  * spatial annotation. Classes without an annotation are omitted.
  */
