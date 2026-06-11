@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import { getWebviewHtml } from "./webviewProvider";
+import { DiagramSession } from "./diagramSession";
 
 /** Registers extension commands and sets up the webview panel lifecycle. */
 export function activate(context: vscode.ExtensionContext): void {
@@ -21,6 +22,11 @@ export function activate(context: vscode.ExtensionContext): void {
     );
 
     panel.webview.html = getWebviewHtml(context, panel.webview, activeDocument);
+
+    if (activeDocument) {
+      const session = new DiagramSession(activeDocument, panel);
+      panel.onDidDispose(() => session.dispose());
+    }
   });
 
   context.subscriptions.push(disposable);
