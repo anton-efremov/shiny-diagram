@@ -1,7 +1,10 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import type { ReactElement } from "react";
 import { parseDiagram } from "../parsers/classDiagram";
+import { formatSpatialAnnotation } from "../parsers/classDiagram/formatSpatial";
 import type { ClassBoxProps } from "../parsers/classDiagram/diagramModel";
+import type { ApplyEditsMessage } from "../protocol";
+import { vscode } from "../vscodeApi";
 import ClassDiagram from "../components/ClassDiagram/ClassDiagram";
 import StylePane from "../components/StylePane/StylePane";
 import ToolPane from "../components/ToolPane/ToolPane";
@@ -14,7 +17,8 @@ type EditorModeProps = {
 /**
  * Renders the Editor mode: parses source into DiagramModel, resolves
  * ClassBoxProps for annotated classes, and delegates canvas rendering
- * to ClassDiagram. Only classes with a matching spatial annotation are rendered.
+ * to ClassDiagram. Handles drag events by computing a source diff and
+ * posting it to the extension host.
  */
 export default function EditorMode({ sourceText }: EditorModeProps): ReactElement {
   const classBoxes = useMemo((): ClassBoxProps[] => {
@@ -33,11 +37,26 @@ export default function EditorMode({ sourceText }: EditorModeProps): ReactElemen
     return result;
   }, [sourceText]);
 
+  const handleNodeDragStop = useCallback(
+    (classId: string, x: number, y: number) => {
+      const box = classBoxes.find((b) => b.node.id === classId);
+      if (!box) return;
+
+      const newText = formatSpatialAnnotation(box.spatial, x, y);
+      const message: ApplyEditsMessage = {
+        type: "applyEdits",
+        edits: [{ lineNumber: box.spatial.location.line, newText }],
+      };
+      vscode.postMessage(message);
+    },
+    [classBoxes]
+  );
+
   return (
     <section className={styles.editorShell} aria-label="Class diagram editor">
       <ToolPane />
       <div className={styles.canvasRegion}>
-        <ClassDiagram classBoxes={classBoxes} />
+        <ClassDiagram classBoxes={classBoxes} onNodeDragStop={handleNodeDragStop} />
       </div>
       <StylePane />
     </section>

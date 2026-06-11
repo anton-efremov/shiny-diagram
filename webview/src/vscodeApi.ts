@@ -3,8 +3,10 @@
  * for local Vite development outside the extension host.
  */
 
+import type { WebviewToHostMessage } from "./protocol";
+
 type VsCodeApi = {
-  postMessage(message: unknown): void;
+  postMessage(message: WebviewToHostMessage): void;
 };
 
 declare function acquireVsCodeApi(): VsCodeApi;

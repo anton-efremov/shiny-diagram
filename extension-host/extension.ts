@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import { getWebviewHtml } from "./webviewProvider";
 import { DiagramSession } from "./diagramSession";
+import type { WebviewToHostMessage } from "./protocol";
 
 /** Registers extension commands and sets up the webview panel lifecycle. */
 export function activate(context: vscode.ExtensionContext): void {
@@ -25,6 +26,9 @@ export function activate(context: vscode.ExtensionContext): void {
 
     if (activeDocument) {
       const session = new DiagramSession(activeDocument, panel);
+      panel.webview.onDidReceiveMessage((msg: WebviewToHostMessage) => {
+        session.handleWebviewMessage(msg);
+      });
       panel.onDidDispose(() => session.dispose());
     }
   });
