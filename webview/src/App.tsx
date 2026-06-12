@@ -9,8 +9,8 @@ import { readInitialData } from "./utils/initialData";
 export default function App(): ReactElement {
   const [mode, setMode] = useState<Mode>("autorender");
 
-  const initialData = useMemo(() => readInitialData(), []);
-  const [sourceText, setSourceText] = useState(initialData.sourceText);
+  const initialSourceText = useMemo(() => readInitialData(), []);
+  const [sourceText, setSourceText] = useState(initialSourceText);
 
   useEffect(() => {
     function handleMessage(event: MessageEvent<HostMessage>): void {
@@ -24,15 +24,5 @@ export default function App(): ReactElement {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  return (
-    <Layout
-      mode={mode}
-      setMode={setMode}
-      fileName={initialData.fileName}
-      firstLine={initialData.firstLine}
-      lineCount={initialData.lineCount}
-      characterCount={initialData.characterCount}
-      sourceText={sourceText}
-    />
-  );
+  return <Layout mode={mode} setMode={setMode} sourceText={sourceText} />;
 }

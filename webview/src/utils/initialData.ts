@@ -1,49 +1,23 @@
 /**
- * @fileoverview Reads and validates the initial data injected by the extension
- * host into the webview's #shiny-initial-data script tag. No React dependencies.
+ * @fileoverview Reads the initial source text injected by the extension host
+ * into the webview's #shiny-initial-data script tag. No React dependencies.
  */
-
-export type InitialData = {
-  fileName: string;
-  firstLine: string;
-  lineCount: number;
-  characterCount: number;
-  sourceText: string;
-};
 
 /**
- * Reads the JSON blob from the #shiny-initial-data script tag injected by the
- * extension host. Returns safe defaults for any missing or malformed fields.
+ * Reads the JSON-encoded source text from the #shiny-initial-data script tag.
+ * Returns an empty string if the tag is missing or its content is malformed.
  */
-export function readInitialData(): InitialData {
+export function readInitialData(): string {
   const dataElement = document.getElementById("shiny-initial-data");
 
   if (!dataElement?.textContent) {
-    return {
-      fileName: "No active document",
-      firstLine: "",
-      lineCount: 0,
-      characterCount: 0,
-      sourceText: "",
-    };
+    return "";
   }
-
-  let parsed: Partial<InitialData>;
 
   try {
-    parsed = JSON.parse(dataElement.textContent) as Partial<InitialData>;
+    const parsed: unknown = JSON.parse(dataElement.textContent);
+    return typeof parsed === "string" ? parsed : "";
   } catch {
-    parsed = {
-      sourceText: "",
-      fileName: "Invalid initial webview data",
-    };
+    return "";
   }
-
-  return {
-    fileName: typeof parsed.fileName === "string" ? parsed.fileName : "No active document",
-    firstLine: typeof parsed.firstLine === "string" ? parsed.firstLine : "",
-    lineCount: typeof parsed.lineCount === "number" ? parsed.lineCount : 0,
-    characterCount: typeof parsed.characterCount === "number" ? parsed.characterCount : 0,
-    sourceText: typeof parsed.sourceText === "string" ? parsed.sourceText : "",
-  };
 }

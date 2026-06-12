@@ -1,5 +1,5 @@
 /**
- * @fileoverview Message protocol types for the Shiny host↔webview boundary.
+ * @fileoverview Message protocol types for the Shiny host <-> webview boundary.
  * All messages cross the postMessage boundary as JSON with a `type` discriminant.
  *
  * The webview-side mirror of these types lives in webview/src/protocol.ts.
