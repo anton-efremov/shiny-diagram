@@ -99,10 +99,12 @@ The parser lives in `webview/src/parsers/classDiagram/` and is organized as foll
 
 ```
 parsers/
-├── diagramModel.ts              ← parser output types and component input contract
 └── classDiagram/
+    ├── diagramModel.ts          ← parser output types and component input contract
     ├── index.ts                 ← public API: parseDiagram(source) → DiagramModel
     ├── tokenizer.ts             ← splits source into TokenizedLine[]; identifies line types and block boundaries
+    ├── formatSpatial.ts         ← formats SpatialAnnotation back into @spatial source line (mirror of parseSpatial)
+    ├── formatStyleDef.ts        ← formats StyleDef properties back into classDef source line
     └── rules/
         ├── parseClasses.ts      ← class declarations and members
         ├── parseRelationships.ts ← relationship edges
@@ -118,6 +120,8 @@ parsers/
 **Each rule** is a pure function with the signature `(lines: TokenizedLine[]) => T`. Rules are independent — they do not call each other.
 
 **`index.ts`** orchestrates: calls the tokenizer, runs all rules, assembles and returns `DiagramModel`.
+
+**Formatters** (`format*.ts`) are the write-side mirror of parser rules. Each formatter takes a parsed model object and updated values and produces the replacement source line string. They are used by editor components to compute diffs before posting `ApplyEditsMessage` to the extension host.
 
 Future diagram types add a sibling folder: `parsers/sequenceDiagram/`, `parsers/flowchart/`, etc. Shared tokenizer utilities live in `parsers/shared/` when genuine reuse emerges.
 

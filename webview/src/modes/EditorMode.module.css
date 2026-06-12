@@ -13,3 +13,27 @@
 .canvasRegion {
   min-width: 0;
 }
+
+.errorCanvas,
+.missingCanvas {
+  padding: 24px;
+  color: var(--shiny-description-text);
+}
+
+.errorMessage {
+  margin: 0;
+  color: var(--shiny-error-text);
+}
+
+.missingLabel {
+  margin: 0 0 8px;
+}
+
+.missingList {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.missingItem {
+  font-family: var(--vscode-editor-font-family, monospace);
+}

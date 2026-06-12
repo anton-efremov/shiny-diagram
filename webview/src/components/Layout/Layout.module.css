@@ -51,3 +51,21 @@
   margin-bottom: 12px;
   font-weight: 600;
 }
+
+.statusMessage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  color: var(--shiny-error-text);
+  font-size: 13px;
+}
+
+.generateButton {
+  padding: 3px 10px;
+  border: 1px solid var(--shiny-button-border);
+  color: var(--shiny-button-secondary-fg);
+  background: var(--shiny-button-secondary-bg);
+  cursor: pointer;
+  font-size: 12px;
+}
