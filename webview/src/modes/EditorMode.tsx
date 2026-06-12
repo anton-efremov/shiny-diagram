@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import { parseDiagram } from "../parsers/classDiagram";
 import { formatSpatialAnnotation } from "../parsers/classDiagram/formatSpatial";
+import { formatStyleDefFill } from "../parsers/classDiagram/formatStyleDef";
 import type { ClassBoxProps } from "../parsers/classDiagram/diagramModel";
 import type { ApplyEditsMessage } from "../protocol";
 import { vscode } from "../vscodeApi";
@@ -65,6 +66,20 @@ export default function EditorMode({ sourceText }: EditorModeProps): ReactElemen
     [classBoxes]
   );
 
+  const handleFillColorChange = useCallback(
+    (fill: string) => {
+      if (!selectedClassBox?.style) return;
+
+      const newText = formatStyleDefFill(selectedClassBox.style, fill);
+      const message: ApplyEditsMessage = {
+        type: "applyEdits",
+        edits: [{ lineNumber: selectedClassBox.style.location.line, newText }],
+      };
+      vscode.postMessage(message);
+    },
+    [selectedClassBox]
+  );
+
   return (
     <section className={styles.editorShell} aria-label="Class diagram editor">
       <ToolPane />
@@ -76,7 +91,7 @@ export default function EditorMode({ sourceText }: EditorModeProps): ReactElemen
           onNodeDragStop={handleNodeDragStop}
         />
       </div>
-      <StylePane selectedClassBox={selectedClassBox} />
+      <StylePane selectedClassBox={selectedClassBox} onFillColorChange={handleFillColorChange} />
     </section>
   );
 }

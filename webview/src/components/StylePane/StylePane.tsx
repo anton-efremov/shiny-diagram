@@ -4,12 +4,16 @@ import styles from "./StylePane.module.css";
 
 type StylePaneProps = {
   selectedClassBox?: ClassBoxProps;
+  onFillColorChange: (fill: string) => void;
 };
 
 /**
  * Renders the style pane for the current editor selection.
  */
-export default function StylePane({ selectedClassBox }: StylePaneProps): ReactElement {
+export default function StylePane({
+  selectedClassBox,
+  onFillColorChange,
+}: StylePaneProps): ReactElement {
   if (!selectedClassBox) {
     return (
       <aside className={styles.stylePane} aria-label="Styles pane">
@@ -53,13 +57,31 @@ export default function StylePane({ selectedClassBox }: StylePaneProps): ReactEl
         </div>
 
         <dl className={styles.styleList}>
-          <StyleValue label="Fill" value={style?.fill} swatchClassName={styles.fillSwatch} />
+          <div className={styles.styleRow}>
+            <dt className={styles.styleLabel}>Fill</dt>
+            <dd className={styles.styleValue}>
+              <label className={styles.colorControl}>
+                <span className={styles.colorInputLabel}>Fill color</span>
+                <input
+                  className={styles.colorInput}
+                  type="color"
+                  value={toColorInputValue(style?.fill)}
+                  onChange={(event) => onFillColorChange(event.currentTarget.value)}
+                />
+                <span>{style?.fill ?? "Default"}</span>
+              </label>
+            </dd>
+          </div>
           <StyleValue label="Stroke" value={style?.stroke} swatchClassName={styles.strokeSwatch} />
           <StyleValue label="Text" value={style?.color} swatchClassName={styles.textSwatch} />
         </dl>
       </section>
     </aside>
   );
+}
+
+function toColorInputValue(value: string | undefined): string {
+  return /^#[0-9a-fA-F]{6}$/.test(value ?? "") ? (value ?? "#ffffff") : "#ffffff";
 }
 
 function StyleValue({

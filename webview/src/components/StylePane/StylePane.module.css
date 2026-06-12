@@ -138,6 +138,34 @@
   font-size: 12px;
 }
 
+.colorControl {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+  cursor: pointer;
+}
+
+.colorInputLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.colorInput {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--shiny-selection-color);
+  background: var(--shiny-box-fill);
+  cursor: pointer;
+}
+
 .styleValue span:last-child {
   overflow: hidden;
   text-overflow: ellipsis;
