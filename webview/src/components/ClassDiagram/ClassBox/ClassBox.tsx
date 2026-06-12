@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 import type { Node, NodeProps } from "@xyflow/react";
+import { Handle, Position } from "@xyflow/react";
 import type { ClassBoxProps, ClassMember } from "../../../parsers/classDiagram/diagramModel";
 import styles from "./ClassBox.module.css";
 
@@ -30,6 +31,62 @@ export default function ClassBox({ data, selected }: NodeProps<ClassBoxNode>): R
       style={dynamicVars}
       title={node.id}
     >
+      <Handle
+        className={styles.connectionHandle}
+        id="top"
+        type="source"
+        position={Position.Top}
+        isConnectable={false}
+      />
+      <Handle
+        className={styles.connectionHandle}
+        id="right"
+        type="source"
+        position={Position.Right}
+        isConnectable={false}
+      />
+      <Handle
+        className={styles.connectionHandle}
+        id="bottom"
+        type="source"
+        position={Position.Bottom}
+        isConnectable={false}
+      />
+      <Handle
+        className={styles.connectionHandle}
+        id="left"
+        type="source"
+        position={Position.Left}
+        isConnectable={false}
+      />
+      <Handle
+        className={styles.connectionHandle}
+        id="target-top"
+        type="target"
+        position={Position.Top}
+        isConnectable={false}
+      />
+      <Handle
+        className={styles.connectionHandle}
+        id="target-right"
+        type="target"
+        position={Position.Right}
+        isConnectable={false}
+      />
+      <Handle
+        className={styles.connectionHandle}
+        id="target-bottom"
+        type="target"
+        position={Position.Bottom}
+        isConnectable={false}
+      />
+      <Handle
+        className={styles.connectionHandle}
+        id="target-left"
+        type="target"
+        position={Position.Left}
+        isConnectable={false}
+      />
       <header className={styles.header}>
         {node.stereotype ? (
           <div className={styles.stereotype} title={node.stereotype}>

@@ -3,7 +3,7 @@ import type { ReactElement } from "react";
 import { parseDiagram } from "../parsers/classDiagram";
 import { formatSpatialAnnotation } from "../parsers/classDiagram/formatSpatial";
 import { formatStyleDefFill } from "../parsers/classDiagram/formatStyleDef";
-import type { ClassBoxProps } from "../parsers/classDiagram/diagramModel";
+import type { ClassBoxProps, Relationship } from "../parsers/classDiagram/diagramModel";
 import type { ApplyEditsMessage } from "../protocol";
 import { vscode } from "../vscodeApi";
 import ClassDiagram from "../components/ClassDiagram/ClassDiagram";
@@ -24,8 +24,9 @@ type EditorModeProps = {
 export default function EditorMode({ sourceText }: EditorModeProps): ReactElement {
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
 
+  const model = useMemo(() => parseDiagram(sourceText), [sourceText]);
+
   const classBoxes = useMemo((): ClassBoxProps[] => {
-    const model = parseDiagram(sourceText);
     const result: ClassBoxProps[] = [];
 
     for (const [id, node] of model.classes) {
@@ -38,7 +39,15 @@ export default function EditorMode({ sourceText }: EditorModeProps): ReactElemen
     }
 
     return result;
-  }, [sourceText]);
+  }, [model]);
+
+  const relationships = useMemo((): Relationship[] => {
+    return model.relationships.filter(
+      (relationship) =>
+        model.spatialAnnotations.has(relationship.source) &&
+        model.spatialAnnotations.has(relationship.target)
+    );
+  }, [model]);
 
   const selectedClassBox = useMemo(
     () => classBoxes.find((box) => box.node.id === selectedClassId),
@@ -86,6 +95,7 @@ export default function EditorMode({ sourceText }: EditorModeProps): ReactElemen
       <div className={styles.canvasRegion}>
         <ClassDiagram
           classBoxes={classBoxes}
+          relationships={relationships}
           selectedClassId={selectedClassId}
           onSelectedClassIdChange={setSelectedClassId}
           onNodeDragStop={handleNodeDragStop}
