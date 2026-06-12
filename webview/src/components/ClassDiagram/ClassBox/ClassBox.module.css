@@ -10,6 +10,16 @@
   flex-direction: column;
   font-family: var(--shiny-font-family);
   font-size: 13px;
+  position: relative;
+}
+
+.classBox:hover {
+  border-color: var(--shiny-hover-border);
+}
+
+.selected {
+  border-color: var(--shiny-selection-color);
+  box-shadow: 0 0 0 1px var(--shiny-selection-color);
 }
 
 .header {
@@ -68,8 +78,65 @@
   white-space: nowrap;
 }
 
+.memberRow:hover {
+  background: var(--shiny-canvas-tint);
+}
+
 .memberDivider {
   flex: 0 0 auto;
   margin: 5px 0;
   border-top: 1px solid var(--class-stroke, var(--shiny-box-stroke));
+}
+
+.resizeHandle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--shiny-selection-color);
+  background: var(--shiny-shell-bg);
+  pointer-events: none;
+}
+
+.nw {
+  top: -4px;
+  left: -4px;
+}
+
+.n {
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.ne {
+  top: -4px;
+  right: -4px;
+}
+
+.e {
+  top: 50%;
+  right: -4px;
+  transform: translateY(-50%);
+}
+
+.se {
+  right: -4px;
+  bottom: -4px;
+}
+
+.s {
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.sw {
+  bottom: -4px;
+  left: -4px;
+}
+
+.w {
+  top: 50%;
+  left: -4px;
+  transform: translateY(-50%);
 }

@@ -5,8 +5,10 @@ import styles from "./ClassBox.module.css";
 
 type ClassBoxNode = Node<ClassBoxProps, "classBox">;
 
+const resizeHandles = ["nw", "n", "ne", "e", "se", "s", "sw", "w"] as const;
+
 /** Renders a single class box node on the React Flow canvas. */
-export default function ClassBox({ data }: NodeProps<ClassBoxNode>): ReactElement {
+export default function ClassBox({ data, selected }: NodeProps<ClassBoxNode>): ReactElement {
   const { node, style } = data;
   const fields = node.members.filter((member) => !member.isMethod);
   const methods = node.members.filter((member) => member.isMethod);
@@ -23,18 +25,35 @@ export default function ClassBox({ data }: NodeProps<ClassBoxNode>): ReactElemen
     : undefined;
 
   return (
-    <div className={styles.classBox} style={dynamicVars}>
+    <div
+      className={`${styles.classBox} ${selected ? styles.selected : ""}`}
+      style={dynamicVars}
+      title={node.id}
+    >
       <header className={styles.header}>
         {node.stereotype ? (
-          <div className={styles.stereotype}>&lt;&lt;{node.stereotype}&gt;&gt;</div>
+          <div className={styles.stereotype} title={node.stereotype}>
+            &lt;&lt;{node.stereotype}&gt;&gt;
+          </div>
         ) : null}
-        <div className={styles.className}>{node.id}</div>
+        <div className={styles.className} title={node.id}>
+          {node.id}
+        </div>
       </header>
       <div className={styles.body}>
         <MemberList members={fields} />
         {hasFieldsAndMethods ? <div className={styles.memberDivider} aria-hidden="true" /> : null}
         <MemberList members={methods} />
       </div>
+      {selected
+        ? resizeHandles.map((handle) => (
+            <span
+              key={handle}
+              className={`${styles.resizeHandle} ${styles[handle]}`}
+              aria-hidden="true"
+            />
+          ))
+        : null}
     </div>
   );
 }
@@ -43,7 +62,11 @@ function MemberList({ members }: { members: readonly ClassMember[] }): ReactElem
   return (
     <div className={styles.memberList}>
       {members.map((member) => (
-        <div key={`${member.location.line}:${member.location.raw}`} className={styles.memberRow}>
+        <div
+          key={`${member.location.line}:${member.location.raw}`}
+          className={styles.memberRow}
+          title={member.location.raw.trim()}
+        >
           {formatMember(member)}
         </div>
       ))}

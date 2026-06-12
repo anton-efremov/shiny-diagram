@@ -20,12 +20,13 @@ type ClassDiagramProps = {
 };
 
 /** Builds React Flow node descriptors from resolved ClassBoxProps. */
-function toNodes(classBoxes: ClassBoxProps[]): ClassBoxNode[] {
+function toNodes(classBoxes: ClassBoxProps[], selectedClassId: string | null): ClassBoxNode[] {
   return classBoxes.map((box) => ({
     id: box.node.id,
     type: "classBox",
     position: { x: box.spatial.x, y: box.spatial.y },
     data: box,
+    selected: box.node.id === selectedClassId,
     width: box.spatial.width,
     height: box.spatial.height,
     style: {
@@ -44,16 +45,25 @@ export default function ClassDiagram({
   classBoxes,
   onNodeDragStop,
 }: ClassDiagramProps): ReactElement {
-  const [nodes, setNodes] = useState<ClassBoxNode[]>(() => toNodes(classBoxes));
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [nodes, setNodes] = useState<ClassBoxNode[]>(() => toNodes(classBoxes, selectedClassId));
 
   // Sync React Flow node positions when the parsed model changes (e.g. after
   // a sourceUpdate). Without this, stale positions linger after source edits.
   useEffect(() => {
-    setNodes(toNodes(classBoxes));
-  }, [classBoxes]);
+    setNodes(toNodes(classBoxes, selectedClassId));
+  }, [classBoxes, selectedClassId]);
 
   const handleNodesChange = useCallback((changes: NodeChange<ClassBoxNode>[]) => {
     setNodes((prev) => applyNodeChanges(changes, prev));
+  }, []);
+
+  const handleNodeClick = useCallback((_event: React.MouseEvent, node: ClassBoxNode) => {
+    setSelectedClassId(node.id);
+  }, []);
+
+  const handlePaneClick = useCallback(() => {
+    setSelectedClassId(null);
   }, []);
 
   const handleNodeDragStop = useCallback<OnNodeDrag<ClassBoxNode>>(
@@ -74,6 +84,8 @@ export default function ClassDiagram({
             edges={[]}
             nodeTypes={{ classBox: ClassBox }}
             onNodesChange={handleNodesChange}
+            onNodeClick={handleNodeClick}
+            onPaneClick={handlePaneClick}
             onNodeDragStop={handleNodeDragStop}
             fitView
             nodesDraggable
