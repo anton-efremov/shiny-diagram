@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { ReactElement } from "react";
+import type { MouseEvent, ReactElement } from "react";
 import type { Node, NodeChange, OnNodeDrag } from "@xyflow/react";
 import {
   applyNodeChanges,
@@ -16,6 +16,8 @@ type ClassBoxNode = Node<ClassBoxProps, "classBox">;
 
 type ClassDiagramProps = {
   classBoxes: ClassBoxProps[];
+  selectedClassId: string | null;
+  onSelectedClassIdChange: (classId: string | null) => void;
   onNodeDragStop: (classId: string, x: number, y: number) => void;
 };
 
@@ -43,9 +45,10 @@ function toNodes(classBoxes: ClassBoxProps[], selectedClassId: string | null): C
  */
 export default function ClassDiagram({
   classBoxes,
+  selectedClassId,
+  onSelectedClassIdChange,
   onNodeDragStop,
 }: ClassDiagramProps): ReactElement {
-  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [nodes, setNodes] = useState<ClassBoxNode[]>(() => toNodes(classBoxes, selectedClassId));
 
   // Sync React Flow node positions when the parsed model changes (e.g. after
@@ -58,13 +61,16 @@ export default function ClassDiagram({
     setNodes((prev) => applyNodeChanges(changes, prev));
   }, []);
 
-  const handleNodeClick = useCallback((_event: React.MouseEvent, node: ClassBoxNode) => {
-    setSelectedClassId(node.id);
-  }, []);
+  const handleNodeClick = useCallback(
+    (_event: MouseEvent, node: ClassBoxNode) => {
+      onSelectedClassIdChange(node.id);
+    },
+    [onSelectedClassIdChange]
+  );
 
   const handlePaneClick = useCallback(() => {
-    setSelectedClassId(null);
-  }, []);
+    onSelectedClassIdChange(null);
+  }, [onSelectedClassIdChange]);
 
   const handleNodeDragStop = useCallback<OnNodeDrag<ClassBoxNode>>(
     (_event, node) => {

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import { parseDiagram } from "../parsers/classDiagram";
 import { formatSpatialAnnotation } from "../parsers/classDiagram/formatSpatial";
@@ -21,6 +21,8 @@ type EditorModeProps = {
  * posting it to the extension host.
  */
 export default function EditorMode({ sourceText }: EditorModeProps): ReactElement {
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+
   const classBoxes = useMemo((): ClassBoxProps[] => {
     const model = parseDiagram(sourceText);
     const result: ClassBoxProps[] = [];
@@ -36,6 +38,17 @@ export default function EditorMode({ sourceText }: EditorModeProps): ReactElemen
 
     return result;
   }, [sourceText]);
+
+  const selectedClassBox = useMemo(
+    () => classBoxes.find((box) => box.node.id === selectedClassId),
+    [classBoxes, selectedClassId]
+  );
+
+  useEffect(() => {
+    if (selectedClassId && !selectedClassBox) {
+      setSelectedClassId(null);
+    }
+  }, [selectedClassBox, selectedClassId]);
 
   const handleNodeDragStop = useCallback(
     (classId: string, x: number, y: number) => {
@@ -56,9 +69,14 @@ export default function EditorMode({ sourceText }: EditorModeProps): ReactElemen
     <section className={styles.editorShell} aria-label="Class diagram editor">
       <ToolPane />
       <div className={styles.canvasRegion}>
-        <ClassDiagram classBoxes={classBoxes} onNodeDragStop={handleNodeDragStop} />
+        <ClassDiagram
+          classBoxes={classBoxes}
+          selectedClassId={selectedClassId}
+          onSelectedClassIdChange={setSelectedClassId}
+          onNodeDragStop={handleNodeDragStop}
+        />
       </div>
-      <StylePane />
+      <StylePane selectedClassBox={selectedClassBox} />
     </section>
   );
 }

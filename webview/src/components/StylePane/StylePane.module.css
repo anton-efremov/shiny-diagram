@@ -1,6 +1,6 @@
 /**
- * @fileoverview Visual shell for the editor style pane empty state.
- * Contains layout styles only; controls are introduced by later milestones.
+ * @fileoverview Visual shell for the editor style pane.
+ * Renders empty and selected-class read-only states.
  */
 
 .stylePane {
@@ -8,6 +8,7 @@
   flex-direction: column;
   min-width: 220px;
   max-height: 620px;
+  overflow: hidden;
   border: 1px solid var(--shiny-box-stroke);
   background: var(--shiny-box-fill);
 }
@@ -24,4 +25,140 @@
   flex: 1;
   min-height: 120px;
   background: var(--shiny-canvas-tint);
+}
+
+.selectionPanel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+  padding: 12px;
+  overflow: auto;
+}
+
+.selectionSummary {
+  display: grid;
+  grid-template-columns: 3px minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+}
+
+.selectionAccent {
+  background: var(--shiny-selection-color);
+}
+
+.selectionCopy {
+  min-width: 0;
+}
+
+.selectionType {
+  margin-bottom: 3px;
+  color: var(--shiny-description-text);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.className {
+  margin: 0;
+  overflow: hidden;
+  color: var(--shiny-text);
+  font-size: 15px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stereotype {
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--shiny-description-text);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.previewCard {
+  overflow: hidden;
+  border: 1px solid var(--style-stroke, var(--shiny-box-stroke));
+  color: var(--style-color, var(--shiny-box-text));
+  background: var(--style-fill, var(--shiny-box-fill));
+}
+
+.previewHeader {
+  padding: 8px 10px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--style-stroke, var(--shiny-box-stroke));
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.previewBody {
+  min-height: 42px;
+  padding: 10px;
+  color: var(--style-color, var(--shiny-box-text));
+  font-size: 12px;
+}
+
+.styleName {
+  font-weight: 600;
+}
+
+.styleList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.styleRow {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-height: 30px;
+}
+
+.styleLabel {
+  color: var(--shiny-description-text);
+  font-size: 12px;
+}
+
+.styleValue {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+  color: var(--shiny-text);
+  font-size: 12px;
+}
+
+.styleValue span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.swatch {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--shiny-box-stroke);
+}
+
+.fillSwatch {
+  background: var(--style-fill, var(--shiny-box-fill));
+}
+
+.strokeSwatch {
+  background: var(--style-stroke, var(--shiny-box-stroke));
+}
+
+.textSwatch {
+  background: var(--style-color, var(--shiny-box-text));
 }
