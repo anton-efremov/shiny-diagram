@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import type { Node, NodeProps } from "@xyflow/react";
-import type { ClassBoxProps } from "../../../parsers/classDiagram/diagramModel";
+import type { ClassBoxProps, ClassMember } from "../../../parsers/classDiagram/diagramModel";
 import styles from "./ClassBox.module.css";
 
 type ClassBoxNode = Node<ClassBoxProps, "classBox">;
@@ -8,6 +8,9 @@ type ClassBoxNode = Node<ClassBoxProps, "classBox">;
 /** Renders a single class box node on the React Flow canvas. */
 export default function ClassBox({ data }: NodeProps<ClassBoxNode>): ReactElement {
   const { node, style } = data;
+  const fields = node.members.filter((member) => !member.isMethod);
+  const methods = node.members.filter((member) => member.isMethod);
+  const hasFieldsAndMethods = fields.length > 0 && methods.length > 0;
 
   // classDef colors are user data, not design tokens — the only way to inject
   // dynamic source-derived values into CSS is via custom property overrides.
@@ -21,7 +24,40 @@ export default function ClassBox({ data }: NodeProps<ClassBoxNode>): ReactElemen
 
   return (
     <div className={styles.classBox} style={dynamicVars}>
-      <div className={styles.className}>{node.id}</div>
+      <header className={styles.header}>
+        {node.stereotype ? (
+          <div className={styles.stereotype}>&lt;&lt;{node.stereotype}&gt;&gt;</div>
+        ) : null}
+        <div className={styles.className}>{node.id}</div>
+      </header>
+      <div className={styles.body}>
+        <MemberList members={fields} />
+        {hasFieldsAndMethods ? <div className={styles.memberDivider} aria-hidden="true" /> : null}
+        <MemberList members={methods} />
+      </div>
     </div>
   );
+}
+
+function MemberList({ members }: { members: readonly ClassMember[] }): ReactElement {
+  return (
+    <div className={styles.memberList}>
+      {members.map((member) => (
+        <div key={`${member.location.line}:${member.location.raw}`} className={styles.memberRow}>
+          {formatMember(member)}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function formatMember(member: ClassMember): string {
+  if (member.isMethod) {
+    const params = member.params ?? "";
+    const typeSuffix = member.type ? `: ${member.type}` : "";
+    return `${member.visibility} ${member.name}(${params})${typeSuffix}`;
+  }
+
+  const typeSuffix = member.type ? `: ${member.type}` : "";
+  return `${member.visibility} ${member.name}${typeSuffix}`;
 }
