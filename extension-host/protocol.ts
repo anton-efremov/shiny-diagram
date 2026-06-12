@@ -1,9 +1,11 @@
 /**
  * @fileoverview Message protocol types for the Shiny host <-> webview boundary.
- * All messages cross the postMessage boundary as JSON with a `type` discriminant.
+ * All messages cross the postMessage boundary as JSON.
  *
  * The webview-side mirror of these types lives in webview/src/protocol.ts.
- * Both sides must be kept in sync manually — there is no shared runtime.
+ * Both sides must be kept in sync manually — the extension host runs in Node.js
+ * and the webview runs in a browser context, which have incompatible module
+ * systems and cannot share imports directly.
  */
 
 // ---------------------------------------------------------------------------
@@ -11,9 +13,10 @@
 // ---------------------------------------------------------------------------
 
 /**
- * Sent whenever the active .mmd document changes and the debounce has settled,
- * and also immediately after the host applies a Shiny-originated edit so the
- * webview model stays in sync without a second round-trip.
+ * Contains the whole source code; sent when:
+ * 1. User changes active .mmd document and the debounce settled.
+ * 2. The host just processed a Shiny-originated edit and immediately pushes 
+ *    the updated source back to sync with webview  without waiting for the debounce.
  */
 export type SourceUpdateMessage = {
   readonly type: "sourceUpdate";
@@ -28,13 +31,11 @@ export type HostToWebviewMessage = SourceUpdateMessage;
 // ---------------------------------------------------------------------------
 
 /**
- * A single line replacement computed by the webview using SourceLocation data.
- * The host applies it verbatim — it has no knowledge of Mermaid syntax.
+ * A single line replacement in the active .mmd file.
+ * Replaces the entire line at lineNumber with newText.
  */
 export type LineEdit = {
-  /** 0-indexed line number in the source file. */
   readonly lineNumber: number;
-  /** Complete replacement text for that line, without a trailing newline. */
   readonly newText: string;
 };
 

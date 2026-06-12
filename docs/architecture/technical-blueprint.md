@@ -51,7 +51,14 @@ All Mermaid knowledge — parsing, diagram model, spatial logic, patch computati
 
 ### Extension host
 
-The extension host is intentionally dumb. It owns document access, file writes, webview lifecycle, and command registration. It sends raw source to the webview and applies diffs it receives back. It has no knowledge of Mermaid syntax or diagram structure.
+The extension host is a Node.js process managed by VS Code. When the user runs shiny.openDiagram it:
+
+- Creates a WebviewPanel — a sandboxed Chromium iframe alongside the editor
+- Generates the initial HTML and injects the source text into it
+- Obtains a reference to the active .mmd TextDocument — VS Code's in-memory representation of the file
+- Instantiates a DiagramSession object in memory — a stateful collection of event handlers that holds references to both the document and the webview panel, and routes messages between them with minimal logic: debouncing manual edits before pushing to the webview, and suppressing change notifications triggered by Shiny's own writes
+
+The extension host is otherwise passive — it reacts to events rather than driving anything. All diagram understanding, parsing, and rendering logic lives in the webview.
 
 `extension.ts` is a wiring file only — it registers commands and sets up listeners. All substantive logic lives in dedicated modules.
 

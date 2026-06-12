@@ -9,10 +9,9 @@ import * as vscode from "vscode";
 /**
  * Builds the full HTML document for the Shiny webview panel.
  *
- * @param context - Extension context used to resolve local asset URIs.
- * @param webview - Webview instance used to convert URIs and form the CSP source.
- * @param document - Active text document whose source text is injected as initial
- *   data; undefined when no editor is open.
+ * @param context - Extension host environment handle; owns resource paths, storage, and the extension's own URI on disk
+ * @param webview - The active handle to the webview; provides unique APIs required to manage that specific sandbox's security, communication, and resource routing.
+ * @param document - Reference to the VS Code editor's in-memory representation of an open file; kept in sync with disk by the editor.
  * @returns Complete HTML string ready to assign to `panel.webview.html`.
  */
 export function getWebviewHtml(
@@ -28,6 +27,9 @@ export function getWebviewHtml(
   const styleUri = webview.asWebviewUri(
     vscode.Uri.joinPath(context.extensionUri, "out", "webview", "assets", "index.css")
   );
+
+  /** Random token that "signs" the legitimate script tag. Prevents injection attack —
+    *  user-controlled data (diagram source) being interpreted as executable script. */
   const nonce = getNonce();
   const initialData = serializeJsonForHtml(sourceText);
 
