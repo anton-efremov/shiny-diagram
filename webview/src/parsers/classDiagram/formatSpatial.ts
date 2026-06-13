@@ -1,6 +1,6 @@
 /**
  * @fileoverview Formats Shiny spatial annotation lines from structured data.
- * Mirror of parseSpatial.ts — where parseSpatial reads annotations, this
+ * Mirror of buildSpatialData.ts — where the builder reads annotations, this
  * module writes them. Used by the drag handler to produce replacement text
  * for the diff patcher without touching the rest of the source.
  */

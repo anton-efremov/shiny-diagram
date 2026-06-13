@@ -4,19 +4,10 @@
  * from raw Mermaid source. Pure function — no React, no VS Code dependencies.
  */
 
-import type {
-  ClassNode,
-  DiagramTree,
-  TreeEdge,
-  TreeNode,
-} from "../../models/classDiagram/diagramTreeModel";
-import type { TreeNodeId } from "../../models/classDiagram/primitives";
+import type { ClassNode, DiagramTree } from "../../models/classDiagram/diagramTreeModel";
+import { buildDiagramTree } from "./diagramTreeBuilder";
 import type { ParseResult } from "./parseResult";
 import { tokenize } from "./tokenizer";
-import { parseClasses } from "./rules/parseClasses";
-import { parseRelationships } from "./rules/parseRelationships";
-import { parseStyles } from "./rules/parseStyles";
-import { parseSpatial } from "./rules/parseSpatial";
 
 /**
  * Returns true if the source begins with a `classDiagram` declaration,
@@ -51,27 +42,25 @@ export function parseDiagram(source: string): ParseResult {
       };
     }
 
-    const lines = tokenize(source);
+    const tokens = tokenize(source);
 
-    const { nodes: classNodes, appliesStyleEdges } = parseClasses(lines);
-    const relationships = parseRelationships(lines);
-    const styleDefs = parseStyles(lines);
-    const { valid: spatialList, malformed: malformedList } = parseSpatial(lines);
+    const {
+      nodes,
+      edges,
+      spatialEntries,
+      malformedAnnotations: malformedAnnotationEntries,
+    } = buildDiagramTree(tokens);
 
-    const spatialByClassId = new Map(spatialList.map((entry) => [entry.classId, entry.spatial]));
-    const nodes = new Map<TreeNodeId, TreeNode>();
+    const spatialByClassId = new Map(spatialEntries.map((entry) => [entry.classId, entry.spatial]));
 
-    for (const classNode of classNodes) {
-      const spatial = spatialByClassId.get(classNode.id);
-      const node: ClassNode = spatial ? { ...classNode, spatial } : classNode;
-      nodes.set(node.id, node);
+    for (const [id, node] of nodes) {
+      if (node.kind !== "class") continue;
+      const spatial = spatialByClassId.get(node.id);
+      if (spatial) {
+        nodes.set(id, { ...node, spatial });
+      }
     }
 
-    for (const styleDef of styleDefs) {
-      nodes.set(styleDef.id, styleDef);
-    }
-
-    const edges: TreeEdge[] = [...relationships, ...appliesStyleEdges];
     const model: DiagramTree = { nodes, edges };
 
     const missingIds = [...nodes.values()]
@@ -79,7 +68,9 @@ export function parseDiagram(source: string): ParseResult {
       .filter((node) => !node.spatial)
       .map((node) => node.id);
     if (missingIds.length > 0) {
-      const malformedAnnotations = new Map(malformedList.map((m) => [m.classId, m.location]));
+      const malformedAnnotations = new Map(
+        malformedAnnotationEntries.map((entry) => [entry.classId, entry.location])
+      );
       return { ok: false, error: "missingAnnotations", missingIds, model, malformedAnnotations };
     }
 
