@@ -4,10 +4,32 @@
  * from raw Mermaid source. Pure function — no React, no VS Code dependencies.
  */
 
-import type { ClassNode, DiagramTree } from "../../models/classDiagram/diagramTreeModel";
-import { buildDiagramTree } from "./diagramTreeBuilder";
-import type { ParseResult } from "./parseResult";
+import type { ClassNode, DiagramTree, SourceLocation } from "../../models/classDiagram/diagramTreeModel";
+import type { ClassId } from "../../models/classDiagram/primitives";
+import { attachSpatial, buildSpatiallyUnawareDiagramTree, parseSpatialAnnotations } from "./diagramTreeBuilders";
 import { tokenize } from "./tokenizer";
+
+/**
+ * The result of parsing a Mermaid class diagram source string.
+ *
+ * ok: true  — source is a valid classDiagram with full @spatial coverage.
+ * invalidSyntax — source is not a recognisable classDiagram.
+ * missingAnnotations — diagram parsed correctly but one or more classes
+ *   lack a valid @spatial annotation. The partial model is included so
+ *   callers can run the auto-placement generator without re-parsing.
+ *   malformedAnnotations maps classId → source location of an incomplete
+ *   @spatial line so Generate can replace it rather than append a duplicate.
+ */
+export type ParseResult =
+  | { readonly ok: true; readonly model: DiagramTree }
+  | { readonly ok: false; readonly error: "invalidSyntax"; readonly message: string }
+  | {
+      readonly ok: false;
+      readonly error: "missingAnnotations";
+      readonly missingIds: readonly ClassId[];
+      readonly model: DiagramTree;
+      readonly malformedAnnotations: ReadonlyMap<ClassId, SourceLocation>;
+    };
 
 /**
  * Returns true if the source begins with a `classDiagram` declaration,
@@ -43,33 +65,17 @@ export function parseDiagram(source: string): ParseResult {
     }
 
     const tokens = tokenize(source);
+    const spatiallyUnawareTree = buildSpatiallyUnawareDiagramTree(tokens);
+    const { valid, malformed } = parseSpatialAnnotations(tokens);
+    const model = attachSpatial(spatiallyUnawareTree, valid);
 
-    const {
-      nodes,
-      edges,
-      spatialEntries,
-      malformedAnnotations: malformedAnnotationEntries,
-    } = buildDiagramTree(tokens);
-
-    const spatialByClassId = new Map(spatialEntries.map((entry) => [entry.classId, entry.spatial]));
-
-    for (const [id, node] of nodes) {
-      if (node.kind !== "class") continue;
-      const spatial = spatialByClassId.get(node.id);
-      if (spatial) {
-        nodes.set(id, { ...node, spatial });
-      }
-    }
-
-    const model: DiagramTree = { nodes, edges };
-
-    const missingIds = [...nodes.values()]
+    const missingIds = [...model.nodes.values()]
       .filter((node): node is ClassNode => node.kind === "class")
       .filter((node) => !node.spatial)
       .map((node) => node.id);
     if (missingIds.length > 0) {
       const malformedAnnotations = new Map(
-        malformedAnnotationEntries.map((entry) => [entry.classId, entry.location])
+        malformed.map((entry) => [entry.classId, entry.location])
       );
       return { ok: false, error: "missingAnnotations", missingIds, model, malformedAnnotations };
     }

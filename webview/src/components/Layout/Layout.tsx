@@ -3,7 +3,7 @@ import type { Dispatch, ReactElement, SetStateAction } from "react";
 import type { Mode } from "../../types";
 import type { ApplyEditsMessage } from "../../protocol";
 import { parseDiagram } from "../../parsers/classDiagram";
-import type { ParseResult } from "../../parsers/classDiagram/parseResult";
+import type { ParseResult } from "../../parsers/classDiagram";
 import type {
   ClassNode,
   DiagramTree,

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import { formatSpatialAnnotation } from "../../../parsers/classDiagram/formatSpatial";
-import { formatStyleDefFill } from "../../../parsers/classDiagram/formatStyleDef";
-import type { ParseResult } from "../../../parsers/classDiagram/parseResult";
+import { formatSpatialAnnotation } from "../../../formatters/classDiagram/formatSpatialAnnotation";
+import { formatStyleDefFill } from "../../../formatters/classDiagram/formatStyleDef";
+import type { ParseResult } from "../../../parsers/classDiagram";
 import type {
   AppliesStyleEdge,
   ClassNode,
