@@ -4,7 +4,7 @@ import type { Mode } from "../../types";
 import type { ApplyEditsMessage } from "../../protocol";
 import { parseDiagram } from "../../parsers/classDiagram";
 import type { ParseResult } from "../../parsers/classDiagram/parseResult";
-import type { DiagramModel, SourceLocation } from "../../parsers/classDiagram/diagramModel";
+import type { DiagramModel, SourceLocation } from "../../parsers/classDiagram/diagramTreeModel";
 import { vscode } from "../../vscodeApi";
 import AutorenderMode from "./AutorenderMode/AutorenderMode";
 import EditorMode from "./EditorMode/EditorMode";

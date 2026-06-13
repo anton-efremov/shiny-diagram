@@ -3,7 +3,7 @@ import type { ReactElement } from "react";
 import { formatSpatialAnnotation } from "../../../parsers/classDiagram/formatSpatial";
 import { formatStyleDefFill } from "../../../parsers/classDiagram/formatStyleDef";
 import type { ParseResult } from "../../../parsers/classDiagram/parseResult";
-import type { ClassBoxProps, Relationship } from "../../../parsers/classDiagram/diagramModel";
+import type { ClassBoxProps, Relationship } from "../../../parsers/classDiagram/diagramTreeModel";
 import type { ApplyEditsMessage } from "../../../protocol";
 import { vscode } from "../../../vscodeApi";
 import ClassDiagram from "./ClassDiagram/ClassDiagram";

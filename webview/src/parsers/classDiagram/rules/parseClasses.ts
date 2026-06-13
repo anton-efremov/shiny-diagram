@@ -3,7 +3,7 @@
  * Reads class body block lines into the DiagramModel class/member contract.
  */
 
-import type { ClassMember, ClassNode, Visibility } from "../diagramModel";
+import type { ClassMember, ClassNode, Visibility } from "../diagramTreeModel";
 import type { TokenizedLine } from "../tokenizer";
 
 const VISIBILITY_PREFIXES = new Set<string>(["+", "-", "#", "~"]);

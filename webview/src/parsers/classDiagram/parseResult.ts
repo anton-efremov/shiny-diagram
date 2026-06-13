@@ -4,7 +4,7 @@
  * can handle each case without relying on sentinel values or exceptions.
  */
 
-import type { DiagramModel, SourceLocation } from "./diagramModel";
+import type { DiagramModel, SourceLocation } from "./diagramTreeModel";
 
 /**
  * The result of parsing a Mermaid class diagram source string.

@@ -4,7 +4,7 @@
  * update x/y on drag without re-parsing the whole file.
  */
 
-import type { SpatialAnnotation, SourceLocation } from "../diagramModel";
+import type { SpatialAnnotation, SourceLocation } from "../diagramTreeModel";
 import type { TokenizedLine } from "../tokenizer";
 
 /** A @spatial line whose classId was recognised but whose values are incomplete. */

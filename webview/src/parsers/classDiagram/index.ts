@@ -4,7 +4,7 @@
  * from raw Mermaid source. Pure function — no React, no VS Code dependencies.
  */
 
-import type { DiagramModel } from "./diagramModel";
+import type { DiagramModel } from "./diagramTreeModel";
 import type { ParseResult } from "./parseResult";
 import { tokenize } from "./tokenizer";
 import { parseClasses } from "./rules/parseClasses";

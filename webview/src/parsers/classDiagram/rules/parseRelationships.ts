@@ -2,7 +2,7 @@
  * @fileoverview Extracts class relationship declarations from tokenized Mermaid source.
  */
 
-import type { Relationship, RelationshipType } from "../diagramModel";
+import type { Relationship, RelationshipType } from "../diagramTreeModel";
 import type { TokenizedLine } from "../tokenizer";
 
 type RelationshipOperator = {

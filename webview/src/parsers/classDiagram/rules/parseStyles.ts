@@ -3,7 +3,7 @@
  * Parses comma-separated property:value pairs into typed StyleDef fields.
  */
 
-import type { StyleDef } from "../diagramModel";
+import type { StyleDef } from "../diagramTreeModel";
 import type { TokenizedLine } from "../tokenizer";
 
 /**

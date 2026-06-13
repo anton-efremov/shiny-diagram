@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Handle, Position } from "@xyflow/react";
-import type { ClassBoxProps, ClassMember } from "../../../../../parsers/classDiagram/diagramModel";
+import type { ClassBoxProps, ClassMember } from "../../../../../parsers/classDiagram/diagramTreeModel";
 import styles from "./ClassBox.module.css";
 
 type ClassBoxNode = Node<ClassBoxProps, "classBox">;

@@ -8,7 +8,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
 } from "@xyflow/react";
-import type { ClassBoxProps, Relationship } from "../../../../parsers/classDiagram/diagramModel";
+import type { ClassBoxProps, Relationship } from "../../../../parsers/classDiagram/diagramTreeModel";
 import ClassBox from "./ClassBox/ClassBox";
 import styles from "./ClassDiagram.module.css";
 
