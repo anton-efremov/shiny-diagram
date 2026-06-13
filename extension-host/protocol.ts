@@ -2,10 +2,8 @@
  * @fileoverview Message protocol types for the Shiny host <-> webview boundary.
  * All messages cross the postMessage boundary as JSON.
  *
- * The webview-side mirror of these types lives in webview/src/protocol.ts.
- * Both sides must be kept in sync manually — the extension host runs in Node.js
- * and the webview runs in a browser context, which have incompatible module
- * systems and cannot share imports directly.
+ * Duplicated in webview/src/protocol.ts to keep both host and webview bound to
+ * their respective folder without shared files.
  */
 
 // ---------------------------------------------------------------------------

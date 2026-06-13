@@ -1,7 +1,9 @@
 /**
- * @fileoverview Message protocol types for the Shiny host↔webview boundary.
- * Mirrors extension-host/protocol.ts — both sides must be kept in sync
- * manually, as they run in separate runtimes.
+ * @fileoverview Message protocol types for the Shiny host <-> webview boundary.
+ * All messages cross the postMessage boundary as JSON.
+ *
+ * Duplicated in extension-host/protocol.ts to keep both host and webview bound to
+ * their respective folder without shared files.
  */
 
 // ---------------------------------------------------------------------------
@@ -9,35 +11,35 @@
 // ---------------------------------------------------------------------------
 
 /**
- * Received whenever the active .mmd document changes (debounced), and also
- * immediately after the host applies a Shiny-originated edit.
+ * Contains the whole source code; sent when:
+ * 1. User changes active .mmd document and the debounce settled.
+ * 2. The host just processed a Shiny-originated edit and immediately pushes 
+ *    the updated source back to sync with webview  without waiting for the debounce.
  */
 export type SourceUpdateMessage = {
   readonly type: "sourceUpdate";
   readonly sourceText: string;
 };
 
-/** Union of all messages the webview can receive from the extension host. */
-export type HostMessage = SourceUpdateMessage;
+/** Union of all messages the extension host sends to the webview. */
+export type HostToWebviewMessage = SourceUpdateMessage;
 
 // ---------------------------------------------------------------------------
 // Webview → Host
 // ---------------------------------------------------------------------------
 
 /**
- * A single line replacement computed by the webview from SourceLocation data.
- * The host applies it verbatim — it has no knowledge of Mermaid syntax.
+ * A single line replacement in the active .mmd file.
+ * Replaces the entire line at lineNumber with newText.
  */
 export type LineEdit = {
-  /** 0-indexed line number in the source file. */
   readonly lineNumber: number;
-  /** Complete replacement text for that line, without a trailing newline. */
   readonly newText: string;
 };
 
 /**
- * Sent when a user visual edit needs to be written back to the source file.
- * The webview computes the exact replacement lines; the host applies them.
+ * Sent by the webview when a user visual edit (drag, color change) needs to
+ * be written back to the source file. The host applies each edit in order.
  */
 export type ApplyEditsMessage = {
   readonly type: "applyEdits";
