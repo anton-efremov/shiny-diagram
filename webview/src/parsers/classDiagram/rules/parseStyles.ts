@@ -1,9 +1,9 @@
 /**
  * @fileoverview Extracts classDef style definitions from tokenized Mermaid source.
- * Parses comma-separated property:value pairs into typed StyleDef fields.
+ * Parses comma-separated property:value pairs into typed style properties.
  */
 
-import type { StyleDef } from "../diagramTreeModel";
+import type { SourceLocation, StyleDefNode, StyleProperty } from "../diagramTreeModel";
 import type { TokenizedLine } from "../tokenizer";
 
 /**
@@ -11,10 +11,10 @@ import type { TokenizedLine } from "../tokenizer";
  * Unknown or unsupported property keys are silently ignored.
  *
  * @param lines - Flat tokenized line sequence from the tokenizer.
- * @returns Array of StyleDef values with source locations.
+ * @returns Array of StyleDefNode values with source locations.
  */
-export function parseStyles(lines: TokenizedLine[]): StyleDef[] {
-  const result: StyleDef[] = [];
+export function parseStyles(lines: TokenizedLine[]): StyleDefNode[] {
+  const result: StyleDefNode[] = [];
 
   for (const line of lines) {
     if (line.type !== "styleDef") continue;
@@ -23,32 +23,25 @@ export function parseStyles(lines: TokenizedLine[]): StyleDef[] {
     if (!match) continue;
 
     const name = match[1];
-    const props = parseStyleProperties(match[2]);
+    const properties = parseStyleProperties(match[2]);
 
     result.push({
-      name,
-      ...props,
-      location: { line: line.lineNumber, raw: line.raw },
+      kind: "styleDef",
+      id: name,
+      properties,
+      location: toSourceLocation(line),
     });
   }
 
   return result;
 }
 
-type StyleProps = {
-  fill?: string;
-  stroke?: string;
-  color?: string;
-  strokeWidth?: string;
-  strokeDasharray?: string;
-};
-
 /**
- * Parses a comma-separated Mermaid style property string into named fields.
+ * Parses a comma-separated Mermaid style property string into style properties.
  * Handles both hyphenated Mermaid names (stroke-width) and camelCase variants.
  */
-function parseStyleProperties(propertiesStr: string): StyleProps {
-  const props: StyleProps = {};
+function parseStyleProperties(propertiesStr: string): StyleProperty[] {
+  const properties: StyleProperty[] = [];
 
   for (const part of propertiesStr.split(",")) {
     const colonIdx = part.indexOf(":");
@@ -59,24 +52,34 @@ function parseStyleProperties(propertiesStr: string): StyleProps {
 
     switch (key) {
       case "fill":
-        props.fill = value;
+        properties.push({ property: "fill", value });
         break;
       case "stroke":
-        props.stroke = value;
+        properties.push({ property: "stroke", value });
         break;
       case "color":
-        props.color = value;
+        properties.push({ property: "color", value });
         break;
       case "stroke-width":
       case "strokeWidth":
-        props.strokeWidth = value;
+        properties.push({ property: "strokeWidth", value });
         break;
       case "stroke-dasharray":
       case "strokeDasharray":
-        props.strokeDasharray = value;
+        properties.push({ property: "strokeDasharray", value });
         break;
     }
   }
 
-  return props;
+  return properties;
+}
+
+function toSourceLocation(line: TokenizedLine): SourceLocation {
+  return {
+    startLine: line.lineNumber,
+    startChar: 0,
+    endLine: line.lineNumber,
+    endChar: line.raw.length,
+    raw: line.raw,
+  };
 }

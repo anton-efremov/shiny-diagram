@@ -24,6 +24,7 @@ Complete the class diagram editor to full Mermaid class diagram spec coverage.
 ## Architecture note — parser longevity
 
 Before scaling beyond class diagrams, do a focused spike:
+
 - Evaluate Mermaid's JISON grammars with `yyloc` location wiring
 - Check `@mermaid-js/parser` (Langium rewrite) maturity and whether AST nodes carry source location
 - Decision: stay hand-written per diagram type, or re-foundation on Mermaid's own parser

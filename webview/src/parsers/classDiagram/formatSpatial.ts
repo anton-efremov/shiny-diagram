@@ -5,24 +5,26 @@
  * for the diff patcher without touching the rest of the source.
  */
 
-import type { SpatialAnnotation } from "./diagramTreeModel";
+import type { SpatialData } from "./diagramTreeModel";
 
 /**
  * Rebuilds a spatial annotation line with updated x/y coordinates.
  * Preserves the existing width and height from the annotation.
  * Coordinates are rounded to whole pixels.
  *
- * @param annotation - Current annotation providing classId, w, and h.
+ * @param spatial - Current annotation providing w and h.
+ * @param classId - Class id used to reconstruct the annotation key.
  * @param x - New horizontal position in canvas units.
  * @param y - New vertical position in canvas units.
  * @returns Complete replacement line text, without a trailing newline.
  */
 export function formatSpatialAnnotation(
-  annotation: SpatialAnnotation,
+  spatial: SpatialData,
+  classId: string,
   x: number,
   y: number
 ): string {
   const rx = Math.round(x);
   const ry = Math.round(y);
-  return `%% @spatial:${annotation.classId} x=${rx} y=${ry} w=${annotation.width} h=${annotation.height}`;
+  return `%% @spatial:${classId} x=${rx} y=${ry} w=${spatial.width} h=${spatial.height}`;
 }

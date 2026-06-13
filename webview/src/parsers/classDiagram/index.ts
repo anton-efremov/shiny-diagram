@@ -1,10 +1,10 @@
 /**
  * @fileoverview Public API for the Mermaid class diagram parser.
- * Orchestrates the tokenizer and rule functions to produce a DiagramModel
+ * Orchestrates the tokenizer and rule functions to produce a DiagramTree
  * from raw Mermaid source. Pure function — no React, no VS Code dependencies.
  */
 
-import type { DiagramModel } from "./diagramTreeModel";
+import type { ClassNode, DiagramTree, TreeEdge, TreeNode } from "./diagramTreeModel";
 import type { ParseResult } from "./parseResult";
 import { tokenize } from "./tokenizer";
 import { parseClasses } from "./rules/parseClasses";
@@ -47,18 +47,31 @@ export function parseDiagram(source: string): ParseResult {
 
     const lines = tokenize(source);
 
-    const classNodes = parseClasses(lines);
+    const { nodes: classNodes, appliesStyleEdges } = parseClasses(lines);
     const relationships = parseRelationships(lines);
     const styleDefs = parseStyles(lines);
     const { valid: spatialList, malformed: malformedList } = parseSpatial(lines);
 
-    const classes = new Map(classNodes.map((c) => [c.id, c]));
-    const styleDefinitions = new Map(styleDefs.map((s) => [s.name, s]));
-    const spatialAnnotations = new Map(spatialList.map((a) => [a.classId, a]));
+    const spatialByClassId = new Map(spatialList.map((entry) => [entry.classId, entry.spatial]));
+    const nodes = new Map<string, TreeNode>();
 
-    const model: DiagramModel = { classes, relationships, styleDefinitions, spatialAnnotations };
+    for (const classNode of classNodes) {
+      const spatial = spatialByClassId.get(classNode.id);
+      const node: ClassNode = spatial ? { ...classNode, spatial } : classNode;
+      nodes.set(node.id, node);
+    }
 
-    const missingIds = [...classes.keys()].filter((id) => !spatialAnnotations.has(id));
+    for (const styleDef of styleDefs) {
+      nodes.set(styleDef.id, styleDef);
+    }
+
+    const edges: TreeEdge[] = [...relationships, ...appliesStyleEdges];
+    const model: DiagramTree = { nodes, edges };
+
+    const missingIds = [...nodes.values()]
+      .filter((node): node is ClassNode => node.kind === "class")
+      .filter((node) => !node.spatial)
+      .map((node) => node.id);
     if (missingIds.length > 0) {
       const malformedAnnotations = new Map(malformedList.map((m) => [m.classId, m.location]));
       return { ok: false, error: "missingAnnotations", missingIds, model, malformedAnnotations };

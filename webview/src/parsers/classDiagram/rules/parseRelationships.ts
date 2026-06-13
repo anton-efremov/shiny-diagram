@@ -2,7 +2,7 @@
  * @fileoverview Extracts class relationship declarations from tokenized Mermaid source.
  */
 
-import type { Relationship, RelationshipType } from "../diagramTreeModel";
+import type { RelationshipEdge, RelationshipType, SourceLocation } from "../diagramTreeModel";
 import type { TokenizedLine } from "../tokenizer";
 
 type RelationshipOperator = {
@@ -30,8 +30,8 @@ const RELATIONSHIP_OPERATORS: readonly RelationshipOperator[] = [
  * @param lines - Flat tokenized line sequence from the tokenizer.
  * @returns Parsed relationship declarations.
  */
-export function parseRelationships(lines: TokenizedLine[]): Relationship[] {
-  const relationships: Relationship[] = [];
+export function parseRelationships(lines: TokenizedLine[]): RelationshipEdge[] {
+  const relationships: RelationshipEdge[] = [];
 
   for (const line of lines) {
     if (line.type !== "relationship") continue;
@@ -45,7 +45,7 @@ export function parseRelationships(lines: TokenizedLine[]): Relationship[] {
   return relationships;
 }
 
-function parseRelationshipLine(line: TokenizedLine): Relationship | null {
+function parseRelationshipLine(line: TokenizedLine): RelationshipEdge | null {
   const raw = line.raw.trim();
   const { declaration, label } = splitLabel(raw);
   const operator = findOperator(declaration);
@@ -58,13 +58,24 @@ function parseRelationshipLine(line: TokenizedLine): Relationship | null {
   if (!source.name || !target.name) return null;
 
   return {
+    kind: "relationship",
     source: source.name,
     target: target.name,
     type: operator.type,
     label,
     sourceMultiplicity: source.multiplicity,
     targetMultiplicity: target.multiplicity,
-    location: { line: line.lineNumber, raw: line.raw },
+    location: toSourceLocation(line),
+  };
+}
+
+function toSourceLocation(line: TokenizedLine): SourceLocation {
+  return {
+    startLine: line.lineNumber,
+    startChar: 0,
+    endLine: line.lineNumber,
+    endChar: line.raw.length,
+    raw: line.raw,
   };
 }
 

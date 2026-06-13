@@ -8,7 +8,8 @@ import {
   ReactFlow,
   ReactFlowProvider,
 } from "@xyflow/react";
-import type { ClassBoxProps, Relationship } from "../../../../parsers/classDiagram/diagramTreeModel";
+import type { RelationshipEdge } from "../../../../parsers/classDiagram/diagramTreeModel";
+import type { ClassBoxProps } from "../EditorMode";
 import ClassBox from "./ClassBox/ClassBox";
 import styles from "./ClassDiagram.module.css";
 
@@ -16,7 +17,7 @@ type ClassBoxNode = Node<ClassBoxProps, "classBox">;
 
 type ClassDiagramProps = {
   classBoxes: ClassBoxProps[];
-  relationships: Relationship[];
+  relationships: RelationshipEdge[];
   selectedClassId: string | null;
   onSelectedClassIdChange: (classId: string | null) => void;
   onNodeDragStop: (classId: string, x: number, y: number) => void;
@@ -26,23 +27,30 @@ type BoxSide = "top" | "right" | "bottom" | "left";
 
 /** Builds React Flow node descriptors from resolved ClassBoxProps. */
 function toNodes(classBoxes: ClassBoxProps[], selectedClassId: string | null): ClassBoxNode[] {
-  return classBoxes.map((box) => ({
-    id: box.node.id,
-    type: "classBox",
-    position: { x: box.spatial.x, y: box.spatial.y },
-    data: box,
-    selected: box.node.id === selectedClassId,
-    width: box.spatial.width,
-    height: box.spatial.height,
-    style: {
-      width: box.spatial.width,
-      height: box.spatial.height,
-    },
-  }));
+  return classBoxes.flatMap((box) => {
+    const spatial = box.node.spatial;
+    if (!spatial) return [];
+
+    return [
+      {
+        id: box.node.id,
+        type: "classBox",
+        position: { x: spatial.x, y: spatial.y },
+        data: box,
+        selected: box.node.id === selectedClassId,
+        width: spatial.width,
+        height: spatial.height,
+        style: {
+          width: spatial.width,
+          height: spatial.height,
+        },
+      },
+    ];
+  });
 }
 
 /** Builds simple React Flow edges from parsed class relationships. */
-function toEdges(classBoxes: ClassBoxProps[], relationships: Relationship[]): Edge[] {
+function toEdges(classBoxes: ClassBoxProps[], relationships: RelationshipEdge[]): Edge[] {
   const boxesById = new Map(classBoxes.map((box) => [box.node.id, box]));
 
   return relationships.flatMap((relationship, index) => {
@@ -68,10 +76,17 @@ function toEdges(classBoxes: ClassBoxProps[], relationships: Relationship[]): Ed
 }
 
 function chooseSourceSide(source: ClassBoxProps, target: ClassBoxProps): BoxSide {
-  const sourceCenterX = source.spatial.x + source.spatial.width / 2;
-  const sourceCenterY = source.spatial.y + source.spatial.height / 2;
-  const targetCenterX = target.spatial.x + target.spatial.width / 2;
-  const targetCenterY = target.spatial.y + target.spatial.height / 2;
+  const sourceSpatial = source.node.spatial;
+  const targetSpatial = target.node.spatial;
+
+  if (!sourceSpatial || !targetSpatial) {
+    return "right";
+  }
+
+  const sourceCenterX = sourceSpatial.x + sourceSpatial.width / 2;
+  const sourceCenterY = sourceSpatial.y + sourceSpatial.height / 2;
+  const targetCenterX = targetSpatial.x + targetSpatial.width / 2;
+  const targetCenterY = targetSpatial.y + targetSpatial.height / 2;
   const dx = targetCenterX - sourceCenterX;
   const dy = targetCenterY - sourceCenterY;
 

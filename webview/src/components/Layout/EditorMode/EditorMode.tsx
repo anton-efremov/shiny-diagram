@@ -3,7 +3,12 @@ import type { ReactElement } from "react";
 import { formatSpatialAnnotation } from "../../../parsers/classDiagram/formatSpatial";
 import { formatStyleDefFill } from "../../../parsers/classDiagram/formatStyleDef";
 import type { ParseResult } from "../../../parsers/classDiagram/parseResult";
-import type { ClassBoxProps, Relationship } from "../../../parsers/classDiagram/diagramTreeModel";
+import type {
+  AppliesStyleEdge,
+  ClassNode,
+  RelationshipEdge,
+  StyleDefNode,
+} from "../../../parsers/classDiagram/diagramTreeModel";
 import type { ApplyEditsMessage } from "../../../protocol";
 import { vscode } from "../../../vscodeApi";
 import ClassDiagram from "./ClassDiagram/ClassDiagram";
@@ -13,6 +18,11 @@ import styles from "./EditorMode.module.css";
 
 type EditorModeProps = {
   parseResult: ParseResult;
+};
+
+export type ClassBoxProps = {
+  readonly node: ClassNode;
+  readonly styleDef?: StyleDefNode;
 };
 
 /**
@@ -31,20 +41,35 @@ export default function EditorMode({ parseResult }: EditorModeProps): ReactEleme
   const classBoxes = useMemo((): ClassBoxProps[] => {
     if (!model) return [];
     const result: ClassBoxProps[] = [];
-    for (const [id, node] of model.classes) {
-      const spatial = model.spatialAnnotations.get(id);
-      if (!spatial) continue;
-      const style = node.styleDefName ? model.styleDefinitions.get(node.styleDefName) : undefined;
-      result.push({ node, spatial, style });
+    const styleEdges = model.edges.filter(
+      (edge): edge is AppliesStyleEdge => edge.kind === "appliesStyle"
+    );
+
+    for (const node of model.nodes.values()) {
+      if (node.kind !== "class" || !node.spatial) continue;
+
+      const styleEdge = styleEdges.find((edge) => edge.source === node.id);
+      const styleNode = styleEdge ? model.nodes.get(styleEdge.target) : undefined;
+      const styleDef = styleNode?.kind === "styleDef" ? styleNode : undefined;
+      result.push({ node, styleDef });
     }
     return result;
   }, [model]);
 
-  const relationships = useMemo((): Relationship[] => {
+  const relationships = useMemo((): RelationshipEdge[] => {
     if (!model) return [];
-    return model.relationships.filter(
-      (rel) => model.spatialAnnotations.has(rel.source) && model.spatialAnnotations.has(rel.target)
-    );
+    return model.edges
+      .filter((edge): edge is RelationshipEdge => edge.kind === "relationship")
+      .filter((relationship) => {
+        const source = model.nodes.get(relationship.source);
+        const target = model.nodes.get(relationship.target);
+        return (
+          source?.kind === "class" &&
+          Boolean(source.spatial) &&
+          target?.kind === "class" &&
+          Boolean(target.spatial)
+        );
+      });
   }, [model]);
 
   const selectedClassBox = useMemo(
@@ -61,12 +86,12 @@ export default function EditorMode({ parseResult }: EditorModeProps): ReactEleme
   const handleNodeDragStop = useCallback(
     (classId: string, x: number, y: number) => {
       const box = classBoxes.find((b) => b.node.id === classId);
-      if (!box) return;
+      if (!box?.node.spatial) return;
 
-      const newText = formatSpatialAnnotation(box.spatial, x, y);
+      const newText = formatSpatialAnnotation(box.node.spatial, box.node.id, x, y);
       const message: ApplyEditsMessage = {
         type: "applyEdits",
-        edits: [{ lineNumber: box.spatial.location.line, newText }],
+        edits: [{ lineNumber: box.node.spatial.location.startLine, newText }],
       };
       vscode.postMessage(message);
     },
@@ -75,12 +100,12 @@ export default function EditorMode({ parseResult }: EditorModeProps): ReactEleme
 
   const handleFillColorChange = useCallback(
     (fill: string) => {
-      if (!selectedClassBox?.style) return;
+      if (!selectedClassBox?.styleDef) return;
 
-      const newText = formatStyleDefFill(selectedClassBox.style, fill);
+      const newText = formatStyleDefFill(selectedClassBox.styleDef, fill);
       const message: ApplyEditsMessage = {
         type: "applyEdits",
-        edits: [{ lineNumber: selectedClassBox.style.location.line, newText }],
+        edits: [{ lineNumber: selectedClassBox.styleDef.location.startLine, newText }],
       };
       vscode.postMessage(message);
     },

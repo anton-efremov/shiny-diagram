@@ -1,23 +1,35 @@
 /**
  * @fileoverview Extracts class declarations from tokenized Mermaid source.
- * Reads class body block lines into the DiagramModel class/member contract.
+ * Reads class body block lines into the DiagramTree class/member contract.
  */
 
-import type { ClassMember, ClassNode, Visibility } from "../diagramTreeModel";
+import type {
+  AppliesStyleEdge,
+  ClassAnnotation,
+  ClassField,
+  ClassMember,
+  ClassMethod,
+  ClassNode,
+  SourceLocation,
+  Visibility,
+} from "../diagramTreeModel";
 import type { TokenizedLine } from "../tokenizer";
 
 const VISIBILITY_PREFIXES = new Set<string>(["+", "-", "#", "~"]);
 
 /**
  * Extracts all declared classes from the tokenized source.
- * Merges styleApplication lines into the matching ClassNode so each node
- * carries the styleDefName resolved from "class Foo:::StyleName" syntax.
+ * Returns class nodes and style application edges from "class Foo:::StyleName" syntax.
  *
  * @param lines - Flat tokenized line sequence from the tokenizer.
- * @returns Array of ClassNode values with parsed body members.
+ * @returns Parsed class nodes and style application edges.
  */
-export function parseClasses(lines: TokenizedLine[]): ClassNode[] {
+export function parseClasses(lines: TokenizedLine[]): {
+  nodes: ClassNode[];
+  appliesStyleEdges: AppliesStyleEdge[];
+} {
   const classMap = new Map<string, ClassNode>();
+  const appliesStyleEdges: AppliesStyleEdge[] = [];
 
   // First pass: collect explicit class declarations.
   for (const line of lines) {
@@ -29,18 +41,19 @@ export function parseClasses(lines: TokenizedLine[]): ClassNode[] {
     const id = match[1];
     // Avoid overwriting if already inserted (shouldn't happen in valid source).
     if (!classMap.has(id)) {
-      const { members, stereotype } = parseClassBody(line.blockLines ?? []);
+      const { members, annotation } = parseClassBody(line.blockLines ?? []);
 
       classMap.set(id, {
+        kind: "class",
         id,
-        stereotype,
+        annotation,
         members,
-        location: { line: line.lineNumber, raw: line.raw },
+        location: toSourceLocation(line),
       });
     }
   }
 
-  // Second pass: attach styleDefName from "class Foo:::StyleName" lines.
+  // Second pass: collect style application edges from "class Foo:::StyleName" lines.
   for (const line of lines) {
     if (line.type !== "styleApplication") continue;
 
@@ -50,21 +63,23 @@ export function parseClasses(lines: TokenizedLine[]): ClassNode[] {
     const id = match[1];
     const styleDefName = match[2];
 
-    const existing = classMap.get(id);
-    if (existing) {
-      classMap.set(id, { ...existing, styleDefName });
-    }
+    appliesStyleEdges.push({
+      kind: "appliesStyle",
+      source: id,
+      target: styleDefName,
+      location: toSourceLocation(line),
+    });
   }
 
-  return [...classMap.values()];
+  return { nodes: [...classMap.values()], appliesStyleEdges };
 }
 
 function parseClassBody(blockLines: readonly TokenizedLine[]): {
   members: ClassMember[];
-  stereotype?: string;
+  annotation?: ClassAnnotation;
 } {
   const members: ClassMember[] = [];
-  let stereotype: string | undefined;
+  let annotation: ClassAnnotation | undefined;
 
   for (const line of blockLines) {
     const trimmed = line.raw.trim();
@@ -72,7 +87,10 @@ function parseClassBody(blockLines: readonly TokenizedLine[]): {
 
     const stereotypeMatch = /^<<(.+)>>$/.exec(trimmed);
     if (stereotypeMatch) {
-      stereotype = stereotypeMatch[1].trim();
+      annotation = {
+        value: stereotypeMatch[1].trim(),
+        location: toSourceLocation(line),
+      };
       continue;
     }
 
@@ -82,7 +100,7 @@ function parseClassBody(blockLines: readonly TokenizedLine[]): {
     }
   }
 
-  return { members, stereotype };
+  return { members, annotation };
 }
 
 function parseClassMember(line: TokenizedLine): ClassMember | null {
@@ -107,17 +125,17 @@ function parseFieldMember(
   line: TokenizedLine,
   visibility: Visibility,
   declaration: string
-): ClassMember {
+): ClassField {
   const parts = declaration.split(/\s+/);
   const name = parts.length > 1 ? parts[parts.length - 1] : parts[0];
-  const type = parts.length > 1 ? parts.slice(0, -1).join(" ") : "";
+  const fieldType = parts.length > 1 ? parts.slice(0, -1).join(" ") : undefined;
 
   return {
+    kind: "field",
     visibility,
     name,
-    type,
-    isMethod: false,
-    location: { line: line.lineNumber, raw: line.raw },
+    fieldType,
+    location: toSourceLocation(line),
   };
 }
 
@@ -125,26 +143,37 @@ function parseMethodMember(
   line: TokenizedLine,
   visibility: Visibility,
   declaration: string
-): ClassMember {
+): ClassMethod {
   const methodMatch = /^([^\s(]+)\s*\(([^)]*)\)\s*(.*)$/.exec(declaration);
 
   if (!methodMatch) {
     return {
+      kind: "method",
       visibility,
       name: declaration,
-      type: "",
-      isMethod: true,
       params: "",
-      location: { line: line.lineNumber, raw: line.raw },
+      location: toSourceLocation(line),
     };
   }
 
+  const returnType = methodMatch[3].trim();
+
   return {
+    kind: "method",
     visibility,
     name: methodMatch[1],
-    type: methodMatch[3].trim(),
-    isMethod: true,
+    returnType: returnType.length > 0 ? returnType : undefined,
     params: methodMatch[2],
-    location: { line: line.lineNumber, raw: line.raw },
+    location: toSourceLocation(line),
+  };
+}
+
+function toSourceLocation(line: TokenizedLine): SourceLocation {
+  return {
+    startLine: line.lineNumber,
+    startChar: 0,
+    endLine: line.lineNumber,
+    endChar: line.raw.length,
+    raw: line.raw,
   };
 }

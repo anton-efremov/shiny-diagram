@@ -4,7 +4,7 @@
  * can handle each case without relying on sentinel values or exceptions.
  */
 
-import type { DiagramModel, SourceLocation } from "./diagramTreeModel";
+import type { DiagramTree, SourceLocation } from "./diagramTreeModel";
 
 /**
  * The result of parsing a Mermaid class diagram source string.
@@ -18,12 +18,12 @@ import type { DiagramModel, SourceLocation } from "./diagramTreeModel";
  *   @spatial line so Generate can replace it rather than append a duplicate.
  */
 export type ParseResult =
-  | { readonly ok: true; readonly model: DiagramModel }
+  | { readonly ok: true; readonly model: DiagramTree }
   | { readonly ok: false; readonly error: "invalidSyntax"; readonly message: string }
   | {
       readonly ok: false;
       readonly error: "missingAnnotations";
       readonly missingIds: readonly string[];
-      readonly model: DiagramModel;
+      readonly model: DiagramTree;
       readonly malformedAnnotations: ReadonlyMap<string, SourceLocation>;
     };

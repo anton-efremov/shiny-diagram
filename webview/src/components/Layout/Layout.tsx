@@ -4,7 +4,11 @@ import type { Mode } from "../../types";
 import type { ApplyEditsMessage } from "../../protocol";
 import { parseDiagram } from "../../parsers/classDiagram";
 import type { ParseResult } from "../../parsers/classDiagram/parseResult";
-import type { DiagramModel, SourceLocation } from "../../parsers/classDiagram/diagramTreeModel";
+import type {
+  ClassNode,
+  DiagramTree,
+  SourceLocation,
+} from "../../parsers/classDiagram/diagramTreeModel";
 import { vscode } from "../../vscodeApi";
 import AutorenderMode from "./AutorenderMode/AutorenderMode";
 import EditorMode from "./EditorMode/EditorMode";
@@ -27,13 +31,18 @@ const MARGIN = 40;
  * annotation (or the last non-empty line), avoiding line-number drift from sequential inserts.
  */
 function computeGenerateEdits(
-  model: DiagramModel,
+  model: DiagramTree,
   missingIds: readonly string[],
   malformedAnnotations: ReadonlyMap<string, SourceLocation>,
   sourceText: string
 ): ApplyEditsMessage["edits"] {
   let maxBottom = 0;
-  for (const spatial of model.spatialAnnotations.values()) {
+  const classNodes = [...model.nodes.values()].filter(
+    (node): node is ClassNode => node.kind === "class"
+  );
+  const existingSpatial = classNodes.flatMap((node) => (node.spatial ? [node.spatial] : []));
+
+  for (const spatial of existingSpatial) {
     const bottom = spatial.y + spatial.height;
     if (bottom > maxBottom) maxBottom = bottom;
   }
@@ -48,7 +57,7 @@ function computeGenerateEdits(
     const malformed = malformedAnnotations.get(classId);
     if (malformed) {
       // Replace the malformed line in-place — no duplicate will be left behind.
-      edits.push({ lineNumber: malformed.line, newText: spatialLine });
+      edits.push({ lineNumber: malformed.startLine, newText: spatialLine });
     } else {
       toAppend.push(spatialLine);
     }
@@ -58,8 +67,8 @@ function computeGenerateEdits(
     const sourceLines = sourceText.split("\n");
     // Anchor: after the last existing valid @spatial line, or the last non-empty line.
     let anchorLine: number;
-    if (model.spatialAnnotations.size > 0) {
-      anchorLine = Math.max(...[...model.spatialAnnotations.values()].map((a) => a.location.line));
+    if (existingSpatial.length > 0) {
+      anchorLine = Math.max(...existingSpatial.map((spatial) => spatial.location.startLine));
     } else {
       anchorLine = sourceLines.length - 1;
       while (anchorLine > 0 && sourceLines[anchorLine].trim() === "") {

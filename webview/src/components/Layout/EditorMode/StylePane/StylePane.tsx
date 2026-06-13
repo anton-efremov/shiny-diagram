@@ -1,5 +1,9 @@
 import type { CSSProperties, ReactElement } from "react";
-import type { ClassBoxProps } from "../../../../parsers/classDiagram/diagramTreeModel";
+import type {
+  StyleDefNode,
+  StyleProperty,
+} from "../../../../parsers/classDiagram/diagramTreeModel";
+import type { ClassBoxProps } from "../EditorMode";
 import styles from "./StylePane.module.css";
 
 type StylePaneProps = {
@@ -23,11 +27,14 @@ export default function StylePane({
     );
   }
 
-  const { node, style } = selectedClassBox;
+  const { node, styleDef } = selectedClassBox;
+  const fill = styleDef ? getStyleProp(styleDef, "fill") : undefined;
+  const stroke = styleDef ? getStyleProp(styleDef, "stroke") : undefined;
+  const color = styleDef ? getStyleProp(styleDef, "color") : undefined;
   const dynamicVars = {
-    "--style-fill": style?.fill,
-    "--style-stroke": style?.stroke,
-    "--style-color": style?.color,
+    "--style-fill": fill,
+    "--style-stroke": stroke,
+    "--style-color": color,
   } as CSSProperties;
 
   return (
@@ -43,8 +50,8 @@ export default function StylePane({
           <div className={styles.selectionCopy}>
             <div className={styles.selectionType}>Class</div>
             <h2 className={styles.className}>{node.id}</h2>
-            {node.stereotype ? (
-              <div className={styles.stereotype}>&lt;&lt;{node.stereotype}&gt;&gt;</div>
+            {node.annotation ? (
+              <div className={styles.stereotype}>&lt;&lt;{node.annotation.value}&gt;&gt;</div>
             ) : null}
           </div>
         </div>
@@ -52,7 +59,11 @@ export default function StylePane({
         <div className={styles.previewCard} aria-label="Selected class color preview">
           <div className={styles.previewHeader}>{node.id}</div>
           <div className={styles.previewBody}>
-            {style?.name ? <span className={styles.styleName}>{style.name}</span> : "Default style"}
+            {styleDef?.id ? (
+              <span className={styles.styleName}>{styleDef.id}</span>
+            ) : (
+              "Default style"
+            )}
           </div>
         </div>
 
@@ -65,19 +76,26 @@ export default function StylePane({
                 <input
                   className={styles.colorInput}
                   type="color"
-                  value={toColorInputValue(style?.fill)}
+                  value={toColorInputValue(fill)}
                   onChange={(event) => onFillColorChange(event.currentTarget.value)}
                 />
-                <span>{style?.fill ?? "Default"}</span>
+                <span>{fill ?? "Default"}</span>
               </label>
             </dd>
           </div>
-          <StyleValue label="Stroke" value={style?.stroke} swatchClassName={styles.strokeSwatch} />
-          <StyleValue label="Text" value={style?.color} swatchClassName={styles.textSwatch} />
+          <StyleValue label="Stroke" value={stroke} swatchClassName={styles.strokeSwatch} />
+          <StyleValue label="Text" value={color} swatchClassName={styles.textSwatch} />
         </dl>
       </section>
     </aside>
   );
+}
+
+function getStyleProp(
+  styleDef: StyleDefNode,
+  property: StyleProperty["property"]
+): string | undefined {
+  return styleDef.properties.find((styleProperty) => styleProperty.property === property)?.value;
 }
 
 function toColorInputValue(value: string | undefined): string {

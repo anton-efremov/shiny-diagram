@@ -172,16 +172,16 @@ export type TreeNode = ClassNode | StyleDefNode | NamespaceNode;
 
 /** All Mermaid class diagram relationship types. */
 export type RelationshipType =
-  | "association"  // A --> B
-  | "solidLink"    // A -- B
-  | "dashedLink"   // A .. B
-  | "inheritance"  // A <|-- B
-  | "composition"  // A *-- B
-  | "aggregation"  // A o-- B
-  | "dependency"   // A ..> B
-  | "realization"  // A ..|> B
-  | "twoWay"       // A <|--|> B
-  | "lollipop";    // foo --() Interface
+  | "association" // A --> B
+  | "solidLink" // A -- B
+  | "dashedLink" // A .. B
+  | "inheritance" // A <|-- B
+  | "composition" // A *-- B
+  | "aggregation" // A o-- B
+  | "dependency" // A ..> B
+  | "realization" // A ..|> B
+  | "twoWay" // A <|--|> B
+  | "lollipop"; // foo --() Interface
 
 /** A UML relationship between two classes. Rendered as an edge on the canvas. */
 export type RelationshipEdge = {
@@ -206,8 +206,8 @@ export type InNamespaceEdge = {
 /** Declares that a classDef style is applied to a class (`class Foo:::Rose`). */
 export type AppliesStyleEdge = {
   readonly kind: "appliesStyle";
-  readonly source: string;  // ClassNode id
-  readonly target: string;  // StyleDefNode id
+  readonly source: string; // ClassNode id
+  readonly target: string; // StyleDefNode id
   readonly location: SourceLocation;
 };
 
@@ -231,4 +231,3 @@ export type DiagramTree = {
   readonly nodes: ReadonlyMap<string, TreeNode>;
   readonly edges: readonly TreeEdge[];
 };
-

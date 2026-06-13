@@ -1,7 +1,12 @@
 import type { ReactElement } from "react";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Handle, Position } from "@xyflow/react";
-import type { ClassBoxProps, ClassMember } from "../../../../../parsers/classDiagram/diagramTreeModel";
+import type {
+  ClassMember,
+  StyleDefNode,
+  StyleProperty,
+} from "../../../../../parsers/classDiagram/diagramTreeModel";
+import type { ClassBoxProps } from "../../EditorMode";
 import styles from "./ClassBox.module.css";
 
 type ClassBoxNode = Node<ClassBoxProps, "classBox">;
@@ -10,18 +15,18 @@ const resizeHandles = ["nw", "n", "ne", "e", "se", "s", "sw", "w"] as const;
 
 /** Renders a single class box node on the React Flow canvas. */
 export default function ClassBox({ data, selected }: NodeProps<ClassBoxNode>): ReactElement {
-  const { node, style } = data;
-  const fields = node.members.filter((member) => !member.isMethod);
-  const methods = node.members.filter((member) => member.isMethod);
+  const { node, styleDef } = data;
+  const fields = node.members.filter((member) => member.kind === "field");
+  const methods = node.members.filter((member) => member.kind === "method");
   const hasFieldsAndMethods = fields.length > 0 && methods.length > 0;
 
   // classDef colors are user data, not design tokens — the only way to inject
   // dynamic source-derived values into CSS is via custom property overrides.
-  const dynamicVars = style
+  const dynamicVars = styleDef
     ? ({
-        "--class-fill": style.fill,
-        "--class-stroke": style.stroke,
-        "--class-color": style.color,
+        "--class-fill": getStyleProp(styleDef, "fill"),
+        "--class-stroke": getStyleProp(styleDef, "stroke"),
+        "--class-color": getStyleProp(styleDef, "color"),
       } as React.CSSProperties)
     : undefined;
 
@@ -88,9 +93,9 @@ export default function ClassBox({ data, selected }: NodeProps<ClassBoxNode>): R
         isConnectable={false}
       />
       <header className={styles.header}>
-        {node.stereotype ? (
-          <div className={styles.stereotype} title={node.stereotype}>
-            &lt;&lt;{node.stereotype}&gt;&gt;
+        {node.annotation ? (
+          <div className={styles.stereotype} title={node.annotation.value}>
+            &lt;&lt;{node.annotation.value}&gt;&gt;
           </div>
         ) : null}
         <div className={styles.className} title={node.id}>
@@ -120,7 +125,7 @@ function MemberList({ members }: { members: readonly ClassMember[] }): ReactElem
     <div className={styles.memberList}>
       {members.map((member) => (
         <div
-          key={`${member.location.line}:${member.location.raw}`}
+          key={`${member.location.startLine}:${member.location.raw}`}
           className={styles.memberRow}
           title={member.location.raw.trim()}
         >
@@ -132,12 +137,19 @@ function MemberList({ members }: { members: readonly ClassMember[] }): ReactElem
 }
 
 function formatMember(member: ClassMember): string {
-  if (member.isMethod) {
+  if (member.kind === "method") {
     const params = member.params ?? "";
-    const typeSuffix = member.type ? `: ${member.type}` : "";
+    const typeSuffix = member.returnType ? `: ${member.returnType}` : "";
     return `${member.visibility} ${member.name}(${params})${typeSuffix}`;
   }
 
-  const typeSuffix = member.type ? `: ${member.type}` : "";
+  const typeSuffix = member.fieldType ? `: ${member.fieldType}` : "";
   return `${member.visibility} ${member.name}${typeSuffix}`;
+}
+
+function getStyleProp(
+  styleDef: StyleDefNode,
+  property: StyleProperty["property"]
+): string | undefined {
+  return styleDef.properties.find((styleProperty) => styleProperty.property === property)?.value;
 }

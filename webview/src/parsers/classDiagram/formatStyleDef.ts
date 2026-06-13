@@ -3,7 +3,7 @@
  * Preserves existing classDef properties while replacing the requested fill.
  */
 
-import type { StyleDef } from "./diagramTreeModel";
+import type { StyleDefNode } from "./diagramTreeModel";
 
 /**
  * Rebuilds a classDef line with an updated fill property.
@@ -12,10 +12,10 @@ import type { StyleDef } from "./diagramTreeModel";
  * @param fill - New Mermaid fill color value.
  * @returns Complete replacement classDef line text, without a trailing newline.
  */
-export function formatStyleDefFill(style: StyleDef, fill: string): string {
+export function formatStyleDefFill(style: StyleDefNode, fill: string): string {
   const match = /^(\s*classDef\s+\w+\s+)(.*)$/.exec(style.location.raw);
   if (!match) {
-    return `classDef ${style.name} fill:${fill}`;
+    return `classDef ${style.id} fill:${fill}`;
   }
 
   const prefix = match[1];

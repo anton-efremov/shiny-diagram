@@ -1,11 +1,16 @@
 /**
  * @fileoverview Extracts Shiny spatial annotations from tokenized Mermaid source.
- * Produces SpatialAnnotation values with SourceLocation so the diff patcher can
+ * Produces SpatialData values with SourceLocation so the diff patcher can
  * update x/y on drag without re-parsing the whole file.
  */
 
-import type { SpatialAnnotation, SourceLocation } from "../diagramTreeModel";
+import type { SourceLocation, SpatialData } from "../diagramTreeModel";
 import type { TokenizedLine } from "../tokenizer";
+
+export type SpatialEntry = {
+  readonly classId: string;
+  readonly spatial: SpatialData;
+};
 
 /** A @spatial line whose classId was recognised but whose values are incomplete. */
 export type MalformedAnnotation = {
@@ -15,7 +20,7 @@ export type MalformedAnnotation = {
 
 /** Return value of parseSpatial — valid annotations and any incomplete ones. */
 export type ParseSpatialResult = {
-  readonly valid: SpatialAnnotation[];
+  readonly valid: SpatialEntry[];
   readonly malformed: MalformedAnnotation[];
 };
 
@@ -29,7 +34,7 @@ export type ParseSpatialResult = {
  * @returns Valid annotations and any incomplete ones with their source locations.
  */
 export function parseSpatial(lines: TokenizedLine[]): ParseSpatialResult {
-  const valid: SpatialAnnotation[] = [];
+  const valid: SpatialEntry[] = [];
   const malformed: MalformedAnnotation[] = [];
   const pattern = /^\s*%%\s+@spatial:([A-Za-z_]\w*)\s*(.*)$/;
 
@@ -38,7 +43,7 @@ export function parseSpatial(lines: TokenizedLine[]): ParseSpatialResult {
     const match = pattern.exec(line.raw);
     if (!match) return;
     const classId = match[1];
-    const location: SourceLocation = { line: line.lineNumber, raw: line.raw };
+    const location = toSourceLocation(line);
     const values = parseSpatialValues(match[2]);
     if (!values) {
       malformed.push({ classId, location });
@@ -46,11 +51,13 @@ export function parseSpatial(lines: TokenizedLine[]): ParseSpatialResult {
     }
     valid.push({
       classId,
-      x: values.x,
-      y: values.y,
-      width: values.width,
-      height: values.height,
-      location,
+      spatial: {
+        x: values.x,
+        y: values.y,
+        width: values.width,
+        height: values.height,
+        location,
+      },
     });
   };
 
@@ -98,4 +105,14 @@ function parseSpatialValues(valueText: string): SpatialValues | null {
   }
 
   return { x, y, width, height };
+}
+
+function toSourceLocation(line: TokenizedLine): SourceLocation {
+  return {
+    startLine: line.lineNumber,
+    startChar: 0,
+    endLine: line.lineNumber,
+    endChar: line.raw.length,
+    raw: line.raw,
+  };
 }
