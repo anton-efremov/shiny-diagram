@@ -4,7 +4,8 @@
  * can handle each case without relying on sentinel values or exceptions.
  */
 
-import type { DiagramTree, SourceLocation } from "./diagramTreeModel";
+import type { DiagramTree, SourceLocation } from "../../models/classDiagram/diagramTreeModel";
+import type { ClassId } from "../../models/classDiagram/primitives";
 
 /**
  * The result of parsing a Mermaid class diagram source string.
@@ -23,7 +24,8 @@ export type ParseResult =
   | {
       readonly ok: false;
       readonly error: "missingAnnotations";
-      readonly missingIds: readonly string[];
+      readonly missingIds: readonly ClassId[];
       readonly model: DiagramTree;
-      readonly malformedAnnotations: ReadonlyMap<string, SourceLocation>;
+      // only malformed, not missing annotations. Shape: classId -> SourceLocation
+      readonly malformedAnnotations: ReadonlyMap<ClassId, SourceLocation>;
     };

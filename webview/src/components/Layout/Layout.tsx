@@ -8,7 +8,8 @@ import type {
   ClassNode,
   DiagramTree,
   SourceLocation,
-} from "../../parsers/classDiagram/diagramTreeModel";
+} from "../../models/classDiagram/diagramTreeModel";
+import type { ClassId } from "../../models/classDiagram/primitives";
 import { vscode } from "../../vscodeApi";
 import AutorenderMode from "./AutorenderMode/AutorenderMode";
 import EditorMode from "./EditorMode/EditorMode";
@@ -32,8 +33,8 @@ const MARGIN = 40;
  */
 function computeGenerateEdits(
   model: DiagramTree,
-  missingIds: readonly string[],
-  malformedAnnotations: ReadonlyMap<string, SourceLocation>,
+  missingIds: readonly ClassId[],
+  malformedAnnotations: ReadonlyMap<ClassId, SourceLocation>,
   sourceText: string
 ): ApplyEditsMessage["edits"] {
   let maxBottom = 0;

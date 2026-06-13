@@ -2,7 +2,12 @@
  * @fileoverview Extracts class relationship declarations from tokenized Mermaid source.
  */
 
-import type { RelationshipEdge, RelationshipType, SourceLocation } from "../diagramTreeModel";
+import type {
+  RelationshipEdge,
+  RelationshipType,
+  SourceLocation,
+} from "../../../models/classDiagram/diagramTreeModel";
+import { toClassId } from "../../../models/classDiagram/primitives";
 import type { TokenizedLine } from "../tokenizer";
 
 type RelationshipOperator = {
@@ -59,8 +64,8 @@ function parseRelationshipLine(line: TokenizedLine): RelationshipEdge | null {
 
   return {
     kind: "relationship",
-    source: source.name,
-    target: target.name,
+    source: toClassId(source.name),
+    target: toClassId(target.name),
     type: operator.type,
     label,
     sourceMultiplicity: source.multiplicity,

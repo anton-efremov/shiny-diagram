@@ -1,8 +1,5 @@
 import type { CSSProperties, ReactElement } from "react";
-import type {
-  StyleDefNode,
-  StyleProperty,
-} from "../../../../parsers/classDiagram/diagramTreeModel";
+import type { StyleDefNode, StyleProperty } from "../../../../models/classDiagram/diagramTreeModel";
 import type { ClassBoxProps } from "../EditorMode";
 import styles from "./StylePane.module.css";
 

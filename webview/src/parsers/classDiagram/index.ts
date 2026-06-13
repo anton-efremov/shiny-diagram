@@ -4,7 +4,13 @@
  * from raw Mermaid source. Pure function — no React, no VS Code dependencies.
  */
 
-import type { ClassNode, DiagramTree, TreeEdge, TreeNode } from "./diagramTreeModel";
+import type {
+  ClassNode,
+  DiagramTree,
+  TreeEdge,
+  TreeNode,
+} from "../../models/classDiagram/diagramTreeModel";
+import type { TreeNodeId } from "../../models/classDiagram/primitives";
 import type { ParseResult } from "./parseResult";
 import { tokenize } from "./tokenizer";
 import { parseClasses } from "./rules/parseClasses";
@@ -53,7 +59,7 @@ export function parseDiagram(source: string): ParseResult {
     const { valid: spatialList, malformed: malformedList } = parseSpatial(lines);
 
     const spatialByClassId = new Map(spatialList.map((entry) => [entry.classId, entry.spatial]));
-    const nodes = new Map<string, TreeNode>();
+    const nodes = new Map<TreeNodeId, TreeNode>();
 
     for (const classNode of classNodes) {
       const spatial = spatialByClassId.get(classNode.id);

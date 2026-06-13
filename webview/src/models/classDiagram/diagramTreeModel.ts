@@ -41,24 +41,9 @@
  * Mutations go through the diff protocol, not model mutation.
  */
 
-// ---------------------------------------------------------------------------
-// Source location
-// ---------------------------------------------------------------------------
+import type { ClassId, NamespaceId, SourceLocation, StyleDefId, TreeNodeId } from "./primitives";
 
-/**
- * Points to an exact character range in the source file.
- * Used by the diff patcher to locate and replace any construct — whether a
- * full line, a multi-line block, or a single property value within a line.
- * All positions are 0-indexed.
- */
-export type SourceLocation = {
-  readonly startLine: number;
-  readonly startChar: number;
-  readonly endLine: number;
-  readonly endChar: number;
-  /** Original raw text of the range, retained for diff computation. */
-  readonly raw: string;
-};
+export type { SourceLocation } from "./primitives";
 
 // ---------------------------------------------------------------------------
 // Node attributes — ClassNode
@@ -133,7 +118,7 @@ export type StyleProperty = {
  */
 export type ClassNode = {
   readonly kind: "class";
-  readonly id: string;
+  readonly id: ClassId;
   readonly annotation?: ClassAnnotation;
   readonly members: readonly ClassMember[];
   /** Absent means no @spatial annotation exists yet — editor shows Generate prompt. */
@@ -149,7 +134,7 @@ export type ClassNode = {
  */
 export type StyleDefNode = {
   readonly kind: "styleDef";
-  readonly id: string;
+  readonly id: StyleDefId;
   readonly properties: readonly StyleProperty[];
   /** The "classDef StyleName ..." line. */
   readonly location: SourceLocation;
@@ -158,7 +143,7 @@ export type StyleDefNode = {
 /** A namespace block — a visual grouping of classes on the canvas. */
 export type NamespaceNode = {
   readonly kind: "namespace";
-  readonly id: string;
+  readonly id: NamespaceId;
   /** The "namespace Foo {" line. */
   readonly location: SourceLocation;
 };
@@ -186,8 +171,8 @@ export type RelationshipType =
 /** A UML relationship between two classes. Rendered as an edge on the canvas. */
 export type RelationshipEdge = {
   readonly kind: "relationship";
-  readonly source: string;
-  readonly target: string;
+  readonly source: ClassId;
+  readonly target: ClassId;
   readonly type: RelationshipType;
   readonly label?: string;
   readonly sourceMultiplicity?: string;
@@ -198,16 +183,16 @@ export type RelationshipEdge = {
 /** Declares that a class belongs to a namespace. */
 export type InNamespaceEdge = {
   readonly kind: "inNamespace";
-  readonly source: string;
-  readonly target: string;
+  readonly source: ClassId;
+  readonly target: NamespaceId;
   readonly location: SourceLocation;
 };
 
 /** Declares that a classDef style is applied to a class (`class Foo:::Rose`). */
 export type AppliesStyleEdge = {
   readonly kind: "appliesStyle";
-  readonly source: string; // ClassNode id
-  readonly target: string; // StyleDefNode id
+  readonly source: ClassId;
+  readonly target: StyleDefId;
   readonly location: SourceLocation;
 };
 
@@ -228,6 +213,6 @@ export type TreeEdge = RelationshipEdge | InNamespaceEdge | AppliesStyleEdge;
  * - NamespaceNode: namespace name  (e.g. "Payment")
  */
 export type DiagramTree = {
-  readonly nodes: ReadonlyMap<string, TreeNode>;
+  readonly nodes: ReadonlyMap<TreeNodeId, TreeNode>;
   readonly edges: readonly TreeEdge[];
 };

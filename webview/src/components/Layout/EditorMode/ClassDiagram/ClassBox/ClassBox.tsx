@@ -5,7 +5,7 @@ import type {
   ClassMember,
   StyleDefNode,
   StyleProperty,
-} from "../../../../../parsers/classDiagram/diagramTreeModel";
+} from "../../../../../models/classDiagram/diagramTreeModel";
 import type { ClassBoxProps } from "../../EditorMode";
 import styles from "./ClassBox.module.css";
 

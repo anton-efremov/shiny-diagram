@@ -12,7 +12,8 @@ import type {
   ClassNode,
   SourceLocation,
   Visibility,
-} from "../diagramTreeModel";
+} from "../../../models/classDiagram/diagramTreeModel";
+import { toClassId, toStyleDefId } from "../../../models/classDiagram/primitives";
 import type { TokenizedLine } from "../tokenizer";
 
 const VISIBILITY_PREFIXES = new Set<string>(["+", "-", "#", "~"]);
@@ -28,7 +29,7 @@ export function parseClasses(lines: TokenizedLine[]): {
   nodes: ClassNode[];
   appliesStyleEdges: AppliesStyleEdge[];
 } {
-  const classMap = new Map<string, ClassNode>();
+  const classMap = new Map<ClassNode["id"], ClassNode>();
   const appliesStyleEdges: AppliesStyleEdge[] = [];
 
   // First pass: collect explicit class declarations.
@@ -38,7 +39,7 @@ export function parseClasses(lines: TokenizedLine[]): {
     const match = /^\s*class\s+(\w+)/.exec(line.raw);
     if (!match) continue;
 
-    const id = match[1];
+    const id = toClassId(match[1]);
     // Avoid overwriting if already inserted (shouldn't happen in valid source).
     if (!classMap.has(id)) {
       const { members, annotation } = parseClassBody(line.blockLines ?? []);
@@ -60,8 +61,8 @@ export function parseClasses(lines: TokenizedLine[]): {
     const match = /^\s*class\s+(\w+):::(\w+)/.exec(line.raw);
     if (!match) continue;
 
-    const id = match[1];
-    const styleDefName = match[2];
+    const id = toClassId(match[1]);
+    const styleDefName = toStyleDefId(match[2]);
 
     appliesStyleEdges.push({
       kind: "appliesStyle",

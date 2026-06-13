@@ -3,7 +3,12 @@
  * Parses comma-separated property:value pairs into typed style properties.
  */
 
-import type { SourceLocation, StyleDefNode, StyleProperty } from "../diagramTreeModel";
+import type {
+  SourceLocation,
+  StyleDefNode,
+  StyleProperty,
+} from "../../../models/classDiagram/diagramTreeModel";
+import { toStyleDefId } from "../../../models/classDiagram/primitives";
 import type { TokenizedLine } from "../tokenizer";
 
 /**
@@ -27,7 +32,7 @@ export function parseStyles(lines: TokenizedLine[]): StyleDefNode[] {
 
     result.push({
       kind: "styleDef",
-      id: name,
+      id: toStyleDefId(name),
       properties,
       location: toSourceLocation(line),
     });

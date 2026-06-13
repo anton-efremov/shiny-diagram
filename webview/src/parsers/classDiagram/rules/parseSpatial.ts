@@ -4,17 +4,19 @@
  * update x/y on drag without re-parsing the whole file.
  */
 
-import type { SourceLocation, SpatialData } from "../diagramTreeModel";
+import type { SourceLocation, SpatialData } from "../../../models/classDiagram/diagramTreeModel";
+import type { ClassId } from "../../../models/classDiagram/primitives";
+import { toClassId } from "../../../models/classDiagram/primitives";
 import type { TokenizedLine } from "../tokenizer";
 
 export type SpatialEntry = {
-  readonly classId: string;
+  readonly classId: ClassId;
   readonly spatial: SpatialData;
 };
 
 /** A @spatial line whose classId was recognised but whose values are incomplete. */
 export type MalformedAnnotation = {
-  readonly classId: string;
+  readonly classId: ClassId;
   readonly location: SourceLocation;
 };
 
@@ -42,7 +44,7 @@ export function parseSpatial(lines: TokenizedLine[]): ParseSpatialResult {
     if (line.type !== "spatialAnnotation") return;
     const match = pattern.exec(line.raw);
     if (!match) return;
-    const classId = match[1];
+    const classId = toClassId(match[1]);
     const location = toSourceLocation(line);
     const values = parseSpatialValues(match[2]);
     if (!values) {

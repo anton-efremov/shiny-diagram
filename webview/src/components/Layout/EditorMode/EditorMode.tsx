@@ -8,7 +8,7 @@ import type {
   ClassNode,
   RelationshipEdge,
   StyleDefNode,
-} from "../../../parsers/classDiagram/diagramTreeModel";
+} from "../../../models/classDiagram/diagramTreeModel";
 import type { ApplyEditsMessage } from "../../../protocol";
 import { vscode } from "../../../vscodeApi";
 import ClassDiagram from "./ClassDiagram/ClassDiagram";

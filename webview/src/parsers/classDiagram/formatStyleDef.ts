@@ -3,7 +3,7 @@
  * Preserves existing classDef properties while replacing the requested fill.
  */
 
-import type { StyleDefNode } from "./diagramTreeModel";
+import type { StyleDefNode } from "../../models/classDiagram/diagramTreeModel";
 
 /**
  * Rebuilds a classDef line with an updated fill property.

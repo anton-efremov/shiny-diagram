@@ -5,7 +5,7 @@
  * for the diff patcher without touching the rest of the source.
  */
 
-import type { SpatialData } from "./diagramTreeModel";
+import type { SpatialData } from "../../models/classDiagram/diagramTreeModel";
 
 /**
  * Rebuilds a spatial annotation line with updated x/y coordinates.
