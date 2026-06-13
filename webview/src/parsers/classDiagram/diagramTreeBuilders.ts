@@ -15,7 +15,11 @@ import { buildClassNode } from "./builders/buildClassNode";
 import { buildInNamespaceEdges } from "./builders/buildInNamespaceEdge";
 import { buildNamespaceNode } from "./builders/buildNamespaceNode";
 import { buildRelationshipEdge } from "./builders/buildRelationshipEdge";
-import { buildSpatialData, type MalformedAnnotation, type SpatialEntry } from "./builders/buildSpatialData";
+import {
+  buildSpatialData,
+  type MalformedAnnotation,
+  type SpatialEntry,
+} from "./builders/buildSpatialData";
 import { buildStyleDefNode } from "./builders/buildStyleDefNode";
 import type { ParseToken } from "./tokenizer";
 

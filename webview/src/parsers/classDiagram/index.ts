@@ -4,9 +4,17 @@
  * from raw Mermaid source. Pure function — no React, no VS Code dependencies.
  */
 
-import type { ClassNode, DiagramTree, SourceLocation } from "../../models/classDiagram/diagramTreeModel";
+import type {
+  ClassNode,
+  DiagramTree,
+  SourceLocation,
+} from "../../models/classDiagram/diagramTreeModel";
 import type { ClassId } from "../../models/classDiagram/primitives";
-import { attachSpatial, buildSpatiallyUnawareDiagramTree, parseSpatialAnnotations } from "./diagramTreeBuilders";
+import {
+  attachSpatial,
+  buildSpatiallyUnawareDiagramTree,
+  parseSpatialAnnotations,
+} from "./diagramTreeBuilders";
 import { tokenize } from "./tokenizer";
 
 /**
