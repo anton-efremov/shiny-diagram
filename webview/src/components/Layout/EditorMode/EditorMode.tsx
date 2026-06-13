@@ -4,7 +4,6 @@ import { formatSpatialAnnotation } from "../../../formatters/classDiagram/format
 import { formatStyleDefFill } from "../../../formatters/classDiagram/formatStyleDef";
 import type { ParseResult } from "../../../parsers/classDiagram";
 import type {
-  AppliesStyleEdge,
   ClassNode,
   RelationshipEdge,
   StyleDefNode,
@@ -41,16 +40,12 @@ export default function EditorMode({ parseResult }: EditorModeProps): ReactEleme
   const classBoxes = useMemo((): ClassBoxProps[] => {
     if (!model) return [];
     const result: ClassBoxProps[] = [];
-    const styleEdges = model.edges.filter(
-      (edge): edge is AppliesStyleEdge => edge.kind === "appliesStyle"
-    );
 
-    for (const node of model.nodes.values()) {
-      if (node.kind !== "class" || !node.spatial) continue;
+    for (const node of model.classes.values()) {
+      if (!node.spatial) continue;
 
-      const styleEdge = styleEdges.find((edge) => edge.source === node.id);
-      const styleNode = styleEdge ? model.nodes.get(styleEdge.target) : undefined;
-      const styleDef = styleNode?.kind === "styleDef" ? styleNode : undefined;
+      const styleEdge = model.appliesStyleEdges.find((edge) => edge.source === node.id);
+      const styleDef = styleEdge ? model.styleDefs.get(styleEdge.target) : undefined;
       result.push({ node, styleDef });
     }
     return result;
@@ -58,18 +53,11 @@ export default function EditorMode({ parseResult }: EditorModeProps): ReactEleme
 
   const relationships = useMemo((): RelationshipEdge[] => {
     if (!model) return [];
-    return model.edges
-      .filter((edge): edge is RelationshipEdge => edge.kind === "relationship")
-      .filter((relationship) => {
-        const source = model.nodes.get(relationship.source);
-        const target = model.nodes.get(relationship.target);
-        return (
-          source?.kind === "class" &&
-          Boolean(source.spatial) &&
-          target?.kind === "class" &&
-          Boolean(target.spatial)
-        );
-      });
+    return model.relationships.filter((relationship) => {
+      const source = model.classes.get(relationship.source);
+      const target = model.classes.get(relationship.target);
+      return Boolean(source?.spatial) && Boolean(target?.spatial);
+    });
   }, [model]);
 
   const selectedClassBox = useMemo(

@@ -4,11 +4,7 @@ import type { Mode } from "../../types";
 import type { ApplyEditsMessage } from "../../protocol";
 import { parseDiagram } from "../../parsers/classDiagram";
 import type { ParseResult } from "../../parsers/classDiagram";
-import type {
-  ClassNode,
-  DiagramTree,
-  SourceLocation,
-} from "../../models/classDiagram/diagramTreeModel";
+import type { DiagramTree, SourceLocation } from "../../models/classDiagram/diagramTreeModel";
 import type { ClassId } from "../../models/classDiagram/primitives";
 import { vscode } from "../../vscodeApi";
 import AutorenderMode from "./AutorenderMode/AutorenderMode";
@@ -38,10 +34,9 @@ function computeGenerateEdits(
   sourceText: string
 ): ApplyEditsMessage["edits"] {
   let maxBottom = 0;
-  const classNodes = [...model.nodes.values()].filter(
-    (node): node is ClassNode => node.kind === "class"
+  const existingSpatial = [...model.classes.values()].flatMap((node) =>
+    node.spatial ? [node.spatial] : []
   );
-  const existingSpatial = classNodes.flatMap((node) => (node.spatial ? [node.spatial] : []));
 
   for (const spatial of existingSpatial) {
     const bottom = spatial.y + spatial.height;

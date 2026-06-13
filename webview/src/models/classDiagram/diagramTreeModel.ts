@@ -41,7 +41,7 @@
  * Mutations go through the diff protocol, not model mutation.
  */
 
-import type { ClassId, NamespaceId, SourceLocation, StyleDefId, TreeNodeId } from "./primitives";
+import type { ClassId, NamespaceId, SourceLocation, StyleDefId } from "./primitives";
 
 export type { SourceLocation } from "./primitives";
 
@@ -123,8 +123,12 @@ export type ClassNode = {
   readonly members: readonly ClassMember[];
   /** Absent means no @spatial annotation exists yet — editor shows Generate prompt. */
   readonly spatial?: SpatialData;
-  /** The "class Foo {" or "class Foo" declaration line. */
-  readonly location: SourceLocation;
+  /**
+   * The "class Foo {" or "class Foo" declaration line.
+   * Null for classes synthesized from relationship endpoints that have
+   * no explicit declaration in source.
+   */
+  readonly location: SourceLocation | null;
 };
 
 /**
@@ -207,12 +211,19 @@ export type TreeEdge = RelationshipEdge | InNamespaceEdge | AppliesStyleEdge;
  * The complete in-memory representation of a parsed Mermaid class diagram.
  * Output of parseDiagram(), input to all editor components.
  *
- * nodes is keyed by stable string id:
- * - ClassNode:     class name      (e.g. "PaymentService")
- * - StyleDefNode:  classDef name   (e.g. "Rose")
- * - NamespaceNode: namespace name  (e.g. "Payment")
+ * The diagram tree stores each node and edge kind in a typed container:
+ * - classes: stable class id -> ClassNode
+ * - styleDefs: stable classDef id -> StyleDefNode
+ * - namespaces: stable namespace id -> NamespaceNode
+ * - relationships: UML relationship edges between classes
+ * - appliesStyleEdges: class-to-classDef style application edges
+ * - inNamespaceEdges: class-to-namespace membership edges
  */
 export type DiagramTree = {
-  readonly nodes: ReadonlyMap<TreeNodeId, TreeNode>;
-  readonly edges: readonly TreeEdge[];
+  readonly classes: ReadonlyMap<ClassId, ClassNode>;
+  readonly styleDefs: ReadonlyMap<StyleDefId, StyleDefNode>;
+  readonly namespaces: ReadonlyMap<NamespaceId, NamespaceNode>;
+  readonly relationships: readonly RelationshipEdge[];
+  readonly appliesStyleEdges: readonly AppliesStyleEdge[];
+  readonly inNamespaceEdges: readonly InNamespaceEdge[];
 };

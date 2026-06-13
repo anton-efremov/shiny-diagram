@@ -8,8 +8,15 @@
  * all cases uniformly without special-casing.
  */
 
-import type { DiagramTree, TreeEdge, TreeNode } from "../../models/classDiagram/diagramTreeModel";
-import type { TreeNodeId } from "../../models/classDiagram/primitives";
+import type {
+  AppliesStyleEdge,
+  ClassNode,
+  DiagramTree,
+  InNamespaceEdge,
+  NamespaceNode,
+  RelationshipEdge,
+  StyleDefNode,
+} from "../../models/classDiagram/diagramTreeModel";
 import { buildAppliesStyleEdge } from "./builders/buildAppliesStyleEdge";
 import { buildClassNode } from "./builders/buildClassNode";
 import { buildInNamespaceEdges } from "./builders/buildInNamespaceEdge";
@@ -28,17 +35,32 @@ export type SpatialAnnotationParseResult = {
   readonly malformed: MalformedAnnotation[];
 };
 
+type MutableDiagramTree = {
+  readonly classes: Map<ClassNode["id"], ClassNode>;
+  readonly styleDefs: Map<StyleDefNode["id"], StyleDefNode>;
+  readonly namespaces: Map<NamespaceNode["id"], NamespaceNode>;
+  readonly relationships: RelationshipEdge[];
+  readonly appliesStyleEdges: AppliesStyleEdge[];
+  readonly inNamespaceEdges: InNamespaceEdge[];
+};
+
 /**
  * Builds a diagram tree from class diagram parse tokens without spatial data.
  * Recurses into block tokens so all nesting levels are traversed.
  */
 export function buildSpatiallyUnawareDiagramTree(tokens: ParseToken[]): DiagramTree {
-  const nodes = new Map<TreeNodeId, TreeNode>();
-  const edges: TreeEdge[] = [];
+  const tree: MutableDiagramTree = {
+    classes: new Map(),
+    styleDefs: new Map(),
+    namespaces: new Map(),
+    relationships: [],
+    appliesStyleEdges: [],
+    inNamespaceEdges: [],
+  };
 
-  traverseTokens(tokens, nodes, edges);
+  traverseTokens(tokens, tree);
 
-  return { nodes, edges };
+  return tree;
 }
 
 /**
@@ -58,56 +80,77 @@ export function parseSpatialAnnotations(tokens: ParseToken[]): SpatialAnnotation
  */
 export function attachSpatial(tree: DiagramTree, valid: readonly SpatialEntry[]): DiagramTree {
   const spatialByClassId = new Map(valid.map((entry) => [entry.classId, entry.spatial]));
-  const nodes = new Map<TreeNodeId, TreeNode>(tree.nodes);
+  const classes = new Map(tree.classes);
 
-  for (const [id, node] of nodes) {
-    if (node.kind !== "class") continue;
+  for (const [id, node] of classes) {
     const spatial = spatialByClassId.get(node.id);
     if (spatial) {
-      nodes.set(id, { ...node, spatial });
+      classes.set(id, { ...node, spatial });
     }
   }
 
-  return { nodes, edges: tree.edges };
+  return { ...tree, classes };
 }
 
-function traverseTokens(
-  tokens: readonly ParseToken[],
-  nodes: Map<TreeNodeId, TreeNode>,
-  edges: TreeEdge[]
-): void {
+/**
+ * Synthesizes minimal ClassNode entries for relationship endpoints that have
+ * no explicit class declaration in source. Mermaid allows referencing a class
+ * only via a relationship (e.g. "Animal <|-- Duck" with neither class declared).
+ * Synthesized nodes have location: null and no spatial — they fall into
+ * missingIds and are placed on canvas via the existing Generate flow.
+ */
+export function synthesizeImplicitClassNodes(tree: DiagramTree): DiagramTree {
+  const classes = new Map(tree.classes);
+
+  for (const relationship of tree.relationships) {
+    for (const id of [relationship.source, relationship.target]) {
+      if (!classes.has(id)) {
+        classes.set(id, {
+          kind: "class",
+          id,
+          members: [],
+          location: null,
+        });
+      }
+    }
+  }
+
+  return { ...tree, classes };
+}
+
+function traverseTokens(tokens: readonly ParseToken[], tree: MutableDiagramTree): void {
   for (const token of tokens) {
     switch (token.type) {
       case "classDeclaration": {
         const node = buildClassNode(token);
-        if (node) nodes.set(node.id, node);
+        if (node) tree.classes.set(node.id, node);
         break;
       }
       case "styleApplication": {
         const edge = buildAppliesStyleEdge(token);
-        if (edge) edges.push(edge);
+        if (edge) tree.appliesStyleEdges.push(edge);
         break;
       }
       case "styleDef": {
         const node = buildStyleDefNode(token);
-        if (node) nodes.set(node.id, node);
+        if (node) tree.styleDefs.set(node.id, node);
         break;
       }
       case "relationship": {
         const edge = buildRelationshipEdge(token);
-        if (edge) edges.push(edge);
+        if (edge) tree.relationships.push(edge);
         break;
       }
       case "namespace": {
         const node = buildNamespaceNode(token);
-        if (node) nodes.set(node.id, node);
-        edges.push(...buildInNamespaceEdges(token));
+        if (node) tree.namespaces.set(node.id, node);
+        tree.inNamespaceEdges.push(...buildInNamespaceEdges(token));
         break;
       }
     }
 
     if (token.blockTokens) {
-      traverseTokens(token.blockTokens, nodes, edges);
+      traverseTokens(token.blockTokens, tree);
     }
   }
 }

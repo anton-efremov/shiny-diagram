@@ -4,16 +4,13 @@
  * from raw Mermaid source. Pure function — no React, no VS Code dependencies.
  */
 
-import type {
-  ClassNode,
-  DiagramTree,
-  SourceLocation,
-} from "../../models/classDiagram/diagramTreeModel";
+import type { DiagramTree, SourceLocation } from "../../models/classDiagram/diagramTreeModel";
 import type { ClassId } from "../../models/classDiagram/primitives";
 import {
   attachSpatial,
   buildSpatiallyUnawareDiagramTree,
   parseSpatialAnnotations,
+  synthesizeImplicitClassNodes,
 } from "./diagramTreeBuilders";
 import { tokenize } from "./tokenizer";
 
@@ -74,11 +71,11 @@ export function parseDiagram(source: string): ParseResult {
 
     const tokens = tokenize(source);
     const spatiallyUnawareTree = buildSpatiallyUnawareDiagramTree(tokens);
+    const treeWithImplicitClasses = synthesizeImplicitClassNodes(spatiallyUnawareTree);
     const { valid, malformed } = parseSpatialAnnotations(tokens);
-    const model = attachSpatial(spatiallyUnawareTree, valid);
+    const model = attachSpatial(treeWithImplicitClasses, valid);
 
-    const missingIds = [...model.nodes.values()]
-      .filter((node): node is ClassNode => node.kind === "class")
+    const missingIds = [...model.classes.values()]
       .filter((node) => !node.spatial)
       .map((node) => node.id);
     if (missingIds.length > 0) {
