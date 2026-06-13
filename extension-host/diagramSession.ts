@@ -1,7 +1,7 @@
 /**
- * @fileoverview Contains class definition for a session object — a stateful collection of 
- * event handlers that maintains document <-> webview source sync for one open Shiny panel. 
- * Listeners are registered in the constructor and released in dispose(). 
+ * @fileoverview Contains class definition for a session object — a stateful collection of
+ * event handlers that maintains document <-> webview source sync for one open Shiny panel.
+ * Listeners are registered in the constructor and released in dispose().
  * Holds debounce and loop-prevention state shared across those handlers.
  * Instantiated when the panel opens; disposed when the panel closes.
  */
@@ -66,7 +66,6 @@ export class DiagramSession {
   private async onApplyEdits(
     edits: readonly { lineNumber: number; newText: string }[]
   ): Promise<void> {
-
     // a transaction object for edits accumulation and application
     const workspaceEdit = new vscode.WorkspaceEdit();
 

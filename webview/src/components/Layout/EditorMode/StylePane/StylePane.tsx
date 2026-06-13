@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactElement } from "react";
-import type { ClassBoxProps } from "../../parsers/classDiagram/diagramModel";
+import type { ClassBoxProps } from "../../../../parsers/classDiagram/diagramModel";
 import styles from "./StylePane.module.css";
 
 type StylePaneProps = {

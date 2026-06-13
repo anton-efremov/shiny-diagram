@@ -16,8 +16,8 @@ export default function App(): ReactElement {
   const [sourceText, setSourceText] = useState<string>(readInitialData);
 
   useEffect(() => {
-    
-    function handleMessage(event: MessageEvent<unknown>): void { // Defined inside useEffect so it is created once on mount
+    function handleMessage(event: MessageEvent<unknown>): void {
+      // Defined inside useEffect so it is created once on mount
       if (!isHostMessage(event.data)) return;
       const msg = event.data;
       if (msg.type === "sourceUpdate") {

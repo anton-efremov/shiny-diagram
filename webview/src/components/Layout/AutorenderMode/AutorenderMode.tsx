@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { useAutorender } from "../useAutorender";
+import { useAutorender } from "./useAutorender";
 import styles from "./AutorenderMode.module.css";
 
 type AutorenderModeProps = {

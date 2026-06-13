@@ -6,8 +6,8 @@ import { parseDiagram } from "../../parsers/classDiagram";
 import type { ParseResult } from "../../parsers/classDiagram/parseResult";
 import type { DiagramModel, SourceLocation } from "../../parsers/classDiagram/diagramModel";
 import { vscode } from "../../vscodeApi";
-import AutorenderMode from "../../modes/AutorenderMode";
-import EditorMode from "../../modes/EditorMode";
+import AutorenderMode from "./AutorenderMode/AutorenderMode";
+import EditorMode from "./EditorMode/EditorMode";
 import styles from "./Layout.module.css";
 
 type LayoutProps = {

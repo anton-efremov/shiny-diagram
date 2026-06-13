@@ -29,7 +29,7 @@ export function getWebviewHtml(
   );
 
   /** Random token that "signs" the legitimate script tag. Prevents injection attack —
-    *  user-controlled data (diagram source) being interpreted as executable script. */
+   *  user-controlled data (diagram source) being interpreted as executable script. */
   const nonce = getNonce();
   const initialData = serializeJsonForHtml(sourceText);
 

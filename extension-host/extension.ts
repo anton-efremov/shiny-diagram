@@ -1,6 +1,6 @@
 /**
  * @fileoverview A mandatory extension's entry point
- * Wires the Shiny VS Code extension: registers commands and sets up the 
+ * Wires the Shiny VS Code extension: registers commands and sets up the
  * webview panel lifecycle only. All substantive logic lives in dedicated modules.
  */
 
@@ -8,19 +8,17 @@ import * as vscode from "vscode";
 import { getWebviewHtml } from "./webviewProvider";
 import { DiagramSession } from "./diagramSession";
 
-/** 
+/**
  * A mandatory lifecycle callback that extension.ts must export.
- * Registers extension commands and sets up the webview panel lifecycle. 
+ * Registers extension commands and sets up the webview panel lifecycle.
  * @param context - a JS object, constructed by Extension server on * extension startup
  *     which contains handles to environment APIs and paths required to run an application
  */
 export function activate(context: vscode.ExtensionContext): void {
-
   /** Registering WebView launch command through VS Code APIs and storing a handle to the open
    * command to push it to clean up queue context.subscriptions (disposable pattern) */
   const openDiagramCommand = vscode.commands.registerCommand("shiny.openDiagram", () => {
-
-    /** Object reference to a document (in-memory representation) in active editor window 
+    /** Object reference to a document (in-memory representation) in active editor window
      * at the moment registering the command */
     const activeDocument = vscode.window.activeTextEditor?.document;
     const panel = vscode.window.createWebviewPanel(

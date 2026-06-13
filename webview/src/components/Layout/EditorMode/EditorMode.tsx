@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import { formatSpatialAnnotation } from "../parsers/classDiagram/formatSpatial";
-import { formatStyleDefFill } from "../parsers/classDiagram/formatStyleDef";
-import type { ParseResult } from "../parsers/classDiagram/parseResult";
-import type { ClassBoxProps, Relationship } from "../parsers/classDiagram/diagramModel";
-import type { ApplyEditsMessage } from "../protocol";
-import { vscode } from "../vscodeApi";
-import ClassDiagram from "../components/ClassDiagram/ClassDiagram";
-import StylePane from "../components/StylePane/StylePane";
-import ToolPane from "../components/ToolPane/ToolPane";
+import { formatSpatialAnnotation } from "../../../parsers/classDiagram/formatSpatial";
+import { formatStyleDefFill } from "../../../parsers/classDiagram/formatStyleDef";
+import type { ParseResult } from "../../../parsers/classDiagram/parseResult";
+import type { ClassBoxProps, Relationship } from "../../../parsers/classDiagram/diagramModel";
+import type { ApplyEditsMessage } from "../../../protocol";
+import { vscode } from "../../../vscodeApi";
+import ClassDiagram from "./ClassDiagram/ClassDiagram";
+import StylePane from "./StylePane/StylePane";
+import ToolPane from "./ToolPane/ToolPane";
 import styles from "./EditorMode.module.css";
 
 type EditorModeProps = {

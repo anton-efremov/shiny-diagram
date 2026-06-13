@@ -13,7 +13,7 @@
 /**
  * Contains the whole source code; sent when:
  * 1. User changes active .mmd document and the debounce settled.
- * 2. The host just processed a Shiny-originated edit and immediately pushes 
+ * 2. The host just processed a Shiny-originated edit and immediately pushes
  *    the updated source back to sync with webview  without waiting for the debounce.
  */
 export type SourceUpdateMessage = {
