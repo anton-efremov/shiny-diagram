@@ -3,13 +3,16 @@
  * parses the source into a DiagramTree, and renders the app shell.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import type { Mode } from "./types";
+import { computeGenerateEdits } from "./formatters/classDiagram/computeGenerateEdits";
 import { parseDiagram } from "./parsers/classDiagram";
 import type { ParseResult } from "./parsers/classDiagram";
+import type { ApplyEditsMessage } from "./protocol";
 import { readInitialData } from "./utils/initialData";
 import { isHostMessage } from "./utils/typeGuards";
+import { vscode } from "./vscodeApi";
 import AppHeader from "./components/AppHeader/AppHeader";
 import AutorenderView from "./components/AutorenderView/AutorenderView";
 import EditorView from "./components/EditorView/EditorView";
@@ -31,14 +34,32 @@ export default function App(): ReactElement {
     }
 
     window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage); 
+    return () => window.removeEventListener("message", handleMessage);
   }, []);
 
   const parseResult: ParseResult = useMemo(() => parseDiagram(sourceText), [sourceText]);
 
+  const handleGenerate = useCallback(() => {
+    if (parseResult.ok || parseResult.error !== "missingAnnotations") return;
+    const edits = computeGenerateEdits(
+      parseResult.model,
+      parseResult.missingIds,
+      parseResult.malformedAnnotations,
+      sourceText
+    );
+    if (edits.length === 0) return;
+    const message: ApplyEditsMessage = { type: "applyEdits", edits };
+    vscode.postMessage(message);
+  }, [parseResult, sourceText]);
+
   return (
     <main className={styles.shell}>
-      <AppHeader mode={mode} setMode={setMode} parseResult={parseResult} sourceText={sourceText} />
+      <AppHeader
+        mode={mode}
+        setMode={setMode}
+        parseResult={parseResult}
+        onGenerate={handleGenerate}
+      />
       {mode === "autorender" ? (
         <AutorenderView sourceText={sourceText} />
       ) : (
