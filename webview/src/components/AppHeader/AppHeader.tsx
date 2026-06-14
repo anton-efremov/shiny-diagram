@@ -1,6 +1,6 @@
 import type { Dispatch, ReactElement, SetStateAction } from "react";
+import type { Mode } from "../../App";
 import type { ParseResult } from "../../parsers/classDiagram";
-import type { Mode } from "../../types";
 import styles from "./AppHeader.module.css";
 
 type AppHeaderProps = {

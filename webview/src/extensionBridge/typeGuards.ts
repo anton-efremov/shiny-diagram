@@ -3,7 +3,7 @@
  * Centralizes all type narrowing functions for unknown or unverified data.
  */
 
-import type { HostToWebviewMessage } from "../protocol";
+import type { HostToWebviewMessage } from "./protocol";
 
 /**
  * Validates that an unknown postMessage payload is a HostMessage.

@@ -4,7 +4,7 @@
 
 import type { DiagramTree, SourceLocation } from "../../models/classDiagram/diagramTreeModel";
 import type { ClassId } from "../../models/classDiagram/primitives";
-import type { ApplyEditsMessage } from "../../protocol";
+import type { ApplyEditsMessage } from "../../extensionBridge/protocol";
 
 const DEFAULT_W = 200;
 const DEFAULT_H = 150;

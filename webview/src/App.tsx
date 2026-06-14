@@ -5,27 +5,28 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import type { Mode } from "./types";
 import { computeGenerateEdits } from "./formatters/classDiagram/computeGenerateEdits";
 import { parseDiagram } from "./parsers/classDiagram";
 import type { ParseResult } from "./parsers/classDiagram";
-import type { ApplyEditsMessage } from "./protocol";
-import { readInitialData } from "./utils/initialData";
-import { isHostMessage } from "./utils/typeGuards";
-import { vscode } from "./vscodeApi";
+import type { ApplyEditsMessage } from "./extensionBridge/protocol";
+import { readInitialData } from "./extensionBridge/initialData";
+import { isHostMessage } from "./extensionBridge/typeGuards";
+import { vscode } from "./extensionBridge/vscodeApi";
 import AppHeader from "./components/AppHeader/AppHeader";
 import AutorenderView from "./components/AutorenderView/AutorenderView";
 import EditorView from "./components/EditorView/EditorView";
 import styles from "./App.module.css";
+
+export type Mode = "autorender" | "editor";
 
 /** Root application component. Owns mode and live source state. */
 export default function App(): ReactElement {
   const [mode, setMode] = useState<Mode>("autorender");
   const [sourceText, setSourceText] = useState<string>(readInitialData);
 
+  // Setting source text receiving pipeline through window event
   useEffect(() => {
     function handleMessage(event: MessageEvent<unknown>): void {
-      // Defined inside useEffect so it is created once on mount
       if (!isHostMessage(event.data)) return;
       const msg = event.data;
       if (msg.type === "sourceUpdate") {

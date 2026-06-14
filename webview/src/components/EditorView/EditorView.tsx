@@ -8,8 +8,8 @@ import type {
   RelationshipEdge,
   StyleDefNode,
 } from "../../models/classDiagram/diagramTreeModel";
-import type { ApplyEditsMessage } from "../../protocol";
-import { vscode } from "../../vscodeApi";
+import type { ApplyEditsMessage } from "../../extensionBridge/protocol";
+import { vscode } from "../../extensionBridge/vscodeApi";
 import ClassDiagram from "./ClassDiagram/ClassDiagram";
 import StylePane from "./StylePane/StylePane";
 import ToolPane from "./ToolPane/ToolPane";
