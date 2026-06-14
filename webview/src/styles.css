@@ -1,25 +1,23 @@
 @import "@xyflow/react/dist/style.css";
 
-/* --- Design tokens --- */
+/* --- Design tokens: palette --- */
 
 :root {
-  /* Diagram domain */
-  --shiny-box-fill: var(--vscode-editorWidget-background);
-  --shiny-box-stroke: var(--vscode-panel-border);
-  --shiny-box-text: var(--vscode-editor-foreground);
-  --shiny-selection-color: var(--vscode-focusBorder);
-  --shiny-hover-border: var(--vscode-focusBorder);
-  --shiny-edge-color: var(--vscode-editor-foreground);
+  /* Color palette — named by character, not by where they're applied.
+     Components pick whichever entry fits. */
+  --shiny-surface: var(--vscode-editorWidget-background);
+  --shiny-page-bg: var(--vscode-editor-background);
+  --shiny-border: var(--vscode-panel-border);
+  --shiny-text: var(--vscode-editor-foreground);
+  --shiny-text-muted: var(--vscode-descriptionForeground);
+  --shiny-text-error: var(--vscode-errorForeground);
+  --shiny-accent: var(--vscode-focusBorder);
 
-  /* Shell / chrome */
+  /* Typography */
   --shiny-font-family: var(--vscode-font-family);
   --shiny-code-font-family: var(--vscode-editor-font-family, monospace);
-  --shiny-shell-bg: var(--vscode-editor-background);
-  --shiny-text: var(--vscode-editor-foreground);
-  --shiny-description-text: var(--vscode-descriptionForeground);
-  --shiny-error-text: var(--vscode-errorForeground);
 
-  /* Buttons */
+  /* Buttons — VS Code's own button role tokens */
   --shiny-button-bg: var(--vscode-button-background);
   --shiny-button-fg: var(--vscode-button-foreground);
   --shiny-button-secondary-bg: var(--vscode-button-secondaryBackground);
@@ -27,29 +25,35 @@
   --shiny-button-border: var(--vscode-button-border, transparent);
 }
 
-/* Canvas tint has no direct VS Code token equivalent; defined per theme kind. */
+/* No VS Code equivalent for a subtle hover wash — define per theme kind. */
 body[data-vscode-theme-kind="vscode-light"] {
-  --shiny-canvas-tint: rgba(0, 0, 0, 0.03);
+  --shiny-overlay-faint: rgba(0, 0, 0, 0.03);
 }
 
 body[data-vscode-theme-kind="vscode-dark"] {
-  --shiny-canvas-tint: rgba(255, 255, 255, 0.03);
+  --shiny-overlay-faint: rgba(255, 255, 255, 0.03);
 }
 
 body[data-vscode-theme-kind="vscode-high-contrast"] {
-  --shiny-canvas-tint: transparent;
+  --shiny-overlay-faint: transparent;
 }
 
-/* --- Browser resets --- */
+/* --- Base/default styles --- */
 
-*,
-*::before,
-*::after {
+/* Universal: width/height include padding+border, so spatial.width/height in
+   the diagram source match rendered pixels exactly. */
+* {
   box-sizing: border-box;
 }
 
+/* Browser default ~8px margin on body, removed. */
 body {
   margin: 0;
+}
+
+/* Inherited defaults: every element gets Shiny's theme font/color unless it
+   sets its own. */
+body {
   font-family: var(--shiny-font-family);
   color: var(--shiny-text);
 }

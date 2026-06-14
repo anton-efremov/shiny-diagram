@@ -1,12 +1,12 @@
 .diagramShell {
   height: 620px;
-  border: 1px solid var(--shiny-box-stroke);
-  background: var(--shiny-box-fill);
+  border: 1px solid var(--shiny-border);
+  background: var(--shiny-surface);
   overflow: hidden;
 }
 
 .emptyState {
   margin: 0;
   padding: 20px;
-  color: var(--shiny-description-text);
+  color: var(--shiny-text-muted);
 }

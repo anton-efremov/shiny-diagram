@@ -15,8 +15,9 @@ This library is built gradually, not upfront (see Rule 2).
   sibling `.module.css`; no inline style declarations, no shared style fragments.
 - **Rule 2: Promote on repetition** — stay local until a UI element genuinely
   repeats, then extract a parametrized component to `webview/src/ui/`.
-- **Rule 3: Two-tier design tokens** — `--vscode-*` tokens map to `--shiny-*`
-  tokens in `styles.css`; components reference `--shiny-*` only.
+- **Rule 3: Two-tier design tokens, palette-first** — `--vscode-*` tokens map to
+  a small `--shiny-*` palette (named by color character, not application) in
+  `styles.css`; components pick palette entries directly.
 - **Rule 4: Theme-dependent values use tokens** — colors and other
   theme-dependent values are VS Code or `--shiny-*` tokens; layout values are
   literals.
@@ -62,7 +63,7 @@ structure, same behavior, a second real instance. Then extract a component (`.ts
 Small duplicated style snippets (e.g. text-truncation ellipsis, 3 lines, appearing
 in 2 places) are not worth promoting on their own — accept the duplication for now.
 
-### Rule 3 — Two-tier design tokens
+### Rule 3 — Two-tier design tokens, palette-first
 
 VS Code injects `--vscode-*` custom properties into every WebView. `--shiny-*`
 tokens are Shiny's own vocabulary, defined once in `styles.css` as either an alias
@@ -72,25 +73,54 @@ to a `--vscode-*` token or a per-theme-kind value when no VS Code equivalent exi
 outside `styles.css`. This keeps VS Code's variable naming fully isolated to one
 file; if VS Code renames/restructures tokens, only `styles.css` changes.
 
+**Naming: palette tokens, not application-named tokens.** `--shiny-*` tokens name
+the _character_ of a color (`--shiny-surface`, `--shiny-accent`,
+`--shiny-overlay-faint`) — never _where in the diagram_ it's used
+(`--shiny-box-fill`, `--shiny-edge-color`). A small palette is defined once;
+components pick palette entries directly for whatever they need. This avoids the
+same color being aliased under multiple application-named tokens (e.g.
+`--vscode-editor-foreground` previously aliased separately as box-text,
+edge-color, and text — all identical).
+
+Each token name is flat and complete — `--shiny-overlay-faint` and
+`--shiny-overlay-strong` are two distinct named characters, not a base name with
+modifiers expected to combine.
+
 ```css
-/* styles.css — Case 1: alias a VS Code token. :root is the standard place for
-   global custom-property definitions (matches <html>, available everywhere). */
+/* styles.css — Case 1: alias a VS Code token to a palette role. :root is the
+   standard place for global custom-property definitions. */
 :root {
-  --shiny-box-fill: var(--vscode-editorWidget-background);
+  --shiny-surface: var(--vscode-editorWidget-background);
+  --shiny-border: var(--vscode-panel-border);
+  --shiny-text: var(--vscode-editor-foreground);
+  --shiny-text-muted: var(--vscode-descriptionForeground);
+  --shiny-text-error: var(--vscode-errorForeground);
+  --shiny-accent: var(--vscode-focusBorder);
+  --shiny-page-bg: var(--vscode-editor-background);
 }
 
 /* Case 2: no VS Code equivalent — define per theme-kind. VS Code sets
    data-vscode-theme-kind on <body>, so the selector targets body, not :root. */
 body[data-vscode-theme-kind="vscode-light"] {
-  --shiny-canvas-tint: rgba(0, 0, 0, 0.03);
+  --shiny-overlay-faint: rgba(0, 0, 0, 0.03);
 }
 body[data-vscode-theme-kind="vscode-dark"] {
-  --shiny-canvas-tint: rgba(255, 255, 255, 0.03);
+  --shiny-overlay-faint: rgba(255, 255, 255, 0.03);
 }
 ```
 
-New `--shiny-*` tokens require justification — confirm no existing VS Code or
-`--shiny-*` token already covers the use case before adding one.
+A component picks whichever palette entries fit:
+
+```css
+.classBox {
+  background: var(--shiny-surface);
+  border: 1px solid var(--shiny-border);
+  color: var(--shiny-text);
+}
+```
+
+New `--shiny-*` tokens require justification — confirm no existing palette entry
+already covers the use case before adding one.
 
 ### Rule 4 — Theme-dependent values use tokens
 
@@ -111,10 +141,10 @@ needed — they aren't theme-dependent and don't need token indirection. A one-o
    positioning, edge paths, handle rendering, controls layout). This is loading
    the library's stylesheet, not overriding it — see Rule 7 for the distinction.
 2. `--shiny-*` token definitions (Rule 3)
-3. Base document defaults — `font-family` and `color` on `body`, using
-   `--shiny-*` tokens, inherited by the whole tree. Component `.module.css` files
-   don't redeclare these.
-4. Browser resets required by the WebView environment
+3. Base/default styles — sizing reset (`* { box-sizing: border-box }`), body
+   margin reset, and cascading defaults (`font-family`/`color` on `body` from
+   `--shiny-*` tokens, inherited by the whole tree). Component `.module.css`
+   files don't redeclare these.
 
 Nothing component-specific lives here.
 
@@ -127,7 +157,7 @@ These bind to CSS custom properties via the `style` attribute, read back in the
 
 ```css
 .classBox {
-  background: var(--class-fill, var(--shiny-box-fill));
+  background: var(--class-fill, var(--shiny-surface));
 }
 ```
 

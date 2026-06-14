@@ -17,12 +17,12 @@
 .errorCanvas,
 .missingCanvas {
   padding: 24px;
-  color: var(--shiny-description-text);
+  color: var(--shiny-text-muted);
 }
 
 .errorMessage {
   margin: 0;
-  color: var(--shiny-error-text);
+  color: var(--shiny-text-error);
 }
 
 .missingLabel {

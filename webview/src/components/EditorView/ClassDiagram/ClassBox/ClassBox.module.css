@@ -3,9 +3,9 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border: 1px solid var(--class-stroke, var(--shiny-box-stroke));
-  background: var(--class-fill, var(--shiny-box-fill));
-  color: var(--class-color, var(--shiny-box-text));
+  border: 1px solid var(--class-stroke, var(--shiny-border));
+  background: var(--class-fill, var(--shiny-surface));
+  color: var(--class-color, var(--shiny-text));
   display: flex;
   flex-direction: column;
   font-family: var(--shiny-font-family);
@@ -14,12 +14,12 @@
 }
 
 .classBox:hover {
-  border-color: var(--shiny-hover-border);
+  border-color: var(--shiny-accent);
 }
 
 .selected {
-  border-color: var(--shiny-selection-color);
-  box-shadow: 0 0 0 1px var(--shiny-selection-color);
+  border-color: var(--shiny-accent);
+  box-shadow: 0 0 0 1px var(--shiny-accent);
 }
 
 .connectionHandle {
@@ -39,7 +39,7 @@
   justify-content: center;
   min-height: 42px;
   padding: 8px 10px;
-  border-bottom: 1px solid var(--class-stroke, var(--shiny-box-stroke));
+  border-bottom: 1px solid var(--class-stroke, var(--shiny-border));
   text-align: center;
 }
 
@@ -88,21 +88,21 @@
 }
 
 .memberRow:hover {
-  background: var(--shiny-canvas-tint);
+  background: var(--shiny-overlay-faint);
 }
 
 .memberDivider {
   flex: 0 0 auto;
   margin: 5px 0;
-  border-top: 1px solid var(--class-stroke, var(--shiny-box-stroke));
+  border-top: 1px solid var(--class-stroke, var(--shiny-border));
 }
 
 .resizeHandle {
   position: absolute;
   width: 8px;
   height: 8px;
-  border: 1px solid var(--shiny-selection-color);
-  background: var(--shiny-shell-bg);
+  border: 1px solid var(--shiny-accent);
+  background: var(--shiny-page-bg);
   pointer-events: none;
 }
 

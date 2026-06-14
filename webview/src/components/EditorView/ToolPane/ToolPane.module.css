@@ -11,8 +11,8 @@
   max-height: 620px;
   padding: 8px;
   overflow: hidden;
-  border: 1px solid var(--shiny-box-stroke);
-  background: var(--shiny-box-fill);
+  border: 1px solid var(--shiny-border);
+  background: var(--shiny-surface);
 }
 
 .toolGroup {
@@ -23,7 +23,7 @@
 
 .toolGroup + .toolGroup {
   padding-top: 10px;
-  border-top: 1px solid var(--shiny-box-stroke);
+  border-top: 1px solid var(--shiny-border);
 }
 
 .toolButton {
@@ -35,14 +35,14 @@
   min-height: 30px;
   padding: 0;
   border: 1px solid var(--shiny-button-border);
-  color: var(--shiny-description-text);
+  color: var(--shiny-text-muted);
   background: var(--shiny-button-secondary-bg);
   cursor: default;
   opacity: 0.72;
 }
 
 .toolButton:hover {
-  border-color: var(--shiny-hover-border);
+  border-color: var(--shiny-accent);
 }
 
 .toolIcon {

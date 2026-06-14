@@ -9,13 +9,13 @@
   min-width: 220px;
   max-height: 620px;
   overflow: hidden;
-  border: 1px solid var(--shiny-box-stroke);
-  background: var(--shiny-box-fill);
+  border: 1px solid var(--shiny-border);
+  background: var(--shiny-surface);
 }
 
 .header {
   padding: 10px 12px;
-  border-bottom: 1px solid var(--shiny-box-stroke);
+  border-bottom: 1px solid var(--shiny-border);
   color: var(--shiny-text);
   font-size: 13px;
   font-weight: 600;
@@ -24,7 +24,7 @@
 .emptySelection {
   flex: 1;
   min-height: 120px;
-  background: var(--shiny-canvas-tint);
+  background: var(--shiny-overlay-faint);
 }
 
 .selectionPanel {
@@ -45,7 +45,7 @@
 }
 
 .selectionAccent {
-  background: var(--shiny-selection-color);
+  background: var(--shiny-accent);
 }
 
 .selectionCopy {
@@ -54,7 +54,7 @@
 
 .selectionType {
   margin-bottom: 3px;
-  color: var(--shiny-description-text);
+  color: var(--shiny-text-muted);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -73,7 +73,7 @@
 .stereotype {
   margin-top: 4px;
   overflow: hidden;
-  color: var(--shiny-description-text);
+  color: var(--shiny-text-muted);
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -81,15 +81,15 @@
 
 .previewCard {
   overflow: hidden;
-  border: 1px solid var(--style-stroke, var(--shiny-box-stroke));
-  color: var(--style-color, var(--shiny-box-text));
-  background: var(--style-fill, var(--shiny-box-fill));
+  border: 1px solid var(--style-stroke, var(--shiny-border));
+  color: var(--style-color, var(--shiny-text));
+  background: var(--style-fill, var(--shiny-surface));
 }
 
 .previewHeader {
   padding: 8px 10px;
   overflow: hidden;
-  border-bottom: 1px solid var(--style-stroke, var(--shiny-box-stroke));
+  border-bottom: 1px solid var(--style-stroke, var(--shiny-border));
   font-size: 12px;
   font-weight: 600;
   text-align: center;
@@ -100,7 +100,7 @@
 .previewBody {
   min-height: 42px;
   padding: 10px;
-  color: var(--style-color, var(--shiny-box-text));
+  color: var(--style-color, var(--shiny-text));
   font-size: 12px;
 }
 
@@ -124,7 +124,7 @@
 }
 
 .styleLabel {
-  color: var(--shiny-description-text);
+  color: var(--shiny-text-muted);
   font-size: 12px;
 }
 
@@ -161,8 +161,8 @@
   width: 24px;
   height: 24px;
   padding: 0;
-  border: 1px solid var(--shiny-selection-color);
-  background: var(--shiny-box-fill);
+  border: 1px solid var(--shiny-accent);
+  background: var(--shiny-surface);
   cursor: pointer;
 }
 
@@ -176,17 +176,17 @@
   flex: 0 0 auto;
   width: 16px;
   height: 16px;
-  border: 1px solid var(--shiny-box-stroke);
+  border: 1px solid var(--shiny-border);
 }
 
 .fillSwatch {
-  background: var(--style-fill, var(--shiny-box-fill));
+  background: var(--style-fill, var(--shiny-surface));
 }
 
 .strokeSwatch {
-  background: var(--style-stroke, var(--shiny-box-stroke));
+  background: var(--style-stroke, var(--shiny-border));
 }
 
 .textSwatch {
-  background: var(--style-color, var(--shiny-box-text));
+  background: var(--style-color, var(--shiny-text));
 }

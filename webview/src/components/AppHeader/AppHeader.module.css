@@ -28,7 +28,7 @@
 
 .activeButton {
   padding: 7px 12px;
-  border: 1px solid var(--shiny-selection-color);
+  border: 1px solid var(--shiny-accent);
   color: var(--shiny-button-fg);
   background: var(--shiny-button-bg);
   cursor: pointer;
@@ -39,7 +39,7 @@
   align-items: center;
   gap: 8px;
   padding: 4px 0;
-  color: var(--shiny-error-text);
+  color: var(--shiny-text-error);
   font-size: 13px;
 }
 

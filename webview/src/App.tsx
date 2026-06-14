@@ -33,7 +33,6 @@ export default function App(): ReactElement {
         setSourceText(msg.sourceText);
       }
     }
-
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, []);
