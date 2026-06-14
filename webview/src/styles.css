@@ -13,6 +13,7 @@
 
   /* Shell / chrome */
   --shiny-font-family: var(--vscode-font-family);
+  --shiny-code-font-family: var(--vscode-editor-font-family, monospace);
   --shiny-shell-bg: var(--vscode-editor-background);
   --shiny-text: var(--vscode-editor-foreground);
   --shiny-description-text: var(--vscode-descriptionForeground);
@@ -49,4 +50,6 @@ body[data-vscode-theme-kind="vscode-high-contrast"] {
 
 body {
   margin: 0;
+  font-family: var(--shiny-font-family);
+  color: var(--shiny-text);
 }

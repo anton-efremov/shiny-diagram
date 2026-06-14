@@ -35,5 +35,5 @@
 }
 
 .missingItem {
-  font-family: var(--vscode-editor-font-family, monospace);
+  font-family: var(--shiny-code-font-family);
 }

@@ -1,7 +1,5 @@
 .shell {
   min-height: 100vh;
   padding: 24px;
-  font-family: var(--shiny-font-family);
-  color: var(--shiny-text);
   background: var(--shiny-shell-bg);
 }
