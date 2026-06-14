@@ -1,14 +1,19 @@
 /**
  * @fileoverview Root application component. Owns mode and live source state,
- * and listens for source update messages from the extension host.
+ * parses the source into a DiagramTree, and renders the app shell.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import type { Mode } from "./types";
+import { parseDiagram } from "./parsers/classDiagram";
+import type { ParseResult } from "./parsers/classDiagram";
 import { readInitialData } from "./utils/initialData";
 import { isHostMessage } from "./utils/typeGuards";
-import Layout from "./components/Layout/Layout";
+import AppHeader from "./components/AppHeader/AppHeader";
+import AutorenderView from "./components/AutorenderView/AutorenderView";
+import EditorView from "./components/EditorView/EditorView";
+import styles from "./App.module.css";
 
 /** Root application component. Owns mode and live source state. */
 export default function App(): ReactElement {
@@ -26,8 +31,19 @@ export default function App(): ReactElement {
     }
 
     window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage); 
   }, []);
 
-  return <Layout mode={mode} setMode={setMode} sourceText={sourceText} />;
+  const parseResult: ParseResult = useMemo(() => parseDiagram(sourceText), [sourceText]);
+
+  return (
+    <main className={styles.shell}>
+      <AppHeader mode={mode} setMode={setMode} parseResult={parseResult} sourceText={sourceText} />
+      {mode === "autorender" ? (
+        <AutorenderView sourceText={sourceText} />
+      ) : (
+        <EditorView parseResult={parseResult} />
+      )}
+    </main>
+  );
 }

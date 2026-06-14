@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import { formatSpatialAnnotation } from "../../../formatters/classDiagram/formatSpatialAnnotation";
-import { formatStyleDefFill } from "../../../formatters/classDiagram/formatStyleDef";
-import type { ParseResult } from "../../../parsers/classDiagram";
+import { formatSpatialAnnotation } from "../../formatters/classDiagram/formatSpatialAnnotation";
+import { formatStyleDefFill } from "../../formatters/classDiagram/formatStyleDef";
+import type { ParseResult } from "../../parsers/classDiagram";
 import type {
   ClassNode,
   RelationshipEdge,
   StyleDefNode,
-} from "../../../models/classDiagram/diagramTreeModel";
-import type { ApplyEditsMessage } from "../../../protocol";
-import { vscode } from "../../../vscodeApi";
+} from "../../models/classDiagram/diagramTreeModel";
+import type { ApplyEditsMessage } from "../../protocol";
+import { vscode } from "../../vscodeApi";
 import ClassDiagram from "./ClassDiagram/ClassDiagram";
 import StylePane from "./StylePane/StylePane";
 import ToolPane from "./ToolPane/ToolPane";
-import styles from "./EditorMode.module.css";
+import styles from "./EditorView.module.css";
 
-type EditorModeProps = {
+type EditorViewProps = {
   parseResult: ParseResult;
 };
 
@@ -25,10 +25,10 @@ export type ClassBoxProps = {
 };
 
 /**
- * Renders the Editor mode canvas. Delegates to ClassDiagram when the parse
+ * Renders the Editor view canvas. Delegates to ClassDiagram when the parse
  * result is fully resolved; shows inline fallback UI for error states.
  */
-export default function EditorMode({ parseResult }: EditorModeProps): ReactElement {
+export default function EditorView({ parseResult }: EditorViewProps): ReactElement {
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
 
   const model = parseResult.ok

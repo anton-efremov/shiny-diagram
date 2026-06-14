@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactElement } from "react";
-import type { StyleDefNode, StyleProperty } from "../../../../models/classDiagram/diagramTreeModel";
-import type { ClassBoxProps } from "../EditorMode";
+import type { StyleDefNode, StyleProperty } from "../../../models/classDiagram/diagramTreeModel";
+import type { ClassBoxProps } from "../EditorView";
 import styles from "./StylePane.module.css";
 
 type StylePaneProps = {

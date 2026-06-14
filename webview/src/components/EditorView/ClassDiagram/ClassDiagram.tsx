@@ -8,8 +8,8 @@ import {
   ReactFlow,
   ReactFlowProvider,
 } from "@xyflow/react";
-import type { RelationshipEdge } from "../../../../models/classDiagram/diagramTreeModel";
-import type { ClassBoxProps } from "../EditorMode";
+import type { RelationshipEdge } from "../../../models/classDiagram/diagramTreeModel";
+import type { ClassBoxProps } from "../EditorView";
 import ClassBox from "./ClassBox/ClassBox";
 import styles from "./ClassDiagram.module.css";
 import {

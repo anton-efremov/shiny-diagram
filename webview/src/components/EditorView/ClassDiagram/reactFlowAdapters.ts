@@ -1,6 +1,6 @@
 import type { Edge as ReactFlowEdge, Node as ReactFlowNode } from "@xyflow/react";
-import type { RelationshipEdge } from "../../../../models/classDiagram/diagramTreeModel";
-import type { ClassBoxProps } from "../EditorMode";
+import type { RelationshipEdge } from "../../../models/classDiagram/diagramTreeModel";
+import type { ClassBoxProps } from "../EditorView";
 
 export type BoxSide = "top" | "right" | "bottom" | "left";
 

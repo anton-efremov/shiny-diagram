@@ -1,19 +1,17 @@
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import type { Dispatch, ReactElement, SetStateAction } from "react";
-import type { Mode } from "../../types";
-import type { ApplyEditsMessage } from "../../protocol";
-import { parseDiagram } from "../../parsers/classDiagram";
-import type { ParseResult } from "../../parsers/classDiagram";
 import type { DiagramTree, SourceLocation } from "../../models/classDiagram/diagramTreeModel";
 import type { ClassId } from "../../models/classDiagram/primitives";
+import type { ParseResult } from "../../parsers/classDiagram";
+import type { ApplyEditsMessage } from "../../protocol";
+import type { Mode } from "../../types";
 import { vscode } from "../../vscodeApi";
-import AutorenderMode from "./AutorenderMode/AutorenderMode";
-import EditorMode from "./EditorMode/EditorMode";
-import styles from "./Layout.module.css";
+import styles from "./AppHeader.module.css";
 
-type LayoutProps = {
+type AppHeaderProps = {
   mode: Mode;
   setMode: Dispatch<SetStateAction<Mode>>;
+  parseResult: ParseResult;
   sourceText: string;
 };
 
@@ -78,14 +76,12 @@ function computeGenerateEdits(
   return edits;
 }
 
-/**
- * Shell chrome and mode routing. Owns parsing so the ribbon can reflect
- * parse state. Passes the ParseResult to EditorMode; passes raw source to
- * AutorenderMode (which hands it to Mermaid directly).
- */
-export default function Layout({ mode, setMode, sourceText }: LayoutProps): ReactElement {
-  const parseResult: ParseResult = useMemo(() => parseDiagram(sourceText), [sourceText]);
-
+export default function AppHeader({
+  mode,
+  setMode,
+  parseResult,
+  sourceText,
+}: AppHeaderProps): ReactElement {
   const handleGenerate = useCallback(() => {
     if (parseResult.ok || parseResult.error !== "missingAnnotations") return;
     const edits = computeGenerateEdits(
@@ -126,33 +122,25 @@ export default function Layout({ mode, setMode, sourceText }: LayoutProps): Reac
   };
 
   return (
-    <main className={styles.shell}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Shiny Diagram</h1>
-        <div className={styles.toolbar} aria-label="Diagram modes">
-          <button
-            className={mode === "autorender" ? styles.activeButton : styles.button}
-            type="button"
-            onClick={() => setMode("autorender")}
-          >
-            Autorender
-          </button>
-          <button
-            className={mode === "editor" ? styles.activeButton : styles.button}
-            type="button"
-            onClick={() => setMode("editor")}
-          >
-            Editor
-          </button>
-          {ribbonStatus()}
-        </div>
-      </header>
-
-      {mode === "autorender" ? (
-        <AutorenderMode sourceText={sourceText} />
-      ) : (
-        <EditorMode parseResult={parseResult} />
-      )}
-    </main>
+    <header className={styles.header}>
+      <h1 className={styles.title}>Shiny Diagram</h1>
+      <div className={styles.toolbar} aria-label="Diagram modes">
+        <button
+          className={mode === "autorender" ? styles.activeButton : styles.button}
+          type="button"
+          onClick={() => setMode("autorender")}
+        >
+          Autorender
+        </button>
+        <button
+          className={mode === "editor" ? styles.activeButton : styles.button}
+          type="button"
+          onClick={() => setMode("editor")}
+        >
+          Editor
+        </button>
+        {ribbonStatus()}
+      </div>
+    </header>
   );
 }

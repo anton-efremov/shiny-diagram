@@ -1,8 +1,8 @@
 import type { ReactElement } from "react";
 import { useAutorender } from "./useAutorender";
-import styles from "./AutorenderMode.module.css";
+import styles from "./AutorenderView.module.css";
 
-type AutorenderModeProps = {
+type AutorenderViewProps = {
   sourceText: string;
 };
 
@@ -10,7 +10,7 @@ type AutorenderModeProps = {
  * Renders the autorender canvas. Runs the Mermaid render pipeline and displays
  * the resulting SVG, or an error message on failure.
  */
-export default function AutorenderMode({ sourceText }: AutorenderModeProps): ReactElement {
+export default function AutorenderView({ sourceText }: AutorenderViewProps): ReactElement {
   const { mermaidContainerRef, renderError } = useAutorender(sourceText, true);
 
   return (
