@@ -25,6 +25,19 @@
   --shiny-button-border: var(--vscode-button-border, transparent);
 }
 
+/* --- ClassBox layout metrics — shared with formatters/classDiagram/layout/ ---
+   defaultWidth/defaultHeight/margin are read by gridPlacement today.
+   The rest are exported for future content-aware box sizing, not yet consumed. */
+:root {
+  --shiny-classbox-default-width: 200px;
+  --shiny-classbox-default-height: 150px;
+  --shiny-classbox-margin: 40px;
+  --shiny-classbox-font-size: 13px;
+  --shiny-classbox-member-font-size: 12px;
+  --shiny-classbox-member-line-height: 16px;
+  --shiny-classbox-header-min-height: 42px;
+}
+
 /* No VS Code equivalent for a subtle hover wash — define per theme kind. */
 body[data-vscode-theme-kind="vscode-light"] {
   --shiny-overlay-faint: rgba(0, 0, 0, 0.03);

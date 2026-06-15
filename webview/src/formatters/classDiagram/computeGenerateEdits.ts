@@ -1,14 +1,16 @@
 /**
  * @fileoverview Computes source edits for generated class spatial annotations.
+ * Orchestrates layout/ for positions and formatSpatialAnnotation for line text.
  */
 
 import type { DiagramTree, SourceLocation } from "../../models/classDiagram/diagramTreeModel";
 import type { ClassId } from "../../models/classDiagram/primitives";
-import type { ApplyEditsMessage } from "../../extensionBridge/protocol";
-
-const DEFAULT_W = 200;
-const DEFAULT_H = 150;
-const MARGIN = 40;
+import type { LineEdit } from "../../extensionBridge/protocol";
+import { formatSpatialAnnotation } from "./formatSpatialAnnotation";
+import { readClassBoxMetrics } from "./layout/classBoxMetrics";
+import { computeMalformedBoxLayout } from "./layout/computeMalformedBoxLayout";
+import { computeNewBoxLayout } from "./layout/computeNewBoxLayout";
+import { computeStartY } from "./layout/gridPlacement";
 
 /**
  * Computes LineEdits that generate @spatial annotations for all missing class IDs.
@@ -21,25 +23,29 @@ export function computeGenerateEdits(
   missingIds: readonly ClassId[],
   malformedAnnotations: ReadonlyMap<ClassId, SourceLocation>,
   sourceText: string
-): ApplyEditsMessage["edits"] {
-  let maxBottom = 0;
+): readonly LineEdit[] {
   const existingSpatial = [...model.classes.values()].flatMap((node) =>
     node.spatial ? [node.spatial] : []
   );
+  const metrics = readClassBoxMetrics();
+  const startY = computeStartY(existingSpatial, metrics.margin);
 
-  for (const spatial of existingSpatial) {
-    const bottom = spatial.y + spatial.height;
-    if (bottom > maxBottom) maxBottom = bottom;
-  }
-  const startY = maxBottom > 0 ? maxBottom + MARGIN : MARGIN;
-
-  const edits: { lineNumber: number; newText: string }[] = [];
+  const edits: LineEdit[] = [];
   const toAppend: string[] = [];
 
   missingIds.forEach((classId, idx) => {
-    const x = MARGIN + idx * (DEFAULT_W + MARGIN);
-    const spatialLine = `%% @spatial:${classId} x=${x} y=${startY} w=${DEFAULT_W} h=${DEFAULT_H}`;
     const malformed = malformedAnnotations.get(classId);
+    const position = malformed
+      ? computeMalformedBoxLayout(idx, startY)
+      : computeNewBoxLayout(idx, startY);
+    const spatialLine = formatSpatialAnnotation(
+      classId,
+      position.x,
+      position.y,
+      position.width,
+      position.height
+    );
+
     if (malformed) {
       // Replace the malformed line in-place — no duplicate will be left behind.
       edits.push({ lineNumber: malformed.startLine, newText: spatialLine });

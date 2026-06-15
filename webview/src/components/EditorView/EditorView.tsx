@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import { formatSpatialAnnotation } from "../../formatters/classDiagram/formatSpatialAnnotation";
-import { formatStyleDefFill } from "../../formatters/classDiagram/formatStyleDef";
+import { computeDragEdit } from "../../formatters/classDiagram/computeDragEdit";
+import { computeStyleEdit } from "../../formatters/classDiagram/computeStyleEdit";
 import type { ParseResult } from "../../parsers/classDiagram";
 import type {
   ClassNode,
@@ -74,13 +74,12 @@ export default function EditorView({ parseResult }: EditorViewProps): ReactEleme
   const handleNodeDragStop = useCallback(
     (classId: string, x: number, y: number) => {
       const box = classBoxes.find((b) => b.node.id === classId);
-      if (!box?.node.spatial) return;
+      if (!box) return;
 
-      const newText = formatSpatialAnnotation(box.node.spatial, box.node.id, x, y);
-      const message: ApplyEditsMessage = {
-        type: "applyEdits",
-        edits: [{ lineNumber: box.node.spatial.location.startLine, newText }],
-      };
+      const edit = computeDragEdit(box.node, x, y);
+      if (!edit) return;
+
+      const message: ApplyEditsMessage = { type: "applyEdits", edits: [edit] };
       vscode.postMessage(message);
     },
     [classBoxes]
@@ -90,11 +89,8 @@ export default function EditorView({ parseResult }: EditorViewProps): ReactEleme
     (fill: string) => {
       if (!selectedClassBox?.styleDef) return;
 
-      const newText = formatStyleDefFill(selectedClassBox.styleDef, fill);
-      const message: ApplyEditsMessage = {
-        type: "applyEdits",
-        edits: [{ lineNumber: selectedClassBox.styleDef.location.startLine, newText }],
-      };
+      const edit = computeStyleEdit(selectedClassBox.styleDef, "fill", fill);
+      const message: ApplyEditsMessage = { type: "applyEdits", edits: [edit] };
       vscode.postMessage(message);
     },
     [selectedClassBox]

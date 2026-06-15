@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import { computeGenerateEdits } from "./formatters/classDiagram/computeGenerateEdits";
 import { parseDiagram } from "./parsers/classDiagram";
-import type { ParseResult } from "./parsers/classDiagram";
+import type { ParseResult as ParsedDiagram } from "./parsers/classDiagram";
 import type { ApplyEditsMessage } from "./extensionBridge/protocol";
 import { readInitialData } from "./extensionBridge/initialData";
 import { isHostMessage } from "./extensionBridge/typeGuards";
@@ -37,33 +37,32 @@ export default function App(): ReactElement {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  const parseResult: ParseResult = useMemo(() => parseDiagram(sourceText), [sourceText]);
+  const parsedDiagram: ParsedDiagram = useMemo(() => parseDiagram(sourceText), [sourceText]);
 
   const handleGenerate = useCallback(() => {
-    if (parseResult.ok || parseResult.error !== "missingAnnotations") return;
+    if (parsedDiagram.ok || parsedDiagram.error !== "missingAnnotations") return;
     const edits = computeGenerateEdits(
-      parseResult.model,
-      parseResult.missingIds,
-      parseResult.malformedAnnotations,
+      parsedDiagram.model,
+      parsedDiagram.missingIds,
+      parsedDiagram.malformedAnnotations,
       sourceText
     );
-    if (edits.length === 0) return;
     const message: ApplyEditsMessage = { type: "applyEdits", edits };
     vscode.postMessage(message);
-  }, [parseResult, sourceText]);
+  }, [parsedDiagram, sourceText]);
 
   return (
     <main className={styles.shell}>
       <AppHeader
         mode={mode}
         setMode={setMode}
-        parseResult={parseResult}
+        parseResult={parsedDiagram}
         onGenerate={handleGenerate}
       />
       {mode === "autorender" ? (
         <AutorenderView sourceText={sourceText} />
       ) : (
-        <EditorView parseResult={parseResult} />
+        <EditorView parseResult={parsedDiagram} />
       )}
     </main>
   );
