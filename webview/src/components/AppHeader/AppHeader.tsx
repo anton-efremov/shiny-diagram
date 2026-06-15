@@ -1,6 +1,7 @@
 import type { Dispatch, ReactElement, SetStateAction } from "react";
 import type { Mode } from "../../App";
 import type { ParseResult } from "../../parsers/classDiagram";
+import Toggle from "../../ui/Toggle/Toggle";
 import styles from "./AppHeader.module.css";
 
 type AppHeaderProps = {
@@ -10,57 +11,53 @@ type AppHeaderProps = {
   onGenerate: () => void;
 };
 
+/**
+ * Status message for the toolbar — a plain value derived from mode and
+ * parseResult, not a sub-component.
+ */
+function getStatusMessage(
+  mode: Mode,
+  parseResult: ParseResult,
+  onGenerate: () => void
+): ReactElement | null {
+  if (mode !== "editor" || parseResult.ok) return null;
+
+  if (parseResult.error === "invalidSyntax") {
+    return (
+      <span className={styles.statusMessage}>⚠ Invalid Mermaid syntax: {parseResult.message}</span>
+    );
+  }
+
+  return (
+    <span className={styles.statusMessage}>
+      ⚠ Missing annotations
+      <button className={styles.generateButton} type="button" onClick={onGenerate}>
+        Generate
+      </button>
+    </span>
+  );
+}
+
 export default function AppHeader({
   mode,
   setMode,
   parseResult,
   onGenerate,
 }: AppHeaderProps): ReactElement {
-  const ribbonStatus = (): ReactElement | null => {
-    if (mode !== "editor") return null;
-    if (parseResult.ok) return null;
-
-    if (parseResult.error === "invalidSyntax") {
-      return (
-        <span className={styles.statusMessage}>
-          ⚠ Invalid Mermaid syntax: {parseResult.message}
-        </span>
-      );
-    }
-
-    if (parseResult.error === "missingAnnotations") {
-      return (
-        <span className={styles.statusMessage}>
-          ⚠ Missing annotations
-          <button className={styles.generateButton} type="button" onClick={onGenerate}>
-            Generate
-          </button>
-        </span>
-      );
-    }
-
-    return null;
-  };
-
   return (
     <header className={styles.header}>
       <h1 className={styles.title}>Shiny Diagram</h1>
-      <div className={styles.toolbar} aria-label="Diagram modes">
-        <button
-          className={mode === "autorender" ? styles.activeButton : styles.button}
-          type="button"
-          onClick={() => setMode("autorender")}
-        >
-          Autorender
-        </button>
-        <button
-          className={mode === "editor" ? styles.activeButton : styles.button}
-          type="button"
-          onClick={() => setMode("editor")}
-        >
-          Editor
-        </button>
-        {ribbonStatus()}
+      <div className={styles.toolbar}>
+        <Toggle
+          options={[
+            { value: "autorender", label: "Autorender" },
+            { value: "editor", label: "Editor" },
+          ]}
+          value={mode}
+          onChange={setMode}
+          ariaLabel="Diagram modes"
+        />
+        {getStatusMessage(mode, parseResult, onGenerate)}
       </div>
     </header>
   );

@@ -32,19 +32,14 @@ export function useAutorender(sourceText: string, isActive: boolean): UseAutoren
   );
 
   useEffect(() => {
+    const theme = readMermaidThemeVariables();
+
     mermaid.initialize({
       startOnLoad: false,
       securityLevel: "strict",
       htmlLabels: false,
       theme: "base",
-      themeVariables: {
-        primaryColor: "#f8fafc",
-        primaryBorderColor: "#64748b",
-        primaryTextColor: "#111827",
-        lineColor: "#475569",
-        textColor: "#111827",
-        fontFamily: "Arial, sans-serif",
-      },
+      themeVariables: theme,
     });
   }, []);
 
@@ -82,6 +77,21 @@ export function useAutorender(sourceText: string, isActive: boolean): UseAutoren
   }, [isActive, renderableSourceText]);
 
   return { mermaidContainerRef, renderError };
+}
+
+function readShinyToken(tokenName: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim();
+}
+
+function readMermaidThemeVariables(): Record<string, string> {
+  return {
+    primaryColor: readShinyToken("--shiny-surface"),
+    primaryBorderColor: readShinyToken("--shiny-border"),
+    primaryTextColor: readShinyToken("--shiny-text"),
+    lineColor: readShinyToken("--shiny-text-muted"),
+    textColor: readShinyToken("--shiny-text"),
+    fontFamily: readShinyToken("--shiny-font-family"),
+  };
 }
 
 /**
