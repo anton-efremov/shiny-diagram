@@ -20,13 +20,11 @@ This document serves as the primary engineering entry point for human developers
 │   │   └── sprints/
 │   │       └── 001-class-poc.md    # sprint details: goal, features and detailed specs
 │   │
-│   ├── architecture/
-│   │   ├── technical-blueprint.md  # Software stack, code structure (folders), details on design decisions
-│   │   └── design-system.md        # Detailed description of style system - styles incapsulation, application
-│   │
-│   ├── development/
-│   │   ├── playbook.md             # environment setup, build & test workflows
-│   │   └── coding-standards.md     # TSDoc specs, naming rules, inline collaborators' markers
+│   ├── engineering/
+│   │   ├── technical-blueprint.md  # Stack and technical architecture
+│   │   ├── design-system.md        # Detailed description of style system 
+│   │   ├── development-process.md  # environment setup, build & test workflows
+│   │   └── coding-standards.md     # Code style and quality guidelines
 │   │
 │   └── agents/                     # Guidelines and rules for agents: file per role
 │       ├── feature-builder.md      # Incremental developer: formulates milestones and writes code
@@ -35,9 +33,9 @@ This document serves as the primary engineering entry point for human developers
 │
 ├── examples/                       # .mmd files for testing
 |
-├── extension-host/                 # CONTROL PLANE (VS Code Extension Host / Node.js)
+├── extension-host/                 # VS Code Extension Host code 
 │
-└── webview/                        # DATA PROJECTION PLANE (Chromium Renderer UI Canvas)
+└── webview/                        # React application and helper functions
 ```
 
 ## 2. Multi-Agent Team Operations
