@@ -11,6 +11,21 @@ import styles from "./ClassBox.module.css";
 
 type ClassBoxNode = Node<ClassBoxProps, "classBox">;
 
+const CONNECTION_HANDLES: ReadonlyArray<{
+  id: string;
+  type: "source" | "target";
+  position: Position;
+}> = [
+  { id: "top", type: "source", position: Position.Top },
+  { id: "right", type: "source", position: Position.Right },
+  { id: "bottom", type: "source", position: Position.Bottom },
+  { id: "left", type: "source", position: Position.Left },
+  { id: "target-top", type: "target", position: Position.Top },
+  { id: "target-right", type: "target", position: Position.Right },
+  { id: "target-bottom", type: "target", position: Position.Bottom },
+  { id: "target-left", type: "target", position: Position.Left },
+];
+
 const resizeHandles = ["nw", "n", "ne", "e", "se", "s", "sw", "w"] as const;
 
 /** Renders a single class box node on the React Flow canvas. */
@@ -36,62 +51,16 @@ export default function ClassBox({ data, selected }: NodeProps<ClassBoxNode>): R
       style={dynamicVars}
       title={node.id}
     >
-      <Handle
-        className={styles.connectionHandle}
-        id="top"
-        type="source"
-        position={Position.Top}
-        isConnectable={false}
-      />
-      <Handle
-        className={styles.connectionHandle}
-        id="right"
-        type="source"
-        position={Position.Right}
-        isConnectable={false}
-      />
-      <Handle
-        className={styles.connectionHandle}
-        id="bottom"
-        type="source"
-        position={Position.Bottom}
-        isConnectable={false}
-      />
-      <Handle
-        className={styles.connectionHandle}
-        id="left"
-        type="source"
-        position={Position.Left}
-        isConnectable={false}
-      />
-      <Handle
-        className={styles.connectionHandle}
-        id="target-top"
-        type="target"
-        position={Position.Top}
-        isConnectable={false}
-      />
-      <Handle
-        className={styles.connectionHandle}
-        id="target-right"
-        type="target"
-        position={Position.Right}
-        isConnectable={false}
-      />
-      <Handle
-        className={styles.connectionHandle}
-        id="target-bottom"
-        type="target"
-        position={Position.Bottom}
-        isConnectable={false}
-      />
-      <Handle
-        className={styles.connectionHandle}
-        id="target-left"
-        type="target"
-        position={Position.Left}
-        isConnectable={false}
-      />
+      {CONNECTION_HANDLES.map(({ id, type, position }) => (
+        <Handle
+          key={id}
+          className={styles.connectionHandle}
+          id={id}
+          type={type}
+          position={position}
+          isConnectable={false}
+        />
+      ))}
       <header className={styles.header}>
         {node.annotation ? (
           <div className={styles.stereotype} title={node.annotation.value}>
