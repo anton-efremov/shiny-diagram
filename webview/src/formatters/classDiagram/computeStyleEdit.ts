@@ -5,13 +5,13 @@
 
 import type { StyleDefNode, StyleProperty } from "../../models/classDiagram/diagramTreeModel";
 import type { LineEdit } from "../../extensionBridge/protocol";
-import { formatStyleDefProperty } from "./formatStyleProperty";
+import { formatStyleProperty } from "./formatLines";
 
 export function computeStyleEdit(
   styleDef: StyleDefNode,
   property: StyleProperty["property"],
   value: string
 ): LineEdit {
-  const newText = formatStyleDefProperty(styleDef, property, value);
+  const newText = formatStyleProperty(styleDef, property, value);
   return { lineNumber: styleDef.location.startLine, newText };
 }

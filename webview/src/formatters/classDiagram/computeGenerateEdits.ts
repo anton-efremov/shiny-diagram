@@ -6,11 +6,11 @@
 import type { DiagramTree, SourceLocation } from "../../models/classDiagram/diagramTreeModel";
 import type { ClassId } from "../../models/classDiagram/primitives";
 import type { LineEdit } from "../../extensionBridge/protocol";
-import { formatSpatialAnnotation } from "./formatSpatialAnnotation";
-import { readClassBoxMetrics } from "./layout/classBoxMetrics";
-import { computeMalformedBoxLayout } from "./layout/computeMalformedBoxLayout";
-import { computeNewBoxLayout } from "./layout/computeNewBoxLayout";
-import { computeStartY } from "./layout/gridPlacement";
+import { formatSpatialAnnotation } from "./formatLines";
+import { readClassBoxMetrics } from "./layoutAlgorithm/classBoxMetrics";
+import { computeMalformedBoxLayout } from "./layoutAlgorithm/computeMalformedBoxLayout";
+import { computeNewBoxLayout } from "./layoutAlgorithm/computeNewBoxLayout";
+import { computeStartY } from "./layoutAlgorithm/gridPlacement";
 
 /**
  * Computes LineEdits that generate @spatial annotations for all missing class IDs.

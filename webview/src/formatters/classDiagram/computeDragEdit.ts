@@ -5,7 +5,7 @@
 
 import type { ClassNode } from "../../models/classDiagram/diagramTreeModel";
 import type { LineEdit } from "../../extensionBridge/protocol";
-import { formatSpatialAnnotation } from "./formatSpatialAnnotation";
+import { formatSpatialAnnotation } from "./formatLines";
 
 /**
  * @param node - The dragged class node; must have `spatial` defined.
