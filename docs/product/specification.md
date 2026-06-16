@@ -1,400 +1,321 @@
-# Shiny-diagram specification
+# Shiny — specification
+
+## 1. Summary
 
 Shiny is a software diagramming tool for AI-human co-creation around source-controlled diagrams. It is two things:
 
-1. **An annotation syntax** — a Mermaid-compatible way of storing persistent visual layout (position and size) as comments alongside a diagram's semantic content.
-2. **A live editor** — a visual surface, synchronized with that source, where a user and an AI collaborate on the same diagram.
+- **An annotation syntax** — a Mermaid-compatible way of storing persistent visual layout and style as comments alongside a diagram's semantic content.
+- **A live editor** — a visual surface, synchronized with that source, where a user and an AI collaborate on the same diagram.
 
-The core product promise is that diagrams remain readable, versionable, and AI-editable as text, while also supporting direct visual operations such as moving, resizing, and adding or editing diagram elements.
+The durable artifact is the `.mmd` source file. The visual editor is a projection and manipulation surface over that file.
 
-## Product context
+---
 
-Current diagramming tools leave a gap between visual editing and source-based automation.
+## 2. Product context
 
-- **Human-first visual editors**, such as Excalidraw or whiteboarding tools, are optimized for manual layout and free-form manipulation. They are expressive and tactile, but the resulting artifact is difficult for AI to modify structurally and difficult for software teams to review meaningfully in version control.
-- **Diagram-as-a-code tools** like Mermaid are AI friendly but do not allow user to edit resulting diagram visually and do not encode/preserve layout of a diagram (important for human perception)
-- **AI-generated images** are even less suitable for software diagram workflows. They may look good, but they are not reliably editable - only through AI prompting with unstable outcomes
+**Current diagramming tools leave a gap** between visual editing and source-based automation:
 
-Shiny solution:
+- **Human-first visual editors** (Excalidraw, whiteboarding tools) — expressive and tactile, but the resulting artifact is difficult for AI to modify structurally and difficult to review meaningfully in version control.
+- **Diagram-as-code tools** (Mermaid) — AI-friendly and version-control-friendly, but do not support visual editing and do not preserve layout.
+- **AI-generated images** — not reliably editable; only through prompting with unstable outcomes.
 
-- Language for persistent visual annotations in Mermaid code
-- Visual editor synchronized with Mermaid code, that stays the single source of truth The source file always remains a valid Mermaid. A standard Mermaid renderer should ignore Shiny annotations and still render the diagram. Shiny therefore extends Mermaid as a compatible authoring convention, not forking Mermaid syntax.
+**Shiny closes the gap**:
 
-The end-state loop AI-human co-creation loop:
+- defines annotation syntax as a comment for persistent visual metadata in Mermaid source, so file stays valid Mermaid.
+- visual editor in VS Code synchronized with Mermaid source, which remains the single source of truth.
+- a standard Mermaid renderer ignores Shiny annotations and still renders the diagram correctly — Shiny extends Mermaid as a compatible authoring convention, not a fork.
+
+**Thus Shiny enables smooth AI-human co-creation loop**:
 
 1. AI generates or edits Mermaid source.
 2. Shiny renders it visually inside VS Code.
 3. The user moves, resizes, and edits visual objects.
 4. Shiny writes visual changes back into Mermaid-compatible comments.
-5. AI sees the same source file, including visual annotations, and can continue editing without losing the user’s visual intent.
+5. AI sees the same source file — including visual annotations — and can continue editing without losing the user's visual intent.
 
-The durable artifact is the `.mmd` source file. The visual editor is a projection and manipulation surface over that file.
+---
 
-## 1. Annotation syntax
+## 3. Annotation syntax
 
-Shiny uses Mermaid-compatible comment annotations.
+Shiny uses Mermaid comment lines (`%% ...`) to store visual metadata. The base diagram remains standard Mermaid. Shiny annotations are invisible to any standard Mermaid renderer.
 
-The base diagram remains normal Mermaid. Shiny annotations are comments that standard Mermaid renderers ignore.
+### 3.1 Example
 
-#### Example
-
-```js
+```
 classDiagram
 direction TB
-    class ConversationThread {
-	    +UUID id
-	    +List~TextMessage~ messages
-	    +List~UserContact~ participants
-	    +addMessage(TextMessage message) void
-	    +addParticipant(UserContact participant) void
-    }
 
-    class TextMessage {
-	    +UUID id
-	    +String content
-	    +DateTime timestamp
-	    +UserContact sender
-	    +List~FileAttachment~ attachments
-	    +attachFile(FileAttachment attachment) void
-	    +removeAttachment(UUID attachmentId) void
-    }
+    namespace Messaging {
+        class ConversationThread {
+            +UUID id
+            +List~TextMessage~ messages
+            +addMessage(TextMessage message) void
+        }
 
-    class UserContact {
-	    +UUID id
-	    +String name
-	    +String emailAddress
-	    +List~CommunicationChannel~ preferredChannels
-	    +addCommunicationChannel(CommunicationChannel channel) void
-	    +removeCommunicationChannel(UUID channelId) void
+        class TextMessage {
+            +UUID id
+            +String content
+            +DateTime timestamp
+            +attachFile(FileAttachment attachment) void
+        }
     }
 
     ConversationThread --> TextMessage : contains
-    ConversationThread --> UserContact : involves
 
-    %% Native Style Applications
-    class ConversationThread:::Rose
-    class TextMessage:::Pine
-    class UserContact:::Pine
-
-    %% Native Style Definitions
+    %% Native style definitions
     classDef Rose stroke-width:1px,stroke-dasharray:none,stroke:#FF5978,fill:#FFDFE5,color:#8E2236
     classDef Pine stroke-width:1px,stroke-dasharray:none,stroke:#254336,fill:#27654A,color:#FFFFFF
 
-    %% --- VISUAL ANNOTATIONS CORNERSTONE ---
+    %% Native style applications
+    class ConversationThread:::Rose
+    class TextMessage:::Pine
+
+    %% --- SHINY ANNOTATIONS ---
     %% @spatial:ConversationThread x=100 y=150 w=320 h=210
     %% @spatial:TextMessage x=500 y=150 w=300 h=250
-    %% @spatial:UserContact x=300 y=500 w=300 h=230
+    %% @style:Messaging fill=#E8F0FF stroke=#6699CC color=#003366 strokeWidth=1px strokeDasharray=none
 ```
 
-#### Spatial annotation format
+### 3.2 Class box annotations
 
-A spatial annotation has this form:
+#### Format
 
-```js
-%% @spatial:<object-id> x=<number> y=<number> w=<number> h=<number>
+```
+%% @spatial:<ClassId> x=<n> y=<n> w=<n> h=<n>
 ```
 
-Rules:
+#### Rules
 
-- each annotation is a Mermaid comment;
-- line starts with `%% @spatial:`;
-- object ID follows immediately after `@spatial:`;
-- required keys are `x`, `y`, `w`, and `h`;
-- values are numbers;
-- coordinates use top-left origin;
-- units are CSS pixels;
-- for class diagrams, object identity is the class name;
-- unknown future keys should be ignored;
-- annotations might be placed anywhere, although canonical form should be grouping under `%% --- VISUAL ANNOTATIONS CORNERSTONE ---`; near the bottom of the file, close to Mermaid-native style declarations.
+- `@spatial` + class ID + key=value pairs on a single comment line
+- required keys: `x`, `y`, `w`, `h` — all numeric, in canvas units
+- class ID is the Mermaid class name (e.g. `ConversationThread`)
+- styling of class boxes belongs to Mermaid-native `classDef`/`:::StyleName` — not to `@spatial`
+- unknown keys are ignored (forward compatibility)
+- annotations anywhere are valid but canonical placement is: grouped under `%% --- SHINY ANNOTATIONS ---` near the bottom of the file, close to native style declarations
 
-#### Object identity
+### 3.3 Namespace annotations
 
-For class diagrams, the object ID is the Mermaid class name:
+#### Format
 
-```js
-class ConversationThread {
-  +UUID id
-}
+Unlike for class boxes, Mermaid does not support per-namespace styling natively — `@style` is a Shiny extension stored as a comment
+
+```
+%% @style:<NamespaceId> fill=<value> stroke=<value> color=<value> strokeWidth=<value> strokeDasharray=<value>
 ```
 
-The corresponding spatial annotation is:
+#### Rules
 
-```js
-%% @spatial:ConversationThread x=100 y=150 w=320 h=210
+- `@style` + namespace ID + key=value pairs on a single comment line
+- namespace ID is the Mermaid namespace name
+- supported properties mirror Mermaid's `classDef` properties: `fill`, `stroke`, `color`, `strokeWidth`, `strokeDasharray`
+- **no position annotation for namespaces** — the namespace box is always derived automatically as the bounding box of its member classes' spatial rectangles plus a fixed margin; this ensures namespace geometry is never out of sync with its members
+
+### 3.4 Annotation robustness
+
+The parser handles all annotation states without destructive rewrites:
+
+- **Missing annotations** — if one or more classes lack a valid `@spatial`, the editor shows the affected class IDs and offers Generate to compute and write positions for them. The canvas does not render until all classes are positioned.
+- **Malformed annotation** — the affected class is treated as missing; its source line is preserved and offered for replacement by Generate.
+- **Unknown keys** — silently ignored.
+- **Reordered or whitespace-varied annotations** — accepted without normalisation until Shiny writes them back.
+- **Orphaned annotation** (references a class that no longer exists) — preserved in source, surfaced as a diagnostic; not silently deleted.
+- **Duplicate annotations** for the same class — last annotation wins; a warning is surfaced.
+
+---
+
+## 4. Live editor
+
+The Shiny webview is the product's visual editing surface. It feels like a diagram editor embedded inside VS Code.
+
+It has one persistent app shell and two mutually exclusive views.
+
+### 4.1 App shell
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Shiny Diagram                                              │
+│  [ Autorender | Editor ]  <status message>   [ Generate ]   │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│                         <active view>                       │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-Shiny treats this class name as the stable visual identity for the class box.
+- **Title** — identifies the panel as Shiny
+- **View toggle** — switches between Autorender and Editor
+- **Status message** — shown when action is needed (malformed annotations, invalid syntax, orphaned annotations, duplicated annotations):
+	- if annotations are malformed, **Generate** button renders, to add annotations to source code automatically
+	- if state prevents rendering (malformed annotations, invalid syntax), then in place of active view, the list of problems is printed
 
-#### Styling ownership
+### 4.2 Autorender view
 
-Mermaid owns styling. Shiny annotations own spatial layout.
+Displays standard Mermaid diagram using Mermaid renderer. An informational view — not a visual editing surface.
 
-Correct:
+- Shiny annotations are ignored by the renderer (they are comments)
+- contains: Mermaid-rendered canvas, zoom/pan controls
+- never modifies source
 
-```js
-class ConversationThread:::Rose
-classDef Rose stroke-width:1px,stroke:#FF5978,fill:#FFDFE5,color:#8E2236
+### 4.3 Editor view
 
-%% @spatial:ConversationThread x=100 y=150 w=320 h=210
+The core product experience. Gives humans direct manipulation while preserving Mermaid source as the durable artifact.
+
 ```
-
-Incorrect:
-
-```js
-%% @spatial:ConversationThread x=100 y=150 w=320 h=210 fill=#FFDFE5 stroke=#FF5978
-```
-
-If a visual property is representable in Mermaid syntax, it belongs in Mermaid syntax. If a visual property is not representable in Mermaid syntax and is required for manual layout persistence, it may belong in Shiny annotations.
-
-Initial Shiny annotations are limited to position and size.
-
-#### Annotation robustness
-
-Shiny should tolerate:
-
-- fully annotated files;
-- partially annotated files;
-- unannotated files;
-- incomplete annotation sections;
-- reordered annotation lines;
-- unknown future keys;
-- whitespace variations.
-
-Shiny should normalize annotations when it writes them, but preserve non-annotation Mermaid source as much as possible.
-
-If an annotation references a missing object, Shiny should not delete it automatically. It may mark it as orphaned.
-
-If multiple annotations target the same object, Shiny should use a deterministic rule, such as last annotation wins, and surface a warning.
-
-If an annotation is malformed, Shiny should ignore that annotation, preserve the source text, and generate or request valid layout data for the affected object.
-
-## 2. Live editor
-
-The Shiny webview is the product's visual editing surface. It should feel like a diagram editor embedded inside VS Code, not like an external web application.
-
-It has one shared app shell and two mutually exclusive views:
-
-```txt
-View: Autorender | Editor
-```
-
-### App shell
-
-The app shell is the persistent frame around both views.
-
-```txt
-┌──────────────────────────────────────────────────┐
-│  Shiny Diagram            ( Autorender | Editor ) │
-│                            ⚠ <status message>     │
-├──────────────────────────────────────────────────┤
-│                                                    │
-│                    <active view>                  │
-│                                                    │
-└──────────────────────────────────────────────────┘
-```
-
-Elements:
-
-- **Title** — identifies the panel as Shiny.
-- **View toggle** — switches between `Autorender` and `Editor`.
-- **Status message** — shown only in the Editor view, only when the source has a problem: invalid Mermaid syntax (with the parse error), or one or more classes missing a `@spatial` annotation (with a `Generate` action that adds them).
-
-### Autorender view
-
-The Autorender view displays the current Mermaid source using the standard Mermaid renderer. It is a compatibility and debugging view, not a visual editing surface.
-
-It proves that Shiny files remain valid Mermaid files — the user can compare Shiny's source-backed editor against standard Mermaid rendering and quickly detect Mermaid syntax or style issues. Shiny annotations are ignored by the standard Mermaid renderer because they are Mermaid comments.
-
-Contains:
-
-- Mermaid-rendered diagram canvas;
-- standard zoom/pan controls.
-
-Does not contain: draggable objects, resize handles, creation tools, inspector controls, or style editing tools. It never modifies source code.
-
-### Editor view
-
-The Editor view is the core product experience. It gives humans direct manipulation while preserving Mermaid source as the durable artifact. For class diagrams, each class appears as a semantic class box, not merely as a rectangle.
-
-```txt
 ┌──────────┬──────────────────────────────┬──────────┐
-│          │                              │          │
-│   Tool   │            Canvas            │  Style   │
-│   pane   │   (class boxes + edges)       │  pane    │
-│          │                              │          │
+│          │                     (Legend) │          │
+│   Tool   │           Canvas             │  Style   │
+│   pane   │         (Diagram)            │  pane    │
 │          │                              │          │
 └──────────┴──────────────────────────────┴──────────┘
 ```
 
-#### Canvas
+#### 4.3.1 Canvas
 
-The canvas renders one box per class and one edge per relationship, positioned using each class's `@spatial` annotation. The user can pan and zoom the canvas, drag boxes to new positions, and click a box to select it (driving the style pane).
+- renders one box per class and one edge per relationship, positioned from each class's `@spatial` annotation
+- namespaces rendered as derived bounding boxes around their member classes, styled from `@style` annotation if present
+- user can pan, zoom, drag boxes, resize boxes, and click to select
+- if any class is missing a `@spatial`, the canvas shows the list of affected classes until Generate resolves them
+- legend is generated automatically from the types of classes present in diagram and styles defined for classes and namespaces
 
-If one or more classes are missing a `@spatial` annotation, the canvas shows the list of affected classes instead, until `Generate` (in the status message) adds annotations for them.
+#### 4.3.1.a Class box
 
-#### Class box
-
-```txt
-┌─────────────────────────────┐
-│        <<Stereotype>>        │   ← optional
+```
+┌───────────────────────────────┐
+│        <<Stereotype>>         │   ← optional
 │         ClassName             │   ← header
 ├───────────────────────────────┤
-│ +fieldName: Type                │
-│ +methodName(arg: Type): Return  │   ← members
-│ -privateField: Type             │
-├───────────────────────────────┤
-│ +anotherMethod(): void          │
-└─────────────────────────────────┘
+│ +fieldName: Type              │
+│ +methodName(arg: Type): Return│   ← members
+│ -privateField: Type           │
+└───────────────────────────────┘
 ```
 
-- **Move** — drag the box; on drop, Shiny writes the new `x`/`y` to its `@spatial` annotation.
-- **Resize** — drag a handle on any edge/corner to change `w`/`h` (writes back to `@spatial`).
-- **Selection** — clicking a box selects it, showing its style in the style pane; clicking empty canvas clears selection.
-- **Color** — fill, stroke, and text color come from the Mermaid-native `classDef`/`:::StyleName` the class is assigned to, not from Shiny annotations.
+Actions:
+- **Move** — drag the box; on drop, Shiny writes the new `x`/`y` to its `@spatial` annotation
+- **Resize** — drag a handle on the border to change `w`/`h`; writes back to `@spatial`
+- **Select** — click to select; drives the style pane; click empty canvas to deselect
+- **Edit fields** - click on one text area (members or header) and edit the text inside
 
-#### Tool pane
+#### 4.3.1.b Namespace box
+rendered as a labeled border around its member classes
 
-A palette of class-diagram element types, for adding new elements to the diagram:
+Actions
+- **Move** — drag the namespace box; all member classes move by the same delta; each member's `@spatial` is updated
+- **Style** — fill, stroke, text color, stroke width, and dash pattern editable via style pane; writes back to `@style` annotation
 
-```txt
-┌──────┬──────────────┐
-│ [C]  │ Class         │
-│<<I>> │ Interface     │
-│<<A>> │ Abstract class│
-│<<E>> │ Enumeration   │
-│ ...  │ ...           │
-├──────┼──────────────┤
-│ -->  │ Association   │
-│ <|-- │ Inheritance   │
-│ *--  │ Composition   │
-│ ...  │ ...           │
-└──────┴──────────────┘
+#### 4.3.2 Tool pane
+
+Palette of diagram elements for adding new content:
+
+```
+┌──────┬───────────────────┐
+│ [C]  │ Class             │
+│<<I>> │ Interface         │
+│<<A>> │ Abstract class    │
+│<<E>> │ Enumeration       │
+├──────┼───────────────────┤
+│ -->  │ Association       │
+│ <|-- │ Inheritance       │
+│ *--  │ Composition       │
+│ ...  │ ...               │
+├──────┼───────────────────┤
+│ [NS] │ Namespace         │
+├──────┼───────────────────┤
+│ [L]  │ Add legend        │
+└──────┴───────────────────┘
 ```
 
-#### Style pane
+#### 4.3.5 Style pane
 
-Shows the style of the currently selected class. Empty when no class is selected.
+Shows the style of the currently selected element. Empty when nothing is selected.
 
-```txt
-┌──────────────────────────┐
-│ Styles                    │
-├──────────────────────────┤
-│ Class                     │
-│ ClassName                 │
-│ <<Stereotype>>            │  ← if present
-│                           │
-│ ┌───────────────────────┐ │
-│ │ ClassName    [preview] │ │
-│ │ StyleName | Default    │ │
-│ └───────────────────────┘ │
-│                           │
-│ Fill    [swatch] #RRGGBB  │  ← editable
-│ Stroke  [swatch] #RRGGBB  │
-│ Text    [swatch] #RRGGBB  │
-└──────────────────────────┘
+```
+┌───────────────────────────┐
+│ ClassName / NamespaceName │
+│ Change <<Stereotype>>     │  ← if present
+├───────────────────────────┤
+│ Fill         [●] #RRGGBB  │
+│ Stroke       [●] #RRGGBB  │
+│ Text color   [●] #RRGGBB  │
+│ Stroke width [___] px     │
+│ Stroke dash  [___]        │
+├───────────────────────────┤
+│ [ Fit to content ]        │
+│ [ Delete element ]        │
+└───────────────────────────┘
 ```
 
-Fill is editable via a color picker, which writes the corresponding `classDef` property in Mermaid source. Stroke and text are currently shown but not yet editable.
+- all color properties editable via color picker
+- changes write to `classDef` (for class boxes) or `@style` annotation (for namespaces)
+- **Fit to content** — resizes the box to fit its current content; writes back to `@spatial`
+- **Delete element** — removes the element and its annotations from source
 
-## Key journeys
+---
+## 5. Key journeys
 
-### 1. Open a diagram
+### 5.1 Open a diagram
 
-Shiny exposes two entry points to open a diagram panel beside the currently active Mermaid document:
+- user runs `Shiny: Open Diagram` command or clicks the Shiny icon on a `.mmd` editor pane
+- Shiny opens the webview beside the source editor
+- source is parsed; if fully annotated, Editor view renders immediately
+- if any class is missing a `@spatial`, the canvas shows the missing class list and offers Generate
 
-- a VS Code command: `Shiny: Open Diagram`
-- an icon on top of `.mmd` code panes
+### 5.2 Edit visually
 
-When a user opens a Mermaid diagram with Shiny, the extension reads the source, parses supported Mermaid objects, parses Shiny annotations, and opens the WebView beside the source editor.
+- user drags or resizes a class box or namespace
+- Shiny writes the updated annotation back to source immediately on drop
+- outcomes:
+    - visual layout persists after reopening
+    - Git diff shows layout changes as text
+    - AI can see and preserve user layout
+    - webview stays in sync — no re-render needed for Shiny-originated edits
 
-If the file is fully annotated, the Editor view uses stored positions and sizes.
+### 5.3 Edit source manually
 
-If the file is partially annotated, Shiny preserves existing positions and generates non-overlapping positions for missing objects according to the current annotation-completion policy.
+- user edits `.mmd` source directly in VS Code
+- Shiny detects the change, holds the current canvas visible, and waits for a short debounce delay
+- after the delay, Shiny re-parses source and refreshes the active view
+- outcome: source editing is smooth; incomplete typing does not cause unstable visual updates
 
-If the file is unannotated, Shiny can generate initial spatial annotations and make the diagram visually editable. The exact trigger for writing missing annotations may be refined in sprint-level specifications.
+### 5.4 AI edits source
 
-Expected outcome: the diagram becomes editable in Shiny while remaining valid Mermaid.
+- AI modifies the `.mmd` file
+- Shiny treats it identically to a manual source edit — debounce, re-parse, re-render
+- existing annotated layout is preserved where possible
+- if AI adds a new class without `@spatial`, it appears in the missing class list; Generate resolves it
+- outcome: AI can modify diagram semantics without destroying manual visual layout
 
-### 2. Edit visually
+### 5.5 Review in Git
 
-When a user moves or resizes an object in the Editor view, Shiny updates the matching `@spatial` annotation in the Mermaid source.
+- semantic changes: modified classes, relationships, labels, fields, methods
+- style changes: modified `classDef` or `:::StyleName` lines
+- layout changes: modified `@spatial` coordinates
+- namespace style changes: modified `@style` annotation lines
+- outcome: reviewers can distinguish semantic, styling, and layout-only changes at a glance
 
-Expected outcome:
+### 5.6 Handle invalid input
 
-- visual layout persists after reopening;
-- Git diff shows layout changes as text;
-- AI can see and preserve user layout;
-- the WebView remains synchronized because the source edit was produced by Shiny.
+- unsupported Mermaid syntax: Shiny preserves source and does not overwrite the file
+- Mermaid rendering failure: Autorender view shows the error
+- malformed or orphaned annotations: preserved in source, surfaced as diagnostics, not silently deleted
+- outcome: Shiny degrades safely; no destructive rewrites
 
-### 3. Edit source manually
+---
 
-When a user edits the Mermaid source directly, Shiny does not re-render on every keystroke. Instead, it schedules a delayed automatic render so the user can finish typing.
+## 6. Product principles and boundaries
 
-Flow:
+**Principles:**
 
-1. User edits the Mermaid source.
-2. Extension host detects the document change.
-3. The current canvas remains visible.
-4. After a short debounce delay, Shiny re-reads the source.
-5. Shiny re-parses Mermaid and annotations.
-6. Shiny refreshes the active view.
+- **Source-first** — the `.mmd` file is the durable artifact
+- **Mermaid-compatible** — Shiny files remain valid Mermaid files
+- **Layout and style separate from semantics** — Mermaid owns meaning and native styling; Shiny owns persistent layout metadata and namespace style extensions
+- **Human and AI symmetry** — humans edit visually; AI edits text; both work on the same artifact
+- **Safe degradation** — unsupported syntax and malformed annotations never cause destructive rewrites
+- **Version-control readability** — Git diffs reveal whether a change is semantic, stylistic, or spatial
 
-Expected outcome: source editing remains automatic but stable; incomplete typing does not cause immediate unstable visual updates.
+**Boundaries:**
 
-### 4. AI edits source
-
-When AI adds or changes Mermaid source, Shiny treats it like any other external source edit.
-
-Flow:
-
-1. AI modifies the `.mmd` file.
-2. Extension host detects the source change.
-3. After the debounce delay, Shiny re-reads and re-renders the source.
-4. If AI added a new object without annotation, Shiny handles it according to the current annotation-completion policy.
-5. Existing annotated layout is preserved where possible.
-
-Expected outcome: AI can modify diagram semantics without destroying manual visual layout.
-
-### 5. Review in Git
-
-Diagram changes are reviewed as text.
-
-Expected distinction:
-
-- Mermaid semantic changes show changed classes, relationships, labels, fields, or methods.
-- Mermaid style changes show changed `class`, `classDef`, or style syntax.
-- Shiny layout changes show changed `@spatial` coordinates.
-
-Expected outcome: reviewers can distinguish semantic, styling, and layout-only changes.
-
-### 6. Handle unsupported or invalid input
-
-If source contains unsupported Mermaid syntax, Shiny should preserve source and render supported objects where safe.
-
-If Mermaid rendering fails, the Autorender view should show the error.
-
-If the Editor view cannot safely parse the source, it should not overwrite the file.
-
-Malformed, duplicate, or orphaned annotations should be preserved and surfaced as diagnostics rather than silently deleted.
-
-Expected outcome: Shiny degrades safely and avoids destructive rewrites.
-
-## Product principles and boundaries
-
-Shiny follows these product principles:
-
-- **Source-first:** the `.mmd` file is the durable artifact.
-- **Mermaid-compatible:** Shiny files remain valid Mermaid files.
-- **Layout separate from semantics:** Mermaid owns meaning and supported styling; Shiny owns persistent layout metadata.
-- **Human and AI symmetry:** humans edit visually; AI edits text; both work on the same artifact.
-- **Safe degradation:** unsupported syntax and malformed annotations must not cause destructive rewrites.
-- **Version-control readability:** Git diffs should reveal whether a change is semantic, stylistic, or spatial.
-
-Product boundaries:
-
-- Shiny is not a Mermaid replacement.
-- Shiny is not a free-form drawing tool.
-- Shiny is not an image-generation tool.
-- Shiny is not initially a collaborative cloud whiteboard.
-
-Shiny is a source-backed visual editing layer for structured Mermaid diagrams. The first supported diagram family is class diagrams. Future support may include flowcharts, sequence diagrams, entity-relationship diagrams, and architecture diagrams, but the product architecture should not assume all Mermaid diagram types have identical object identity or layout semantics.
+- Shiny is not a Mermaid replacement
+- Shiny is not a free-form drawing tool
+- Shiny is not an image-generation tool
+- Shiny is not a collaborative cloud whiteboard
