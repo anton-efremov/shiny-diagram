@@ -1,0 +1,143 @@
+import type { DiagramTree } from "../model/diagramTreeModel";
+import type { ClassId } from "../model/primitives";
+import { toMemberId } from "../model/primitives";
+import type {
+  ClassBoxView,
+  ElementViews,
+  NamespaceBoxView,
+  Rect,
+  RelationshipView,
+} from "./viewModel";
+import { toRelationshipViewId } from "./viewModel";
+
+/**
+ * Converts a DiagramTree into renderable ElementViews.
+ * Pure function — no React, DOM, or VS Code imports.
+ */
+export function deriveElementViews(model: DiagramTree): ElementViews {
+  return {
+    classes: deriveClassBoxViews(model),
+    namespaces: deriveNamespaceBoxViews(model),
+    relationships: deriveRelationshipViews(model),
+    notes: [],
+    legend: { entries: [] },
+    diagnostics: [],
+  };
+}
+
+function deriveClassBoxViews(model: DiagramTree): ClassBoxView[] {
+  const views: ClassBoxView[] = [];
+
+  for (const node of model.classes.values()) {
+    if (!node.spatial) continue;
+
+    const styleEdge = model.appliesStyleEdges.find((e) => e.source === node.id);
+    const styleDef = styleEdge ? model.styleDefs.get(styleEdge.target) : undefined;
+
+    const style = styleDef
+      ? {
+          fill: styleDef.properties.find((p) => p.property === "fill")?.value,
+          stroke: styleDef.properties.find((p) => p.property === "stroke")?.value,
+          color: styleDef.properties.find((p) => p.property === "color")?.value,
+          name: styleDef.id as string,
+        }
+      : undefined;
+
+    views.push({
+      classId: node.id,
+      x: node.spatial.x,
+      y: node.spatial.y,
+      w: node.spatial.width,
+      h: node.spatial.height,
+      header: {
+        label: node.id as string,
+        stereotype: node.annotation?.value,
+      },
+      members: node.members.map((member) => {
+        const memberId = toMemberId(`${node.id}:${member.location.startLine}`);
+        if (member.kind === "method") {
+          const params = member.params ?? "";
+          const typeSuffix = member.returnType ? `: ${member.returnType}` : "";
+          return {
+            memberId,
+            prefix: member.visibility,
+            text: `${member.name}(${params})${typeSuffix}`,
+            kind: "method" as const,
+          };
+        }
+        const typeSuffix = member.fieldType ? `: ${member.fieldType}` : "";
+        return {
+          memberId,
+          prefix: member.visibility,
+          text: `${member.name}${typeSuffix}`,
+          kind: "field" as const,
+        };
+      }),
+      style,
+    });
+  }
+
+  return views;
+}
+
+function deriveNamespaceBoxViews(model: DiagramTree): NamespaceBoxView[] {
+  const views: NamespaceBoxView[] = [];
+
+  for (const ns of model.namespaces.values()) {
+    const memberIds = model.inNamespaceEdges
+      .filter((e) => e.target === ns.id)
+      .map((e) => e.source);
+
+    const memberRects: Rect[] = memberIds.flatMap((classId: ClassId) => {
+      const node = model.classes.get(classId);
+      if (!node?.spatial) return [];
+      return [{ x: node.spatial.x, y: node.spatial.y, w: node.spatial.width, h: node.spatial.height }];
+    });
+
+    const bounds = memberRects.length > 0 ? unionRects(memberRects) : { x: 0, y: 0, w: 120, h: 80 };
+
+    views.push({ namespaceId: ns.id, bounds, label: ns.id as string });
+  }
+
+  return views;
+}
+
+function deriveRelationshipViews(model: DiagramTree): RelationshipView[] {
+  return model.relationships.flatMap((rel, index) => {
+    const source = model.classes.get(rel.source);
+    const target = model.classes.get(rel.target);
+    if (!source?.spatial || !target?.spatial) return [];
+
+    return [
+      {
+        viewId: toRelationshipViewId(`${rel.source}--${rel.target}--${index}`),
+        sourceClassId: rel.source,
+        targetClassId: rel.target,
+        relationType: rel.type,
+        sourceMultiplicity: rel.sourceMultiplicity,
+        targetMultiplicity: rel.targetMultiplicity,
+        label: rel.label,
+        sourceLocation: rel.location,
+      },
+    ];
+  });
+}
+
+function unionRects(rects: Rect[]): Rect {
+  const padding = 12;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  for (const r of rects) {
+    if (r.x < minX) minX = r.x;
+    if (r.y < minY) minY = r.y;
+    if (r.x + r.w > maxX) maxX = r.x + r.w;
+    if (r.y + r.h > maxY) maxY = r.y + r.h;
+  }
+
+  return {
+    x: minX - padding,
+    y: minY - padding,
+    w: maxX - minX + padding * 2,
+    h: maxY - minY + padding * 2,
+  };
+}

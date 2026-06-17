@@ -1,0 +1,114 @@
+import type { ClassId, NamespaceId, SourceLocation, StyleDefId } from "./primitives";
+
+export type { SourceLocation } from "./primitives";
+
+export type Visibility = "+" | "-" | "#" | "~";
+
+export type ClassField = {
+  readonly kind: "field";
+  readonly visibility: Visibility;
+  readonly name: string;
+  readonly fieldType?: string;
+  readonly location: SourceLocation;
+};
+
+export type ClassMethod = {
+  readonly kind: "method";
+  readonly visibility: Visibility;
+  readonly name: string;
+  readonly params?: string;
+  readonly returnType?: string;
+  readonly location: SourceLocation;
+};
+
+export type ClassMember = ClassField | ClassMethod;
+
+export type ClassAnnotation = {
+  readonly value: string;
+  readonly location: SourceLocation;
+};
+
+export type SpatialData = {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+  readonly location: SourceLocation;
+};
+
+export type StyleProperty = {
+  readonly property: "fill" | "stroke" | "color" | "strokeWidth" | "strokeDasharray";
+  readonly value: string;
+};
+
+export type ClassNode = {
+  readonly kind: "class";
+  readonly id: ClassId;
+  readonly annotation?: ClassAnnotation;
+  readonly members: readonly ClassMember[];
+  readonly spatial?: SpatialData;
+  readonly location: SourceLocation | null;
+};
+
+export type StyleDefNode = {
+  readonly kind: "styleDef";
+  readonly id: StyleDefId;
+  readonly properties: readonly StyleProperty[];
+  readonly location: SourceLocation;
+};
+
+export type NamespaceNode = {
+  readonly kind: "namespace";
+  readonly id: NamespaceId;
+  readonly location: SourceLocation;
+};
+
+export type TreeNode = ClassNode | StyleDefNode | NamespaceNode;
+
+export type RelationshipType =
+  | "association"
+  | "solidLink"
+  | "dashedLink"
+  | "inheritance"
+  | "composition"
+  | "aggregation"
+  | "dependency"
+  | "realization"
+  | "twoWay"
+  | "lollipop";
+
+export type RelationshipEdge = {
+  readonly kind: "relationship";
+  readonly source: ClassId;
+  readonly target: ClassId;
+  readonly type: RelationshipType;
+  readonly label?: string;
+  readonly sourceMultiplicity?: string;
+  readonly targetMultiplicity?: string;
+  readonly location: SourceLocation;
+};
+
+export type InNamespaceEdge = {
+  readonly kind: "inNamespace";
+  readonly source: ClassId;
+  readonly target: NamespaceId;
+  readonly location: SourceLocation;
+};
+
+export type AppliesStyleEdge = {
+  readonly kind: "appliesStyle";
+  readonly source: ClassId;
+  readonly target: StyleDefId;
+  readonly location: SourceLocation;
+};
+
+export type TreeEdge = RelationshipEdge | InNamespaceEdge | AppliesStyleEdge;
+
+export type DiagramTree = {
+  readonly classes: ReadonlyMap<ClassId, ClassNode>;
+  readonly styleDefs: ReadonlyMap<StyleDefId, StyleDefNode>;
+  readonly namespaces: ReadonlyMap<NamespaceId, NamespaceNode>;
+  readonly relationships: readonly RelationshipEdge[];
+  readonly appliesStyleEdges: readonly AppliesStyleEdge[];
+  readonly inNamespaceEdges: readonly InNamespaceEdge[];
+};
