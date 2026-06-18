@@ -1,5 +1,4 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from "react";
-import type { ReactElement } from "react";
 import { parseDiagram } from "../domain/classDiagram/parse";
 import { deriveElementViews } from "../domain/classDiagram/derive";
 import { applyCommand } from "../domain/classDiagram/commands";
