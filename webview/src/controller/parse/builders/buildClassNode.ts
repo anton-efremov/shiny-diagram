@@ -5,8 +5,8 @@ import type {
   ClassMethod,
   ClassNode,
   Visibility,
-} from "../../model/diagramTreeModel";
-import { toClassId } from "../../model/primitives";
+} from "../../primitives";
+import { toClassId } from "../../primitives";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "./toSourceLocation";
 

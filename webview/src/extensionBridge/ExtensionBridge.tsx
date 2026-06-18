@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import type { SourceEdit } from "../controller/source/sourceEditTypes";
+import type { SourceEdit } from "../controller";
 import type { ApplyEditsMessage, LineEdit } from "./protocol";
 import { readInitialData } from "./initialData";
 import { isHostMessage } from "./typeGuards";
 import { vscode } from "./vscodeApi";
-import AppController from "../controller/AppController";
+import { AppController } from "../controller";
 
 /**
  * Translates the internal SourceEdit union to the host LineEdit protocol.

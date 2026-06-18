@@ -1,4 +1,4 @@
-import type { StyleDefNode, StyleProperty } from "../model/diagramTreeModel";
+import type { StyleDefNode, StyleProperty } from "../primitives";
 
 export function formatSpatialAnnotation(
   classId: string,

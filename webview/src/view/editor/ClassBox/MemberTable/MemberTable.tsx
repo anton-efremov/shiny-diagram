@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import type { ClassBoxMemberView } from "../../../../controller/derive/viewModel";
+import type { ClassBoxMemberView } from "../../../../controller";
 import styles from "../ClassBox.module.css";
 
 type MemberTableProps = {

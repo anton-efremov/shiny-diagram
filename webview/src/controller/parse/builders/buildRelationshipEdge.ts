@@ -1,5 +1,5 @@
-import type { RelationshipEdge, RelationshipType } from "../../model/diagramTreeModel";
-import { toClassId } from "../../model/primitives";
+import type { RelationshipEdge, RelationshipType } from "../../primitives";
+import { toClassId } from "../../primitives";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "./toSourceLocation";
 

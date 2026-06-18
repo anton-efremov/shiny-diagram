@@ -1,5 +1,5 @@
-import type { InNamespaceEdge } from "../../model/diagramTreeModel";
-import { toClassId, toNamespaceId } from "../../model/primitives";
+import type { InNamespaceEdge } from "../../primitives";
+import { toClassId, toNamespaceId } from "../../primitives";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "./toSourceLocation";
 

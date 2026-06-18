@@ -8,8 +8,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
 } from "@xyflow/react";
-import { useEditorState } from "../../../controller/EditorStateContext";
-import { useEditorSelection } from "../../../controller/EditorSelectionContext";
+import { useEditorState, useCanvasState } from "../../../controller";
 import { useClassBoxController } from "./useClassBoxController";
 import { useCanvasController } from "./useCanvasController";
 import ClassBox from "../ClassBox/ClassBox";
@@ -23,18 +22,18 @@ import styles from "./ClassDiagram.module.css";
 
 export default function ClassDiagram(): ReactElement {
   const { elementViews } = useEditorState();
-  const { selection } = useEditorSelection();
+  const { canvasState } = useCanvasState();
 
   const [rfNodes, setRfNodes] = useState<ClassBoxNodeDescriptor[]>(() =>
-    toClassBoxNodeDescriptors(elementViews?.classes ?? [], selection.selectedClassId)
+    toClassBoxNodeDescriptors(elementViews?.classes ?? [], canvasState.selectedClassId)
   );
   const [rfEdges, setRfEdges] = useState<RelationshipEdgeDescriptor[]>(() =>
     toRelationshipEdgeDescriptors(elementViews?.classes ?? [], elementViews?.relationships ?? [])
   );
 
   useEffect(() => {
-    setRfNodes(toClassBoxNodeDescriptors(elementViews?.classes ?? [], selection.selectedClassId));
-  }, [elementViews?.classes, selection.selectedClassId]);
+    setRfNodes(toClassBoxNodeDescriptors(elementViews?.classes ?? [], canvasState.selectedClassId));
+  }, [elementViews?.classes, canvasState.selectedClassId]);
 
   useEffect(() => {
     setRfEdges(toRelationshipEdgeDescriptors(elementViews?.classes ?? [], elementViews?.relationships ?? []));

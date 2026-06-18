@@ -3,7 +3,7 @@
  * Avoids prop-drilling dispatch through intermediate view layers.
  */
 import { createContext, useContext } from "react";
-import type { EditorCommand } from "./commands/commandTypes";
+import type { EditorCommand } from "../commands";
 
 export const EditorDispatchContext = createContext<((command: EditorCommand) => void) | null>(null);
 

@@ -4,14 +4,13 @@ import { parseDiagram } from "./parse";
 import type { ParseResult } from "./parse";
 import { deriveElementViews } from "./derive";
 import { applyCommand } from "./commands";
-import type { EditorCommand } from "./commands/commandTypes";
-import type { ElementViews } from "./derive/viewModel";
-import type { SourceEdit } from "./source/sourceEditTypes";
-import { readClassBoxMetrics } from "./classBoxMetrics";
-import { emptySelection, type Selection } from "./selection";
-import { EditorDispatchContext } from "./EditorDispatchContext";
-import { EditorSelectionContext } from "./EditorSelectionContext";
-import { EditorStateContext, type EditorHeaderState } from "./EditorStateContext";
+import type { EditorCommand } from "./commands";
+import type { ElementViews } from "./derive";
+import type { SourceEdit } from "./source";
+import { defaultCanvasState, type CanvasState } from "./canvasState";
+import { CanvasStateContext } from "./contexts/CanvasStateContext";
+import { EditorDispatchContext } from "./contexts/EditorDispatchContext";
+import { EditorStateContext, type EditorHeaderState } from "./contexts/EditorStateContext";
 import App from "../view/App";
 
 type AppControllerProps = {
@@ -30,7 +29,7 @@ function toHeaderState(parseResult: ParseResult): EditorHeaderState {
 }
 
 export default function AppController({ sourceText, onApplyEdits }: AppControllerProps): ReactElement {
-  const [selection, setSelection] = useState<Selection>(emptySelection);
+  const [canvasState, setCanvasStateRaw] = useState<CanvasState>(defaultCanvasState);
 
   const parseResult = useMemo(() => parseDiagram(sourceText), [sourceText]);
 
@@ -42,10 +41,10 @@ export default function AppController({ sourceText, onApplyEdits }: AppControlle
   }, [model]);
 
   useEffect(() => {
-    setSelection((prev) => {
+    setCanvasStateRaw((prev) => {
       if (!prev.selectedClassId) return prev;
       const stillExists = elementViews?.classes.some((v) => v.classId === prev.selectedClassId);
-      return stillExists ? prev : emptySelection;
+      return stillExists ? prev : defaultCanvasState;
     });
   }, [elementViews]);
 
@@ -57,7 +56,6 @@ export default function AppController({ sourceText, onApplyEdits }: AppControlle
         sourceText,
         model,
         views: elementViews,
-        classBoxMetrics: readClassBoxMetrics(),
         malformedAnnotations:
           parseResult.status === "missingAnnotations"
             ? parseResult.malformedAnnotations
@@ -72,13 +70,13 @@ export default function AppController({ sourceText, onApplyEdits }: AppControlle
     [sourceText, model, elementViews, parseResult, onApplyEdits]
   );
 
-  const handleSelectionChange = useCallback((next: Selection) => {
-    setSelection(next);
+  const setCanvasState = useCallback((update: Partial<CanvasState>) => {
+    setCanvasStateRaw((prev) => ({ ...prev, ...update }));
   }, []);
 
-  const selectionContext = useMemo(
-    () => ({ selection, onSelectionChange: handleSelectionChange }),
-    [selection, handleSelectionChange]
+  const canvasStateContext = useMemo(
+    () => ({ canvasState, setCanvasState }),
+    [canvasState, setCanvasState]
   );
 
   const stateContext = useMemo(
@@ -88,11 +86,11 @@ export default function AppController({ sourceText, onApplyEdits }: AppControlle
 
   return (
     <EditorDispatchContext.Provider value={dispatch}>
-      <EditorSelectionContext.Provider value={selectionContext}>
+      <CanvasStateContext.Provider value={canvasStateContext}>
         <EditorStateContext.Provider value={stateContext}>
           <App />
         </EditorStateContext.Provider>
-      </EditorSelectionContext.Provider>
+      </CanvasStateContext.Provider>
     </EditorDispatchContext.Provider>
   );
 }

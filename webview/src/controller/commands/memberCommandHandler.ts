@@ -1,4 +1,4 @@
-import type { CommandContext, CommandResult, EditorCommand } from "./commandTypes";
+import type { CommandContext, CommandResult, EditorCommand } from ".";
 
 export function handleMemberCommand(
   command: Extract<EditorCommand, { type: "class.header.setLabel" | "class.member.setText" | "class.member.setPrefix" }>,

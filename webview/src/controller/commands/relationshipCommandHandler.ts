@@ -1,4 +1,4 @@
-import type { CommandContext, CommandResult, EditorCommand } from "./commandTypes";
+import type { CommandContext, CommandResult, EditorCommand } from ".";
 
 export function handleRelationshipCommand(
   command: Extract<EditorCommand, { type: "relationship.setType" | "relationship.setMultiplicity" | "relationship.setLabel" }>,

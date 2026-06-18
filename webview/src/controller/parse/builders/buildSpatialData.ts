@@ -1,6 +1,5 @@
-import type { SourceLocation, SpatialData } from "../../model/diagramTreeModel";
-import type { ClassId } from "../../model/primitives";
-import { toClassId } from "../../model/primitives";
+import type { SourceLocation, SpatialData, ClassId } from "../../primitives";
+import { toClassId } from "../../primitives";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "./toSourceLocation";
 

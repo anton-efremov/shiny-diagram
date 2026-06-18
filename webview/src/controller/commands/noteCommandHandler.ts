@@ -1,4 +1,4 @@
-import type { CommandContext, CommandResult, EditorCommand } from "./commandTypes";
+import type { CommandContext, CommandResult, EditorCommand } from ".";
 
 export function handleNoteCommand(
   command: Extract<EditorCommand, { type: "note.move" | "note.resize" | "note.setText" }>,

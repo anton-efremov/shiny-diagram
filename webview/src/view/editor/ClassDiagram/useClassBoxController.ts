@@ -1,9 +1,9 @@
 import { useCallback } from "react";
 import type { MouseEvent } from "react";
 import type { OnNodeDrag } from "@xyflow/react";
-import type { ElementViews } from "../../../controller/derive/viewModel";
-import { useEditorDispatch } from "../../../controller/EditorDispatchContext";
-import { useEditorSelection } from "../../../controller/EditorSelectionContext";
+import type { ElementViews } from "../../../controller";
+import { useEditorDispatch } from "../../../controller";
+import { useCanvasState } from "../../../controller";
 import type { ClassBoxNodeDescriptor } from "./reactFlowAdapters";
 
 type UseClassBoxControllerResult = {
@@ -13,7 +13,7 @@ type UseClassBoxControllerResult = {
 
 export function useClassBoxController(views: ElementViews | null): UseClassBoxControllerResult {
   const dispatch = useEditorDispatch();
-  const { onSelectionChange } = useEditorSelection();
+  const { setCanvasState } = useCanvasState();
 
   const onNodeDragStop = useCallback<OnNodeDrag<ClassBoxNodeDescriptor>>(
     (_event, rfNode) => {
@@ -38,9 +38,9 @@ export function useClassBoxController(views: ElementViews | null): UseClassBoxCo
     (_event: MouseEvent, rfNode: ClassBoxNodeDescriptor) => {
       const view = views?.classes.find((v) => v.classId === rfNode.id);
       if (!view) return;
-      onSelectionChange({ selectedClassId: view.classId });
+      setCanvasState({ selectedClassId: view.classId });
     },
-    [views, onSelectionChange]
+    [views, setCanvasState]
   );
 
   return { onNodeDragStop, onNodeClick };

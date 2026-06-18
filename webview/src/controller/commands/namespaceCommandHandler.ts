@@ -1,4 +1,4 @@
-import type { CommandContext, CommandResult, EditorCommand } from "./commandTypes";
+import type { CommandContext, CommandResult, EditorCommand } from ".";
 
 export function handleNamespaceCommand(
   command: Extract<EditorCommand, { type: "namespace.move" | "namespace.setStyle" }>,

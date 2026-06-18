@@ -1,4 +1,4 @@
-import type { SourceLocation } from "../../model/diagramTreeModel";
+import type { SourceLocation } from "../../primitives";
 import type { ParseToken } from "../tokenizer";
 
 export function toSourceLocation(token: ParseToken): SourceLocation {

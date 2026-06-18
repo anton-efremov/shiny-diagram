@@ -6,7 +6,7 @@ import type {
   NamespaceNode,
   RelationshipEdge,
   StyleDefNode,
-} from "../model/diagramTreeModel";
+} from "../primitives";
 import { buildAppliesStyleEdge } from "./builders/buildAppliesStyleEdge";
 import { buildClassNode } from "./builders/buildClassNode";
 import { buildInNamespaceEdges } from "./builders/buildInNamespaceEdge";

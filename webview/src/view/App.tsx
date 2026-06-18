@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ReactElement } from "react";
-import { useEditorState } from "../controller/EditorStateContext";
+import { useEditorState } from "../controller";
 import AppHeader from "./AppHeader/AppHeader";
 import AutorenderView from "./AutorenderView/AutorenderView";
 import EditorView from "./editor/EditorView/EditorView";

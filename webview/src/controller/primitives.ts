@@ -1,7 +1,37 @@
-import type { ClassId, NamespaceId, SourceLocation, StyleDefId } from "./primitives";
+// Branded IDs and SourceLocation — shared across all APIs
+export type SourceLocation = {
+  readonly startLine: number;
+  readonly startChar: number;
+  readonly endLine: number;
+  readonly endChar: number;
+  readonly raw: string;
+};
 
-export type { SourceLocation } from "./primitives";
+export type ClassId = string & { readonly __brand: "ClassId" };
+export type StyleDefId = string & { readonly __brand: "StyleDefId" };
+export type NamespaceId = string & { readonly __brand: "NamespaceId" };
+export type NoteId = string & { readonly __brand: "NoteId" };
 
+/**
+ * Branded member identity within a class body.
+ * Synthesized as `${classId}:${startLine}` by the Derivator.
+ * Positional and provisional — to be revisited when member editing becomes real.
+ */
+export type MemberId = string & { readonly __brand: "MemberId" };
+
+export type TreeNodeId = ClassId | StyleDefId | NamespaceId;
+
+export const toClassId = (s: string): ClassId => s as ClassId;
+export const toStyleDefId = (s: string): StyleDefId => s as StyleDefId;
+export const toNamespaceId = (s: string): NamespaceId => s as NamespaceId;
+export const toNoteId = (s: string): NoteId => s as NoteId;
+export const toMemberId = (s: string): MemberId => s as MemberId;
+
+// Shared geometry types (used by both derive and commands APIs)
+export type Rect = { readonly x: number; readonly y: number; readonly w: number; readonly h: number };
+export type Point = { readonly x: number; readonly y: number };
+
+// Diagram tree model — the parsed representation of a classDiagram source file
 export type Visibility = "+" | "-" | "#" | "~";
 
 export type ClassField = {
@@ -111,4 +141,19 @@ export type DiagramTree = {
   readonly relationships: readonly RelationshipEdge[];
   readonly appliesStyleEdges: readonly AppliesStyleEdge[];
   readonly inNamespaceEdges: readonly InNamespaceEdge[];
+};
+
+/**
+ * Flag: "syntaxError" is not in the spec's four-kind union but is required
+ * to carry the parse error message for invalidSyntax status through diagnostics.
+ */
+export type EditorDiagnostic = {
+  readonly kind:
+    | "orphanedAnnotation"
+    | "duplicateAnnotation"
+    | "missingAnnotation"
+    | "malformedAnnotation"
+    | "syntaxError";
+  readonly message: string;
+  readonly elementId?: string;
 };

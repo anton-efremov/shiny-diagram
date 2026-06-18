@@ -3,3 +3,5 @@ export type SourceEdit =
   | { readonly kind: "insertLine"; readonly lineNumber: number; readonly newText: string }
   | { readonly kind: "deleteLine"; readonly lineNumber: number }
   | { readonly kind: "replaceRange"; readonly startLine: number; readonly endLine: number; readonly newText: string };
+
+export { formatSpatialAnnotation, formatStyleProperty } from "./formatLines";

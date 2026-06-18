@@ -1,16 +1,16 @@
 import { useCallback } from "react";
-import { useEditorSelection } from "../../../controller/EditorSelectionContext";
+import { useCanvasState } from "../../../controller";
 
 type UseCanvasControllerResult = {
   onPaneClick: () => void;
 };
 
 export function useCanvasController(): UseCanvasControllerResult {
-  const { onSelectionChange } = useEditorSelection();
+  const { setCanvasState } = useCanvasState();
 
   const onPaneClick = useCallback(() => {
-    onSelectionChange({ selectedClassId: null });
-  }, [onSelectionChange]);
+    setCanvasState({ selectedClassId: null });
+  }, [setCanvasState]);
 
   return { onPaneClick };
 }

@@ -2,8 +2,8 @@ import { formatSpatialAnnotation } from "../source/formatLines";
 import { computeMalformedBoxLayout } from "./layoutAlgorithm/computeMalformedBoxLayout";
 import { computeNewBoxLayout } from "./layoutAlgorithm/computeNewBoxLayout";
 import { computeStartY } from "./layoutAlgorithm/gridPlacement";
-import type { CommandContext, CommandResult } from "./commandTypes";
-import type { SourceEdit } from "../source/sourceEditTypes";
+import type { CommandContext, CommandResult } from ".";
+import type { SourceEdit } from "../source";
 
 export function handleGenerateCommand(context: CommandContext): CommandResult {
   const existingSpatial = [...context.model.classes.values()].flatMap((node) =>
@@ -19,8 +19,7 @@ export function handleGenerateCommand(context: CommandContext): CommandResult {
   }
 
   const malformedAnnotations = context.malformedAnnotations ?? new Map();
-  const metrics = context.classBoxMetrics;
-  const startY = computeStartY(existingSpatial, metrics.margin);
+  const startY = computeStartY(existingSpatial);
 
   const edits: SourceEdit[] = [];
   const toAppend: string[] = [];
@@ -28,8 +27,8 @@ export function handleGenerateCommand(context: CommandContext): CommandResult {
   missingIds.forEach((classId, idx) => {
     const malformed = malformedAnnotations.get(classId);
     const position = malformed
-      ? computeMalformedBoxLayout(idx, startY, metrics)
-      : computeNewBoxLayout(idx, startY, metrics);
+      ? computeMalformedBoxLayout(idx, startY)
+      : computeNewBoxLayout(idx, startY);
 
     const spatialLine = formatSpatialAnnotation(
       classId,

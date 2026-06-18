@@ -1,5 +1,5 @@
 import { formatStyleProperty } from "../source/formatLines";
-import type { CommandContext, CommandResult, EditorCommand } from "./commandTypes";
+import type { CommandContext, CommandResult, EditorCommand } from ".";
 
 export function handleStyleCommand(
   command: Extract<EditorCommand, { type: "style.setClassProperty" }>,

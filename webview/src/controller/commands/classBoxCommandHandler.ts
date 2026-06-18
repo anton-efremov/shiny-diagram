@@ -1,5 +1,5 @@
 import { formatSpatialAnnotation } from "../source/formatLines";
-import type { CommandContext, CommandResult, EditorCommand } from "./commandTypes";
+import type { CommandContext, CommandResult, EditorCommand } from ".";
 
 export function handleClassBoxCommand(
   command: Extract<EditorCommand, { type: "class.move" | "class.resize" }>,
