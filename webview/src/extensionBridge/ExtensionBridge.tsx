@@ -5,7 +5,7 @@ import type { ApplyEditsMessage, LineEdit } from "./protocol";
 import { readInitialData } from "./initialData";
 import { isHostMessage } from "./typeGuards";
 import { vscode } from "./vscodeApi";
-import ViewApp from "../view/App";
+import AppController from "../controller/AppController";
 
 /**
  * Translates the internal SourceEdit union to the host LineEdit protocol.
@@ -50,5 +50,5 @@ export default function ExtensionBridge(): ReactElement {
     vscode.postMessage(message);
   }, []);
 
-  return <ViewApp sourceText={sourceText} onApplyEdits={handleApplyEdits} />;
+  return <AppController sourceText={sourceText} onApplyEdits={handleApplyEdits} />;
 }

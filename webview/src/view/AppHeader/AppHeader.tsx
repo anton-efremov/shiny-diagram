@@ -1,5 +1,7 @@
 import type { ReactElement } from "react";
-import type { Mode, EditorHeaderState } from "../../controller/AppController";
+import type { Mode } from "../App";
+import type { EditorHeaderState } from "../../controller/EditorStateContext";
+import { useEditorDispatch } from "../../controller/EditorDispatchContext";
 import Toggle from "../../ui/Toggle/Toggle";
 import styles from "./AppHeader.module.css";
 
@@ -7,7 +9,6 @@ type AppHeaderProps = {
   mode: Mode;
   setMode: (mode: Mode) => void;
   parseStatus: EditorHeaderState;
-  onGenerate: () => void;
 };
 
 function getStatusMessage(
@@ -33,12 +34,9 @@ function getStatusMessage(
   );
 }
 
-export default function AppHeader({
-  mode,
-  setMode,
-  parseStatus,
-  onGenerate,
-}: AppHeaderProps): ReactElement {
+export default function AppHeader({ mode, setMode, parseStatus }: AppHeaderProps): ReactElement {
+  const dispatch = useEditorDispatch();
+
   return (
     <header className={styles.header}>
       <h1 className={styles.title}>Shiny Diagram</h1>
@@ -52,7 +50,7 @@ export default function AppHeader({
           onChange={setMode}
           ariaLabel="Diagram modes"
         />
-        {getStatusMessage(mode, parseStatus, onGenerate)}
+        {getStatusMessage(mode, parseStatus, () => dispatch({ type: "generate" }))}
       </div>
     </header>
   );

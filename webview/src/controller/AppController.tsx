@@ -11,25 +11,12 @@ import { readClassBoxMetrics } from "./classBoxMetrics";
 import { emptySelection, type Selection } from "./selection";
 import { EditorDispatchContext } from "./EditorDispatchContext";
 import { EditorSelectionContext } from "./EditorSelectionContext";
-import AppHeader from "../view/AppHeader/AppHeader";
-import AutorenderView from "../view/AutorenderView/AutorenderView";
-import ClassDiagram from "../view/editor/ClassDiagram/ClassDiagram";
-import StylePane from "../view/editor/StylePane/StylePane";
-import ToolPane from "../view/editor/ToolPane/ToolPane";
-import styles from "./AppController.module.css";
-
-export type Mode = "autorender" | "editor";
-
-export type EditorHeaderState =
-  | { readonly status: "ready" }
-  | { readonly status: "invalidSyntax"; readonly message: string }
-  | { readonly status: "missingAnnotations"; readonly missingIds: readonly string[] };
+import { EditorStateContext, type EditorHeaderState } from "./EditorStateContext";
+import App from "../view/App";
 
 type AppControllerProps = {
   sourceText: string;
   onApplyEdits: (edits: SourceEdit[]) => void;
-  mode: Mode;
-  onModeChange: (mode: Mode) => void;
 };
 
 function toHeaderState(parseResult: ParseResult): EditorHeaderState {
@@ -42,12 +29,7 @@ function toHeaderState(parseResult: ParseResult): EditorHeaderState {
   return { status: "ready" };
 }
 
-export default function AppController({
-  sourceText,
-  onApplyEdits,
-  mode,
-  onModeChange,
-}: AppControllerProps): ReactElement {
+export default function AppController({ sourceText, onApplyEdits }: AppControllerProps): ReactElement {
   const [selection, setSelection] = useState<Selection>(emptySelection);
 
   const parseResult = useMemo(() => parseDiagram(sourceText), [sourceText]);
@@ -99,74 +81,17 @@ export default function AppController({
     [selection, handleSelectionChange]
   );
 
-  const handleGenerate = useCallback(() => {
-    dispatch({ type: "generate" });
-  }, [dispatch]);
-
-  const headerState = toHeaderState(parseResult);
-
-  const selectedView = elementViews?.classes.find(
-    (v) => v.classId === selection.selectedClassId
+  const stateContext = useMemo(
+    () => ({ sourceText, parseStatus: toHeaderState(parseResult), elementViews }),
+    [sourceText, parseResult, elementViews]
   );
-
-  let content: ReactElement;
-  if (mode === "autorender") {
-    content = <AutorenderView sourceText={sourceText} />;
-  } else if (parseResult.status === "invalidSyntax") {
-    content = (
-      <section className={styles.editorShell} aria-label="Class diagram editor">
-        <ToolPane />
-        <div className={styles.canvasRegion}>
-          <div className={styles.errorCanvas}>
-            <p className={styles.errorMessage}>
-              {parseResult.diagnostics[0]?.message ?? "Invalid syntax"}
-            </p>
-          </div>
-        </div>
-        <StylePane selectedView={undefined} />
-      </section>
-    );
-  } else if (parseResult.status === "missingAnnotations") {
-    content = (
-      <section className={styles.editorShell} aria-label="Class diagram editor">
-        <ToolPane />
-        <div className={styles.canvasRegion}>
-          <div className={styles.missingCanvas}>
-            <p className={styles.missingLabel}>Classes without spatial annotations:</p>
-            <ul className={styles.missingList}>
-              {parseResult.missingIds.map((id) => (
-                <li key={id} className={styles.missingItem}>
-                  {id}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <StylePane selectedView={undefined} />
-      </section>
-    );
-  } else {
-    content = (
-      <section className={styles.editorShell} aria-label="Class diagram editor">
-        <ToolPane />
-        <div className={styles.canvasRegion}>
-          {elementViews ? <ClassDiagram views={elementViews} /> : null}
-        </div>
-        <StylePane selectedView={selectedView} />
-      </section>
-    );
-  }
 
   return (
     <EditorDispatchContext.Provider value={dispatch}>
       <EditorSelectionContext.Provider value={selectionContext}>
-        <AppHeader
-          mode={mode}
-          setMode={onModeChange}
-          parseStatus={headerState}
-          onGenerate={handleGenerate}
-        />
-        {content}
+        <EditorStateContext.Provider value={stateContext}>
+          <App />
+        </EditorStateContext.Provider>
       </EditorSelectionContext.Provider>
     </EditorDispatchContext.Provider>
   );

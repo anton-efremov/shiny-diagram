@@ -1,26 +1,25 @@
 import { useState } from "react";
 import type { ReactElement } from "react";
-import type { SourceEdit } from "../controller/source/sourceEditTypes";
-import type { Mode } from "../controller/AppController";
-import AppController from "../controller/AppController";
+import { useEditorState } from "../controller/EditorStateContext";
+import AppHeader from "./AppHeader/AppHeader";
+import AutorenderView from "./AutorenderView/AutorenderView";
+import EditorView from "./editor/EditorView/EditorView";
 import styles from "./App.module.css";
 
-type ViewAppProps = {
-  sourceText: string;
-  onApplyEdits: (edits: SourceEdit[]) => void;
-};
+export type Mode = "autorender" | "editor";
 
-export default function ViewApp({ sourceText, onApplyEdits }: ViewAppProps): ReactElement {
+export default function App(): ReactElement {
   const [mode, setMode] = useState<Mode>("autorender");
+  const { sourceText, parseStatus } = useEditorState();
 
   return (
     <main className={styles.shell}>
-      <AppController
-        sourceText={sourceText}
-        onApplyEdits={onApplyEdits}
-        mode={mode}
-        onModeChange={setMode}
-      />
+      <AppHeader mode={mode} setMode={setMode} parseStatus={parseStatus} />
+      {mode === "autorender" ? (
+        <AutorenderView sourceText={sourceText} />
+      ) : (
+        <EditorView />
+      )}
     </main>
   );
 }
