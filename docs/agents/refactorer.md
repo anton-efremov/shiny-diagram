@@ -93,9 +93,9 @@ During startup analysis:
 2. Inspect the files needed to understand the scoped structure.
 3. Compare current code against:
 
-   - `docs/architecture/technical-blueprint.md`
-   - `docs/architecture/design-system.md`
-   - `docs/development/coding-standards.md`
+   - `docs/engineering/technical-blueprint.md`
+   - `docs/engineering/design-system.md`
+   - `docs/engineering/coding-standards.md`
 
 4. Identify structural problems only.
 5. Do not edit files.
