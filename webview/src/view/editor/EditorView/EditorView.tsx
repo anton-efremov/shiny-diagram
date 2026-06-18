@@ -1,16 +1,12 @@
 import type { ReactElement } from "react";
 import { useEditorState } from "../../../controller/EditorStateContext";
-import { useEditorSelection } from "../../../controller/EditorSelectionContext";
 import ClassDiagram from "../ClassDiagram/ClassDiagram";
 import StylePane from "../StylePane/StylePane";
 import ToolPane from "../ToolPane/ToolPane";
 import styles from "./EditorView.module.css";
 
 export default function EditorView(): ReactElement {
-  const { parseStatus, elementViews } = useEditorState();
-  const { selection } = useEditorSelection();
-
-  const selectedView = elementViews?.classes.find((v) => v.classId === selection.selectedClassId);
+  const { parseStatus } = useEditorState();
 
   if (parseStatus.status === "invalidSyntax") {
     return (
@@ -21,7 +17,7 @@ export default function EditorView(): ReactElement {
             <p className={styles.errorMessage}>{parseStatus.message}</p>
           </div>
         </div>
-        <StylePane selectedView={undefined} />
+        <StylePane />
       </section>
     );
   }
@@ -42,7 +38,7 @@ export default function EditorView(): ReactElement {
             </ul>
           </div>
         </div>
-        <StylePane selectedView={undefined} />
+        <StylePane />
       </section>
     );
   }
@@ -51,9 +47,9 @@ export default function EditorView(): ReactElement {
     <section className={styles.editorShell} aria-label="Class diagram editor">
       <ToolPane />
       <div className={styles.canvasRegion}>
-        {elementViews ? <ClassDiagram views={elementViews} /> : null}
+        <ClassDiagram />
       </div>
-      <StylePane selectedView={selectedView} />
+      <StylePane />
     </section>
   );
 }

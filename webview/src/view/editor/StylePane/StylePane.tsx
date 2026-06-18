@@ -1,13 +1,14 @@
 import type { CSSProperties, ReactElement } from "react";
-import type { ClassBoxView } from "../../../controller/derive/viewModel";
+import { useEditorState } from "../../../controller/EditorStateContext";
+import { useEditorSelection } from "../../../controller/EditorSelectionContext";
 import { useStylePaneController } from "./useStylePaneController";
 import styles from "./StylePane.module.css";
 
-type StylePaneProps = {
-  selectedView?: ClassBoxView;
-};
+export default function StylePane(): ReactElement {
+  const { elementViews } = useEditorState();
+  const { selection } = useEditorSelection();
+  const selectedView = elementViews?.classes.find((v) => v.classId === selection.selectedClassId);
 
-export default function StylePane({ selectedView }: StylePaneProps): ReactElement {
   const { onFillColorChange } = useStylePaneController({
     selectedClassId: selectedView?.classId ?? null,
     selectedView,

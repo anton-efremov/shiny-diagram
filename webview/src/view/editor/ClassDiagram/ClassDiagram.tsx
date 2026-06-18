@@ -8,7 +8,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
 } from "@xyflow/react";
-import type { ElementViews } from "../../../controller/derive/viewModel";
+import { useEditorState } from "../../../controller/EditorStateContext";
 import { useEditorSelection } from "../../../controller/EditorSelectionContext";
 import { useClassBoxController } from "./useClassBoxController";
 import { useCanvasController } from "./useCanvasController";
@@ -21,33 +21,30 @@ import {
 } from "./reactFlowAdapters";
 import styles from "./ClassDiagram.module.css";
 
-type ClassDiagramProps = {
-  views: ElementViews;
-};
-
-export default function ClassDiagram({ views }: ClassDiagramProps): ReactElement {
+export default function ClassDiagram(): ReactElement {
+  const { elementViews } = useEditorState();
   const { selection } = useEditorSelection();
 
   const [rfNodes, setRfNodes] = useState<ClassBoxNodeDescriptor[]>(() =>
-    toClassBoxNodeDescriptors(views.classes, selection.selectedClassId)
+    toClassBoxNodeDescriptors(elementViews?.classes ?? [], selection.selectedClassId)
   );
   const [rfEdges, setRfEdges] = useState<RelationshipEdgeDescriptor[]>(() =>
-    toRelationshipEdgeDescriptors(views.classes, views.relationships)
+    toRelationshipEdgeDescriptors(elementViews?.classes ?? [], elementViews?.relationships ?? [])
   );
 
   useEffect(() => {
-    setRfNodes(toClassBoxNodeDescriptors(views.classes, selection.selectedClassId));
-  }, [views.classes, selection.selectedClassId]);
+    setRfNodes(toClassBoxNodeDescriptors(elementViews?.classes ?? [], selection.selectedClassId));
+  }, [elementViews?.classes, selection.selectedClassId]);
 
   useEffect(() => {
-    setRfEdges(toRelationshipEdgeDescriptors(views.classes, views.relationships));
-  }, [views.classes, views.relationships]);
+    setRfEdges(toRelationshipEdgeDescriptors(elementViews?.classes ?? [], elementViews?.relationships ?? []));
+  }, [elementViews?.classes, elementViews?.relationships]);
 
   const handleNodesChange = useCallback((changes: NodeChange<ClassBoxNodeDescriptor>[]) => {
     setRfNodes((prev) => applyNodeChanges(changes, prev));
   }, []);
 
-  const { onNodeDragStop, onNodeClick } = useClassBoxController(views);
+  const { onNodeDragStop, onNodeClick } = useClassBoxController(elementViews);
   const { onPaneClick } = useCanvasController();
 
   return (

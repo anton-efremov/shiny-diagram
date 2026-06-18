@@ -11,13 +11,13 @@ type UseClassBoxControllerResult = {
   onNodeClick: (event: MouseEvent, node: ClassBoxNodeDescriptor) => void;
 };
 
-export function useClassBoxController(views: ElementViews): UseClassBoxControllerResult {
+export function useClassBoxController(views: ElementViews | null): UseClassBoxControllerResult {
   const dispatch = useEditorDispatch();
   const { onSelectionChange } = useEditorSelection();
 
   const onNodeDragStop = useCallback<OnNodeDrag<ClassBoxNodeDescriptor>>(
     (_event, rfNode) => {
-      const view = views.classes.find((v) => v.classId === rfNode.id);
+      const view = views?.classes.find((v) => v.classId === rfNode.id);
       if (!view) return;
 
       dispatch({
@@ -36,7 +36,7 @@ export function useClassBoxController(views: ElementViews): UseClassBoxControlle
 
   const onNodeClick = useCallback(
     (_event: MouseEvent, rfNode: ClassBoxNodeDescriptor) => {
-      const view = views.classes.find((v) => v.classId === rfNode.id);
+      const view = views?.classes.find((v) => v.classId === rfNode.id);
       if (!view) return;
       onSelectionChange({ selectedClassId: view.classId });
     },
