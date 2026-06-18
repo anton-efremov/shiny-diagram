@@ -1,27 +1,20 @@
 import { useCallback } from "react";
 import type { MouseEvent } from "react";
 import type { OnNodeDrag } from "@xyflow/react";
-import type { EditorCommand } from "../../domain/classDiagram/commands/commandTypes";
-import type { ElementViews } from "../../domain/classDiagram/derive/viewModel";
-import type { Selection } from "../selection";
-import type { ClassBoxNodeDescriptor } from "../components/reactFlowAdapters";
-
-type UseClassBoxControllerOptions = {
-  views: ElementViews;
-  dispatch: (command: EditorCommand) => void;
-  onSelectionChange: (selection: Selection) => void;
-};
+import type { ElementViews } from "../../../controller/derive/viewModel";
+import { useEditorDispatch } from "../../../controller/EditorDispatchContext";
+import { useEditorSelection } from "../../../controller/EditorSelectionContext";
+import type { ClassBoxNodeDescriptor } from "./reactFlowAdapters";
 
 type UseClassBoxControllerResult = {
   onNodeDragStop: OnNodeDrag<ClassBoxNodeDescriptor>;
   onNodeClick: (event: MouseEvent, node: ClassBoxNodeDescriptor) => void;
 };
 
-export function useClassBoxController({
-  views,
-  dispatch,
-  onSelectionChange,
-}: UseClassBoxControllerOptions): UseClassBoxControllerResult {
+export function useClassBoxController(views: ElementViews): UseClassBoxControllerResult {
+  const dispatch = useEditorDispatch();
+  const { onSelectionChange } = useEditorSelection();
+
   const onNodeDragStop = useCallback<OnNodeDrag<ClassBoxNodeDescriptor>>(
     (_event, rfNode) => {
       const view = views.classes.find((v) => v.classId === rfNode.id);

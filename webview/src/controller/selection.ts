@@ -1,4 +1,4 @@
-import type { ClassId } from "../domain/classDiagram/model/primitives";
+import type { ClassId } from "./model/primitives";
 
 export type Selection = {
   readonly selectedClassId: ClassId | null;

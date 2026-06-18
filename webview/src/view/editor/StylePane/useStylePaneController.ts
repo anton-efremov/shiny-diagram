@@ -1,12 +1,11 @@
 import { useCallback } from "react";
-import type { EditorCommand } from "../../domain/classDiagram/commands/commandTypes";
-import type { ClassBoxView } from "../../domain/classDiagram/derive/viewModel";
-import type { ClassId } from "../../domain/classDiagram/model/primitives";
+import type { ClassBoxView } from "../../../controller/derive/viewModel";
+import type { ClassId } from "../../../controller/model/primitives";
+import { useEditorDispatch } from "../../../controller/EditorDispatchContext";
 
 type UseStylePaneControllerOptions = {
   selectedClassId: ClassId | null;
   selectedView: ClassBoxView | undefined;
-  dispatch: (command: EditorCommand) => void;
 };
 
 type UseStylePaneControllerResult = {
@@ -16,8 +15,9 @@ type UseStylePaneControllerResult = {
 export function useStylePaneController({
   selectedClassId,
   selectedView,
-  dispatch,
 }: UseStylePaneControllerOptions): UseStylePaneControllerResult {
+  const dispatch = useEditorDispatch();
+
   const onFillColorChange = useCallback(
     (fill: string) => {
       if (!selectedClassId || !selectedView?.style) return;

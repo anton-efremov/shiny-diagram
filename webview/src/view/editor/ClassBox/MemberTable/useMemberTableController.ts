@@ -1,5 +1,5 @@
-import type { EditorCommand } from "../../domain/classDiagram/commands/commandTypes";
-import type { Selection } from "../selection";
+import type { EditorCommand } from "../../../../controller/commands/commandTypes";
+import type { Selection } from "../../../../controller/selection";
 
 type UseMemberTableControllerOptions = {
   dispatch: (command: EditorCommand) => void;

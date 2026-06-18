@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import type { NamespaceBoxView } from "../../domain/classDiagram/derive/viewModel";
+import type { NamespaceBoxView } from "../../../controller/derive/viewModel";
 
 type NamespaceBoxProps = { view: NamespaceBoxView };
 

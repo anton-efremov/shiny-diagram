@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import type { NoteView } from "../../domain/classDiagram/derive/viewModel";
+import type { NoteView } from "../../../controller/derive/viewModel";
 
 type NoteProps = { view: NoteView };
 

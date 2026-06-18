@@ -8,12 +8,11 @@ import {
   ReactFlow,
   ReactFlowProvider,
 } from "@xyflow/react";
-import type { ElementViews } from "../../domain/classDiagram/derive/viewModel";
-import type { EditorCommand } from "../../domain/classDiagram/commands/commandTypes";
-import type { Selection } from "../selection";
-import { useClassBoxController } from "../interactions/useClassBoxController";
-import { useCanvasController } from "../interactions/useCanvasController";
-import ClassBox from "./ClassBox";
+import type { ElementViews } from "../../../controller/derive/viewModel";
+import { useEditorSelection } from "../../../controller/EditorSelectionContext";
+import { useClassBoxController } from "./useClassBoxController";
+import { useCanvasController } from "./useCanvasController";
+import ClassBox from "../ClassBox/ClassBox";
 import {
   type ClassBoxNodeDescriptor,
   type RelationshipEdgeDescriptor,
@@ -24,17 +23,11 @@ import styles from "./ClassDiagram.module.css";
 
 type ClassDiagramProps = {
   views: ElementViews;
-  selection: Selection;
-  dispatch: (command: EditorCommand) => void;
-  onSelectionChange: (selection: Selection) => void;
 };
 
-export default function ClassDiagram({
-  views,
-  selection,
-  dispatch,
-  onSelectionChange,
-}: ClassDiagramProps): ReactElement {
+export default function ClassDiagram({ views }: ClassDiagramProps): ReactElement {
+  const { selection } = useEditorSelection();
+
   const [rfNodes, setRfNodes] = useState<ClassBoxNodeDescriptor[]>(() =>
     toClassBoxNodeDescriptors(views.classes, selection.selectedClassId)
   );
@@ -54,13 +47,8 @@ export default function ClassDiagram({
     setRfNodes((prev) => applyNodeChanges(changes, prev));
   }, []);
 
-  const { onNodeDragStop, onNodeClick } = useClassBoxController({
-    views,
-    dispatch,
-    onSelectionChange,
-  });
-
-  const { onPaneClick } = useCanvasController({ onSelectionChange });
+  const { onNodeDragStop, onNodeClick } = useClassBoxController(views);
+  const { onPaneClick } = useCanvasController();
 
   return (
     <section className={styles.diagramShell} aria-label="Static editor boxes">

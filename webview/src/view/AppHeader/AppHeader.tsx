@@ -1,6 +1,6 @@
 import type { Dispatch, ReactElement, SetStateAction } from "react";
 import type { Mode } from "../App";
-import type { EditorHeaderState } from "../../editor/EditorCoordinator";
+import type { EditorHeaderState } from "../../controller/AppController";
 import Toggle from "../../ui/Toggle/Toggle";
 import styles from "./AppHeader.module.css";
 

@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
-import type { ClassBoxMemberView } from "../../domain/classDiagram/derive/viewModel";
-import styles from "./ClassBox.module.css";
+import type { ClassBoxMemberView } from "../../../../controller/derive/viewModel";
+import styles from "../ClassBox.module.css";
 
 type MemberTableProps = {
   fields: readonly ClassBoxMemberView[];

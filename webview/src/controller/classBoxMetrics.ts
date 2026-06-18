@@ -1,4 +1,4 @@
-import type { ClassBoxMetrics } from "../domain/classDiagram/commands/commandTypes";
+import type { ClassBoxMetrics } from "./commands/commandTypes";
 
 export type { ClassBoxMetrics };
 

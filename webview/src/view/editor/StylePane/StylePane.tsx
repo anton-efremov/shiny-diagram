@@ -1,19 +1,16 @@
 import type { CSSProperties, ReactElement } from "react";
-import type { ClassBoxView } from "../../domain/classDiagram/derive/viewModel";
-import type { EditorCommand } from "../../domain/classDiagram/commands/commandTypes";
-import { useStylePaneController } from "../interactions/useStylePaneController";
+import type { ClassBoxView } from "../../../controller/derive/viewModel";
+import { useStylePaneController } from "./useStylePaneController";
 import styles from "./StylePane.module.css";
 
 type StylePaneProps = {
   selectedView?: ClassBoxView;
-  dispatch: (command: EditorCommand) => void;
 };
 
-export default function StylePane({ selectedView, dispatch }: StylePaneProps): ReactElement {
+export default function StylePane({ selectedView }: StylePaneProps): ReactElement {
   const { onFillColorChange } = useStylePaneController({
     selectedClassId: selectedView?.classId ?? null,
     selectedView,
-    dispatch,
   });
 
   if (!selectedView) {
