@@ -1,12 +1,11 @@
-import type { Dispatch, ReactElement, SetStateAction } from "react";
-import type { Mode } from "../App";
-import type { EditorHeaderState } from "../../controller/AppController";
+import type { ReactElement } from "react";
+import type { Mode, EditorHeaderState } from "../../controller/AppController";
 import Toggle from "../../ui/Toggle/Toggle";
 import styles from "./AppHeader.module.css";
 
 type AppHeaderProps = {
   mode: Mode;
-  setMode: Dispatch<SetStateAction<Mode>>;
+  setMode: (mode: Mode) => void;
   parseStatus: EditorHeaderState;
   onGenerate: () => void;
 };
