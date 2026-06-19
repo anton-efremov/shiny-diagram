@@ -4,6 +4,9 @@ import { useCanvasState } from "../../contexts/CanvasStateContext";
 import { useStylePaneController } from "./useStylePaneController";
 import styles from "./StylePane.module.css";
 
+/**
+ * Renders the selected class style inspector.
+ */
 export default function StylePane(): ReactElement {
   const { elementViews } = useEditorState();
   const { canvasState } = useCanvasState();

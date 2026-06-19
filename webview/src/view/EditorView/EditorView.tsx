@@ -5,6 +5,9 @@ import StylePane from "./StylePane/StylePane";
 import ToolPane from "./ToolPane/ToolPane";
 import styles from "./EditorView.module.css";
 
+/**
+ * Renders the visual class-diagram editor shell.
+ */
 export default function EditorView(): ReactElement {
   const { parseStatus } = useEditorState();
 

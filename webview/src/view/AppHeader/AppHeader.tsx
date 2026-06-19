@@ -34,6 +34,9 @@ function getStatusMessage(
   );
 }
 
+/**
+ * Renders diagram mode controls and editor parse status actions.
+ */
 export default function AppHeader({ mode, setMode, parseStatus }: AppHeaderProps): ReactElement {
   const dispatch = useEditorDispatch();
 

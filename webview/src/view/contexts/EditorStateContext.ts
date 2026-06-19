@@ -1,6 +1,5 @@
 /**
  * @fileoverview React context providing parsed editor state to descendant view components.
- * Decouples the controller's pipeline outputs from the view layer without prop-drilling.
  */
 import { createContext, useContext } from "react";
 import type { ElementViews } from "../../controller/deriveViews";
@@ -18,7 +17,9 @@ type EditorStateContextValue = {
 
 export const EditorStateContext = createContext<EditorStateContextValue | null>(null);
 
-/** Consume parsed editor state within a descendant of AppController. */
+/**
+ * Consumes parsed editor state within a descendant of AppController.
+ */
 export function useEditorState(): EditorStateContextValue {
   const ctx = useContext(EditorStateContext);
   if (!ctx) throw new Error("useEditorState must be used within AppController");

@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Styles for the ReactFlow class diagram canvas.
+ */
+
 .diagramShell {
   height: 620px;
   border: 1px solid var(--shiny-border);

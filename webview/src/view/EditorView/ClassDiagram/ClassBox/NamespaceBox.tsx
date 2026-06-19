@@ -3,7 +3,9 @@ import type { NamespaceBoxView } from "../../../../controller/deriveViews";
 
 type NamespaceBoxProps = { view: NamespaceBoxView };
 
-// Stub — namespace visual rendering is not yet implemented.
+/**
+ * Placeholder for namespace box rendering while namespace visuals are not implemented.
+ */
 export default function NamespaceBox(_props: NamespaceBoxProps): ReactElement {
   return <></>;
 }

@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Hook for rendering Mermaid source into the autorender canvas.
+ */
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { RefObject } from "react";
 import mermaid from "mermaid";
@@ -7,6 +11,9 @@ type UseAutorenderResult = {
   renderError: string | null;
 };
 
+/**
+ * Renders Mermaid source into a DOM container while the autorender view is active.
+ */
 export function useAutorender(sourceText: string, isActive: boolean): UseAutorenderResult {
   const [renderError, setRenderError] = useState<string | null>(null);
   const mermaidContainerRef = useRef<HTMLDivElement | null>(null);
@@ -50,7 +57,9 @@ export function useAutorender(sourceText: string, isActive: boolean): UseAutoren
     }
 
     void renderDiagram();
-    return () => { disposed = true; };
+    return () => {
+      disposed = true;
+    };
   }, [isActive, renderableSourceText]);
 
   return { mermaidContainerRef, renderError };

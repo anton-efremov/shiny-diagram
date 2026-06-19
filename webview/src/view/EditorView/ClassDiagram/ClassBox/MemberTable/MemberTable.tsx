@@ -7,6 +7,9 @@ type MemberTableProps = {
   methods: readonly ClassBoxMemberView[];
 };
 
+/**
+ * Renders class fields and methods inside a class box.
+ */
 export default function MemberTable({ fields, methods }: MemberTableProps): ReactElement {
   const hasFieldsAndMethods = fields.length > 0 && methods.length > 0;
 
@@ -23,7 +26,11 @@ function MemberList({ members }: { members: readonly ClassBoxMemberView[] }): Re
   return (
     <div className={styles.memberList}>
       {members.map((member) => (
-        <div key={member.memberId} className={styles.memberRow} title={`${member.prefix} ${member.text}`}>
+        <div
+          key={member.memberId}
+          className={styles.memberRow}
+          title={`${member.prefix} ${member.text}`}
+        >
           {member.prefix} {member.text}
         </div>
       ))}

@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Styles for the application header and mode toolbar.
+ */
+
 .header {
   display: flex;
   flex-wrap: wrap;

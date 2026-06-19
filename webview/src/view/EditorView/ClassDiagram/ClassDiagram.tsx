@@ -21,6 +21,9 @@ import {
 } from "./reactFlowAdapters";
 import styles from "./ClassDiagram.module.css";
 
+/**
+ * Renders the ReactFlow class diagram canvas.
+ */
 export default function ClassDiagram(): ReactElement {
   const { elementViews } = useEditorState();
   const { canvasState } = useCanvasState();
@@ -37,7 +40,9 @@ export default function ClassDiagram(): ReactElement {
   }, [elementViews?.classes, canvasState.selectedClassId]);
 
   useEffect(() => {
-    setRfEdges(toRelationshipEdgeDescriptors(elementViews?.classes ?? [], elementViews?.relationships ?? []));
+    setRfEdges(
+      toRelationshipEdgeDescriptors(elementViews?.classes ?? [], elementViews?.relationships ?? [])
+    );
   }, [elementViews?.classes, elementViews?.relationships]);
 
   const handleNodesChange = useCallback((changes: NodeChange<ClassBoxNodeDescriptor>[]) => {

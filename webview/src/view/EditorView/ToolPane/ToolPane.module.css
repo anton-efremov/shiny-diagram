@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Styles for the diagram tool palette.
+ */
+
 .toolPane {
   display: flex;
   flex-direction: column;
@@ -36,7 +40,9 @@
   opacity: 0.72;
 }
 
-.toolButton:hover { border-color: var(--shiny-accent); }
+.toolButton:hover {
+  border-color: var(--shiny-accent);
+}
 
 .toolIcon {
   max-width: 36px;

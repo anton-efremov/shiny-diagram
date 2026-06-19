@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Bootstraps the React webview application into the DOM root.
+ */
+
 import React from "react";
 import { createRoot } from "react-dom/client";
 import ExtensionBridge from "./extensionBridge/ExtensionBridge";

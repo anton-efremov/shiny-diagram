@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Styles for the selected class style inspector.
+ */
+
 .stylePane {
   display: flex;
   flex-direction: column;
@@ -39,8 +43,12 @@
   align-items: stretch;
 }
 
-.selectionAccent { background: var(--shiny-accent); }
-.selectionCopy { min-width: 0; }
+.selectionAccent {
+  background: var(--shiny-accent);
+}
+.selectionCopy {
+  min-width: 0;
+}
 
 .selectionType {
   margin-bottom: 3px;
@@ -94,7 +102,9 @@
   font-size: 12px;
 }
 
-.styleName { font-weight: 600; }
+.styleName {
+  font-weight: 600;
+}
 
 .styleList {
   display: flex;
@@ -111,7 +121,10 @@
   min-height: 30px;
 }
 
-.styleLabel { color: var(--shiny-text-muted); font-size: 12px; }
+.styleLabel {
+  color: var(--shiny-text-muted);
+  font-size: 12px;
+}
 
 .styleValue {
   display: flex;
@@ -164,6 +177,12 @@
   border: 1px solid var(--shiny-border);
 }
 
-.fillSwatch { background: var(--style-fill, var(--shiny-surface)); }
-.strokeSwatch { background: var(--style-stroke, var(--shiny-border)); }
-.textSwatch { background: var(--style-color, var(--shiny-text)); }
+.fillSwatch {
+  background: var(--style-fill, var(--shiny-surface));
+}
+.strokeSwatch {
+  background: var(--style-stroke, var(--shiny-border));
+}
+.textSwatch {
+  background: var(--style-color, var(--shiny-text));
+}

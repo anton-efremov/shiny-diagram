@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Message contracts exchanged between the Extension Bridge and host.
+ */
+
 export type SourceUpdateMessage = {
   readonly type: "sourceUpdate";
   readonly sourceText: string;
@@ -6,8 +10,7 @@ export type SourceUpdateMessage = {
 export type HostToWebviewMessage = SourceUpdateMessage;
 
 /**
- * Line-level edit sent to the extension host. Replaces the line at lineNumber
- * with newText. newText may contain embedded newlines for multi-line replacement.
+ * Line-level edit sent to the extension host.
  */
 export type LineEdit = {
   readonly lineNumber: number;

@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Styles for the root webview shell.
+ */
+
 .shell {
   min-height: 100vh;
   padding: 24px;

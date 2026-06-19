@@ -14,8 +14,7 @@ type ToggleProps<T extends string> = {
 };
 
 /**
- * Segmented control — a pill-shaped group of mutually exclusive options,
- * with the active option highlighted.
+ * Renders a segmented control for mutually exclusive options.
  */
 export default function Toggle<T extends string>({
   options,

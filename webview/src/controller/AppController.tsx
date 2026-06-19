@@ -1,12 +1,15 @@
+/**
+ * @fileoverview Coordinates parse, deriveViews, command dispatch, and View contexts.
+ */
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import { parseDiagram } from "./parse";
 import type { ParseResult } from "./parse";
 import { deriveElementViews } from "./deriveViews";
 import { applyCommand } from "./commands";
-import type { EditorCommand } from "./commands";
+import type { EditorCommand, SourceEdit } from "./commands";
 import type { ElementViews } from "./deriveViews";
-import type { SourceEdit } from "../primitives";
 import { defaultCanvasState, type CanvasState } from "../view/contexts/canvasState";
 import { CanvasStateContext } from "../view/contexts/CanvasStateContext";
 import { EditorDispatchContext } from "../view/contexts/EditorDispatchContext";
@@ -20,7 +23,10 @@ type AppControllerProps = {
 
 function toHeaderState(parseResult: ParseResult): EditorHeaderState {
   if (parseResult.status === "invalidSyntax") {
-    return { status: "invalidSyntax", message: parseResult.diagnostics[0]?.message ?? "Invalid syntax" };
+    return {
+      status: "invalidSyntax",
+      message: parseResult.diagnostics[0]?.message ?? "Invalid syntax",
+    };
   }
   if (parseResult.status === "missingAnnotations") {
     return { status: "missingAnnotations", missingIds: parseResult.missingIds };
@@ -28,7 +34,13 @@ function toHeaderState(parseResult: ParseResult): EditorHeaderState {
   return { status: "ready" };
 }
 
-export default function AppController({ sourceText, onApplyEdits }: AppControllerProps): ReactElement {
+/**
+ * Provides parsed editor state and command dispatch to the webview application.
+ */
+export default function AppController({
+  sourceText,
+  onApplyEdits,
+}: AppControllerProps): ReactElement {
   const [canvasState, setCanvasStateRaw] = useState<CanvasState>(defaultCanvasState);
 
   const parseResult = useMemo(() => parseDiagram(sourceText), [sourceText]);
@@ -50,12 +62,11 @@ export default function AppController({ sourceText, onApplyEdits }: AppControlle
 
   const dispatch = useCallback(
     (command: EditorCommand) => {
-      if (!model || !elementViews) return;
+      if (!model) return;
 
       const context = {
         sourceText,
         model,
-        views: elementViews,
         malformedAnnotations:
           parseResult.status === "missingAnnotations"
             ? parseResult.malformedAnnotations
@@ -67,7 +78,7 @@ export default function AppController({ sourceText, onApplyEdits }: AppControlle
         onApplyEdits(result.edits);
       }
     },
-    [sourceText, model, elementViews, parseResult, onApplyEdits]
+    [sourceText, model, parseResult, onApplyEdits]
   );
 
   const setCanvasState = useCallback((update: Partial<CanvasState>) => {

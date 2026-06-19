@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Hook placeholder for class member table interactions.
+ */
+
 import type { EditorCommand } from "../../../../../controller/commands";
 import type { CanvasState } from "../../../../contexts/canvasState";
 
@@ -6,7 +10,11 @@ type UseMemberTableControllerOptions = {
   setCanvasState: (update: Partial<CanvasState>) => void;
 };
 
-// Stub — member editing is not yet implemented in the PoC.
-export function useMemberTableController(_opts: UseMemberTableControllerOptions): Record<string, never> {
+/**
+ * Returns no member interactions while member editing is not implemented.
+ */
+export function useMemberTableController(
+  _opts: UseMemberTableControllerOptions
+): Record<string, never> {
   return {};
 }

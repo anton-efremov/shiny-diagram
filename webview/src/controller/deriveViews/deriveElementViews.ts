@@ -1,15 +1,15 @@
-import type { DiagramTree } from "../../primitives";
-import { deriveClassBoxViews } from "./deriveClassBoxViews";
-import { deriveNamespaceBoxViews } from "./deriveNamespaceBoxViews";
-import { deriveRelationshipViews } from "./deriveRelationshipViews";
+/**
+ * @fileoverview Coordinates projection of a DiagramTree into ElementViews.
+ */
+
+import type { DiagramTree } from "../model/diagramTree";
 import type { ElementViews } from "./viewModels";
+import { deriveClassBoxViews } from "./workers/deriveClassBoxViews";
+import { deriveNamespaceBoxViews } from "./workers/deriveNamespaceBoxViews";
+import { deriveRelationshipViews } from "./workers/deriveRelationshipViews";
 
 /**
- * Converts the parsed DiagramTree into render-facing ElementViews.
- *
- * This is the only public derivation entry point. It coordinates specialized
- * derivation helpers but does not own parser state, command behavior, React
- * state, DOM access, or VS Code access.
+ * Derives all render-facing views from a parsed diagram tree.
  */
 export function deriveElementViews(model: DiagramTree): ElementViews {
   return {

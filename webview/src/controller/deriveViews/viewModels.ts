@@ -1,21 +1,15 @@
-import type { MemberId, RelationshipType, SourceLocation } from "../../primitives";
-import type { Rect } from "../../shared/geometry";
-import type { ClassId, NamespaceId, NoteId } from "../../shared/ids";
-import type { RelationshipViewId } from "./relationshipViewId";
-
 /**
- * Render-facing view models produced by deriveViews.
- *
- * These types are the read contract between the Controller and the React View.
- * They are derived from the parsed DiagramTree and contain only data needed for
- * rendering and UI interaction.
- *
- * Do not put source-editing logic, parser logic, or command behavior here.
+ * @fileoverview Render-facing diagram contracts produced by deriveViews.
  */
 
+import type { Rect } from "../../shared/geometry";
+import type { ClassId, NamespaceId, NoteId } from "../../shared/ids";
+import type { RelationshipType } from "../model/diagramTree";
+import type { SourceLocation } from "../model/sourceLocation";
+import type { MemberId, RelationshipViewId } from "./viewIds";
+
 /**
- * Flag: `kind` field is not in the spec's ClassBoxView member shape, but is
- * needed to preserve the field/method divider in ClassBox rendering.
+ * Preserves the field/method divider in ClassBox rendering.
  */
 export type ClassBoxMemberView = {
   readonly memberId: MemberId;
@@ -25,8 +19,7 @@ export type ClassBoxMemberView = {
 };
 
 /**
- * Flag: `style.name` is not in the spec but is needed so StylePane can display
- * the classDef name (e.g. "Rose") for the selected class.
+ * Exposes the classDef name so StylePane can display the applied style.
  */
 export type ClassBoxView = {
   readonly classId: ClassId;
@@ -73,7 +66,10 @@ export type NoteView = {
 };
 
 export type LegendView = {
-  readonly entries: readonly { readonly label: string; readonly style: { fill?: string; stroke?: string; color?: string } }[];
+  readonly entries: readonly {
+    readonly label: string;
+    readonly style: { fill?: string; stroke?: string; color?: string };
+  }[];
 };
 
 export type ElementViews = {

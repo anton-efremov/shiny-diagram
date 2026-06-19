@@ -1,18 +1,16 @@
+/**
+ * @fileoverview Coordinates host messaging between VS Code and the React webview.
+ */
+
 import { useCallback, useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import type { SourceEdit } from "../primitives";
+import type { SourceEdit } from "../controller/commands";
 import type { ApplyEditsMessage, LineEdit } from "./protocol";
 import { readInitialData } from "./initialData";
 import { isHostMessage } from "./typeGuards";
 import { vscode } from "./vscodeApi";
 import AppController from "../controller/AppController";
 
-/**
- * Translates the internal SourceEdit union to the host LineEdit protocol.
- * The host currently supports only line replacements; replaceRange collapses
- * to a single-line replacement with embedded newlines (preserving PoC behavior).
- * insertLine and deleteLine are in the union but have no host support yet.
- */
 function toLineEdit(edit: SourceEdit): LineEdit | null {
   switch (edit.kind) {
     case "replaceLine":
@@ -25,6 +23,9 @@ function toLineEdit(edit: SourceEdit): LineEdit | null {
   }
 }
 
+/**
+ * Owns webview source state and dispatches source edits to the extension host.
+ */
 export default function ExtensionBridge(): ReactElement {
   const [sourceText, setSourceText] = useState<string>(readInitialData);
 

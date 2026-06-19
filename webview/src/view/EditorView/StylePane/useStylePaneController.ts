@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Hook for translating style-pane edits into editor commands.
+ */
+
 import { useCallback } from "react";
 import type { ClassBoxView } from "../../../controller/deriveViews";
 import type { ClassId } from "../../../shared/ids";
@@ -12,6 +16,9 @@ type UseStylePaneControllerResult = {
   onFillColorChange: (fill: string) => void;
 };
 
+/**
+ * Dispatches class style updates from style-pane controls.
+ */
 export function useStylePaneController({
   selectedClassId,
   selectedView,

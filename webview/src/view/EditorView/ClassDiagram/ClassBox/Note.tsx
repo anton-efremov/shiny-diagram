@@ -3,7 +3,9 @@ import type { NoteView } from "../../../../controller/deriveViews";
 
 type NoteProps = { view: NoteView };
 
-// Stub — note component is not yet implemented.
+/**
+ * Placeholder for note rendering while note visuals are not implemented.
+ */
 export default function Note(_props: NoteProps): ReactElement {
   return <></>;
 }

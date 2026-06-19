@@ -4,6 +4,9 @@ import styles from "./AutorenderView.module.css";
 
 type AutorenderViewProps = { sourceText: string };
 
+/**
+ * Renders Mermaid source through Mermaid's SVG renderer.
+ */
 export default function AutorenderView({ sourceText }: AutorenderViewProps): ReactElement {
   const { mermaidContainerRef, renderError } = useAutorender(sourceText, true);
 

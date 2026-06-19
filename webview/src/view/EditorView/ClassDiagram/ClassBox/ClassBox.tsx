@@ -24,6 +24,9 @@ const CONNECTION_HANDLES: ReadonlyArray<{
 
 const resizeHandles = ["nw", "n", "ne", "e", "se", "s", "sw", "w"] as const;
 
+/**
+ * Renders a ReactFlow class-box node with members and connection handles.
+ */
 export default function ClassBox({ data, selected }: NodeProps<ClassBoxNode>): ReactElement {
   const fields = data.members.filter((m) => m.kind === "field");
   const methods = data.members.filter((m) => m.kind === "method");

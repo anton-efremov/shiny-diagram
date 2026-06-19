@@ -29,6 +29,9 @@ const relationshipTools: ToolPaneItem[] = [
   { icon: "--()", name: "Lollipop interface" },
 ];
 
+/**
+ * Renders currently disabled diagram creation tools.
+ */
 export default function ToolPane(): ReactElement {
   return (
     <aside className={styles.toolPane} aria-label="Diagram tools">

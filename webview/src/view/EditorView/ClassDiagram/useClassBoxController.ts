@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Hook for translating ReactFlow class-box interactions into editor commands.
+ */
+
 import { useCallback } from "react";
 import type { MouseEvent } from "react";
 import type { OnNodeDrag } from "@xyflow/react";
@@ -11,6 +15,9 @@ type UseClassBoxControllerResult = {
   onNodeClick: (event: MouseEvent, node: ClassBoxNodeDescriptor) => void;
 };
 
+/**
+ * Dispatches class movement and selection updates from ReactFlow node events.
+ */
 export function useClassBoxController(views: ElementViews | null): UseClassBoxControllerResult {
   const dispatch = useEditorDispatch();
   const { setCanvasState } = useCanvasState();

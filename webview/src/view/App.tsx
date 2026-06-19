@@ -8,6 +8,9 @@ import styles from "./App.module.css";
 
 export type Mode = "autorender" | "editor";
 
+/**
+ * Renders the webview shell with autorender and editor modes.
+ */
 export default function App(): ReactElement {
   const [mode, setMode] = useState<Mode>("autorender");
   const { sourceText, parseStatus } = useEditorState();
@@ -15,11 +18,7 @@ export default function App(): ReactElement {
   return (
     <main className={styles.shell}>
       <AppHeader mode={mode} setMode={setMode} parseStatus={parseStatus} />
-      {mode === "autorender" ? (
-        <AutorenderView sourceText={sourceText} />
-      ) : (
-        <EditorView />
-      )}
+      {mode === "autorender" ? <AutorenderView sourceText={sourceText} /> : <EditorView />}
     </main>
   );
 }

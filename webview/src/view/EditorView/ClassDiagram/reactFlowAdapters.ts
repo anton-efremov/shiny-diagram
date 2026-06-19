@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Adapts deriveViews render contracts to ReactFlow nodes and edges.
+ */
+
 import type { Edge as ReactFlowEdge, Node as ReactFlowNode } from "@xyflow/react";
 import type { ClassBoxView, RelationshipView } from "../../../controller/deriveViews";
 import type { ClassId } from "../../../shared/ids";
@@ -7,6 +11,9 @@ export type BoxSide = "top" | "right" | "bottom" | "left";
 export type ClassBoxNodeDescriptor = ReactFlowNode<ClassBoxView, "classBox">;
 export type RelationshipEdgeDescriptor = ReactFlowEdge;
 
+/**
+ * Converts class-box views into ReactFlow node descriptors.
+ */
 export function toClassBoxNodeDescriptors(
   classes: readonly ClassBoxView[],
   selectedClassId: ClassId | null
@@ -23,6 +30,9 @@ export function toClassBoxNodeDescriptors(
   }));
 }
 
+/**
+ * Converts relationship views into ReactFlow edge descriptors.
+ */
 export function toRelationshipEdgeDescriptors(
   classes: readonly ClassBoxView[],
   relationships: readonly RelationshipView[]
@@ -51,6 +61,9 @@ export function toRelationshipEdgeDescriptors(
   });
 }
 
+/**
+ * Chooses the source handle side facing the target class box.
+ */
 export function chooseSourceSide(source: ClassBoxView, target: ClassBoxView): BoxSide {
   const sourceCenterX = source.x + source.w / 2;
   const sourceCenterY = source.y + source.h / 2;
@@ -65,11 +78,18 @@ export function chooseSourceSide(source: ClassBoxView, target: ClassBoxView): Bo
   return dy >= 0 ? "bottom" : "top";
 }
 
+/**
+ * Returns the opposite box side for a relationship target handle.
+ */
 export function oppositeSide(side: BoxSide): BoxSide {
   switch (side) {
-    case "top": return "bottom";
-    case "right": return "left";
-    case "bottom": return "top";
-    case "left": return "right";
+    case "top":
+      return "bottom";
+    case "right":
+      return "left";
+    case "bottom":
+      return "top";
+    case "left":
+      return "right";
   }
 }

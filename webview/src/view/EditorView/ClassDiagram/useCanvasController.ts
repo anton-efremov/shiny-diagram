@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Hook for translating canvas pane interactions into View state updates.
+ */
+
 import { useCallback } from "react";
 import { useCanvasState } from "../../contexts/CanvasStateContext";
 
@@ -5,6 +9,9 @@ type UseCanvasControllerResult = {
   onPaneClick: () => void;
 };
 
+/**
+ * Clears class selection when the user clicks the canvas pane.
+ */
 export function useCanvasController(): UseCanvasControllerResult {
   const { setCanvasState } = useCanvasState();
 

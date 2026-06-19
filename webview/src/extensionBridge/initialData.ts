@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Reads initial Mermaid source injected into the webview document.
+ */
+
+/**
+ * Returns the host-injected initial source text when it is present and valid.
+ */
 export function readInitialData(): string {
   const dataElement = document.getElementById("shiny-initial-data");
 

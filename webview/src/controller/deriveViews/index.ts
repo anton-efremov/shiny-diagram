@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Public API for projecting the Controller model into render contracts.
+ * Implementation modules remain private to deriveViews.
+ */
+
 export { deriveElementViews } from "./deriveElementViews";
 
 export type {
@@ -10,6 +15,4 @@ export type {
   ElementViews,
 } from "./viewModels";
 
-export { toRelationshipViewId } from "./relationshipViewId";
-
-export type { RelationshipViewId } from "./relationshipViewId";
+export type { MemberId, RelationshipViewId } from "./viewIds";

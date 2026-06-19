@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Styles for the Mermaid autorender canvas.
+ */
+
 .canvas {
   min-height: 420px;
   padding: 20px;
