@@ -2,7 +2,7 @@
  * @fileoverview Render state for editor status shown by the application header.
  */
 
-import type { ClassId } from "../../shared/ids";
+import type { ClassId } from "../../../shared/ids";
 
 export type EditorHeaderState =
   | { readonly status: "ready" }

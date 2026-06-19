@@ -2,10 +2,10 @@
  * @fileoverview Diagram-level editor commands and command-family aggregation.
  */
 
-import type { Point, Rect } from "../../../shared/geometry";
-import type { NamespaceId, NoteId, RelationshipId } from "../../../shared/ids";
-import type { RelationshipType } from "../../../shared/relationshipTypes";
-import type { StylePropertyName } from "../../../shared/styleTypes";
+import type { Point, Rect } from "../../../../shared/geometry";
+import type { NamespaceId, NoteId, RelationshipId } from "../../../../shared/ids";
+import type { RelationshipType } from "../../../../shared/relationshipTypes";
+import type { StylePropertyName } from "../../../../shared/styleTypes";
 import type { ClassBoxCommand, ClassContentCommand } from "./ClassBox/commands";
 
 export type NamespaceCommand =

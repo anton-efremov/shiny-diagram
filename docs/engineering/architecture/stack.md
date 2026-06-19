@@ -1,17 +1,22 @@
 # Stack
 
+> **Architecture state:** Current
+> **Document state:** Maintained
+> **Last reviewed:** 2026-06-19
+> **Scope:** Stack of technologies used in Shiny
+
 ## 1.1 Stack list
 
-| Concern | Technology |
-|---|---|
-| Extension host runtime | Node.js / VS Code Extension API |
+| Concern                 | Technology                                   |
+| ----------------------- | -------------------------------------------- |
+| Extension host runtime  | Node.js / VS Code Extension API              |
 | Extension host language | TypeScript 5, compiled to CommonJS via `tsc` |
-| Webview runtime | Chromium (VS Code WebView) |
-| Webview language | TypeScript 5 + React 19, bundled via Vite |
-| Diagram rendering | Mermaid 11 |
-| Visual editor canvas | React Flow (`@xyflow/react` 12) |
-| Formatter | Prettier |
-| Linter | ESLint 9 (flat config) |
+| Webview runtime         | Chromium (VS Code WebView)                   |
+| Webview language        | TypeScript 5 + React 19, bundled via Vite    |
+| Diagram rendering       | Mermaid 11                                   |
+| Visual editor canvas    | React Flow (`@xyflow/react` 12)              |
+| Formatter               | Prettier                                     |
+| Linter                  | ESLint 9 (flat config)                       |
 
 ## 1.2 Design decisions made
 

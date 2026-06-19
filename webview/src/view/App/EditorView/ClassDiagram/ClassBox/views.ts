@@ -2,7 +2,7 @@
  * @fileoverview Render contract for class-box nodes.
  */
 
-import type { ClassId } from "../../../../shared/ids";
+import type { ClassId } from "../../../../../shared/ids";
 import type { ClassBoxMemberView } from "./MemberTable/views";
 
 /**

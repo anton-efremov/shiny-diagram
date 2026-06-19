@@ -4,8 +4,8 @@
 
 import { useCallback } from "react";
 import type { ClassBoxView } from "../ClassDiagram/ClassBox/views";
-import type { ClassId } from "../../../shared/ids";
-import { useEditorDispatch } from "../../contexts/EditorDispatchContext";
+import type { ClassId } from "../../../../shared/ids";
+import { useEditorDispatch } from "../../../contexts/EditorDispatchContext";
 
 type UseStylePaneControllerOptions = {
   selectedClassId: ClassId | null;

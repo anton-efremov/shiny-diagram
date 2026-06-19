@@ -2,7 +2,7 @@
  * @fileoverview Render contract for class-member rows.
  */
 
-import type { MemberId } from "../../../../../shared/ids";
+import type { MemberId } from "../../../../../../shared/ids";
 
 /**
  * Preserves the field/method divider in ClassBox rendering.

@@ -2,8 +2,8 @@
  * @fileoverview Editor commands owned by class-box rendering and content.
  */
 
-import type { Rect } from "../../../../shared/geometry";
-import type { ClassId } from "../../../../shared/ids";
+import type { Rect } from "../../../../../shared/geometry";
+import type { ClassId } from "../../../../../shared/ids";
 import type { MemberCommand } from "./MemberTable/commands";
 
 export type ClassBoxCommand =

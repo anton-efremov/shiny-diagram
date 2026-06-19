@@ -2,9 +2,9 @@
  * @fileoverview Diagram-level render contracts for namespaces and relationships.
  */
 
-import type { Rect } from "../../../shared/geometry";
-import type { ClassId, NamespaceId, RelationshipId } from "../../../shared/ids";
-import type { RelationshipType } from "../../../shared/relationshipTypes";
+import type { Rect } from "../../../../shared/geometry";
+import type { ClassId, NamespaceId, RelationshipId } from "../../../../shared/ids";
+import type { RelationshipType } from "../../../../shared/relationshipTypes";
 
 export type NamespaceBoxView = {
   readonly namespaceId: NamespaceId;

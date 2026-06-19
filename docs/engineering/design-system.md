@@ -1,5 +1,10 @@
 # Design System
 
+> **Architecture state:** Target
+> **Document state:** Maintained
+> **Last reviewed:** 2026-06-19
+> **Scope:** A description of target design system to be built gradually
+
 ## Target vision
 
 A central library of parametrized UI components (`webview/src/ui/`) — `Button`,

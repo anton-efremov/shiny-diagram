@@ -6,8 +6,8 @@ import { useCallback } from "react";
 import type { MouseEvent } from "react";
 import type { OnNodeDrag } from "@xyflow/react";
 import type { ElementViews } from "../views";
-import { useEditorDispatch } from "../../contexts/EditorDispatchContext";
-import { useCanvasState } from "../../contexts/CanvasStateContext";
+import { useEditorDispatch } from "../../../contexts/EditorDispatchContext";
+import { useCanvasState } from "../../../contexts/CanvasStateContext";
 import type { ClassBoxNodeDescriptor } from "./reactFlowAdapters";
 
 type UseClassBoxControllerResult = {
@@ -18,7 +18,7 @@ type UseClassBoxControllerResult = {
 /**
  * Dispatches class movement and selection updates from ReactFlow node events.
  */
-export function useClassBoxController(views: ElementViews | null): UseClassBoxControllerResult {
+export function useClassBoxNodeInteractions(views: ElementViews | null): UseClassBoxControllerResult {
   const dispatch = useEditorDispatch();
   const { setCanvasState } = useCanvasState();
 

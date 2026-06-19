@@ -3,20 +3,20 @@
  * Flattens component-owned command definitions for Controller consumers.
  */
 
-export type { GenerateCommand } from "../AppHeader/commands";
+export type { GenerateCommand } from "../App/AppHeader/commands";
 export type { EditorCommand } from "./editorCommand";
 export type {
   ClassDiagramCommand,
   NamespaceCommand,
   NoteCommand,
   RelationshipCommand,
-} from "../EditorView/ClassDiagram/commands";
+} from "../App/EditorView/ClassDiagram/commands";
 export type {
   ClassBoxCommand,
   ClassContentCommand,
-} from "../EditorView/ClassDiagram/ClassBox/commands";
+} from "../App/EditorView/ClassDiagram/ClassBox/commands";
 export type {
   MemberCommand,
   MemberPrefix,
-} from "../EditorView/ClassDiagram/ClassBox/MemberTable/commands";
-export type { StyleCommand } from "../EditorView/StylePane/commands";
+} from "../App/EditorView/ClassDiagram/ClassBox/MemberTable/commands";
+export type { StyleCommand } from "../App/EditorView/StylePane/commands";

@@ -2,7 +2,7 @@
  * @fileoverview Editor commands owned by the class-member table.
  */
 
-import type { ClassId, MemberId } from "../../../../../shared/ids";
+import type { ClassId, MemberId } from "../../../../../../shared/ids";
 
 export type MemberPrefix = "+" | "-" | "#" | "~" | "$" | "*" | "";
 

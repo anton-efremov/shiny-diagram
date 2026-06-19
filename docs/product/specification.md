@@ -1,5 +1,10 @@
 # Shiny — specification
 
+> **Architecture state:** Target
+> **Document state:** Maintained
+> **Last reviewed:** 2026-06-19
+> **Scope:** A vision of a product high-level mechanics and features
+
 ## 1. Summary
 
 Shiny is a software diagramming tool for AI-human co-creation around source-controlled diagrams. It is two things:
@@ -397,10 +402,10 @@ For a **note**:
 - user drags or resizes a class box, namespace, free note, or relationship endpoint
 - Shiny writes the updated source immediately on drop
 - outcomes:
-    - visual layout persists after reopening
-    - Git diff shows layout changes as text
-    - AI can see and preserve user layout
-    - webview stays in sync — no re-render needed for Shiny-originated edits
+  - visual layout persists after reopening
+  - Git diff shows layout changes as text
+  - AI can see and preserve user layout
+  - webview stays in sync — no re-render needed for Shiny-originated edits
 
 ### 5.3 Edit source manually
 

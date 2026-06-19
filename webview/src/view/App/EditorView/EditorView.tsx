@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { useEditorState } from "../contexts/EditorStateContext";
+import { useEditorState } from "../../contexts/EditorStateContext";
 import ClassDiagram from "./ClassDiagram/ClassDiagram";
 import StylePane from "./StylePane/StylePane";
 import ToolPane from "./ToolPane/ToolPane";

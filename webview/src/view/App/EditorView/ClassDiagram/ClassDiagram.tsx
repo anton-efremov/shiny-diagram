@@ -8,10 +8,10 @@ import {
   ReactFlow,
   ReactFlowProvider,
 } from "@xyflow/react";
-import { useEditorState } from "../../contexts/EditorStateContext";
-import { useCanvasState } from "../../contexts/CanvasStateContext";
-import { useClassBoxController } from "./useClassBoxController";
-import { useCanvasController } from "./useCanvasController";
+import { useEditorState } from "../../../contexts/EditorStateContext";
+import { useCanvasState } from "../../../contexts/CanvasStateContext";
+import { useClassBoxNodeInteractions } from "./useClassBoxNodeInteractions";
+import { useCanvasInteractions } from "./useCanvasInteractions";
 import ClassBox from "./ClassBox/ClassBox";
 import {
   type ClassBoxNodeDescriptor,
@@ -49,8 +49,8 @@ export default function ClassDiagram(): ReactElement {
     setRfNodes((prev) => applyNodeChanges(changes, prev));
   }, []);
 
-  const { onNodeDragStop, onNodeClick } = useClassBoxController(elementViews);
-  const { onPaneClick } = useCanvasController();
+  const { onNodeDragStop, onNodeClick } = useClassBoxNodeInteractions(elementViews);
+  const { onPaneClick } = useCanvasInteractions();
 
   return (
     <section className={styles.diagramShell} aria-label="Static editor boxes">
