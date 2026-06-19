@@ -1,5 +1,5 @@
 /**
- * @fileoverview Checks webview import boundaries for Controller components.
+ * @fileoverview Checks strict webview layer and component import boundaries.
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
@@ -12,6 +12,9 @@ const facadeFiles = [
   "controller/parse/index.ts",
   "controller/deriveViews/index.ts",
   "controller/commands/index.ts",
+  "view/index.ts",
+  "view/commands/index.ts",
+  "view/views/index.ts",
 ];
 
 const errors = [];
@@ -105,10 +108,26 @@ function checkImport(file, specifier, target) {
     report(file, specifier.value, "controller/model may import only model or shared files");
   }
 
+  checkStrictLayerDirection(file, specifier, target);
   checkControllerSiblings(file, specifier, target);
   checkPublicFacades(file, specifier, target);
-  checkViewImports(file, specifier, target);
+  checkControllerViewImports(file, specifier, target);
+  checkViewSelfFacadeImports(file, specifier, target);
   checkExtensionBridgeImports(file, specifier, target);
+}
+
+function checkStrictLayerDirection(file, specifier, target) {
+  if (file.startsWith("view/") && target.startsWith("controller/")) {
+    report(file, specifier.value, "view must not import controller in any form");
+  }
+
+  if (file.startsWith("view/") && target.startsWith("extensionBridge/")) {
+    report(file, specifier.value, "view must not import extensionBridge in any form");
+  }
+
+  if (file.startsWith("controller/") && target.startsWith("extensionBridge/")) {
+    report(file, specifier.value, "controller must not import extensionBridge");
+  }
 }
 
 function checkControllerSiblings(file, specifier, target) {
@@ -135,26 +154,39 @@ function checkPublicFacades(file, specifier, target) {
   );
 }
 
-function checkViewImports(file, specifier, target) {
-  if (!file.startsWith("view/") || !target.startsWith("controller/")) return;
+function checkControllerViewImports(file, specifier, target) {
+  if (!file.startsWith("controller/") || !isInView(target)) return;
 
-  const targetComponent = controllerComponent(target);
-  const allowedTypeFacade =
-    specifier.isTypeOnly &&
-    (targetComponent === "deriveViews" || targetComponent === "commands") &&
-    isControllerFacade(target, targetComponent);
-
-  if (!allowedTypeFacade) {
-    report(
-      file,
-      specifier.value,
-      "view may only type-import controller/deriveViews or controller/commands facades"
-    );
+  if (file === "controller/AppController.tsx") {
+    if (isAllowedViewFacade(target, ["view", "view/commands", "view/views"])) return;
+  } else if (file.startsWith("controller/deriveViews/")) {
+    if (isAllowedViewFacade(target, ["view/views"])) return;
+  } else if (file.startsWith("controller/commands/")) {
+    if (isAllowedViewFacade(target, ["view/commands"])) return;
   }
+
+  report(
+    file,
+    specifier.value,
+    "controller may import view only through the allowed public View facades"
+  );
+}
+
+function checkViewSelfFacadeImports(file, specifier, target) {
+  if (!file.startsWith("view/") || isViewFacadeFile(file) || !isViewFacadeTarget(target)) return;
+
+  report(file, specifier.value, "view implementation files must not import public View facades");
 }
 
 function checkExtensionBridgeImports(file, specifier, target) {
-  if (!file.startsWith("extensionBridge/") || !target.startsWith("controller/")) return;
+  if (!file.startsWith("extensionBridge/")) return;
+
+  if (isInView(target)) {
+    report(file, specifier.value, "extensionBridge must not import view directly");
+    return;
+  }
+
+  if (!target.startsWith("controller/")) return;
 
   const importsAppController = target === "controller/AppController";
   const importsCommandTypes =
@@ -188,10 +220,15 @@ function checkFacadeOnly(file, source) {
 }
 
 function areaFor(relativePath) {
+  if (relativePath === "controller/model") return "model";
   if (relativePath.startsWith("controller/model/")) return "model";
+  if (relativePath === "controller") return "controller";
   if (relativePath.startsWith("controller/")) return "controller";
+  if (relativePath === "shared") return "shared";
   if (relativePath.startsWith("shared/")) return "shared";
+  if (relativePath === "view") return "view";
   if (relativePath.startsWith("view/")) return "view";
+  if (relativePath === "extensionBridge") return "extensionBridge";
   if (relativePath.startsWith("extensionBridge/")) return "extensionBridge";
   return "other";
 }
@@ -204,6 +241,28 @@ function controllerComponent(relativePath) {
 function isControllerFacade(relativePath, component) {
   return (
     relativePath === `controller/${component}` || relativePath === `controller/${component}/index`
+  );
+}
+
+function isInView(relativePath) {
+  return relativePath === "view" || relativePath.startsWith("view/");
+}
+
+function isAllowedViewFacade(relativePath, allowedFacades) {
+  return allowedFacades.some(
+    (facade) => relativePath === facade || relativePath === `${facade}/index`
+  );
+}
+
+function isViewFacadeTarget(relativePath) {
+  return isAllowedViewFacade(relativePath, ["view", "view/commands", "view/views"]);
+}
+
+function isViewFacadeFile(relativePath) {
+  return (
+    relativePath === "view/index.ts" ||
+    relativePath === "view/commands/index.ts" ||
+    relativePath === "view/views/index.ts"
   );
 }
 

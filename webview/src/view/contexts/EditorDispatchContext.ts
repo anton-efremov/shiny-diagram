@@ -2,7 +2,7 @@
  * @fileoverview React context providing dispatch to descendant view components.
  */
 import { createContext, useContext } from "react";
-import type { EditorCommand } from "../../controller/commands";
+import type { EditorCommand } from "../commands/editorCommand";
 
 export const EditorDispatchContext = createContext<((command: EditorCommand) => void) | null>(null);
 

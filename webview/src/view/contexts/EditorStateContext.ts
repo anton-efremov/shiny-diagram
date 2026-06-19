@@ -2,13 +2,8 @@
  * @fileoverview React context providing parsed editor state to descendant view components.
  */
 import { createContext, useContext } from "react";
-import type { ElementViews } from "../../controller/deriveViews";
-import type { ClassId } from "../../shared/ids";
-
-export type EditorHeaderState =
-  | { readonly status: "ready" }
-  | { readonly status: "invalidSyntax"; readonly message: string }
-  | { readonly status: "missingAnnotations"; readonly missingIds: readonly ClassId[] };
+import type { EditorHeaderState } from "../AppHeader/views";
+import type { ElementViews } from "../EditorView/views";
 
 type EditorStateContextValue = {
   readonly sourceText: string;

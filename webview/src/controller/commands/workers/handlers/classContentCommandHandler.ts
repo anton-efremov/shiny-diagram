@@ -1,8 +1,8 @@
 /**
- * @fileoverview Handles class header and member editing commands.
+ * @fileoverview Handles View class header and member editing commands.
  */
 
-import type { ClassContentCommand } from "../../editorCommand";
+import type { ClassContentCommand } from "../../../../view/commands";
 import type { CommandContext, CommandResult } from "../../commandExecution";
 
 /**

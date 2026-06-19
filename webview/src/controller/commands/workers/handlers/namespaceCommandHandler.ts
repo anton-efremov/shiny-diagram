@@ -1,8 +1,8 @@
 /**
- * @fileoverview Handles namespace editing commands.
+ * @fileoverview Handles View namespace editing commands.
  */
 
-import type { NamespaceCommand } from "../../editorCommand";
+import type { NamespaceCommand } from "../../../../view/commands";
 import type { CommandContext, CommandResult } from "../../commandExecution";
 
 /**

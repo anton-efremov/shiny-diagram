@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Handle, Position } from "@xyflow/react";
-import type { ClassBoxView } from "../../../../controller/deriveViews";
+import type { ClassBoxView } from "./views";
 import MemberTable from "./MemberTable/MemberTable";
 import styles from "./ClassBox.module.css";
 

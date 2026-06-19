@@ -1,9 +1,9 @@
 /**
- * @fileoverview Derives renderable relationships from Controller relationship edges.
+ * @fileoverview Derives View-owned relationship render models from Controller relationship edges.
  */
 
 import type { DiagramTree } from "../../model/diagramTree";
-import type { RelationshipView } from "../viewModels";
+import type { RelationshipView } from "../../../view/views";
 
 /**
  * Derives relationship views whose endpoints both have spatial data.

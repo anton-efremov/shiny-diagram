@@ -1,8 +1,8 @@
 /**
- * @fileoverview Dispatches editor commands to their command-family handlers.
+ * @fileoverview Applies View editor intent through command-family handlers.
  */
 
-import type { EditorCommand } from "./editorCommand";
+import type { EditorCommand } from "../../view/commands";
 import type { CommandContext, CommandResult } from "./commandExecution";
 import { handleClassBoxCommand } from "./workers/handlers/classBoxCommandHandler";
 import { handleClassContentCommand } from "./workers/handlers/classContentCommandHandler";

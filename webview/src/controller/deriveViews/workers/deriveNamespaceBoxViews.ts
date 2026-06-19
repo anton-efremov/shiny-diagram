@@ -1,11 +1,11 @@
 /**
- * @fileoverview Derives namespace render models from class membership and bounds.
+ * @fileoverview Derives View-owned namespace render models from class membership and bounds.
  */
 
 import type { DiagramTree } from "../../model/diagramTree";
 import type { Rect } from "../../../shared/geometry";
 import type { ClassId } from "../../../shared/ids";
-import type { NamespaceBoxView } from "../viewModels";
+import type { NamespaceBoxView } from "../../../view/views";
 import { unionRects } from "./layoutBounds";
 
 /**

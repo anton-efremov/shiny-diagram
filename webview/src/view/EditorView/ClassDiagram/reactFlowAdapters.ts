@@ -1,9 +1,10 @@
 /**
- * @fileoverview Adapts deriveViews render contracts to ReactFlow nodes and edges.
+ * @fileoverview Adapts View-owned render contracts to ReactFlow nodes and edges.
  */
 
 import type { Edge as ReactFlowEdge, Node as ReactFlowNode } from "@xyflow/react";
-import type { ClassBoxView, RelationshipView } from "../../../controller/deriveViews";
+import type { ClassBoxView } from "./ClassBox/views";
+import type { RelationshipView } from "./views";
 import type { ClassId } from "../../../shared/ids";
 
 export type BoxSide = "top" | "right" | "bottom" | "left";

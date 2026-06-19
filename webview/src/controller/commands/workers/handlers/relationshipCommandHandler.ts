@@ -1,8 +1,8 @@
 /**
- * @fileoverview Handles relationship editing commands.
+ * @fileoverview Handles View relationship editing commands.
  */
 
-import type { RelationshipCommand } from "../../editorCommand";
+import type { RelationshipCommand } from "../../../../view/commands";
 import type { CommandContext, CommandResult } from "../../commandExecution";
 
 /**

@@ -1,9 +1,9 @@
 /**
- * @fileoverview Derives class-box render models from Controller classes and styles.
+ * @fileoverview Derives View-owned class-box render models from Controller classes and styles.
  */
 
 import type { DiagramTree } from "../../model/diagramTree";
-import type { ClassBoxView } from "../viewModels";
+import type { ClassBoxView } from "../../../view/views";
 
 /**
  * Derives class-box views for classes with spatial data.

@@ -3,6 +3,8 @@
  */
 
 import type { ClassId, MemberId, NamespaceId, RelationshipId, StyleDefId } from "../../shared/ids";
+import type { RelationshipType } from "../../shared/relationshipTypes";
+import type { StylePropertyName } from "../../shared/styleTypes";
 import type { SourceLocation } from "./sourceLocation";
 
 export type Visibility = "+" | "-" | "#" | "~";
@@ -42,7 +44,7 @@ export type SpatialData = {
 };
 
 export type StyleProperty = {
-  readonly property: "fill" | "stroke" | "color" | "strokeWidth" | "strokeDasharray";
+  readonly property: StylePropertyName;
   readonly value: string;
 };
 
@@ -69,18 +71,6 @@ export type NamespaceNode = {
 };
 
 export type TreeNode = ClassNode | StyleDefNode | NamespaceNode;
-
-export type RelationshipType =
-  | "association"
-  | "solidLink"
-  | "dashedLink"
-  | "inheritance"
-  | "composition"
-  | "aggregation"
-  | "dependency"
-  | "realization"
-  | "twoWay"
-  | "lollipop";
 
 export type RelationshipEdge = {
   readonly kind: "relationship";

@@ -1,8 +1,8 @@
 /**
- * @fileoverview Handles class movement and resizing commands.
+ * @fileoverview Handles View class movement and resizing commands.
  */
 
-import type { ClassBoxCommand } from "../../editorCommand";
+import type { ClassBoxCommand } from "../../../../view/commands";
 import type { CommandContext, CommandResult } from "../../commandExecution";
 import { formatSpatialAnnotation } from "../sourceFormatting";
 

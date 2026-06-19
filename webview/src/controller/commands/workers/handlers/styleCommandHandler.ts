@@ -1,8 +1,8 @@
 /**
- * @fileoverview Handles source edits for class style commands.
+ * @fileoverview Handles source edits for View class style commands.
  */
 
-import type { StyleCommand } from "../../editorCommand";
+import type { StyleCommand } from "../../../../view/commands";
 import type { CommandContext, CommandResult } from "../../commandExecution";
 import { formatStyleProperty } from "../sourceFormatting";
 

@@ -1,5 +1,5 @@
 /**
- * @fileoverview Coordinates parse, deriveViews, command dispatch, and View contexts.
+ * @fileoverview Coordinates Controller parsing, derivation, commands, and View composition.
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -8,13 +8,17 @@ import { parseDiagram } from "./parse";
 import type { ParseResult } from "./parse";
 import { deriveElementViews } from "./deriveViews";
 import { applyCommand } from "./commands";
-import type { EditorCommand, SourceEdit } from "./commands";
-import type { ElementViews } from "./deriveViews";
-import { defaultCanvasState, type CanvasState } from "../view/contexts/canvasState";
-import { CanvasStateContext } from "../view/contexts/CanvasStateContext";
-import { EditorDispatchContext } from "../view/contexts/EditorDispatchContext";
-import { EditorStateContext, type EditorHeaderState } from "../view/contexts/EditorStateContext";
-import App from "../view/App";
+import type { SourceEdit } from "./commands";
+import {
+  App,
+  CanvasStateContext,
+  defaultCanvasState,
+  EditorDispatchContext,
+  EditorStateContext,
+} from "../view";
+import type { CanvasState } from "../view";
+import type { EditorCommand } from "../view/commands";
+import type { EditorHeaderState, ElementViews } from "../view/views";
 
 type AppControllerProps = {
   sourceText: string;

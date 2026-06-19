@@ -2,7 +2,8 @@
  * @fileoverview Formats complete Mermaid source lines emitted by command handlers.
  */
 
-import type { StyleDefNode, StyleProperty } from "../../model/diagramTree";
+import type { StyleDefNode } from "../../model/diagramTree";
+import type { StylePropertyName } from "../../../shared/styleTypes";
 
 /**
  * Formats a complete Shiny spatial annotation line.
@@ -24,7 +25,7 @@ export function formatSpatialAnnotation(
  */
 export function formatStyleProperty(
   style: StyleDefNode,
-  property: StyleProperty["property"],
+  property: StylePropertyName,
   value: string
 ): string {
   const match = /^(\s*classDef\s+\w+\s+)(.*)$/.exec(style.location.raw);

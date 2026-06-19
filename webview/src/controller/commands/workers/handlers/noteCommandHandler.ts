@@ -1,8 +1,8 @@
 /**
- * @fileoverview Handles note editing commands.
+ * @fileoverview Handles View note editing commands.
  */
 
-import type { NoteCommand } from "../../editorCommand";
+import type { NoteCommand } from "../../../../view/commands";
 import type { CommandContext, CommandResult } from "../../commandExecution";
 
 /**
