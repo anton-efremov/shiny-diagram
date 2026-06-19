@@ -1,4 +1,6 @@
 // Branded IDs and SourceLocation — shared across all APIs
+import type { ClassId, NamespaceId, NoteId, StyleDefId } from "./shared/ids";
+
 export type SourceLocation = {
   readonly startLine: number;
   readonly startChar: number;
@@ -7,11 +9,6 @@ export type SourceLocation = {
   readonly raw: string;
 };
 
-export type ClassId = string & { readonly __brand: "ClassId" };
-export type StyleDefId = string & { readonly __brand: "StyleDefId" };
-export type NamespaceId = string & { readonly __brand: "NamespaceId" };
-export type NoteId = string & { readonly __brand: "NoteId" };
-
 /**
  * Branded member identity within a class body.
  * Synthesized as `${classId}:${startLine}` by the Derivator.
@@ -19,17 +16,11 @@ export type NoteId = string & { readonly __brand: "NoteId" };
  */
 export type MemberId = string & { readonly __brand: "MemberId" };
 
-export type TreeNodeId = ClassId | StyleDefId | NamespaceId;
-
 export const toClassId = (s: string): ClassId => s as ClassId;
 export const toStyleDefId = (s: string): StyleDefId => s as StyleDefId;
 export const toNamespaceId = (s: string): NamespaceId => s as NamespaceId;
 export const toNoteId = (s: string): NoteId => s as NoteId;
 export const toMemberId = (s: string): MemberId => s as MemberId;
-
-// Shared geometry types (used by both derive and commands APIs)
-export type Rect = { readonly x: number; readonly y: number; readonly w: number; readonly h: number };
-export type Point = { readonly x: number; readonly y: number };
 
 export type SourceEdit =
   | { readonly kind: "replaceLine"; readonly lineNumber: number; readonly newText: string }

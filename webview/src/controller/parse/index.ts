@@ -1,4 +1,5 @@
-import type { DiagramTree, SourceLocation, ClassId, EditorDiagnostic } from "../../primitives";
+import type { DiagramTree, SourceLocation, EditorDiagnostic } from "../../primitives";
+import type { ClassId } from "../../shared/ids";
 import {
   attachSpatial,
   buildSpatiallyUnawareDiagramTree,

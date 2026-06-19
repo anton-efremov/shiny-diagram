@@ -1,6 +1,6 @@
 import type { Edge as ReactFlowEdge, Node as ReactFlowNode } from "@xyflow/react";
 import type { ClassBoxView, RelationshipView } from "../../../controller/deriveViews";
-import type { ClassId } from "../../../primitives";
+import type { ClassId } from "../../../shared/ids";
 
 export type BoxSide = "top" | "right" | "bottom" | "left";
 

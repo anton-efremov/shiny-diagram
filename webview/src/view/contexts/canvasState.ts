@@ -1,4 +1,4 @@
-import type { ClassId } from "../../primitives";
+import type { ClassId } from "../../shared/ids";
 
 export type CanvasState = {
   selectedClassId: ClassId | null;

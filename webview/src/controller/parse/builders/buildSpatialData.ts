@@ -1,4 +1,5 @@
-import type { SourceLocation, SpatialData, ClassId } from "../../../primitives";
+import type { SourceLocation, SpatialData } from "../../../primitives";
+import type { ClassId } from "../../../shared/ids";
 import { toClassId } from "../../../primitives";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "./toSourceLocation";

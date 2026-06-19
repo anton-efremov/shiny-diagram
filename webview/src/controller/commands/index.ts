@@ -1,9 +1,6 @@
 import type {
-  ClassId,
   DiagramTree,
   MemberId,
-  NamespaceId,
-  NoteId,
   Point,
   Rect,
   RelationshipType,
@@ -11,6 +8,7 @@ import type {
   SourceLocation,
   StyleProperty,
 } from "../../primitives";
+import type { ClassId, NamespaceId, NoteId } from "../../shared/ids";
 import type { ElementViews, RelationshipViewId } from "../deriveViews";
 import { handleClassBoxCommand } from "./classBoxCommandHandler";
 import { handleGenerateCommand } from "./generateCommandHandler";
@@ -20,8 +18,6 @@ import { handleNoteCommand } from "./noteCommandHandler";
 import { handleRelationshipCommand } from "./relationshipCommandHandler";
 import { handleStyleCommand } from "./styleCommandHandler";
 
-// Re-export geometry types so callers can access them from this module
-export type { Rect, Point };
 export type { RelationshipViewId };
 
 export type MemberPrefix = "+" | "-" | "#" | "~" | "$" | "*" | "";

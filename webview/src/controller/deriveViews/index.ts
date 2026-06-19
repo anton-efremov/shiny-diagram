@@ -1,13 +1,11 @@
 import type {
-  ClassId,
   DiagramTree,
   MemberId,
-  NamespaceId,
-  NoteId,
   Rect,
   RelationshipType,
   SourceLocation,
 } from "../../primitives";
+import type { ClassId, NamespaceId, NoteId } from "../../shared/ids";
 import { toMemberId } from "../../primitives";
 
 // View model types — the contract of deriveElementViews

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { ClassBoxView } from "../../../controller/deriveViews";
-import type { ClassId } from "../../../primitives";
+import type { ClassId } from "../../../shared/ids";
 import { useEditorDispatch } from "../../contexts/EditorDispatchContext";
 
 type UseStylePaneControllerOptions = {
