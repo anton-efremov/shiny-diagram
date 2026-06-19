@@ -2,7 +2,7 @@
  * @fileoverview Builds relationship edges from relationship tokens.
  */
 
-import { toClassId } from "../../../../shared/ids";
+import { toClassId, toRelationshipId } from "../../../../shared/ids";
 import type { RelationshipEdge, RelationshipType } from "../../../model/diagramTree";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
@@ -26,7 +26,10 @@ const RELATIONSHIP_OPERATORS: readonly RelationshipOperator[] = [
 /**
  * Builds a relationship edge from a relationship token.
  */
-export function buildRelationshipEdge(token: ParseToken): RelationshipEdge | null {
+export function buildRelationshipEdge(
+  token: ParseToken,
+  relationshipIndex: number
+): RelationshipEdge | null {
   if (token.type !== "relationship") return null;
 
   const raw = token.raw.trim();
@@ -44,6 +47,7 @@ export function buildRelationshipEdge(token: ParseToken): RelationshipEdge | nul
     kind: "relationship",
     source: toClassId(source.name),
     target: toClassId(target.name),
+    id: toRelationshipId(`${source.name}--${target.name}--${relationshipIndex}`),
     type: operator.type,
     label,
     sourceMultiplicity: source.multiplicity,

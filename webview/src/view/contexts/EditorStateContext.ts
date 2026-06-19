@@ -3,11 +3,12 @@
  */
 import { createContext, useContext } from "react";
 import type { ElementViews } from "../../controller/deriveViews";
+import type { ClassId } from "../../shared/ids";
 
 export type EditorHeaderState =
   | { readonly status: "ready" }
   | { readonly status: "invalidSyntax"; readonly message: string }
-  | { readonly status: "missingAnnotations"; readonly missingIds: readonly string[] };
+  | { readonly status: "missingAnnotations"; readonly missingIds: readonly ClassId[] };
 
 type EditorStateContextValue = {
   readonly sourceText: string;

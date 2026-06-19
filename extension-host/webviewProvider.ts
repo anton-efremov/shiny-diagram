@@ -1,18 +1,11 @@
 /**
  * @fileoverview Generates the HTML document served to the Shiny webview panel.
- * Handles content security policy, asset URI resolution, nonce generation,
- * and safe serialization of initial source text into the page.
  */
 
 import * as vscode from "vscode";
 
 /**
  * Builds the full HTML document for the Shiny webview panel.
- *
- * @param context - Extension host environment handle; owns resource paths, storage, and the extension's own URI on disk
- * @param webview - The active handle to the webview; provides unique APIs required to manage that specific sandbox's security, communication, and resource routing.
- * @param document - Reference to the VS Code editor's in-memory representation of an open file; kept in sync with disk by the editor.
- * @returns Complete HTML string ready to assign to `panel.webview.html`.
  */
 export function getWebviewHtml(
   context: vscode.ExtensionContext,
@@ -28,8 +21,7 @@ export function getWebviewHtml(
     vscode.Uri.joinPath(context.extensionUri, "out", "webview", "assets", "index.css")
   );
 
-  /** Random token that "signs" the legitimate script tag. Prevents injection attack —
-   *  user-controlled data (diagram source) being interpreted as executable script. */
+  // Nonce allows only this generated script tag under the webview CSP.
   const nonce = getNonce();
   const initialData = serializeJsonForHtml(sourceText);
 

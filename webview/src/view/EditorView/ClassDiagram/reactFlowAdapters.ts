@@ -49,7 +49,7 @@ export function toRelationshipEdgeDescriptors(
 
     return [
       {
-        id: rel.viewId,
+        id: rel.relationshipId,
         source: rel.sourceClassId,
         target: rel.targetClassId,
         sourceHandle: sourceSide,

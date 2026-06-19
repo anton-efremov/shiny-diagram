@@ -2,10 +2,9 @@
  * @fileoverview Editor intents accepted by the Commands component.
  */
 
-import type { MemberId, RelationshipViewId } from "../deriveViews";
 import type { RelationshipType, StyleProperty } from "../model/diagramTree";
 import type { Point, Rect } from "../../shared/geometry";
-import type { ClassId, NamespaceId, NoteId } from "../../shared/ids";
+import type { ClassId, MemberId, NamespaceId, NoteId, RelationshipId } from "../../shared/ids";
 
 export type MemberPrefix = "+" | "-" | "#" | "~" | "$" | "*" | "";
 
@@ -47,18 +46,18 @@ export type NamespaceCommand =
 export type RelationshipCommand =
   | {
       readonly type: "relationship.setType";
-      readonly relationshipId: RelationshipViewId;
+      readonly relationshipId: RelationshipId;
       readonly relationType: RelationshipType;
     }
   | {
       readonly type: "relationship.setMultiplicity";
-      readonly relationshipId: RelationshipViewId;
+      readonly relationshipId: RelationshipId;
       readonly endpoint: "source" | "target";
       readonly value: string | null;
     }
   | {
       readonly type: "relationship.setLabel";
-      readonly relationshipId: RelationshipViewId;
+      readonly relationshipId: RelationshipId;
       readonly label: string | null;
     };
 

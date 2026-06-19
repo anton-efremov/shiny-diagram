@@ -2,13 +2,14 @@
  * @fileoverview Source-derived diagram model shared by Controller components.
  */
 
-import type { ClassId, NamespaceId, StyleDefId } from "../../shared/ids";
+import type { ClassId, MemberId, NamespaceId, RelationshipId, StyleDefId } from "../../shared/ids";
 import type { SourceLocation } from "./sourceLocation";
 
 export type Visibility = "+" | "-" | "#" | "~";
 
 export type ClassField = {
   readonly kind: "field";
+  readonly id: MemberId;
   readonly visibility: Visibility;
   readonly name: string;
   readonly fieldType?: string;
@@ -17,6 +18,7 @@ export type ClassField = {
 
 export type ClassMethod = {
   readonly kind: "method";
+  readonly id: MemberId;
   readonly visibility: Visibility;
   readonly name: string;
   readonly params?: string;
@@ -82,6 +84,7 @@ export type RelationshipType =
 
 export type RelationshipEdge = {
   readonly kind: "relationship";
+  readonly id: RelationshipId;
   readonly source: ClassId;
   readonly target: ClassId;
   readonly type: RelationshipType;

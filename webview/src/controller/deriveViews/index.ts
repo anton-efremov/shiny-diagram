@@ -10,9 +10,5 @@ export type {
   ClassBoxView,
   NamespaceBoxView,
   RelationshipView,
-  NoteView,
-  LegendView,
   ElementViews,
 } from "./viewModels";
-
-export type { MemberId, RelationshipViewId } from "./viewIds";

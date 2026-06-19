@@ -82,7 +82,7 @@ function traverseTokens(tokens: readonly ParseToken[], tree: MutableDiagramTree)
         break;
       }
       case "relationship": {
-        const edge = buildRelationshipEdge(token);
+        const edge = buildRelationshipEdge(token, tree.relationships.length);
         if (edge) tree.relationships.push(edge);
         break;
       }

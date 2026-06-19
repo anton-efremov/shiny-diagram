@@ -1,9 +1,5 @@
 /**
- * @fileoverview Contains class definition for a session object — a stateful collection of
- * event handlers that maintains document <-> webview source sync for one open Shiny panel.
- * Listeners are registered in the constructor and released in dispose().
- * Holds debounce and loop-prevention state shared across those handlers.
- * Instantiated when the panel opens; disposed when the panel closes.
+ * @fileoverview Maintains document-to-webview source sync for one open Shiny panel.
  */
 
 import * as vscode from "vscode";
@@ -18,20 +14,16 @@ export class DiagramSession {
   private readonly disposables: vscode.Disposable[] = [];
   private shinyOriginatedEdit = false;
 
-  // ── Lifecycle ────────────────────────────────────────────────────────────
-
   constructor(document: vscode.TextDocument, panel: vscode.WebviewPanel) {
     this.document = document;
     this.panel = panel;
 
-    // Registers an event listener and stores its token for disposal on panel closing
     this.disposables.push(
       panel.webview.onDidReceiveMessage((msg: WebviewToHostMessage) => {
         this.handleWebviewMessage(msg);
       })
     );
 
-    // Registers an event listener and stores its token for disposal on panel closing
     this.disposables.push(
       vscode.workspace.onDidChangeTextDocument((event) => {
         this.onDocumentChange(event);
@@ -49,8 +41,6 @@ export class DiagramSession {
     }
   }
 
-  // ── Webview message handling ─────────────────────────────────────────────
-
   /**
    * Routes an incoming webview message to the appropriate handler.
    */
@@ -66,12 +56,11 @@ export class DiagramSession {
   private async onApplyEdits(
     edits: readonly { lineNumber: number; newText: string }[]
   ): Promise<void> {
-    // a transaction object for edits accumulation and application
     const workspaceEdit = new vscode.WorkspaceEdit();
 
     for (const edit of edits) {
       const line = this.document.lineAt(edit.lineNumber);
-      workspaceEdit.replace(this.document.uri, line.range, edit.newText); // accumulate edits in transaction object
+      workspaceEdit.replace(this.document.uri, line.range, edit.newText);
     }
 
     // Marks this edit as Shiny-originated so the resulting onDidChangeTextDocument
@@ -80,12 +69,9 @@ export class DiagramSession {
     // event loop tick. Safe in practice but worth revisiting if sync issues arise.
     this.shinyOriginatedEdit = true;
 
-    // apply edits as a single transaction
     await vscode.workspace.applyEdit(workspaceEdit);
     this.pushSourceUpdate();
   }
-
-  // ── Document change handling ─────────────────────────────────────────────
 
   private onDocumentChange(event: vscode.TextDocumentChangeEvent): void {
     if (event.document.uri.toString() !== this.document.uri.toString()) {

@@ -10,7 +10,7 @@ import type {
   ClassNode,
   Visibility,
 } from "../../../model/diagramTree";
-import { toClassId } from "../../../../shared/ids";
+import { toClassId, toMemberId, type ClassId } from "../../../../shared/ids";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
 
@@ -26,7 +26,7 @@ export function buildClassNode(token: ParseToken): ClassNode | null {
   if (!match) return null;
 
   const id = toClassId(match[1]);
-  const { members, annotation } = parseClassBody(token.blockTokens ?? []);
+  const { members, annotation } = parseClassBody(id, token.blockTokens ?? []);
 
   return {
     kind: "class",
@@ -37,7 +37,10 @@ export function buildClassNode(token: ParseToken): ClassNode | null {
   };
 }
 
-function parseClassBody(blockTokens: readonly ParseToken[]): {
+function parseClassBody(
+  classId: ClassId,
+  blockTokens: readonly ParseToken[]
+): {
   members: ClassMember[];
   annotation?: ClassAnnotation;
 } {
@@ -57,7 +60,7 @@ function parseClassBody(blockTokens: readonly ParseToken[]): {
       continue;
     }
 
-    const member = parseClassMember(token);
+    const member = parseClassMember(classId, token);
     if (member) {
       members.push(member);
     }
@@ -66,7 +69,7 @@ function parseClassBody(blockTokens: readonly ParseToken[]): {
   return { members, annotation };
 }
 
-function parseClassMember(token: ParseToken): ClassMember | null {
+function parseClassMember(classId: ClassId, token: ParseToken): ClassMember | null {
   const trimmed = token.raw.trim();
   const firstCharacter = trimmed.charAt(0);
   const hasExplicitVisibility = VISIBILITY_PREFIXES.has(firstCharacter);
@@ -76,13 +79,14 @@ function parseClassMember(token: ParseToken): ClassMember | null {
   if (declaration === "") return null;
 
   if (declaration.includes("(")) {
-    return parseMethodMember(token, visibility, declaration);
+    return parseMethodMember(classId, token, visibility, declaration);
   }
 
-  return parseFieldMember(token, visibility, declaration);
+  return parseFieldMember(classId, token, visibility, declaration);
 }
 
 function parseFieldMember(
+  classId: ClassId,
   token: ParseToken,
   visibility: Visibility,
   declaration: string
@@ -91,10 +95,18 @@ function parseFieldMember(
   const name = parts.length > 1 ? parts[parts.length - 1] : parts[0];
   const fieldType = parts.length > 1 ? parts.slice(0, -1).join(" ") : undefined;
 
-  return { kind: "field", visibility, name, fieldType, location: toSourceLocation(token) };
+  return {
+    kind: "field",
+    id: toMemberId(`${classId}:${token.lineNumber}`),
+    visibility,
+    name,
+    fieldType,
+    location: toSourceLocation(token),
+  };
 }
 
 function parseMethodMember(
+  classId: ClassId,
   token: ParseToken,
   visibility: Visibility,
   declaration: string
@@ -104,6 +116,7 @@ function parseMethodMember(
   if (!methodMatch) {
     return {
       kind: "method",
+      id: toMemberId(`${classId}:${token.lineNumber}`),
       visibility,
       name: declaration,
       params: "",
@@ -115,6 +128,7 @@ function parseMethodMember(
 
   return {
     kind: "method",
+    id: toMemberId(`${classId}:${token.lineNumber}`),
     visibility,
     name: methodMatch[1],
     returnType: returnType.length > 0 ? returnType : undefined,

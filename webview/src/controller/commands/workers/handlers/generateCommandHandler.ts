@@ -5,8 +5,7 @@
 import type { CommandContext, CommandResult } from "../../commandExecution";
 import type { SourceEdit } from "../../sourceEdit";
 import { formatSpatialAnnotation } from "../sourceFormatting";
-import { computeMalformedBoxLayout } from "../generateLayout/computeMalformedBoxLayout";
-import { computeNewBoxLayout } from "../generateLayout/computeNewBoxLayout";
+import { computeGeneratedBoxLayout } from "../generateLayout/computeGeneratedBoxLayout";
 import { computeStartY } from "../generateLayout/gridPlacement";
 
 /**
@@ -33,9 +32,7 @@ export function handleGenerateCommand(context: CommandContext): CommandResult {
 
   missingIds.forEach((classId, idx) => {
     const malformed = malformedAnnotations.get(classId);
-    const position = malformed
-      ? computeMalformedBoxLayout(idx, startY)
-      : computeNewBoxLayout(idx, startY);
+    const position = computeGeneratedBoxLayout(idx, startY);
 
     const spatialLine = formatSpatialAnnotation(
       classId,

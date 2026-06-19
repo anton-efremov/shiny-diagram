@@ -1,10 +1,9 @@
 /**
- * @fileoverview Derives class-box render models from parsed classes and styles.
+ * @fileoverview Derives class-box render models from Controller classes and styles.
  */
 
 import type { DiagramTree } from "../../model/diagramTree";
 import type { ClassBoxView } from "../viewModels";
-import { toMemberId } from "../viewIds";
 
 /**
  * Derives class-box views for classes with spatial data.
@@ -38,12 +37,11 @@ export function deriveClassBoxViews(model: DiagramTree): ClassBoxView[] {
         stereotype: node.annotation?.value,
       },
       members: node.members.map((member) => {
-        const memberId = toMemberId(`${node.id}:${member.location.startLine}`);
         if (member.kind === "method") {
           const params = member.params ?? "";
           const typeSuffix = member.returnType ? `: ${member.returnType}` : "";
           return {
-            memberId,
+            memberId: member.id,
             prefix: member.visibility,
             text: `${member.name}(${params})${typeSuffix}`,
             kind: "method" as const,
@@ -51,7 +49,7 @@ export function deriveClassBoxViews(model: DiagramTree): ClassBoxView[] {
         }
         const typeSuffix = member.fieldType ? `: ${member.fieldType}` : "";
         return {
-          memberId,
+          memberId: member.id,
           prefix: member.visibility,
           text: `${member.name}${typeSuffix}`,
           kind: "field" as const,

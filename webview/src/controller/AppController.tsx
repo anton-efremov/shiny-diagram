@@ -56,7 +56,7 @@ export default function AppController({
     setCanvasStateRaw((prev) => {
       if (!prev.selectedClassId) return prev;
       const stillExists = elementViews?.classes.some((v) => v.classId === prev.selectedClassId);
-      return stillExists ? prev : defaultCanvasState;
+      return stillExists ? prev : { ...prev, selectedClassId: null };
     });
   }, [elementViews]);
 
