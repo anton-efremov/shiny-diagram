@@ -1,10 +1,10 @@
 import type {
   DiagramTree,
   MemberId,
-  Rect,
   RelationshipType,
   SourceLocation,
 } from "../../primitives";
+import type { Rect } from "../../shared/geometry";
 import type { ClassId, NamespaceId, NoteId } from "../../shared/ids";
 import { toMemberId } from "../../primitives";
 

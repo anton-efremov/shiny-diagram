@@ -1,13 +1,12 @@
 import type {
   DiagramTree,
   MemberId,
-  Point,
-  Rect,
   RelationshipType,
   SourceEdit,
   SourceLocation,
   StyleProperty,
 } from "../../primitives";
+import type { Point, Rect } from "../../shared/geometry";
 import type { ClassId, NamespaceId, NoteId } from "../../shared/ids";
 import type { ElementViews, RelationshipViewId } from "../deriveViews";
 import { handleClassBoxCommand } from "./classBoxCommandHandler";
