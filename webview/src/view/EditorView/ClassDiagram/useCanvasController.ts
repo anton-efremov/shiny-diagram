@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useCanvasState } from "../../../controller";
+import { useCanvasState } from "../../contexts/CanvasStateContext";
 
 type UseCanvasControllerResult = {
   onPaneClick: () => void;

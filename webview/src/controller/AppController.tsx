@@ -2,15 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import { parseDiagram } from "./parse";
 import type { ParseResult } from "./parse";
-import { deriveElementViews } from "./derive";
+import { deriveElementViews } from "./deriveViews";
 import { applyCommand } from "./commands";
 import type { EditorCommand } from "./commands";
-import type { ElementViews } from "./derive";
-import type { SourceEdit } from "./source";
-import { defaultCanvasState, type CanvasState } from "./canvasState";
-import { CanvasStateContext } from "./contexts/CanvasStateContext";
-import { EditorDispatchContext } from "./contexts/EditorDispatchContext";
-import { EditorStateContext, type EditorHeaderState } from "./contexts/EditorStateContext";
+import type { ElementViews } from "./deriveViews";
+import type { SourceEdit } from "../primitives";
+import { defaultCanvasState, type CanvasState } from "../view/contexts/canvasState";
+import { CanvasStateContext } from "../view/contexts/CanvasStateContext";
+import { EditorDispatchContext } from "../view/contexts/EditorDispatchContext";
+import { EditorStateContext, type EditorHeaderState } from "../view/contexts/EditorStateContext";
 import App from "../view/App";
 
 type AppControllerProps = {

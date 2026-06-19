@@ -1,4 +1,4 @@
-import { formatSpatialAnnotation } from "../source/formatLines";
+import { formatSpatialAnnotation } from "./formatters/formatLines";
 import type { CommandContext, CommandResult, EditorCommand } from ".";
 
 export function handleClassBoxCommand(

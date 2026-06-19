@@ -1,8 +1,8 @@
 import type { ReactElement } from "react";
-import { useEditorState } from "../../../controller";
-import ClassDiagram from "../ClassDiagram/ClassDiagram";
-import StylePane from "../StylePane/StylePane";
-import ToolPane from "../ToolPane/ToolPane";
+import { useEditorState } from "../contexts/EditorStateContext";
+import ClassDiagram from "./ClassDiagram/ClassDiagram";
+import StylePane from "./StylePane/StylePane";
+import ToolPane from "./ToolPane/ToolPane";
 import styles from "./EditorView.module.css";
 
 export default function EditorView(): ReactElement {

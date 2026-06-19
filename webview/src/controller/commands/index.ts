@@ -7,11 +7,11 @@ import type {
   Point,
   Rect,
   RelationshipType,
+  SourceEdit,
   SourceLocation,
   StyleProperty,
-} from "../primitives";
-import type { ElementViews, RelationshipViewId } from "../derive";
-import type { SourceEdit } from "../source";
+} from "../../primitives";
+import type { ElementViews, RelationshipViewId } from "../deriveViews";
 import { handleClassBoxCommand } from "./classBoxCommandHandler";
 import { handleGenerateCommand } from "./generateCommandHandler";
 import { handleMemberCommand } from "./memberCommandHandler";

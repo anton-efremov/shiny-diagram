@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { CanvasState } from "../canvasState";
+import type { CanvasState } from "./canvasState";
 
 type CanvasStateContextValue = {
   readonly canvasState: CanvasState;

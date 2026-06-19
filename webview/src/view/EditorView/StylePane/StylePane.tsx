@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactElement } from "react";
-import { useEditorState, useCanvasState } from "../../../controller";
+import { useEditorState } from "../../contexts/EditorStateContext";
+import { useCanvasState } from "../../contexts/CanvasStateContext";
 import { useStylePaneController } from "./useStylePaneController";
 import styles from "./StylePane.module.css";
 

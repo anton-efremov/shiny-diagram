@@ -1,5 +1,5 @@
-import type { AppliesStyleEdge } from "../../primitives";
-import { toClassId, toStyleDefId } from "../../primitives";
+import type { AppliesStyleEdge } from "../../../primitives";
+import { toClassId, toStyleDefId } from "../../../primitives";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "./toSourceLocation";
 

@@ -3,7 +3,7 @@
  * Decouples the controller's pipeline outputs from the view layer without prop-drilling.
  */
 import { createContext, useContext } from "react";
-import type { ElementViews } from "../derive";
+import type { ElementViews } from "../../controller/deriveViews";
 
 export type EditorHeaderState =
   | { readonly status: "ready" }

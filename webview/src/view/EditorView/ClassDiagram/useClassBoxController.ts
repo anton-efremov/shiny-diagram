@@ -1,9 +1,9 @@
 import { useCallback } from "react";
 import type { MouseEvent } from "react";
 import type { OnNodeDrag } from "@xyflow/react";
-import type { ElementViews } from "../../../controller";
-import { useEditorDispatch } from "../../../controller";
-import { useCanvasState } from "../../../controller";
+import type { ElementViews } from "../../../controller/deriveViews";
+import { useEditorDispatch } from "../../contexts/EditorDispatchContext";
+import { useCanvasState } from "../../contexts/CanvasStateContext";
 import type { ClassBoxNodeDescriptor } from "./reactFlowAdapters";
 
 type UseClassBoxControllerResult = {

@@ -5,8 +5,8 @@ import type {
   ClassMethod,
   ClassNode,
   Visibility,
-} from "../../primitives";
-import { toClassId } from "../../primitives";
+} from "../../../primitives";
+import { toClassId } from "../../../primitives";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "./toSourceLocation";
 

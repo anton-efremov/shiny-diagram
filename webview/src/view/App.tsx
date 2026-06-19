@@ -1,9 +1,9 @@
 import { useState } from "react";
 import type { ReactElement } from "react";
-import { useEditorState } from "../controller";
+import { useEditorState } from "./contexts/EditorStateContext";
 import AppHeader from "./AppHeader/AppHeader";
 import AutorenderView from "./AutorenderView/AutorenderView";
-import EditorView from "./editor/EditorView/EditorView";
+import EditorView from "./EditorView/EditorView";
 import styles from "./App.module.css";
 
 export type Mode = "autorender" | "editor";

@@ -1,5 +1,5 @@
-import type { StyleDefNode, StyleProperty } from "../../primitives";
-import { toStyleDefId } from "../../primitives";
+import type { StyleDefNode, StyleProperty } from "../../../primitives";
+import { toStyleDefId } from "../../../primitives";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "./toSourceLocation";
 

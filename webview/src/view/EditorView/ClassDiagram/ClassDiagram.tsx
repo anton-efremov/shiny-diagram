@@ -8,10 +8,11 @@ import {
   ReactFlow,
   ReactFlowProvider,
 } from "@xyflow/react";
-import { useEditorState, useCanvasState } from "../../../controller";
+import { useEditorState } from "../../contexts/EditorStateContext";
+import { useCanvasState } from "../../contexts/CanvasStateContext";
 import { useClassBoxController } from "./useClassBoxController";
 import { useCanvasController } from "./useCanvasController";
-import ClassBox from "../ClassBox/ClassBox";
+import ClassBox from "./ClassBox/ClassBox";
 import {
   type ClassBoxNodeDescriptor,
   type RelationshipEdgeDescriptor,

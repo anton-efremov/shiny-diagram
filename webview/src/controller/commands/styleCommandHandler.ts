@@ -1,4 +1,4 @@
-import { formatStyleProperty } from "../source/formatLines";
+import { formatStyleProperty } from "./formatters/formatLines";
 import type { CommandContext, CommandResult, EditorCommand } from ".";
 
 export function handleStyleCommand(

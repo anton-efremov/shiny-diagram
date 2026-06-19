@@ -1,9 +1,9 @@
-import { formatSpatialAnnotation } from "../source/formatLines";
+import { formatSpatialAnnotation } from "./formatters/formatLines";
 import { computeMalformedBoxLayout } from "./layoutAlgorithm/computeMalformedBoxLayout";
 import { computeNewBoxLayout } from "./layoutAlgorithm/computeNewBoxLayout";
 import { computeStartY } from "./layoutAlgorithm/gridPlacement";
 import type { CommandContext, CommandResult } from ".";
-import type { SourceEdit } from "../source";
+import type { SourceEdit } from "../../primitives";
 
 export function handleGenerateCommand(context: CommandContext): CommandResult {
   const existingSpatial = [...context.model.classes.values()].flatMap((node) =>

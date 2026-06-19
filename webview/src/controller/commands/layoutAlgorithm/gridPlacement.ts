@@ -1,4 +1,4 @@
-import type { SpatialData } from "../../primitives";
+import type { SpatialData } from "../../../primitives";
 import { DEFAULT_WIDTH, DEFAULT_HEIGHT, MARGIN } from "./layoutConstants";
 
 export type GridPosition = {

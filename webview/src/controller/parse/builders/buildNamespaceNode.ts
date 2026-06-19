@@ -1,5 +1,5 @@
-import type { NamespaceNode } from "../../primitives";
-import { toNamespaceId } from "../../primitives";
+import type { NamespaceNode } from "../../../primitives";
+import { toNamespaceId } from "../../../primitives";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "./toSourceLocation";
 

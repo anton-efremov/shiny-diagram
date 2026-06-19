@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import type { NoteView } from "../../../controller";
+import type { NoteView } from "../../../../controller/deriveViews";
 
 type NoteProps = { view: NoteView };
 

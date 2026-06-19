@@ -7,8 +7,8 @@ import type {
   Rect,
   RelationshipType,
   SourceLocation,
-} from "../primitives";
-import { toMemberId } from "../primitives";
+} from "../../primitives";
+import { toMemberId } from "../../primitives";
 
 // View model types — the contract of deriveElementViews
 

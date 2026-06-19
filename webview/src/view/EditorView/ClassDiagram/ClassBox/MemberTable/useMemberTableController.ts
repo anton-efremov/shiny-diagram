@@ -1,4 +1,5 @@
-import type { EditorCommand, CanvasState } from "../../../../controller";
+import type { EditorCommand } from "../../../../../controller/commands";
+import type { CanvasState } from "../../../../contexts/canvasState";
 
 type UseMemberTableControllerOptions = {
   dispatch: (command: EditorCommand) => void;

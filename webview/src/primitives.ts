@@ -31,6 +31,12 @@ export const toMemberId = (s: string): MemberId => s as MemberId;
 export type Rect = { readonly x: number; readonly y: number; readonly w: number; readonly h: number };
 export type Point = { readonly x: number; readonly y: number };
 
+export type SourceEdit =
+  | { readonly kind: "replaceLine"; readonly lineNumber: number; readonly newText: string }
+  | { readonly kind: "insertLine"; readonly lineNumber: number; readonly newText: string }
+  | { readonly kind: "deleteLine"; readonly lineNumber: number }
+  | { readonly kind: "replaceRange"; readonly startLine: number; readonly endLine: number; readonly newText: string };
+
 // Diagram tree model — the parsed representation of a classDiagram source file
 export type Visibility = "+" | "-" | "#" | "~";
 

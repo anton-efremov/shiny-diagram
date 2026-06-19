@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import type { Mode } from "../App";
-import type { EditorHeaderState } from "../../controller";
-import { useEditorDispatch } from "../../controller";
+import type { EditorHeaderState } from "../contexts/EditorStateContext";
+import { useEditorDispatch } from "../contexts/EditorDispatchContext";
 import Toggle from "../../ui/Toggle/Toggle";
 import styles from "./AppHeader.module.css";
 
