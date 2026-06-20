@@ -1,6 +1,6 @@
 # Architectural Standards
 
-> **Architecture state:** Target  
+> **Implementation state:** Current  
 > **Document state:** Maintained
 > **Last reviewed:** 2026-06-19  
 > **Scope:** Structural rules for production code in the Extension Host and Webview

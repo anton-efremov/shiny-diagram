@@ -1,6 +1,6 @@
 # Coding Standards
 
-> **Architecture state:** Current
+> **Implementation state:** Current
 > **Document state:** Maintained
 > **Last reviewed:** 2026-06-19
 > **Scope:** Rules and standards of a code in Shiny repo

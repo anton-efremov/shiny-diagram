@@ -1,5 +1,10 @@
 # Playbook
 
+> **Implementation state:** Current
+> **Document state:** Maintained
+> **Last reviewed:** 2026-06-19
+> **Scope:** A description of build and check pipeline
+
 ## Prerequisites
 
 - Node.js 20+
@@ -40,7 +45,7 @@ To verify a change:
 npm run check
 ```
 
-Runs format check, lint, and typecheck in sequence. All three must pass before committing.
+Runs format check, lint, typecheck, and Webview architecture-boundary validation in sequence. All four must pass before committing. The boundary step runs `scripts/check-webview-boundaries.mjs` through `npm run check:boundaries`.
 
 ## Fixing formatting
 

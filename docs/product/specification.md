@@ -1,6 +1,6 @@
 # Shiny — specification
 
-> **Architecture state:** Target
+> **Implementation state:** Aspirtional
 > **Document state:** Maintained
 > **Last reviewed:** 2026-06-19
 > **Scope:** A vision of a product high-level mechanics and features
