@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactElement } from "react";
 import { useEditorState } from "../../../contexts/EditorStateContext";
 import { useCanvasState } from "../../../contexts/CanvasStateContext";
-import { useStylePaneController } from "./useStylePaneController";
+import { useStylePaneInteractions as useStylePaneInteractions } from "./useStylePaneInteractions";
 import styles from "./StylePane.module.css";
 
 /**
@@ -12,7 +12,7 @@ export default function StylePane(): ReactElement {
   const { canvasState } = useCanvasState();
   const selectedView = elementViews?.classes.find((v) => v.classId === canvasState.selectedClassId);
 
-  const { onFillColorChange } = useStylePaneController({
+  const { onFillColorChange } = useStylePaneInteractions({
     selectedClassId: selectedView?.classId ?? null,
     selectedView,
   });

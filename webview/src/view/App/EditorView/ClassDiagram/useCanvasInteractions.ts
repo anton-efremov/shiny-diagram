@@ -5,14 +5,14 @@
 import { useCallback } from "react";
 import { useCanvasState } from "../../../contexts/CanvasStateContext";
 
-type UseCanvasControllerResult = {
+type UseCanvasInteractionsResult = {
   onPaneClick: () => void;
 };
 
 /**
  * Clears class selection when the user clicks the canvas pane.
  */
-export function useCanvasInteractions(): UseCanvasControllerResult {
+export function useCanvasInteractions(): UseCanvasInteractionsResult {
   const { setCanvasState } = useCanvasState();
 
   const onPaneClick = useCallback(() => {

@@ -9,14 +9,14 @@ import type { ParseResult } from "./parse";
 import { deriveElementViews } from "./deriveViews";
 import { applyCommand } from "./commands";
 import type { SourceEdit } from "./commands";
+import { App } from "../view/App";
 import {
-  App,
   CanvasStateContext,
   defaultCanvasState,
   EditorDispatchContext,
   EditorStateContext,
-} from "../view";
-import type { CanvasState } from "../view";
+} from "../view/contexts";
+import type { CanvasState } from "../view/contexts";
 import type { EditorCommand } from "../view/commands";
 import type { EditorHeaderState, ElementViews } from "../view/views";
 

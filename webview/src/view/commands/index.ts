@@ -7,6 +7,7 @@ export type { GenerateCommand } from "../App/AppHeader/commands";
 export type { EditorCommand } from "./editorCommand";
 export type {
   ClassDiagramCommand,
+  ClassMoveCommand,
   NamespaceCommand,
   NoteCommand,
   RelationshipCommand,

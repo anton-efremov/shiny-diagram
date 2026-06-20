@@ -1,18 +1,18 @@
 import type { ReactElement } from "react";
-import type { Mode } from "../../App";
+import type { AppMode } from "../state";
 import type { EditorHeaderState } from "./views";
-import { useEditorDispatch } from "../../contexts/EditorDispatchContext";
+import { useAppHeaderInteractions } from "./useAppHeaderInteractions";
 import Toggle from "../../ui/Toggle/Toggle";
 import styles from "./AppHeader.module.css";
 
 type AppHeaderProps = {
-  mode: Mode;
-  setMode: (mode: Mode) => void;
+  mode: AppMode;
+  setMode: (mode: AppMode) => void;
   parseStatus: EditorHeaderState;
 };
 
 function getStatusMessage(
-  mode: Mode,
+  mode: AppMode,
   parseStatus: EditorHeaderState,
   onGenerate: () => void
 ): ReactElement | null {
@@ -38,7 +38,7 @@ function getStatusMessage(
  * Renders diagram mode controls and editor parse status actions.
  */
 export default function AppHeader({ mode, setMode, parseStatus }: AppHeaderProps): ReactElement {
-  const dispatch = useEditorDispatch();
+  const { onGenerate } = useAppHeaderInteractions();
 
   return (
     <header className={styles.header}>
@@ -53,7 +53,7 @@ export default function AppHeader({ mode, setMode, parseStatus }: AppHeaderProps
           onChange={setMode}
           ariaLabel="Diagram modes"
         />
-        {getStatusMessage(mode, parseStatus, () => dispatch({ type: "generate" }))}
+        {getStatusMessage(mode, parseStatus, onGenerate)}
       </div>
     </header>
   );

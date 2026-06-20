@@ -1,271 +1,741 @@
 /**
- * @fileoverview Checks strict webview layer and component import boundaries.
+ * @fileoverview Enforces project-owned Webview module boundaries from
+ * docs/engineering/architecture/architectural-standards.md.
  */
 
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import {
+  existsSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+} from "node:fs";
 import path from "node:path";
+import ts from "typescript";
 
-const repoRoot = process.cwd();
+const repoRoot = path.resolve(process.cwd());
 const sourceRoot = path.join(repoRoot, "webview", "src");
-const componentNames = new Set(["parse", "deriveViews", "commands"]);
-const facadeFiles = [
+const sourcePrefix = "webview/src";
+
+const CONTROLLER_COMPONENTS = ["parse", "deriveViews", "commands"];
+const CONTROLLER_COMPONENT_SET = new Set(CONTROLLER_COMPONENTS);
+
+const REQUIRED_FACADES = new Set([
   "controller/parse/index.ts",
   "controller/deriveViews/index.ts",
   "controller/commands/index.ts",
-  "view/index.ts",
+  "view/App/index.ts",
   "view/commands/index.ts",
   "view/views/index.ts",
+  "view/contexts/index.ts",
+]);
+
+const VIEW_FACADES = new Set([
+  "view/App/index.ts",
+  "view/commands/index.ts",
+  "view/views/index.ts",
+  "view/contexts/index.ts",
+]);
+
+const PROHIBITED_BARRELS = [
+  "view/index.ts",
+  "controller/model/index.ts",
+  "shared/index.ts",
 ];
 
-const errors = [];
+const violations = [];
 
-for (const forbidden of ["controller/model/index.ts", "shared/index.ts"]) {
-  if (existsSync(path.join(sourceRoot, forbidden))) {
-    errors.push(`${forbidden}: forbidden barrel file`);
-  }
-}
+main();
 
-for (const file of listSourceFiles(sourceRoot)) {
-  const source = readFileSync(file, "utf8");
-  const relativeFile = toSourceRelative(file);
-
-  if (facadeFiles.includes(relativeFile)) {
-    checkFacadeOnly(relativeFile, source);
+function main() {
+  if (!existsSync(sourceRoot) || !statSync(sourceRoot).isDirectory()) {
+    failConfiguration(`Webview source directory not found: ${sourceRoot}`);
   }
 
-  for (const specifier of readModuleSpecifiers(source)) {
-    const resolved = resolveSourcePath(file, specifier.value);
-    if (!resolved) continue;
-    checkImport(relativeFile, specifier, resolved);
-  }
-}
+  const compilerOptions = readWebviewCompilerOptions();
+  const moduleResolutionCache = ts.createModuleResolutionCache(
+    repoRoot,
+    (fileName) =>
+      ts.sys.useCaseSensitiveFileNames ? fileName : fileName.toLowerCase(),
+    compilerOptions,
+  );
 
-if (errors.length > 0) {
-  for (const error of errors) {
-    console.error(error);
-  }
-  process.exit(1);
-}
+  checkRequiredAndProhibitedFiles();
 
-/**
- * Recursively lists TypeScript source files below a directory.
- */
-function listSourceFiles(dir) {
-  const files = [];
-  for (const entry of readdirSync(dir)) {
-    const fullPath = path.join(dir, entry);
-    const stat = statSync(fullPath);
-    if (stat.isDirectory()) {
-      files.push(...listSourceFiles(fullPath));
-    } else if (/\.(ts|tsx)$/.test(entry) && !entry.endsWith(".d.ts")) {
-      files.push(fullPath);
+  for (const absoluteFile of listSourceFiles(sourceRoot)) {
+    const file = toSourceRelative(absoluteFile);
+    const sourceText = readFileSync(absoluteFile, "utf8");
+    const sourceFile = ts.createSourceFile(
+      absoluteFile,
+      sourceText,
+      ts.ScriptTarget.Latest,
+      true,
+      absoluteFile.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+    );
+
+    if (REQUIRED_FACADES.has(file)) {
+      checkFacade(file, sourceFile, compilerOptions, moduleResolutionCache);
+    }
+
+    for (const dependency of collectDependencies(sourceFile)) {
+      const target = resolveProjectDependency(
+        absoluteFile,
+        dependency.specifier,
+        compilerOptions,
+        moduleResolutionCache,
+      );
+      if (!target) continue;
+
+      checkDependency(file, dependency, target);
     }
   }
-  return files;
-}
 
-function toSourceRelative(file) {
-  return path.relative(sourceRoot, file).split(path.sep).join("/");
-}
+  violations.sort(compareViolations);
 
-function readModuleSpecifiers(source) {
-  const specifiers = [];
-  const importRegex = /import\s+(type\s+)?[\s\S]*?\s+from\s+["']([^"']+)["']/g;
-  const sideEffectImportRegex = /import\s+["']([^"']+)["']/g;
-  const exportRegex = /export\s+(type\s+)?(?:\{[\s\S]*?\}|\*)\s+from\s+["']([^"']+)["']/g;
-
-  for (const match of source.matchAll(importRegex)) {
-    specifiers.push({ value: match[2], isTypeOnly: Boolean(match[1]) });
-  }
-  for (const match of source.matchAll(sideEffectImportRegex)) {
-    specifiers.push({ value: match[1], isTypeOnly: false });
-  }
-  for (const match of source.matchAll(exportRegex)) {
-    specifiers.push({ value: match[2], isTypeOnly: Boolean(match[1]) });
-  }
-
-  return specifiers;
-}
-
-function resolveSourcePath(importerFile, specifier) {
-  if (!specifier.startsWith(".")) return null;
-
-  const absolute = path.normalize(path.join(path.dirname(importerFile), specifier));
-  const relative = path.relative(sourceRoot, absolute);
-  if (relative.startsWith("..")) return null;
-  return relative.split(path.sep).join("/");
-}
-
-function checkImport(file, specifier, target) {
-  const sourceArea = areaFor(file);
-  const targetArea = areaFor(target);
-
-  if (sourceArea === "shared" && ["controller", "view", "extensionBridge"].includes(targetArea)) {
-    report(file, specifier.value, "shared files must not import webview layers");
-  }
-
-  if (sourceArea === "model" && targetArea !== "model" && targetArea !== "shared") {
-    report(file, specifier.value, "controller/model may import only model or shared files");
-  }
-
-  checkStrictLayerDirection(file, specifier, target);
-  checkControllerSiblings(file, specifier, target);
-  checkPublicFacades(file, specifier, target);
-  checkControllerViewImports(file, specifier, target);
-  checkViewSelfFacadeImports(file, specifier, target);
-  checkExtensionBridgeImports(file, specifier, target);
-}
-
-function checkStrictLayerDirection(file, specifier, target) {
-  if (file.startsWith("view/") && target.startsWith("controller/")) {
-    report(file, specifier.value, "view must not import controller in any form");
-  }
-
-  if (file.startsWith("view/") && target.startsWith("extensionBridge/")) {
-    report(file, specifier.value, "view must not import extensionBridge in any form");
-  }
-
-  if (file.startsWith("controller/") && target.startsWith("extensionBridge/")) {
-    report(file, specifier.value, "controller must not import extensionBridge");
-  }
-}
-
-function checkControllerSiblings(file, specifier, target) {
-  const sourceComponent = controllerComponent(file);
-  const targetComponent = controllerComponent(target);
-  if (!sourceComponent || !targetComponent || sourceComponent === targetComponent) return;
-
-  report(
-    file,
-    specifier.value,
-    `controller/${sourceComponent} must not import controller/${targetComponent}`
-  );
-}
-
-function checkPublicFacades(file, specifier, target) {
-  const targetComponent = controllerComponent(target);
-  if (!targetComponent || controllerComponent(file) === targetComponent) return;
-  if (isControllerFacade(target, targetComponent)) return;
-
-  report(
-    file,
-    specifier.value,
-    `external imports must use controller/${targetComponent} public facade`
-  );
-}
-
-function checkControllerViewImports(file, specifier, target) {
-  if (!file.startsWith("controller/") || !isInView(target)) return;
-
-  if (file === "controller/AppController.tsx") {
-    if (isAllowedViewFacade(target, ["view", "view/commands", "view/views"])) return;
-  } else if (file.startsWith("controller/deriveViews/")) {
-    if (isAllowedViewFacade(target, ["view/views"])) return;
-  } else if (file.startsWith("controller/commands/")) {
-    if (isAllowedViewFacade(target, ["view/commands"])) return;
-  }
-
-  report(
-    file,
-    specifier.value,
-    "controller may import view only through the allowed public View facades"
-  );
-}
-
-function checkViewSelfFacadeImports(file, specifier, target) {
-  if (!file.startsWith("view/") || isViewFacadeFile(file) || !isViewFacadeTarget(target)) return;
-
-  report(file, specifier.value, "view implementation files must not import public View facades");
-}
-
-function checkExtensionBridgeImports(file, specifier, target) {
-  if (!file.startsWith("extensionBridge/")) return;
-
-  if (isInView(target)) {
-    report(file, specifier.value, "extensionBridge must not import view directly");
+  if (violations.length > 0) {
+    console.error(
+      `Webview boundary check failed with ${violations.length} violation(s):`,
+    );
+    for (const violation of violations) {
+      console.error(
+        `${sourcePrefix}/${violation.file}:${violation.line}:${violation.column} ` +
+          `[${violation.kind}] ${JSON.stringify(violation.specifier)}\n` +
+          `  rule: ${violation.rule}`,
+      );
+    }
+    process.exitCode = 1;
     return;
   }
 
-  if (!target.startsWith("controller/")) return;
+  console.log("Webview boundary check passed.");
+}
 
-  const importsAppController = target === "controller/AppController";
-  const importsCommandTypes =
-    specifier.isTypeOnly &&
-    controllerComponent(target) === "commands" &&
-    isControllerFacade(target, "commands");
+function readWebviewCompilerOptions() {
+  const configPath = firstExistingPath([
+    path.join(repoRoot, "webview", "tsconfig.json"),
+    path.join(repoRoot, "tsconfig.webview.json"),
+  ]);
 
-  if (!importsAppController && !importsCommandTypes) {
-    report(
+  if (!configPath) {
+    return {
+      jsx: ts.JsxEmit.ReactJSX,
+      module: ts.ModuleKind.ESNext,
+      moduleResolution: ts.ModuleResolutionKind.Bundler,
+      target: ts.ScriptTarget.ES2022,
+    };
+  }
+
+  const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
+  if (configFile.error) {
+    failConfiguration(formatDiagnostics([configFile.error]));
+  }
+
+  const parsed = ts.parseJsonConfigFileContent(
+    configFile.config,
+    ts.sys,
+    path.dirname(configPath),
+    undefined,
+    configPath,
+  );
+
+  if (parsed.errors.length > 0) {
+    failConfiguration(formatDiagnostics(parsed.errors));
+  }
+
+  return parsed.options;
+}
+
+function firstExistingPath(candidates) {
+  return candidates.find((candidate) => existsSync(candidate));
+}
+
+function formatDiagnostics(diagnostics) {
+  return ts.formatDiagnosticsWithColorAndContext(diagnostics, {
+    getCanonicalFileName: (fileName) => fileName,
+    getCurrentDirectory: () => repoRoot,
+    getNewLine: () => "\n",
+  });
+}
+
+function failConfiguration(message) {
+  console.error(`Webview boundary checker configuration error:\n${message}`);
+  process.exit(2);
+}
+
+function checkRequiredAndProhibitedFiles() {
+  for (const facade of [...REQUIRED_FACADES].sort()) {
+    if (!existsSync(path.join(sourceRoot, facade))) {
+      reportFile(facade, "required facade file is missing");
+    }
+  }
+
+  for (const barrel of PROHIBITED_BARRELS) {
+    if (existsSync(path.join(sourceRoot, barrel))) {
+      reportFile(barrel, "root barrel is prohibited");
+    }
+  }
+}
+
+function listSourceFiles(directory) {
+  const files = [];
+
+  for (const entry of readdirSync(directory).sort()) {
+    const absolutePath = path.join(directory, entry);
+    const stat = statSync(absolutePath);
+
+    if (stat.isDirectory()) {
+      files.push(...listSourceFiles(absolutePath));
+    } else if (/\.(?:ts|tsx)$/.test(entry) && !entry.endsWith(".d.ts")) {
+      files.push(absolutePath);
+    }
+  }
+
+  return files;
+}
+
+function collectDependencies(sourceFile) {
+  const dependencies = [];
+
+  function add(node, specifier, isTypeOnly, kind) {
+    const position = sourceFile.getLineAndCharacterOfPosition(
+      node.getStart(sourceFile),
+    );
+    dependencies.push({
+      specifier,
+      isTypeOnly,
+      kind,
+      line: position.line + 1,
+      column: position.character + 1,
+    });
+  }
+
+  function visit(node) {
+    if (
+      ts.isImportDeclaration(node) &&
+      ts.isStringLiteralLike(node.moduleSpecifier)
+    ) {
+      add(
+        node.moduleSpecifier,
+        node.moduleSpecifier.text,
+        isTypeOnlyImportDeclaration(node),
+        node.importClause ? "import" : "side-effect import",
+      );
+      return;
+    }
+
+    if (
+      ts.isExportDeclaration(node) &&
+      node.moduleSpecifier &&
+      ts.isStringLiteralLike(node.moduleSpecifier)
+    ) {
+      add(
+        node.moduleSpecifier,
+        node.moduleSpecifier.text,
+        isTypeOnlyExportDeclaration(node),
+        "re-export",
+      );
+      return;
+    }
+
+    if (
+      ts.isImportEqualsDeclaration(node) &&
+      ts.isExternalModuleReference(node.moduleReference)
+    ) {
+      const expression = node.moduleReference.expression;
+      if (expression && ts.isStringLiteralLike(expression)) {
+        add(
+          expression,
+          expression.text,
+          node.isTypeOnly === true,
+          "import equals",
+        );
+      }
+      return;
+    }
+
+    if (ts.isImportTypeNode(node)) {
+      const argument = node.argument;
+      if (
+        ts.isLiteralTypeNode(argument) &&
+        ts.isStringLiteralLike(argument.literal)
+      ) {
+        add(
+          argument.literal,
+          argument.literal.text,
+          true,
+          "import type expression",
+        );
+      }
+      return;
+    }
+
+    if (
+      ts.isCallExpression(node) &&
+      node.arguments.length === 1 &&
+      ts.isStringLiteralLike(node.arguments[0])
+    ) {
+      const specifier = node.arguments[0].text;
+      if (node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+        add(node.arguments[0], specifier, false, "dynamic import");
+        return;
+      }
+      if (
+        ts.isIdentifier(node.expression) &&
+        node.expression.text === "require"
+      ) {
+        add(node.arguments[0], specifier, false, "require");
+        return;
+      }
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return dependencies;
+}
+
+function isTypeOnlyImportDeclaration(node) {
+  const clause = node.importClause;
+  if (!clause) return false;
+  if (clause.isTypeOnly) return true;
+  if (clause.name) return false;
+
+  const bindings = clause.namedBindings;
+  return (
+    bindings !== undefined &&
+    ts.isNamedImports(bindings) &&
+    bindings.elements.length > 0 &&
+    bindings.elements.every((element) => element.isTypeOnly)
+  );
+}
+
+function isTypeOnlyExportDeclaration(node) {
+  if (node.isTypeOnly) return true;
+  const clause = node.exportClause;
+  return (
+    clause !== undefined &&
+    ts.isNamedExports(clause) &&
+    clause.elements.length > 0 &&
+    clause.elements.every((element) => element.isTypeOnly)
+  );
+}
+
+function resolveProjectDependency(
+  importerFile,
+  specifier,
+  compilerOptions,
+  cache,
+) {
+  const resolved = ts.resolveModuleName(
+    specifier,
+    importerFile,
+    compilerOptions,
+    ts.sys,
+    cache,
+  ).resolvedModule;
+
+  if (!resolved) return null;
+
+  const resolvedFile = path.resolve(resolved.resolvedFileName);
+  const relative = path.relative(sourceRoot, resolvedFile);
+
+  if (
+    relative === "" ||
+    relative.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relative)
+  ) {
+    return null;
+  }
+
+  const target = toPosix(relative);
+  if (!/\.(?:ts|tsx)$/.test(target) || target.endsWith(".d.ts")) return null;
+
+  return target;
+}
+
+function checkDependency(file, dependency, target) {
+  const sourceComponent = controllerComponent(file);
+  const targetComponent = controllerComponent(target);
+
+  if (targetComponent && sourceComponent !== targetComponent) {
+    const facade = controllerFacade(targetComponent);
+    if (target !== facade) {
+      reportDependency(
+        file,
+        dependency,
+        `imports from outside controller/${targetComponent} must target ${facade}`,
+      );
+    }
+  }
+
+  if (
+    sourceComponent &&
+    file.includes("/workers/") &&
+    target === controllerFacade(sourceComponent)
+  ) {
+    reportDependency(
       file,
-      specifier.value,
-      "extensionBridge may import only AppController or command facade types"
+      dependency,
+      `controller/${sourceComponent} workers must not import through their own public facade`,
+    );
+  }
+
+  if (
+    isUnder(file, "view") &&
+    !VIEW_FACADES.has(file) &&
+    VIEW_FACADES.has(target)
+  ) {
+    reportDependency(
+      file,
+      dependency,
+      "View implementation modules must use direct local imports, not View public facades",
+    );
+  }
+
+  const matrixRule = permittedDependencyRule(file, dependency, target);
+  if (matrixRule !== true) {
+    reportDependency(file, dependency, matrixRule);
+  }
+}
+
+function permittedDependencyRule(file, dependency, target) {
+  if (file === "main.tsx") {
+    return target === "extensionBridge/ExtensionBridge.tsx"
+      ? true
+      : "main.tsx may depend only on the Extension Bridge runtime entry";
+  }
+
+  if (isUnder(file, "extensionBridge")) {
+    if (
+      isUnder(target, "extensionBridge") ||
+      isUnder(target, "shared")
+    ) {
+      return true;
+    }
+    if (target === "controller/AppController.tsx") return true;
+    if (
+      target === "controller/commands/index.ts" &&
+      dependency.isTypeOnly
+    ) {
+      return true;
+    }
+    if (target === "controller/commands/index.ts") {
+      return "Extension Bridge may consume controller/commands only through a type-only dependency";
+    }
+    return "Extension Bridge may depend only on its own modules, controller/AppController, type-only controller/commands, or shared";
+  }
+
+  if (file === "controller/AppController.tsx") {
+    if (isControllerComponentFacade(target)) return true;
+    if (
+      isUnder(target, "controller/model") ||
+      isUnder(target, "shared")
+    ) {
+      return true;
+    }
+    if (VIEW_FACADES.has(target)) return true;
+    return "controller/AppController may depend only on Controller component facades, controller/model, view/App, view/commands, view/views, view/contexts, or shared";
+  }
+
+  const sourceComponent = controllerComponent(file);
+  if (sourceComponent === "parse") {
+    if (
+      isUnder(target, "controller/parse") ||
+      isUnder(target, "controller/model") ||
+      isUnder(target, "shared")
+    ) {
+      return true;
+    }
+    return "controller/parse may depend only on its own component, controller/model, or shared";
+  }
+
+  if (sourceComponent === "deriveViews") {
+    if (
+      isUnder(target, "controller/deriveViews") ||
+      isUnder(target, "controller/model") ||
+      target === "view/views/index.ts" ||
+      isUnder(target, "shared")
+    ) {
+      return true;
+    }
+    return "controller/deriveViews may depend only on its own component, controller/model, view/views, or shared";
+  }
+
+  if (sourceComponent === "commands") {
+    if (
+      isUnder(target, "controller/commands") ||
+      isUnder(target, "controller/model") ||
+      target === "view/commands/index.ts" ||
+      isUnder(target, "shared")
+    ) {
+      return true;
+    }
+    return "controller/commands may depend only on its own component, controller/model, view/commands, or shared";
+  }
+
+  if (isUnder(file, "controller/model")) {
+    return (
+      isUnder(target, "controller/model") ||
+      isUnder(target, "shared")
+    )
+      ? true
+      : "controller/model may depend only on controller/model or shared";
+  }
+
+  if (isUnder(file, "view")) {
+    return isUnder(target, "view") || isUnder(target, "shared")
+      ? true
+      : "View modules may depend only on View modules or shared";
+  }
+
+  if (isUnder(file, "shared")) {
+    return isUnder(target, "shared")
+      ? true
+      : "shared modules may depend only on other shared modules";
+  }
+
+  return "source module is outside the configured Webview architecture areas";
+}
+
+function checkFacade(file, sourceFile, compilerOptions, cache) {
+  const reExports = [];
+
+  for (const statement of sourceFile.statements) {
+    if (
+      ts.isExportDeclaration(statement) &&
+      statement.moduleSpecifier &&
+      ts.isStringLiteralLike(statement.moduleSpecifier)
+    ) {
+      reExports.push(statement);
+      continue;
+    }
+
+    const position = sourceFile.getLineAndCharacterOfPosition(
+      statement.getStart(sourceFile),
+    );
+    report({
+      file,
+      line: position.line + 1,
+      column: position.character + 1,
+      kind: "facade",
+      specifier: "<local declaration>",
+      rule: "facade files may contain only comments and re-export declarations",
+    });
+  }
+
+  if (reExports.length === 0) {
+    reportFile(file, "facade must expose at least one re-export declaration");
+  }
+
+  for (const declaration of reExports) {
+    const dependency = dependencyFromExportDeclaration(
+      sourceFile,
+      declaration,
+    );
+    const target = resolveProjectDependency(
+      sourceFile.fileName,
+      dependency.specifier,
+      compilerOptions,
+      cache,
+    );
+    if (!target) {
+      reportDependency(
+        file,
+        dependency,
+        "facade re-exports must resolve to a Webview-owned module",
+      );
+      continue;
+    }
+
+    checkFacadeTarget(file, dependency, target);
+  }
+
+  if (file === "view/App/index.ts") {
+    checkAppFacade(
+      file,
+      sourceFile,
+      reExports,
+      compilerOptions,
+      cache,
     );
   }
 }
 
-function checkFacadeOnly(file, source) {
-  const withoutComments = source
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/\/\/.*$/gm, "")
-    .trim();
-  if (withoutComments === "") return;
+function dependencyFromExportDeclaration(sourceFile, declaration) {
+  const moduleSpecifier = declaration.moduleSpecifier;
+  const position = sourceFile.getLineAndCharacterOfPosition(
+    moduleSpecifier.getStart(sourceFile),
+  );
+  return {
+    specifier: moduleSpecifier.text,
+    isTypeOnly: isTypeOnlyExportDeclaration(declaration),
+    kind: "re-export",
+    line: position.line + 1,
+    column: position.character + 1,
+  };
+}
 
-  for (const statement of withoutComments.split(";")) {
-    const trimmed = statement.trim();
-    if (trimmed !== "" && !trimmed.startsWith("export ")) {
-      errors.push(`${file}: facade files may contain only comments and export declarations`);
-      return;
+function checkFacadeTarget(file, dependency, target) {
+  if (target === file) {
+    reportDependency(file, dependency, "facade must not re-export itself");
+    return;
+  }
+
+  const component = controllerComponent(file);
+  if (component && !isUnder(target, `controller/${component}`)) {
+    reportDependency(
+      file,
+      dependency,
+      `controller/${component} facade may re-export only contracts and runtime entries owned by that component`,
+    );
+    return;
+  }
+
+  if (file === "view/App/index.ts") return;
+
+  if (VIEW_FACADES.has(file)) {
+    if (!isUnder(target, "view") || VIEW_FACADES.has(target)) {
+      reportDependency(
+        file,
+        dependency,
+        "View semantic facades may re-export View-owned implementation contracts, not another facade or another layer",
+      );
     }
   }
 }
 
-function areaFor(relativePath) {
-  if (relativePath === "controller/model") return "model";
-  if (relativePath.startsWith("controller/model/")) return "model";
-  if (relativePath === "controller") return "controller";
-  if (relativePath.startsWith("controller/")) return "controller";
-  if (relativePath === "shared") return "shared";
-  if (relativePath.startsWith("shared/")) return "shared";
-  if (relativePath === "view") return "view";
-  if (relativePath.startsWith("view/")) return "view";
-  if (relativePath === "extensionBridge") return "extensionBridge";
-  if (relativePath.startsWith("extensionBridge/")) return "extensionBridge";
-  return "other";
+function checkAppFacade(
+  file,
+  sourceFile,
+  reExports,
+  compilerOptions,
+  cache,
+) {
+  const runtimeExports = [];
+  let invalidShape = false;
+
+  for (const declaration of reExports) {
+    const dependency = dependencyFromExportDeclaration(
+      sourceFile,
+      declaration,
+    );
+    const target = resolveProjectDependency(
+      sourceFile.fileName,
+      dependency.specifier,
+      compilerOptions,
+      cache,
+    );
+
+    if (!target || !isUnder(target, "view/App")) {
+      reportDependency(
+        file,
+        dependency,
+        "view/App facade must re-export the App runtime from a module owned by view/App",
+      );
+      invalidShape = true;
+    }
+
+    if (
+      declaration.isTypeOnly ||
+      !declaration.exportClause ||
+      !ts.isNamedExports(declaration.exportClause)
+    ) {
+      invalidShape = true;
+      continue;
+    }
+
+    for (const element of declaration.exportClause.elements) {
+      if (element.isTypeOnly) {
+        invalidShape = true;
+        continue;
+      }
+      runtimeExports.push(element.name.text);
+    }
+  }
+
+  if (
+    invalidShape ||
+    runtimeExports.length !== 1 ||
+    runtimeExports[0] !== "App"
+  ) {
+    reportFile(
+      file,
+      "view/App/index.ts may expose exactly one runtime entry: App",
+    );
+  }
 }
 
-function controllerComponent(relativePath) {
-  const match = /^controller\/(parse|deriveViews|commands)(?:\/|$)/.exec(relativePath);
-  return match?.[1] ?? null;
+function controllerComponent(file) {
+  const match = /^controller\/([^/]+)\//.exec(file);
+  return match && CONTROLLER_COMPONENT_SET.has(match[1])
+    ? match[1]
+    : null;
 }
 
-function isControllerFacade(relativePath, component) {
+function controllerFacade(component) {
+  return `controller/${component}/index.ts`;
+}
+
+function isControllerComponentFacade(file) {
+  const component = controllerComponent(file);
+  return component !== null && file === controllerFacade(component);
+}
+
+function isUnder(file, directory) {
+  return file.startsWith(`${directory}/`);
+}
+
+function toSourceRelative(absoluteFile) {
+  return toPosix(path.relative(sourceRoot, absoluteFile));
+}
+
+function toPosix(filePath) {
+  return filePath.split(path.sep).join("/");
+}
+
+function reportDependency(file, dependency, rule) {
+  report({
+    file,
+    line: dependency.line,
+    column: dependency.column,
+    kind: dependency.isTypeOnly
+      ? `${dependency.kind} type-only`
+      : dependency.kind,
+    specifier: dependency.specifier,
+    rule,
+  });
+}
+
+function reportFile(file, rule) {
+  report({
+    file,
+    line: 1,
+    column: 1,
+    kind: "file",
+    specifier: "<file>",
+    rule,
+  });
+}
+
+function report(violation) {
+  const key = [
+    violation.file,
+    violation.line,
+    violation.column,
+    violation.kind,
+    violation.specifier,
+    violation.rule,
+  ].join("\u0000");
+
+  if (violations.some((existing) => existing.key === key)) return;
+  violations.push({ ...violation, key });
+}
+
+function compareViolations(left, right) {
   return (
-    relativePath === `controller/${component}` || relativePath === `controller/${component}/index`
+    left.file.localeCompare(right.file) ||
+    left.line - right.line ||
+    left.column - right.column ||
+    left.rule.localeCompare(right.rule)
   );
-}
-
-function isInView(relativePath) {
-  return relativePath === "view" || relativePath.startsWith("view/");
-}
-
-function isAllowedViewFacade(relativePath, allowedFacades) {
-  return allowedFacades.some(
-    (facade) => relativePath === facade || relativePath === `${facade}/index`
-  );
-}
-
-function isViewFacadeTarget(relativePath) {
-  return isAllowedViewFacade(relativePath, ["view", "view/commands", "view/views"]);
-}
-
-function isViewFacadeFile(relativePath) {
-  return (
-    relativePath === "view/index.ts" ||
-    relativePath === "view/commands/index.ts" ||
-    relativePath === "view/views/index.ts"
-  );
-}
-
-function report(file, specifier, message) {
-  errors.push(`${file}: ${specifier}: ${message}`);
 }

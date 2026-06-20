@@ -1,6 +1,6 @@
 # Architectural Standards
 
-> **Implementation state:** Current  
+> **Implementation state:** Aspirational
 > **Document state:** Maintained
 > **Last reviewed:** 2026-06-19  
 > **Scope:** Structural rules for production code in the Extension Host and Webview
@@ -245,7 +245,6 @@ A component folder may use the following roles:
 - Files are optional; their responsibilities are fixed.
 - Folder nesting represents ownership, not incidental DOM depth.
 - Exclusive children are nested; independent features remain siblings.
-- Empty files, hooks, and folders must not reserve hypothetical structure.
 
 #### 6.2.1 Command ownership
 

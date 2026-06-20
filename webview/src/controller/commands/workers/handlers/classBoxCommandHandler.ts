@@ -2,7 +2,7 @@
  * @fileoverview Handles View class movement and resizing commands.
  */
 
-import type { ClassBoxCommand } from "../../../../view/commands";
+import type { ClassBoxCommand, ClassMoveCommand } from "../../../../view/commands";
 import type { CommandContext, CommandResult } from "../../commandExecution";
 import { formatSpatialAnnotation } from "../sourceFormatting";
 
@@ -10,7 +10,7 @@ import { formatSpatialAnnotation } from "../sourceFormatting";
  * Handles class box movement and resizing source edits.
  */
 export function handleClassBoxCommand(
-  command: ClassBoxCommand,
+  command: ClassMoveCommand | ClassBoxCommand,
   context: CommandContext
 ): CommandResult {
   const node = context.model.classes.get(command.classId);

@@ -3,10 +3,16 @@
  */
 
 import type { Point, Rect } from "../../../../shared/geometry";
-import type { NamespaceId, NoteId, RelationshipId } from "../../../../shared/ids";
+import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../../../shared/ids";
 import type { RelationshipType } from "../../../../shared/relationshipTypes";
 import type { StylePropertyName } from "../../../../shared/styleTypes";
 import type { ClassBoxCommand, ClassContentCommand } from "./ClassBox/commands";
+
+export type ClassMoveCommand = {
+  readonly type: "class.move";
+  readonly classId: ClassId;
+  readonly rect: Rect;
+};
 
 export type NamespaceCommand =
   | { readonly type: "namespace.move"; readonly namespaceId: NamespaceId; readonly delta: Point }
@@ -41,6 +47,7 @@ export type NoteCommand =
   | { readonly type: "note.setText"; readonly noteId: NoteId; readonly text: string };
 
 export type ClassDiagramCommand =
+  | ClassMoveCommand
   | ClassBoxCommand
   | ClassContentCommand
   | NamespaceCommand

@@ -10,7 +10,7 @@ import { useEditorDispatch } from "../../../contexts/EditorDispatchContext";
 import { useCanvasState } from "../../../contexts/CanvasStateContext";
 import type { ClassBoxNodeDescriptor } from "./reactFlowAdapters";
 
-type UseClassBoxControllerResult = {
+type UseClassBoxInteractionsResult = {
   onNodeDragStop: OnNodeDrag<ClassBoxNodeDescriptor>;
   onNodeClick: (event: MouseEvent, node: ClassBoxNodeDescriptor) => void;
 };
@@ -18,7 +18,9 @@ type UseClassBoxControllerResult = {
 /**
  * Dispatches class movement and selection updates from ReactFlow node events.
  */
-export function useClassBoxNodeInteractions(views: ElementViews | null): UseClassBoxControllerResult {
+export function useClassBoxNodeInteractions(
+  views: ElementViews | null
+): UseClassBoxInteractionsResult {
   const dispatch = useEditorDispatch();
   const { setCanvasState } = useCanvasState();
 

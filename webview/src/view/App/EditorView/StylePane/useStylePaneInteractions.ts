@@ -7,22 +7,22 @@ import type { ClassBoxView } from "../ClassDiagram/ClassBox/views";
 import type { ClassId } from "../../../../shared/ids";
 import { useEditorDispatch } from "../../../contexts/EditorDispatchContext";
 
-type UseStylePaneControllerOptions = {
+type UseStylePaneInteractionsOptions = {
   selectedClassId: ClassId | null;
   selectedView: ClassBoxView | undefined;
 };
 
-type UseStylePaneControllerResult = {
+type UseStylePaneInteractionsResult = {
   onFillColorChange: (fill: string) => void;
 };
 
 /**
  * Dispatches class style updates from style-pane controls.
  */
-export function useStylePaneController({
+export function useStylePaneInteractions({
   selectedClassId,
   selectedView,
-}: UseStylePaneControllerOptions): UseStylePaneControllerResult {
+}: UseStylePaneInteractionsOptions): UseStylePaneInteractionsResult {
   const dispatch = useEditorDispatch();
 
   const onFillColorChange = useCallback(
