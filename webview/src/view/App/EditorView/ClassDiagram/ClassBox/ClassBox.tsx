@@ -1,8 +1,9 @@
 import type { ReactElement } from "react";
 import type { Node, NodeProps } from "@xyflow/react";
-import { Handle, Position } from "@xyflow/react";
+import { Handle, NodeResizer, Position } from "@xyflow/react";
 import type { ClassBoxView } from "./views";
 import MemberTable from "./MemberTable/MemberTable";
+import { useClassBoxInteractions } from "./useClassBoxInteractions";
 import styles from "./ClassBox.module.css";
 
 type ClassBoxNode = Node<ClassBoxView, "classBox">;
@@ -22,14 +23,13 @@ const CONNECTION_HANDLES: ReadonlyArray<{
   { id: "target-left", type: "target", position: Position.Left },
 ];
 
-const resizeHandles = ["nw", "n", "ne", "e", "se", "s", "sw", "w"] as const;
-
 /**
  * Renders a ReactFlow class-box node with members and connection handles.
  */
-export default function ClassBox({ data, selected }: NodeProps<ClassBoxNode>): ReactElement {
+export default function ClassBox({ id, data, selected }: NodeProps<ClassBoxNode>): ReactElement {
   const fields = data.members.filter((m) => m.kind === "field");
   const methods = data.members.filter((m) => m.kind === "method");
+  const { onResizeEnd } = useClassBoxInteractions(data);
 
   const dynamicVars = data.style
     ? ({
@@ -45,6 +45,15 @@ export default function ClassBox({ data, selected }: NodeProps<ClassBoxNode>): R
       style={dynamicVars}
       title={data.classId}
     >
+      <NodeResizer
+        nodeId={id}
+        isVisible={selected}
+        minWidth={80}
+        minHeight={48}
+        handleClassName={styles.resizeHandle}
+        lineClassName={styles.resizeLine}
+        onResizeEnd={onResizeEnd}
+      />
       {CONNECTION_HANDLES.map(({ id, type, position }) => (
         <Handle
           key={id}
@@ -66,15 +75,6 @@ export default function ClassBox({ data, selected }: NodeProps<ClassBoxNode>): R
         </div>
       </header>
       <MemberTable fields={fields} methods={methods} />
-      {selected
-        ? resizeHandles.map((handle) => (
-            <span
-              key={handle}
-              className={`${styles.resizeHandle} ${styles[handle]}`}
-              aria-hidden="true"
-            />
-          ))
-        : null}
     </div>
   );
 }
