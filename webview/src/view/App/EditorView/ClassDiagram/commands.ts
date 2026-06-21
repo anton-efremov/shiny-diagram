@@ -7,6 +7,7 @@ import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../../../s
 import type { RelationshipType } from "../../../../shared/relationshipTypes";
 import type { StylePropertyName } from "../../../../shared/styleTypes";
 import type { ClassBoxCommand, ClassContentCommand } from "./ClassBox/commands";
+import type { PlacementOverlayCommand } from "./PlacementOverlay/commands";
 
 export type ClassMoveCommand = {
   readonly type: "class.move";
@@ -46,10 +47,20 @@ export type NoteCommand =
   | { readonly type: "note.resize"; readonly noteId: NoteId; readonly rect: Rect }
   | { readonly type: "note.setText"; readonly noteId: NoteId; readonly text: string };
 
+/**
+ * Aggregates every command that can leave the ClassDiagram subtree.
+ *
+ * This gives the View-level `EditorCommand` contract one stable diagram boundary
+ * instead of forcing it to enumerate every nested ClassDiagram component. When
+ * internal diagram components are added, removed, or rearranged, only this
+ * aggregate should need to change; external consumers keep depending on the
+ * diagram-level command family.
+ */
 export type ClassDiagramCommand =
   | ClassMoveCommand
   | ClassBoxCommand
   | ClassContentCommand
+  | PlacementOverlayCommand
   | NamespaceCommand
   | RelationshipCommand
   | NoteCommand;

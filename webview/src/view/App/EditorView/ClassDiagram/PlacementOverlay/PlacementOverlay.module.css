@@ -1,0 +1,20 @@
+/**
+ * @fileoverview Styles for the diagram placement overlay.
+ */
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: transparent;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.draftRect {
+  position: absolute;
+  border: 1px solid var(--shiny-accent);
+  background: var(--shiny-overlay-faint);
+  pointer-events: none;
+}

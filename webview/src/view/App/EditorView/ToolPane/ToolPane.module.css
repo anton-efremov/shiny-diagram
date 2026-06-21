@@ -41,7 +41,24 @@
 }
 
 .toolButton:hover {
+  border-color: var(--shiny-button-border);
+}
+
+.enabledToolButton {
+  color: var(--shiny-text);
+  cursor: pointer;
+  opacity: 1;
+}
+
+.enabledToolButton:hover,
+.enabledToolButton:focus-visible {
   border-color: var(--shiny-accent);
+}
+
+.activeToolButton {
+  border-color: var(--shiny-accent);
+  background: var(--shiny-button-bg);
+  color: var(--shiny-button-fg);
 }
 
 .toolIcon {

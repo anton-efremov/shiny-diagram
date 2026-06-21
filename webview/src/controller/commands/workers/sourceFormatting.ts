@@ -3,7 +3,15 @@
  */
 
 import type { StyleDefNode } from "../../model/diagramTree";
+import type { ClassId } from "../../../shared/ids";
 import type { StylePropertyName } from "../../../shared/styleTypes";
+
+/**
+ * Formats a minimal Mermaid class declaration line.
+ */
+export function formatClassDeclaration(classId: ClassId): string {
+  return `class ${classId}`;
+}
 
 /**
  * Formats a complete Shiny spatial annotation line.

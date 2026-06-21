@@ -4,6 +4,7 @@
 
 import type { EditorCommand } from "../../view/commands";
 import type { CommandContext, CommandResult } from "./commandExecution";
+import { handleClassAddCommand } from "./workers/handlers/classAddCommandHandler";
 import { handleClassBoxCommand } from "./workers/handlers/classBoxCommandHandler";
 import { handleClassContentCommand } from "./workers/handlers/classContentCommandHandler";
 import { handleGenerateCommand } from "./workers/handlers/generateCommandHandler";
@@ -17,6 +18,9 @@ import { handleStyleCommand } from "./workers/handlers/styleCommandHandler";
  */
 export function applyCommand(command: EditorCommand, context: CommandContext): CommandResult {
   switch (command.type) {
+    case "class.add":
+      return handleClassAddCommand(command, context);
+
     case "class.move":
     case "class.resize":
       return handleClassBoxCommand(command, context);

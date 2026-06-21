@@ -13,6 +13,7 @@ import { useCanvasState } from "../../../contexts/CanvasStateContext";
 import { useClassBoxNodeInteractions } from "./useClassBoxNodeInteractions";
 import { useCanvasInteractions } from "./useCanvasInteractions";
 import ClassBox from "./ClassBox/ClassBox";
+import PlacementOverlay from "./PlacementOverlay/PlacementOverlay";
 import {
   type ClassBoxNodeDescriptor,
   type RelationshipEdgeDescriptor,
@@ -27,6 +28,7 @@ import styles from "./ClassDiagram.module.css";
 export default function ClassDiagram(): ReactElement {
   const { elementViews } = useEditorState();
   const { canvasState } = useCanvasState();
+  const isPlacementActive = canvasState.placementMode !== null;
 
   const [rfNodes, setRfNodes] = useState<ClassBoxNodeDescriptor[]>(() =>
     toClassBoxNodeDescriptors(elementViews?.classes ?? [], canvasState.selectedClassId)
@@ -54,30 +56,30 @@ export default function ClassDiagram(): ReactElement {
 
   return (
     <section className={styles.diagramShell} aria-label="Static editor boxes">
-      {rfNodes.length === 0 ? (
-        <p className={styles.emptyState}>No spatial annotations found.</p>
-      ) : (
-        <ReactFlowProvider>
-          <ReactFlow
-            nodes={rfNodes}
-            edges={rfEdges}
-            nodeTypes={{ classBox: ClassBox }}
-            onNodesChange={handleNodesChange}
-            onNodeClick={onNodeClick}
-            onPaneClick={onPaneClick}
-            onNodeDragStop={onNodeDragStop}
-            fitView
-            nodesDraggable
-            nodesConnectable={false}
-            elementsSelectable={false}
-            panOnDrag
-            zoomOnScroll
-          >
-            <Background />
-            <Controls showInteractive={false} />
-          </ReactFlow>
-        </ReactFlowProvider>
-      )}
+      <ReactFlowProvider>
+        <ReactFlow
+          nodes={rfNodes}
+          edges={rfEdges}
+          nodeTypes={{ classBox: ClassBox }}
+          onNodesChange={handleNodesChange}
+          onNodeClick={onNodeClick}
+          onPaneClick={onPaneClick}
+          onNodeDragStop={onNodeDragStop}
+          fitView
+          nodesDraggable={!isPlacementActive}
+          nodesConnectable={false}
+          elementsSelectable={false}
+          panOnDrag={!isPlacementActive}
+          zoomOnScroll
+        >
+          {rfNodes.length === 0 ? (
+            <p className={styles.emptyState}>No spatial annotations found.</p>
+          ) : null}
+          <Background />
+          <Controls showInteractive={false} />
+          <PlacementOverlay placementMode={canvasState.placementMode} />
+        </ReactFlow>
+      </ReactFlowProvider>
     </section>
   );
 }

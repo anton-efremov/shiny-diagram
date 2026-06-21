@@ -17,6 +17,10 @@ export type {
   ClassContentCommand,
 } from "../App/EditorView/ClassDiagram/ClassBox/commands";
 export type {
+  ClassAddCommand,
+  PlacementOverlayCommand,
+} from "../App/EditorView/ClassDiagram/PlacementOverlay/commands";
+export type {
   MemberCommand,
   MemberPrefix,
 } from "../App/EditorView/ClassDiagram/ClassBox/MemberTable/commands";

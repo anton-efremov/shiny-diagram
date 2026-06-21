@@ -2,7 +2,7 @@
 
 > **Implementation state:** Current  
 > **Document state:** Stale  
-> **Last reviewed:** 2026-06-20  
+> **Last reviewed:** 2026-06-21  
 > **Scope:** Current subsystem responsibilities, data contracts, synchronization, and calculations
 
 ## Index
@@ -304,6 +304,7 @@ The current declaration and implementation coverage is:
 |---|---|---|---|---|
 | Generate | `{ type: "generate" }` | Emitted by the header when editor mode reports missing annotations; implemented | [AppHeader/commands.ts](../../../webview/src/view/App/AppHeader/commands.ts), [AppHeader.tsx](../../../webview/src/view/App/AppHeader/AppHeader.tsx) | [generateCommandHandler.ts](../../../webview/src/controller/commands/workers/handlers/generateCommandHandler.ts) |
 | Class geometry | `class.move` or `class.resize` with `classId` and `rect: Rect` | `class.move` is emitted after React Flow drag-stop; both discriminants are implemented by the same handler. The current View has no `class.resize` dispatch path, although [ClassBox.tsx](../../../webview/src/view/App/EditorView/ClassDiagram/ClassBox/ClassBox.tsx) renders resize-handle elements. | [ClassBox/commands.ts](../../../webview/src/view/App/EditorView/ClassDiagram/ClassBox/commands.ts), [useClassBoxNodeInteractions.ts](../../../webview/src/view/App/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts) | [classBoxCommandHandler.ts](../../../webview/src/controller/commands/workers/handlers/classBoxCommandHandler.ts) |
+| Class placement | `class.add` with the drawn flow-space rectangle | The Class tool activates transient class-placement mode through Canvas State. [`PlacementOverlay`](../../../webview/src/view/App/EditorView/ClassDiagram/PlacementOverlay/PlacementOverlay.tsx) owns the full-viewport drawing surface, converts pointer positions to React Flow coordinates, emits `class.add` with the normalized final rectangle, and exits placement mode after a meaningful draw. Existing boxes may be drawn over through the overlay placement surface; overlap is allowed, and the existing selection is not changed. | [PlacementOverlay/commands.ts](../../../webview/src/view/App/EditorView/ClassDiagram/PlacementOverlay/commands.ts), [ToolPane.tsx](../../../webview/src/view/App/EditorView/ToolPane/ToolPane.tsx), [useToolPaneInteractions.ts](../../../webview/src/view/App/EditorView/ToolPane/useToolPaneInteractions.ts), [usePlacementOverlayInteractions.ts](../../../webview/src/view/App/EditorView/ClassDiagram/PlacementOverlay/usePlacementOverlayInteractions.ts) | [classAddCommandHandler.ts](../../../webview/src/controller/commands/workers/handlers/classAddCommandHandler.ts) |
 | Class content | `class.header.setLabel` carries `classId`, `label`; `class.member.setText` carries `classId`, `memberId`, `text`; `class.member.setPrefix` carries `classId`, `memberId`, `prefix: MemberPrefix` | Header and members are rendered read-only; the handler returns `ok: false` with “not yet implemented” | [ClassBox/commands.ts](../../../webview/src/view/App/EditorView/ClassDiagram/ClassBox/commands.ts), [MemberTable/commands.ts](../../../webview/src/view/App/EditorView/ClassDiagram/ClassBox/MemberTable/commands.ts), [MemberTable.tsx](../../../webview/src/view/App/EditorView/ClassDiagram/ClassBox/MemberTable/MemberTable.tsx) | [classContentCommandHandler.ts](../../../webview/src/controller/commands/workers/handlers/classContentCommandHandler.ts) |
 | Namespace | `namespace.move` carries `namespaceId`, `delta: Point`; `namespace.setStyle` carries `namespaceId`, `property`, `value` | Namespace views are derived but not rendered; the handler returns “not yet implemented” | [ClassDiagram/commands.ts](../../../webview/src/view/App/EditorView/ClassDiagram/commands.ts), [ElementViews](../../../webview/src/view/App/EditorView/views.ts) | [namespaceCommandHandler.ts](../../../webview/src/controller/commands/workers/handlers/namespaceCommandHandler.ts) |
 | Relationship | `relationship.setType` carries `relationshipId`, `relationType`; `relationship.setMultiplicity` carries `relationshipId`, `endpoint`, `value`; `relationship.setLabel` carries `relationshipId`, `label` | Relationships are displayed as non-editable default React Flow edges; the handler returns “not yet implemented” | [ClassDiagram/commands.ts](../../../webview/src/view/App/EditorView/ClassDiagram/commands.ts), [reactFlowAdapters.ts](../../../webview/src/view/App/EditorView/ClassDiagram/reactFlowAdapters.ts) | [relationshipCommandHandler.ts](../../../webview/src/controller/commands/workers/handlers/relationshipCommandHandler.ts) |
@@ -321,10 +322,12 @@ The current View-owned [`CanvasState`](../../../webview/src/view/contexts/canvas
 ```ts
 type CanvasState = {
   selectedClassId: ClassId | null;
+  placementMode: "class" | null;
 };
 
 const defaultCanvasState: CanvasState = {
   selectedClassId: null,
+  placementMode: null,
 };
 ```
 
@@ -338,6 +341,8 @@ type CanvasStateContextValue = {
 ```
 
 [`AppController`](../../../webview/src/controller/AppController.tsx) hosts the state, shallow-merges partial updates, and clears `selectedClassId` when the selected class disappears from the latest `ElementViews`. [`useClassBoxNodeInteractions`](../../../webview/src/view/App/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts) selects a class on node click, and [`useCanvasInteractions`](../../../webview/src/view/App/EditorView/ClassDiagram/useCanvasInteractions.ts) clears selection on pane click.
+
+`placementMode` is transient View-owned state. [`ToolPane`](../../../webview/src/view/App/EditorView/ToolPane/ToolPane.tsx) activates class placement through the Canvas State update boundary and does not emit a source-changing command. [`PlacementOverlay`](../../../webview/src/view/App/EditorView/ClassDiagram/PlacementOverlay/PlacementOverlay.tsx) is rendered over the React Flow viewport while placement is active; it owns the pointer drawing surface, keeps the drag origin and draft rectangle locally, converts pointer positions to flow-space coordinates with React Flow, emits `class.add` with the normalized final rectangle, then clears `placementMode`. Normal node selection, movement, and resizing are suspended by the overlay while placement is active.
 
 ## 7. Controller component contracts
 
@@ -508,6 +513,7 @@ Current handler behavior:
 | Handler | Current calculation | Emitted `SourceEdit` kinds |
 |---|---|---|
 | [Generate](../../../webview/src/controller/commands/workers/handlers/generateCommandHandler.ts) | Replaces malformed spatial annotations; lays out missing classes in one horizontal row below existing boxes; appends new annotation text by replacing an anchor line with multiline text | `replaceLine`, `replaceRange` |
+| [Class add](../../../webview/src/controller/commands/workers/handlers/classAddCommandHandler.ts) | Generates `NewClass` or the first available numbered variant from every model class, including implicit classes; accepts the View-defined rectangle; inserts a minimal class declaration before the existing spatial-annotation section and appends the new `@spatial` after existing spatial annotations. If no spatial section exists, appends both lines after existing diagram content. Overlap is allowed, and automatic selection is outside this feature. | Zero-width `SourceEdit` insertions |
 | [Class box](../../../webview/src/controller/commands/workers/handlers/classBoxCommandHandler.ts) | Rewrites the existing spatial-annotation line with the requested rectangle | `replaceLine` |
 | [Style](../../../webview/src/controller/commands/workers/handlers/styleCommandHandler.ts) | Rewrites an existing applied `classDef` line with one property inserted or replaced | `replaceLine` |
 | [Class content](../../../webview/src/controller/commands/workers/handlers/classContentCommandHandler.ts) | Returns `ok: false` / not implemented | None |
@@ -543,7 +549,7 @@ The currently wired persisted-edit paths are Generate, class movement, and class
 
 | Producer | Input data | Current calculation | Implementation |
 |---|---|---|---|
-| Header / interaction hook | Button, React Flow drag-stop, or color input event | Emits `generate`, `class.move`, or `style.setClassProperty` | [AppHeader.tsx](../../../webview/src/view/App/AppHeader/AppHeader.tsx), [useClassBoxNodeInteractions.ts](../../../webview/src/view/App/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts), [useStylePaneInteractions.ts](../../../webview/src/view/App/EditorView/StylePane/useStylePaneInteractions.ts) |
+| Header / interaction hook | Button, React Flow drag-stop, color input event, or placement-overlay draw | Emits `generate`, `class.move`, `style.setClassProperty`, or `class.add` | [AppHeader.tsx](../../../webview/src/view/App/AppHeader/AppHeader.tsx), [useClassBoxNodeInteractions.ts](../../../webview/src/view/App/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts), [useStylePaneInteractions.ts](../../../webview/src/view/App/EditorView/StylePane/useStylePaneInteractions.ts), [usePlacementOverlayInteractions.ts](../../../webview/src/view/App/EditorView/ClassDiagram/PlacementOverlay/usePlacementOverlayInteractions.ts) |
 | AppController | `EditorCommand`, current `sourceText`, current non-invalid model, optional malformed annotations | Builds `CommandContext`, calls `applyCommand`, and forwards only successful non-empty edits | [AppController.tsx](../../../webview/src/controller/AppController.tsx) |
 | Commands | `EditorCommand`, `CommandContext` | Calculates `CommandResult` and supported `SourceEdit[]` | [applyCommand.ts](../../../webview/src/controller/commands/applyCommand.ts), [commandExecution.ts](../../../webview/src/controller/commands/commandExecution.ts) |
 | Extension Bridge | `SourceEdit[]` | Converts supported edits to `LineEdit[]`; drops unsupported variants; posts `ApplyEditsMessage` when non-empty | [ExtensionBridge.tsx](../../../webview/src/extensionBridge/ExtensionBridge.tsx), [protocol.ts](../../../webview/src/extensionBridge/protocol.ts) |

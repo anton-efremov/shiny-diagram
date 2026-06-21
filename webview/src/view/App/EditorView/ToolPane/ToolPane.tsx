@@ -1,4 +1,6 @@
 import type { ReactElement } from "react";
+import { useCanvasState } from "../../../contexts/CanvasStateContext";
+import { useToolPaneInteractions } from "./useToolPaneInteractions";
 import styles from "./ToolPane.module.css";
 
 type ToolPaneItem = { icon: string; name: string };
@@ -30,26 +32,41 @@ const relationshipTools: ToolPaneItem[] = [
 ];
 
 /**
- * Renders currently disabled diagram creation tools.
+ * Renders diagram creation tools.
  */
 export default function ToolPane(): ReactElement {
+  const { canvasState } = useCanvasState();
+  const { onClassToolClick } = useToolPaneInteractions();
+  const isClassPlacementActive = canvasState.placementMode === "class";
+
   return (
     <aside className={styles.toolPane} aria-label="Diagram tools">
       <div className={styles.toolGroup} aria-label="Class elements">
-        {classTools.map((tool) => (
-          <button
-            key={tool.name}
-            className={styles.toolButton}
-            type="button"
-            aria-disabled="true"
-            tabIndex={-1}
-            title={tool.name}
-          >
-            <span className={styles.toolIcon} aria-hidden="true">
-              {tool.icon}
-            </span>
-          </button>
-        ))}
+        {classTools.map((tool, index) => {
+          const isClassTool = index === 0;
+          return (
+            <button
+              key={tool.name}
+              className={[
+                styles.toolButton,
+                isClassTool ? styles.enabledToolButton : "",
+                isClassTool && isClassPlacementActive ? styles.activeToolButton : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              type="button"
+              aria-disabled={isClassTool ? undefined : "true"}
+              aria-pressed={isClassTool ? isClassPlacementActive : undefined}
+              tabIndex={isClassTool ? 0 : -1}
+              title={tool.name}
+              onClick={isClassTool ? onClassToolClick : undefined}
+            >
+              <span className={styles.toolIcon} aria-hidden="true">
+                {tool.icon}
+              </span>
+            </button>
+          );
+        })}
       </div>
       <div className={styles.toolGroup} aria-label="Relationship elements">
         {relationshipTools.map((tool) => (
