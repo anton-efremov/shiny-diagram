@@ -1,0 +1,188 @@
+/**
+ * @fileoverview Styles for the selected class style inspector.
+ */
+
+.stylePane {
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  max-height: 620px;
+  overflow: hidden;
+  border: 1px solid var(--shiny-border);
+  background: var(--shiny-surface);
+}
+
+.header {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--shiny-border);
+  color: var(--shiny-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.emptySelection {
+  flex: 1;
+  min-height: 120px;
+  background: var(--shiny-overlay-faint);
+}
+
+.selectionPanel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+  padding: 12px;
+  overflow: auto;
+}
+
+.selectionSummary {
+  display: grid;
+  grid-template-columns: 3px minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
+}
+
+.selectionAccent {
+  background: var(--shiny-accent);
+}
+.selectionCopy {
+  min-width: 0;
+}
+
+.selectionType {
+  margin-bottom: 3px;
+  color: var(--shiny-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.className {
+  margin: 0;
+  overflow: hidden;
+  color: var(--shiny-text);
+  font-size: 15px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stereotype {
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--shiny-text-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.previewCard {
+  overflow: hidden;
+  border: 1px solid var(--style-stroke, var(--shiny-border));
+  color: var(--style-color, var(--shiny-text));
+  background: var(--style-fill, var(--shiny-surface));
+}
+
+.previewHeader {
+  padding: 8px 10px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--style-stroke, var(--shiny-border));
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.previewBody {
+  min-height: 42px;
+  padding: 10px;
+  color: var(--style-color, var(--shiny-text));
+  font-size: 12px;
+}
+
+.styleName {
+  font-weight: 600;
+}
+
+.styleList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.styleRow {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-height: 30px;
+}
+
+.styleLabel {
+  color: var(--shiny-text-muted);
+  font-size: 12px;
+}
+
+.styleValue {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+  color: var(--shiny-text);
+  font-size: 12px;
+}
+
+.colorControl {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+  cursor: pointer;
+}
+
+.colorInputLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.colorInput {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--shiny-accent);
+  background: var(--shiny-surface);
+  cursor: pointer;
+}
+
+.styleValue span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.swatch {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--shiny-border);
+}
+
+.fillSwatch {
+  background: var(--style-fill, var(--shiny-surface));
+}
+.strokeSwatch {
+  background: var(--style-stroke, var(--shiny-border));
+}
+.textSwatch {
+  background: var(--style-color, var(--shiny-text));
+}

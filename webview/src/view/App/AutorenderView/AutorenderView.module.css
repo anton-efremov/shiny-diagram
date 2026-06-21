@@ -1,0 +1,21 @@
+/**
+ * @fileoverview Styles for the Mermaid autorender canvas.
+ */
+
+.canvas {
+  min-height: 420px;
+  padding: 20px;
+  border: 1px solid var(--shiny-border);
+  background: var(--shiny-surface);
+  overflow: auto;
+}
+
+.error {
+  white-space: pre-wrap;
+  color: var(--shiny-text-error);
+}
+
+.mermaidOutput :global(svg) {
+  max-width: 100%;
+  height: auto;
+}

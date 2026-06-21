@@ -1,0 +1,72 @@
+@import "@xyflow/react/dist/style.css";
+
+/* --- Design tokens: palette --- */
+
+:root {
+  /* Color palette — named by character, not by where they're applied.
+     Components pick whichever entry fits. */
+  --shiny-surface: var(--vscode-editorWidget-background);
+  --shiny-page-bg: var(--vscode-editor-background);
+  --shiny-border: var(--vscode-panel-border);
+  --shiny-text: var(--vscode-editor-foreground);
+  --shiny-text-muted: var(--vscode-descriptionForeground);
+  --shiny-text-error: var(--vscode-errorForeground);
+  --shiny-accent: var(--vscode-focusBorder);
+
+  /* Typography */
+  --shiny-font-family: var(--vscode-font-family);
+  --shiny-code-font-family: var(--vscode-editor-font-family, monospace);
+
+  /* Buttons — VS Code's own button role tokens */
+  --shiny-button-bg: var(--vscode-button-background);
+  --shiny-button-fg: var(--vscode-button-foreground);
+  --shiny-button-secondary-bg: var(--vscode-button-secondaryBackground);
+  --shiny-button-secondary-fg: var(--vscode-button-secondaryForeground);
+  --shiny-button-border: var(--vscode-button-border, transparent);
+}
+
+/* --- ClassBox layout metrics — shared with formatters/classDiagram/layout/ ---
+   defaultWidth/defaultHeight/margin are read by gridPlacement today.
+   The rest are exported for future content-aware box sizing, not yet consumed. */
+:root {
+  --shiny-classbox-default-width: 200px;
+  --shiny-classbox-default-height: 150px;
+  --shiny-classbox-margin: 40px;
+  --shiny-classbox-font-size: 13px;
+  --shiny-classbox-member-font-size: 12px;
+  --shiny-classbox-member-line-height: 16px;
+  --shiny-classbox-header-min-height: 42px;
+}
+
+/* No VS Code equivalent for a subtle hover wash — define per theme kind. */
+body[data-vscode-theme-kind="vscode-light"] {
+  --shiny-overlay-faint: rgba(0, 0, 0, 0.03);
+}
+
+body[data-vscode-theme-kind="vscode-dark"] {
+  --shiny-overlay-faint: rgba(255, 255, 255, 0.03);
+}
+
+body[data-vscode-theme-kind="vscode-high-contrast"] {
+  --shiny-overlay-faint: transparent;
+}
+
+/* --- Base/default styles --- */
+
+/* Universal: width/height include padding+border, so spatial.width/height in
+   the diagram source match rendered pixels exactly. */
+* {
+  box-sizing: border-box;
+}
+
+/* Browser default ~8px margin on body, removed. */
+body {
+  margin: 0;
+}
+
+/* Inherited defaults: every element gets Shiny's theme font/color unless it
+   sets its own. */
+body {
+  font-family: var(--shiny-font-family);
+  color: var(--shiny-text);
+}

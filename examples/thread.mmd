@@ -1,0 +1,55 @@
+classDiagram
+direction TB
+    class ConversationThread {
+	    +UUID id
+	    +List~TextMessage~ messages
+	    +List~UserContact~ participants
+	    +addMessage(TextMessage message) void
+	    +addParticipant(UserContact participant) void
+    }
+
+    class TextMessage {
+	    +UUID id
+	    +String content
+	    +DateTime timestamp
+	    +UserContact sender
+	    +List~FileAttachment~ attachments
+	    +attachFile(FileAttachment attachment) void
+	    +removeAttachment(UUID attachmentId) void
+    }
+
+    class UserContact {
+	    +UUID id
+	    +String name
+	    +String emailAddress
+	    +List~CommunicationChannel~ preferredChannels
+	    +addCommunicationChannel(CommunicationChannel channel) void
+	    +removeCommunicationChannel(UUID channelId) void
+    }
+
+    ConversationThread --> TextMessage : contains
+    ConversationThread --> UserContact : involves
+
+    %% Native Style Applications
+    class ConversationThread:::Rose
+    class TextMessage:::Pine
+    class UserContact:::Pine
+
+    %% Native Style Definitions
+    classDef Rose stroke-width:1px,stroke-dasharray:none,stroke:#FF5978,fill:#e6e9ef,color:#8E2236
+    classDef Pine stroke-width:1px,stroke-dasharray:none,stroke:#254336,fill:#697771,color:#FFFFFF
+
+%% @spatial:TextMessage x=196 y=149 w=200 h=150
+%% @spatial:UserContact x=39 y=-34 w=200 h=150
+%% @spatial:ConversationThread x=-55 y=196 w=200 h=150
+
+
+
+
+
+
+
+
+
+
+
