@@ -1,7 +1,7 @@
 # System Architecture
 
 > **Implementation state:** Current  
-> **Document state:** Work-in-progress  
+> **Document state:** Maintained  
 > **Last reviewed:** 2026-06-20  
 > **Scope:** Current subsystem responsibilities, data contracts, synchronization, and calculations
 
