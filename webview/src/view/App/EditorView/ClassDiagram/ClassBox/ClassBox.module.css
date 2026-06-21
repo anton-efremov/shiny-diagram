@@ -15,6 +15,7 @@
   font-family: var(--shiny-font-family);
   font-size: 13px;
   position: relative;
+  cursor: grab;
 }
 
 .classBox:hover {
@@ -24,6 +25,10 @@
 .selected {
   border-color: var(--shiny-accent);
   box-shadow: 0 0 0 1px var(--shiny-accent);
+}
+
+.dragging {
+  cursor: grabbing;
 }
 
 .connectionHandle {
@@ -91,7 +96,11 @@
   white-space: nowrap;
 }
 
-.memberRow:hover {
+.selected .memberRow {
+  cursor: default;
+}
+
+.selected .memberRow:hover {
   background: var(--shiny-overlay-faint);
 }
 
@@ -102,45 +111,95 @@
 }
 
 .resizeHandle {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.resizeHandle::after,
+.resizeLine::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: 8px;
   height: 8px;
   border: 1px solid var(--shiny-accent);
   background: var(--shiny-page-bg);
   box-sizing: border-box;
+  content: "";
+  transform: translate(-50%, -50%);
 }
 
-.resizeLine {
-  border-color: var(--shiny-accent);
+.resizeLine:global(.line) {
+  width: 18px;
+  height: 18px;
+  border: 0;
+  background: transparent;
+  box-sizing: border-box;
 }
 
-.resizeHandle:global(.top-left) {
+.resizeLine:global(.line):global(.top) {
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.resizeLine:global(.line):global(.right) {
+  top: 50%;
+  left: 100%;
+  transform: translate(-50%, -50%);
+}
+
+.resizeLine:global(.line):global(.bottom) {
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.resizeLine:global(.line):global(.left) {
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+}
+
+.resizeHandle:global(.top):global(.left),
+.resizeLine:global(.top):global(.left) {
   cursor: nwse-resize;
 }
 
-.resizeHandle:global(.top) {
+.resizeHandle:global(.top),
+.resizeLine:global(.top) {
   cursor: ns-resize;
 }
 
-.resizeHandle:global(.top-right) {
+.resizeHandle:global(.top):global(.right),
+.resizeLine:global(.top):global(.right) {
   cursor: nesw-resize;
 }
 
-.resizeHandle:global(.right) {
+.resizeHandle:global(.right),
+.resizeLine:global(.right) {
   cursor: ew-resize;
 }
 
-.resizeHandle:global(.bottom-right) {
+.resizeHandle:global(.bottom):global(.right),
+.resizeLine:global(.bottom):global(.right) {
   cursor: nwse-resize;
 }
 
-.resizeHandle:global(.bottom) {
+.resizeHandle:global(.bottom),
+.resizeLine:global(.bottom) {
   cursor: ns-resize;
 }
 
-.resizeHandle:global(.bottom-left) {
+.resizeHandle:global(.bottom):global(.left),
+.resizeLine:global(.bottom):global(.left) {
   cursor: nesw-resize;
 }
 
-.resizeHandle:global(.left) {
+.resizeHandle:global(.left),
+.resizeLine:global(.left) {
   cursor: ew-resize;
 }

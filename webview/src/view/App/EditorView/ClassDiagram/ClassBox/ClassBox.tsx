@@ -26,10 +26,22 @@ const CONNECTION_HANDLES: ReadonlyArray<{
 /**
  * Renders a ReactFlow class-box node with members and connection handles.
  */
-export default function ClassBox({ id, data, selected }: NodeProps<ClassBoxNode>): ReactElement {
+export default function ClassBox({
+  id,
+  data,
+  selected,
+  dragging,
+}: NodeProps<ClassBoxNode>): ReactElement {
   const fields = data.members.filter((m) => m.kind === "field");
   const methods = data.members.filter((m) => m.kind === "method");
   const { onResizeEnd } = useClassBoxInteractions(data);
+  const className = [
+    styles.classBox,
+    selected ? styles.selected : "",
+    dragging ? styles.dragging : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const dynamicVars = data.style
     ? ({
@@ -40,11 +52,7 @@ export default function ClassBox({ id, data, selected }: NodeProps<ClassBoxNode>
     : undefined;
 
   return (
-    <div
-      className={`${styles.classBox} ${selected ? styles.selected : ""}`}
-      style={dynamicVars}
-      title={data.classId}
-    >
+    <div className={className} style={dynamicVars} title={data.classId}>
       <NodeResizer
         nodeId={id}
         isVisible={selected}
@@ -74,7 +82,7 @@ export default function ClassBox({ id, data, selected }: NodeProps<ClassBoxNode>
           {data.header.label}
         </div>
       </header>
-      <MemberTable fields={fields} methods={methods} />
+      <MemberTable fields={fields} methods={methods} selected={selected} />
     </div>
   );
 }
