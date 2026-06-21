@@ -2,7 +2,7 @@
 
 > **Implementation state:** Aspirational
 > **Document state:** Maintained
-> **Last reviewed:** 2026-06-19  
+> **Last reviewed:** 2026-06-21  
 > **Scope:** Structural rules for production code in the Extension Host and Webview
 
 ## Index
@@ -13,7 +13,8 @@
 4. [Webview layered architecture](#4-webview-layered-architecture)
 5. [Controller component architecture](#5-controller-component-architecture)
 6. [View component architecture](#6-view-component-architecture)
-7. [General architectural rules](#7-general-architectural-rules)
+7. [Enforcement](#7-enforcement)
+8. [Reference: terminology](#8-reference-terminology)
 
 ## 1. Context and scope
 
@@ -29,12 +30,12 @@ Normative terms:
 
 ## 2. Architectural pattern catalogue
 
-| Scope | Pattern | Project interpretation |
-| --- | --- | --- |
-| Extension | **Message-Based Integration across Isolated Runtimes** | Extension Host and Webview communicate only through an explicit, validated protocol. |
-| Webview | **Strict Layered Architecture** | All dependencies, including type imports and re-exports, follow `extensionBridge → controller → view`; `shared` is a dependency-free foundation. |
-| Controller | **Application Controller with a Functional Core** | `AppController` orchestrates independent functional components; sibling components do not orchestrate one another. |
-| View | **Component-Based UI with Ownership-Based Composition** | React structure follows ownership; component contracts remain local and are exposed through semantic View facades. |
+| Scope      | Pattern                                                 | Project interpretation                                                                                                                           |
+| ---------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Extension  | **Message-Based Integration across Isolated Runtimes**  | Extension Host and Webview communicate only through an explicit, validated protocol.                                                             |
+| Webview    | **Strict Layered Architecture**                         | All dependencies, including type imports and re-exports, follow `extensionBridge → controller → view`; `shared` is a dependency-free foundation. |
+| Controller | **Application Controller with a Functional Core**       | `AppController` orchestrates independent functional components; sibling components do not orchestrate one another.                               |
+| View       | **Component-Based UI with Ownership-Based Composition** | React structure follows ownership; component contracts remain local and are exposed through semantic View facades.                               |
 
 ## 3. Extension runtime boundary
 
@@ -48,13 +49,35 @@ Normative terms:
 
 ### 3.2 Protocol boundary
 
-- Protocol parsing and runtime-specific translation must remain at the runtime boundary.
+The protocol is the complete wire vocabulary exchanged between the isolated runtimes. It is declared independently at both sides of the boundary:
+
+```text
+webview/src/extensionBridge/protocol.ts
+extension-host/protocol.ts
+```
+
+- Each protocol module must define its complete message contracts locally.
+- A protocol module must not import, re-export, alias, or extend project-owned, package, platform, or runtime-specific contracts. It defines; it does not reuse declarations from elsewhere.
+- Protocol modules may contain only self-contained JSON-compatible data declarations, message unions, and explanatory comments.
+- The two protocol modules intentionally duplicate the wire declarations and must remain structurally synchronized: message discriminants, payload fields, optionality, and field semantics must match.
+- Synchronization must not be achieved by importing a protocol declaration across runtimes or by moving the wire contract into a shared application module.
+- Protocol parsing and runtime validation must remain at the runtime boundary.
 - Runtime-specific message representations must not enter application logic.
-- Translation across the boundary must preserve the semantics of supported operations.
+
+The source-edit payload is one canonical range replacement:
+
+- `start` and `end` are zero-based source positions; the end position is exclusive.
+- An empty range inserts `newText`.
+- A non-empty range with empty `newText` deletes the range.
+- A non-empty range with non-empty `newText` replaces the range.
 
 ### 3.3 Boundary adapters
 
-- Boundary adapters own transport, serialization, runtime validation, and conversion to runtime-native contracts.
+- Boundary adapters own transport, serialization, runtime validation, and conversion between application contracts, protocol-owned wire contracts, and runtime-native contracts.
+- The Webview Extension Bridge constructs protocol messages from Controller outputs; Controller must not import protocol modules.
+- The Extension Host converts validated protocol payloads into VS Code-native operations; application semantics must not be inferred in the host.
+- When an application contract and its wire representation currently have the same fields, their separate declarations still retain separate ownership.
+- Translation across the boundary must preserve the semantics of supported operations.
 - Transport failures and application outcomes must remain distinguishable.
 
 ## 4. Webview layered architecture
@@ -89,24 +112,28 @@ Layering constrains **static knowledge**, not the direction of every runtime cal
 
 Examples:
 
-- Controller defines its `SourceEdit[]` output and the edit-application callback it requires; Extension Bridge implements that callback.
+- Controller defines its `SourceEdit[]` output and the edit-application callback it requires; Extension Bridge implements that callback and constructs the corresponding protocol-owned edit payload.
+- The Webview and Extension Host protocol modules independently define the same wire messages; neither imports the other or an application-owned contract.
 - View defines `EditorCommand`, `CanvasState`, render contracts, contexts, and context handles; Controller supplies values and implementations conforming to those contracts.
 
 ### 4.3 Particular layer access rules
 
 The table governs imports between Webview-owned modules. Platform APIs and third-party libraries are governed separately by layer responsibility.
 
-| Consumer                   | Permitted dependencies                                                                                 |
-| -------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `extensionBridge`          | Own modules; Controller public API; `shared/`                                                          |
-| `controller/AppController` | Controller components and model; `view/App`; `view/commands`; `view/views`; `view/contexts`; `shared/` |
-| Controller components      | Own component internals; `controller/model`; relevant View contract facade; `shared/`                  |
-| `view`                     | View modules; `shared/`                                                                                |
-| `controller/model`         | Sibling files within `controller/model/`; `shared/`                                                    |
-| `shared`                   | Other dependency-free shared modules only                                                              |
+| Consumer                        | Permitted dependencies                                                                                 |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `extensionBridge/protocol.ts`   | None; the protocol module defines its complete wire contract locally                                   |
+| Other `extensionBridge` modules | Own modules; Controller public API; `shared/`                                                          |
+| `controller/AppController`      | Controller components and model; `view/App`; `view/commands`; `view/views`; `view/contexts`; `shared/` |
+| Controller components           | Own component internals; `controller/model`; relevant View contract facade; `shared/`                  |
+| `view`                          | View modules; `shared/`                                                                                |
+| `controller/model`              | Sibling files within `controller/model/`; `shared/`                                                    |
+| `shared`                        | Other dependency-free shared modules only                                                              |
 
 Additional constraints:
 
+- `extensionBridge/protocol.ts` must contain no imports or re-exports of any kind.
+- The Webview and Extension Host protocol declarations must remain structurally synchronized.
 - Controller must not deep-import the View component tree.
 - Controller workers must not import React, React Flow, DOM, VS Code, or protocol modules.
 - Extension Bridge must not import Controller model files, workers, or View modules.
@@ -115,8 +142,8 @@ Additional constraints:
 
 - `shared/` contains stable vocabulary whose semantics cross Webview layers, such as canonical identities and generic geometry.
 - `controller/model/` contains source-derived vocabulary shared by Controller components.
-- A shared area might be divided into submodules for namespace convenience 
-- A narrower shared area may depend only on itself (e.g. own submodules) or more foundational shared areas.  
+- A shared area might be divided into submodules for namespace convenience
+- A narrower shared area may depend only on itself (e.g. own submodules) or more foundational shared areas.
 - A shared area must not depend on any layer or component that consumes it.
 - `shared/` and `controller/model/` must not have root barrels.
 
@@ -231,16 +258,16 @@ view/
 
 A component folder may use the following roles:
 
-| File or folder | Responsibility |
-| --- | --- |
-| `Component.tsx` | Renders the component and wires handlers to the DOM or framework surface it owns. |
-| `Component.module.css` | Defines styles owned by the component. |
-| `commands.ts` | Defines normalized editor commands emitted by event handlers owned by the component. |
-| `views.ts` | Defines read-only render data accepted by the component. |
-| `state.ts` | Defines transient state contracts and defaults owned by the component. |
-| `useComponentInteractions.ts` | Constructs handlers registered on the component's own interaction surface. |
-| `use<OwnedTarget><InteractionSurface>Interactions.ts` | Constructs handlers registered by the component for an owned child representation. |
-| `OwnedChild/` | Contains a child component used exclusively by this component. |
+| File or folder                                        | Responsibility                                                                       |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `Component.tsx`                                       | Renders the component and wires handlers to the DOM or framework surface it owns.    |
+| `Component.module.css`                                | Defines styles owned by the component.                                               |
+| `commands.ts`                                         | Defines normalized editor commands emitted by event handlers owned by the component. |
+| `views.ts`                                            | Defines read-only render data accepted by the component.                             |
+| `state.ts`                                            | Defines transient state contracts and defaults owned by the component.               |
+| `useComponentInteractions.ts`                         | Constructs handlers registered on the component's own interaction surface.           |
+| `use<OwnedTarget><InteractionSurface>Interactions.ts` | Constructs handlers registered by the component for an owned child representation.   |
+| `OwnedChild/`                                         | Contains a child component used exclusively by this component.                       |
 
 - Files are optional; their responsibilities are fixed.
 - Folder nesting represents ownership, not incidental DOM depth.
@@ -281,13 +308,15 @@ Examples:
 - A parent may own a child-targeted hook when the parent owns the registration surface, e.g. `ClassDiagram/useClassBoxNodeInteractions.ts` - `ClassDiagram` owns this hook because it registers React Flow node events, even though those events target class boxes.
 - Child-targeted hooks use: `use<Target><InteractionSurface>Interactions.ts`
 - Interaction hook names use the plural `Interactions` suffix.
+
 ##### Architectural interaction loops
 
 - An interaction hook is required when an event enters either of data loops:
-	- **events with effect on source:** emit a View-owned command;
-	- **events with effect on other components**: update shared View state through its public update handle.
+  - **events with effect on source:** emit a View-owned command;
+  - **events with effect on other components**: update shared View state through its public update handle.
 - Handlers whose effects remain local to one component may remain in `Component.tsx`.
 - A local interaction may be extracted into a hook when it coordinates multiple handlers, state, effects, or refs. Pure event-data transformations belong in ordinary functions.
+
 ##### Event arbitration
 
 - The deepest handler assigning semantic meaning to an event owns that gesture.
@@ -309,7 +338,7 @@ Examples:
 
 ## 7. Enforcement
 
-`scripts/check-webview-boundaries.mjs` validates project-owned module dependencies under `webview/src/`.
+`scripts/check-webview-boundaries.mjs` validates project-owned Webview dependencies and the protocol invariants at the Extension runtime boundary.
 
 ### 7.1 Analysis scope
 
@@ -321,24 +350,32 @@ The checker analyzes:
 - side-effect imports
 - `export ... from` and `export type ... from` declarations
 - relative imports and configured aliases that resolve inside `webview/src/`
+- all dependency syntax in `webview/src/extensionBridge/protocol.ts` and `extension-host/protocol.ts`, including package and platform imports
+- exported protocol declarations in both protocol modules
 
-All analyzed imports and re-exports are dependencies. Package and platform imports are outside this checker’s scope.
+All analyzed imports and re-exports are dependencies. Package and platform imports are outside the normal Webview dependency matrix, but they are prohibited in protocol modules.
 
 ### 7.2 Permitted project dependencies
 
-| Importer                       | Permitted targets                                                                                                            |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| `main.tsx`                     | Extension Bridge runtime entry                                                                                               |
-| `extensionBridge/**`           | Own modules; `controller/AppController`; type-only exports from `controller/commands`; `shared/**`                           |
-| `controller/AppController.tsx` | Controller component facades; `controller/model/**`; `view/App`; `view/commands`; `view/views`; `view/contexts`; `shared/**` |
-| `controller/parse/**`          | Own component modules; `controller/model/**`; `shared/**`                                                                    |
-| `controller/deriveViews/**`    | Own component modules; `controller/model/**`; `view/views`; `shared/**`                                                      |
-| `controller/commands/**`       | Own component modules; `controller/model/**`; `view/commands`; `shared/**`                                                   |
-| `controller/model/**`          | Other `controller/model/**` modules; `shared/**`                                                                             |
-| `view/**`                      | Other View modules; `shared/**`                                                                                              |
-| `shared/**`                    | Other `shared/**` modules                                                                                                    |
+| Importer                           | Permitted targets                                                                                                            |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `main.tsx`                         | Extension Bridge runtime entry                                                                                               |
+| `extensionBridge/protocol.ts`      | None                                                                                                                         |
+| Other `extensionBridge/**` modules | Own modules; `controller/AppController`; type-only exports from `controller/commands`; `shared/**`                           |
+| `controller/AppController.tsx`     | Controller component facades; `controller/model/**`; `view/App`; `view/commands`; `view/views`; `view/contexts`; `shared/**` |
+| `controller/parse/**`              | Own component modules; `controller/model/**`; `shared/**`                                                                    |
+| `controller/deriveViews/**`        | Own component modules; `controller/model/**`; `view/views`; `shared/**`                                                      |
+| `controller/commands/**`           | Own component modules; `controller/model/**`; `view/commands`; `shared/**`                                                   |
+| `controller/model/**`              | Other `controller/model/**` modules; `shared/**`                                                                             |
+| `view/**`                          | Other View modules; `shared/**`                                                                                              |
+| `shared/**`                        | Other `shared/**` modules                                                                                                    |
 
 Controller components may not import one another. Data shared between them passes through `AppController`, `controller/model/`, or `shared/` according to semantic ownership.
+
+Protocol enforcement:
+
+- `webview/src/extensionBridge/protocol.ts` and `extension-host/protocol.ts` must contain no imports, re-exports, dynamic imports, `require` calls, or import-type expressions.
+- Their exported protocol declarations must remain structurally synchronized. Comments and formatting need not match; the wire contract must.
 
 ### 7.3 Facade configuration
 
@@ -355,16 +392,17 @@ view/contexts/index.ts
 ```
 
 Facade rules:
+
 - Imports from outside a Controller component must target that component's root facade.
 - View implementation modules use direct local imports and must not import through View facades.
 - Facade files may contain only comments and re-export declarations.
 - `view/App/index.ts` may expose only the `App` runtime entry.
 - These root barrels are prohibited:
-	  - `view/index.ts`
-	  - `controller/model/index.ts`
-	  - `shared/index.ts`
+  - `view/index.ts`
+  - `controller/model/index.ts`
+  - `shared/index.ts`
 
-### 7.5 Execution
+### 7.4 Execution
 
 ```text
 npm run check:boundaries
@@ -372,70 +410,72 @@ npm run check:boundaries
 
 The command exits with a non-zero status and reports each violating file, module specifier, and rule. It is included in `npm run check`.
 
-The checker verifies module structure only. Semantic ownership, component cohesion, interaction arbitration, and the correctness of contract shapes remain review concerns.
+The checker verifies module structure, protocol self-containment, and synchronization of the duplicated protocol declarations. Semantic ownership, component cohesion, interaction arbitration, and whether the protocol expresses the correct product semantics remain review concerns.
 
 ## 8. Reference: terminology
 
 ### 8.1 Structural terms
 
-| Term | Meaning |
-|---|---|
-| **Module** | One source file with its own import and export scope. |
-| **Layer** | An ordered group of modules governed by one dependency direction. |
-| **Component** | A cohesive group of modules with one public boundary and private implementation. |
-| **React component subtree** | A React component and the child components, state, contracts, styles, and interactions it semantically owns. |
-| **Shared contract area** | A non-layer component that defines vocabulary used by several consumers, such as `shared/` or `controller/model/`. |
-| **Boundary** | The public interaction point through which one runtime, layer, or component uses another. |
-| **Contract** | The types and callable signatures that define a boundary. |
-| **Facade** | A stable import surface that exposes selected definitions while hiding their physical location. |
-| **Frontman** | The public runtime operation that coordinates a Controller component’s workers. |
-| **Worker** | A private module implementing one part of a Controller component. |
+| Term                        | Meaning                                                                                                                  |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Module**                  | One source file with its own import and export scope.                                                                    |
+| **Layer**                   | An ordered group of modules governed by one dependency direction.                                                        |
+| **Component**               | A cohesive group of modules with one public boundary and private implementation.                                         |
+| **React component subtree** | A React component and the child components, state, contracts, styles, and interactions it semantically owns.             |
+| **Shared contract area**    | A non-layer component that defines vocabulary used by several consumers, such as `shared/` or `controller/model/`.       |
+| **Boundary**                | The public interaction point through which one runtime, layer, or component uses another.                                |
+| **Contract**                | The types and callable signatures that define a boundary.                                                                |
+| **Protocol contract**       | A self-contained JSON-compatible wire declaration defined independently and kept synchronized at both isolated runtimes. |
+| **Facade**                  | A stable import surface that exposes selected definitions while hiding their physical location.                          |
+| **Frontman**                | The public runtime operation that coordinates a Controller component’s workers.                                          |
+| **Worker**                  | A private module implementing one part of a Controller component.                                                        |
 
 ### 8.2 Ownership
 
 **Owns** means “is the authoritative semantic home.” The owner determines meaning, invariants, and evolution. The owner may be a module, component, layer, or shared contract area.
 
-| Subject | Ownership means |
-|---|---|
-| **Type or contract** | Authority over its semantics, valid shape, and evolution. |
-| **State** | Authority over its meaning, lifecycle, and valid transitions. Physical storage may be lifted elsewhere. |
-| **Interaction** | Authority over the DOM or framework event surface where the handler is registered and interpreted. |
-| **Command** | Authority at the View interaction boundary where a raw event is normalized into editor intent. |
-| **Behavior** | Authority over the rule or decision being implemented, independent of where it is invoked. |
+| Subject              | Ownership means                                                                                         |
+| -------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Type or contract** | Authority over its semantics, valid shape, and evolution.                                               |
+| **State**            | Authority over its meaning, lifecycle, and valid transitions. Physical storage may be lifted elsewhere. |
+| **Interaction**      | Authority over the DOM or framework event surface where the handler is registered and interpreted.      |
+| **Command**          | Authority at the View interaction boundary where a raw event is normalized into editor intent.          |
+| **Behavior**         | Authority over the rule or decision being implemented, independent of where it is invoked.              |
 
 Ownership is not established by importing, constructing, storing, implementing, or re-exporting an artifact.
 
 ### 8.3 Definition and runtime verbs
 
-| Verb | Meaning |
-|---|---|
-| **Defines** | Contains the source declaration or implementation. A facade that re-exports a declaration does not define it. |
-| **Declares** | States a required contract, such as accepted arguments or an injected callback signature. |
-| **Constructs / creates** | Produces a runtime value conforming to a contract. Construction does not imply ownership. |
-| **Stores** | Retains a runtime value. Storage does not imply semantic ownership. |
-| **Hosts state** | Stores state on behalf of its semantic owner, usually at a composition boundary. |
-| **Manages state** | Applies the state’s lifecycle and transition rules. |
-| **Implements** | Supplies executable behavior conforming to a declared contract. Implementation does not transfer contract ownership. |
-| **Provides / injects** | Passes a value or callback implementation to another module. |
-| **Registers** | Attaches a callback to a DOM, framework, or protocol event source. |
-| **Handles** | Interprets an event and chooses the resulting state update or command. |
-| **Invokes** | Calls a function or injected callback. |
-| **Emits** | Sends a normalized value through a callback, dispatch function, or event boundary. |
-| **Returns** | Produces the direct result of a function call. |
-| **Consumes** | Accepts and uses a public contract or value. |
-| **Exposes** | Makes a definition available through a public boundary. |
-| **Re-exports** | Exposes a definition from another module without acquiring ownership. |
-| **Coordinates / orchestrates** | Sequences components and transfers data between them without absorbing their responsibilities. |
-| **Translates / adapts** | Converts between representations at a boundary while preserving the represented semantics. |
-| **Persists** | Writes a value to the authoritative durable store. |
+| Verb                           | Meaning                                                                                                              |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| **Defines**                    | Contains the source declaration or implementation. A facade that re-exports a declaration does not define it.        |
+| **Declares**                   | States a required contract, such as accepted arguments or an injected callback signature.                            |
+| **Constructs / creates**       | Produces a runtime value conforming to a contract. Construction does not imply ownership.                            |
+| **Stores**                     | Retains a runtime value. Storage does not imply semantic ownership.                                                  |
+| **Hosts state**                | Stores state on behalf of its semantic owner, usually at a composition boundary.                                     |
+| **Manages state**              | Applies the state’s lifecycle and transition rules.                                                                  |
+| **Implements**                 | Supplies executable behavior conforming to a declared contract. Implementation does not transfer contract ownership. |
+| **Provides / injects**         | Passes a value or callback implementation to another module.                                                         |
+| **Registers**                  | Attaches a callback to a DOM, framework, or protocol event source.                                                   |
+| **Handles**                    | Interprets an event and chooses the resulting state update or command.                                               |
+| **Invokes**                    | Calls a function or injected callback.                                                                               |
+| **Emits**                      | Sends a normalized value through a callback, dispatch function, or event boundary.                                   |
+| **Returns**                    | Produces the direct result of a function call.                                                                       |
+| **Consumes**                   | Accepts and uses a public contract or value.                                                                         |
+| **Exposes**                    | Makes a definition available through a public boundary.                                                              |
+| **Re-exports**                 | Exposes a definition from another module without acquiring ownership.                                                |
+| **Coordinates / orchestrates** | Sequences components and transfers data between them without absorbing their responsibilities.                       |
+| **Translates / adapts**        | Converts between representations at a boundary while preserving the represented semantics.                           |
+| **Persists**                   | Writes a value to the authoritative durable store.                                                                   |
 
 Avoid **controls** in architectural descriptions unless its exact meaning is stated. Prefer **owns**, **stores**, **hosts**, **manages**, **provides**, **invokes**, or **coordinates**.
 
 ### 8.4 Applied examples
 
-| Artifact | Defined by | Owned by | Constructed or hosted by | Consumed by |
-|---|---|---|---|---|
-| `EditorCommand` | Component-local `commands.ts` files and the View aggregate module | View | View interaction handlers | Controller Commands |
-| `ElementViews` and nested render contracts | Component-local `views.ts` files | View | Controller Derive Views | View components |
-| `CanvasState` | The owning View component’s `state.ts` | Owning View component | May be hosted by `AppController`; distributed through View context | View components |
-| `SourceEdit` | Controller Commands | Controller Commands | Command handlers | Extension Bridge |
+| Artifact                                   | Defined by                                                                                  | Owned by                   | Constructed or hosted by                                           | Consumed by                       |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------------------ | --------------------------------- |
+| `EditorCommand`                            | Component-local `commands.ts` files and the View aggregate module                           | View                       | View interaction handlers                                          | Controller Commands               |
+| `ElementViews` and nested render contracts | Component-local `views.ts` files                                                            | View                       | Controller Derive Views                                            | View components                   |
+| `CanvasState`                              | The owning View component’s `state.ts`                                                      | Owning View component      | May be hosted by `AppController`; distributed through View context | View components                   |
+| `SourceEdit`                               | Controller Commands                                                                         | Controller Commands        | Command handlers                                                   | Extension Bridge                  |
+| Protocol message contracts                 | Independently in `webview/src/extensionBridge/protocol.ts` and `extension-host/protocol.ts` | Extension runtime boundary | Boundary adapters construct and validate protocol values           | Opposite runtime boundary adapter |

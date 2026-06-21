@@ -2,24 +2,13 @@
  * @fileoverview Source edit operations produced by commands for host application.
  */
 
-export type SourceEdit =
-  | {
-      readonly kind: "replaceLine";
-      readonly lineNumber: number;
-      readonly newText: string;
-    }
-  | {
-      readonly kind: "insertLine";
-      readonly lineNumber: number;
-      readonly newText: string;
-    }
-  | {
-      readonly kind: "deleteLine";
-      readonly lineNumber: number;
-    }
-  | {
-      readonly kind: "replaceRange";
-      readonly startLine: number;
-      readonly endLine: number;
-      readonly newText: string;
-    };
+export type SourcePosition = {
+  readonly line: number;
+  readonly character: number;
+};
+
+export type SourceEdit = {
+  readonly start: SourcePosition;
+  readonly end: SourcePosition;
+  readonly replacementText: string;
+};

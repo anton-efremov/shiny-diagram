@@ -23,6 +23,18 @@ export function handleClassBoxCommand(
 
   return {
     ok: true,
-    edits: [{ kind: "replaceLine", lineNumber: node.spatial.location.startLine, newText }],
+    edits: [
+      {
+        start: {
+          line: node.spatial.location.startLine,
+          character: node.spatial.location.startChar,
+        },
+        end: {
+          line: node.spatial.location.endLine,
+          character: node.spatial.location.endChar,
+        },
+        replacementText: newText,
+      },
+    ],
   };
 }

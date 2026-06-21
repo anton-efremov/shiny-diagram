@@ -3,7 +3,7 @@
  */
 
 import * as vscode from "vscode";
-import type { HostToWebviewMessage, WebviewToHostMessage } from "./protocol";
+import type { HostToWebviewMessage, SourceEdit, WebviewToHostMessage } from "./protocol";
 
 const DEBOUNCE_MS = 500;
 
@@ -51,16 +51,17 @@ export class DiagramSession {
   }
 
   /**
-   * Applies a set of line replacements to the document as a single transaction.
+   * Applies a set of range replacements to the document as a single transaction.
    */
-  private async onApplyEdits(
-    edits: readonly { lineNumber: number; newText: string }[]
-  ): Promise<void> {
+  private async onApplyEdits(edits: readonly SourceEdit[]): Promise<void> {
     const workspaceEdit = new vscode.WorkspaceEdit();
 
     for (const edit of edits) {
-      const line = this.document.lineAt(edit.lineNumber);
-      workspaceEdit.replace(this.document.uri, line.range, edit.newText);
+      const range = new vscode.Range(
+        new vscode.Position(edit.start.line, edit.start.character),
+        new vscode.Position(edit.end.line, edit.end.character)
+      );
+      workspaceEdit.replace(this.document.uri, range, edit.replacementText);
     }
 
     // Marks this edit as Shiny-originated so the resulting onDidChangeTextDocument

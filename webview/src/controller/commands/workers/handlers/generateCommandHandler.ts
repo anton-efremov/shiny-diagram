@@ -43,7 +43,11 @@ export function handleGenerateCommand(context: CommandContext): CommandResult {
     );
 
     if (malformed) {
-      edits.push({ kind: "replaceLine", lineNumber: malformed.startLine, newText: spatialLine });
+      edits.push({
+        start: { line: malformed.startLine, character: malformed.startChar },
+        end: { line: malformed.endLine, character: malformed.endChar },
+        replacementText: spatialLine,
+      });
     } else {
       toAppend.push(spatialLine);
     }
@@ -62,13 +66,11 @@ export function handleGenerateCommand(context: CommandContext): CommandResult {
       }
     }
 
-    const anchorRaw = sourceLines[anchorLine] ?? "";
-    // replaceRange carries multiline content until the host supports insertLine.
+    const anchorCharacter = sourceLines[anchorLine]?.length ?? 0;
     edits.push({
-      kind: "replaceRange",
-      startLine: anchorLine,
-      endLine: anchorLine,
-      newText: [anchorRaw, ...toAppend].join("\n"),
+      start: { line: anchorLine, character: anchorCharacter },
+      end: { line: anchorLine, character: anchorCharacter },
+      replacementText: `\n${toAppend.join("\n")}`,
     });
   }
 

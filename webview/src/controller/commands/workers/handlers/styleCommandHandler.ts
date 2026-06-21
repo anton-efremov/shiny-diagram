@@ -24,6 +24,18 @@ export function handleStyleCommand(command: StyleCommand, context: CommandContex
 
   return {
     ok: true,
-    edits: [{ kind: "replaceLine", lineNumber: styleDef.location.startLine, newText }],
+    edits: [
+      {
+        start: {
+          line: styleDef.location.startLine,
+          character: styleDef.location.startChar,
+        },
+        end: {
+          line: styleDef.location.endLine,
+          character: styleDef.location.endChar,
+        },
+        replacementText: newText,
+      },
+    ],
   };
 }

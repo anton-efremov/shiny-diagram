@@ -13,12 +13,18 @@ export type SourceUpdateMessage = {
 /** Union of all messages the extension host sends to the webview. */
 export type HostToWebviewMessage = SourceUpdateMessage;
 
+export type SourcePosition = {
+  readonly line: number;
+  readonly character: number;
+};
+
 /**
- * A single line replacement in the active .mmd file.
+ * A single range replacement in the active .mmd file.
  */
-export type LineEdit = {
-  readonly lineNumber: number;
-  readonly newText: string;
+export type SourceEdit = {
+  readonly start: SourcePosition;
+  readonly end: SourcePosition;
+  readonly replacementText: string;
 };
 
 /**
@@ -26,7 +32,7 @@ export type LineEdit = {
  */
 export type ApplyEditsMessage = {
   readonly type: "applyEdits";
-  readonly edits: readonly LineEdit[];
+  readonly edits: readonly SourceEdit[];
 };
 
 /** Union of all messages the webview sends to the extension host. */

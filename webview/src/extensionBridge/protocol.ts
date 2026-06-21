@@ -9,17 +9,20 @@ export type SourceUpdateMessage = {
 
 export type HostToWebviewMessage = SourceUpdateMessage;
 
-/**
- * Line-level edit sent to the extension host.
- */
-export type LineEdit = {
-  readonly lineNumber: number;
-  readonly newText: string;
+export type SourcePosition = {
+  readonly line: number;
+  readonly character: number;
+};
+
+export type SourceEdit = {
+  readonly start: SourcePosition;
+  readonly end: SourcePosition;
+  readonly replacementText: string;
 };
 
 export type ApplyEditsMessage = {
   readonly type: "applyEdits";
-  readonly edits: readonly LineEdit[];
+  readonly edits: readonly SourceEdit[];
 };
 
 export type WebviewToHostMessage = ApplyEditsMessage;

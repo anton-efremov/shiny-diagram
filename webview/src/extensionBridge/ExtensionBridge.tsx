@@ -4,23 +4,19 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import type { SourceEdit } from "../controller/commands";
-import type { ApplyEditsMessage, LineEdit } from "./protocol";
+import type { SourceEdit as ControllerSourceEdit } from "../controller/commands";
+import type { ApplyEditsMessage, SourceEdit as ProtocolSourceEdit } from "./protocol";
 import { readInitialData } from "./initialData";
 import { isHostMessage } from "./typeGuards";
 import { vscode } from "./vscodeApi";
 import AppController from "../controller/AppController";
 
-function toLineEdit(edit: SourceEdit): LineEdit | null {
-  switch (edit.kind) {
-    case "replaceLine":
-      return { lineNumber: edit.lineNumber, newText: edit.newText };
-    case "replaceRange":
-      return { lineNumber: edit.startLine, newText: edit.newText };
-    case "insertLine":
-    case "deleteLine":
-      return null;
-  }
+function toProtocolEdit(edit: ControllerSourceEdit): ProtocolSourceEdit {
+  return {
+    start: { line: edit.start.line, character: edit.start.character },
+    end: { line: edit.end.line, character: edit.end.character },
+    replacementText: edit.replacementText,
+  };
 }
 
 /**
@@ -41,13 +37,9 @@ export default function ExtensionBridge(): ReactElement {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
-  const handleApplyEdits = useCallback((edits: SourceEdit[]) => {
-    const lineEdits = edits.flatMap((e) => {
-      const le = toLineEdit(e);
-      return le ? [le] : [];
-    });
-    if (lineEdits.length === 0) return;
-    const message: ApplyEditsMessage = { type: "applyEdits", edits: lineEdits };
+  const handleApplyEdits = useCallback((edits: ControllerSourceEdit[]) => {
+    if (edits.length === 0) return;
+    const message: ApplyEditsMessage = { type: "applyEdits", edits: edits.map(toProtocolEdit) };
     vscode.postMessage(message);
   }, []);
 
