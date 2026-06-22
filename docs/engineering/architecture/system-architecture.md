@@ -22,10 +22,10 @@ Shiny opens the active VS Code text document in a Webview and interprets its tex
 
 Current implementation properties:
 
-- -The `.mmd` document is the durable source of truth.
+- The `.mmd` document is the durable source of truth.
 - The Extension Host is the sole document writer.
 - The rendered diagram is a projection of source, not a second persisted model.
-- Visual edits are represented as atomic `LineEdit[]`  transactions (being migrated to `SourceEdit[]`)
+- Visual edits are represented as atomic canonical range-replacement `SourceEdit[]` transactions.
 - Every accepted source change produces an authoritative source snapshot and reruns the complete read pipeline.
 - Manual, AI-authored, and visual changes use the same source interpretation path.
 - Transient View state is not persisted unless it becomes explicit product data.
@@ -76,34 +76,29 @@ Before runtime messaging begins, [`getWebviewHtml`](../../../extension-host/webv
 
 ### 3.2 Edit request
 
-The wire edit data is [`LineEdit`](../../../extension-host/protocol.ts) inside [`ApplyEditsMessage`](../../../extension-host/protocol.ts). The Webview keeps a duplicate declaration in [webview/src/extensionBridge/protocol.ts](../../../webview/src/extensionBridge/protocol.ts):
+The wire edit data is [`SourceEdit`](../../../extension-host/protocol.ts) inside [`ApplyEditsMessage`](../../../extension-host/protocol.ts). The Webview keeps a duplicate declaration in [webview/src/extensionBridge/protocol.ts](../../../webview/src/extensionBridge/protocol.ts):
 
 ```ts
-type LineEdit = {
-  readonly lineNumber: number;
-  readonly newText: string;
+type SourcePosition = {
+  readonly line: number;
+  readonly character: number;
+};
+
+type SourceEdit = {
+  readonly start: SourcePosition;
+  readonly end: SourcePosition;
+  readonly replacementText: string;
 };
 
 type ApplyEditsMessage = {
   readonly type: "applyEdits";
-  readonly edits: readonly LineEdit[];
+  readonly edits: readonly SourceEdit[];
 };
 ```
 
-The request contains no request ID or base version. The current translation from Controller [`SourceEdit`](../../../webview/src/controller/commands/sourceEdit.ts) to wire `LineEdit` is implemented by [`toLineEdit`](../../../webview/src/extensionBridge/ExtensionBridge.tsx):
+`start` and `end` are zero-based source positions, and `end` is exclusive. An empty range inserts `replacementText`; a non-empty range with empty `replacementText` deletes the range; a non-empty range with non-empty `replacementText` replaces the range.
 
-| Controller edit | Current wire result |
-|---|---|
-| `replaceLine` | Preserves `lineNumber` and `newText` |
-| `replaceRange` | Uses `startLine` as `lineNumber`; ignores `endLine`; preserves `newText` |
-| `insertLine` | Dropped |
-| `deleteLine` | Dropped |
-
-If all Controller edits are dropped, [`ExtensionBridge`](../../../webview/src/extensionBridge/ExtensionBridge.tsx) sends no message.
-
-The current Generate handler uses `replaceRange` only with `startLine === endLine` and places multiple lines in `newText`; its source comment identifies this as the temporary representation used until the Host accepts `insertLine`. See [generateCommandHandler.ts](../../../webview/src/controller/commands/workers/handlers/generateCommandHandler.ts).
-
-**Standards deviation:** the translation in [ExtensionBridge.tsx](../../../webview/src/extensionBridge/ExtensionBridge.tsx) does not preserve all supported `SourceEdit` semantics, contrary to the protocol-translation rule in [Architectural Standards](./architectural-standards.md#32-protocol-boundary).
+The request contains no request ID or base version. Controller [`SourceEdit`](../../../webview/src/controller/commands/sourceEdit.ts) has the same structural shape as the wire edit. [`ExtensionBridge.toProtocolEdit`](../../../webview/src/extensionBridge/ExtensionBridge.tsx) maps it field-for-field into the protocol-owned edit declaration. If the Controller returns no edits, [`ExtensionBridge`](../../../webview/src/extensionBridge/ExtensionBridge.tsx) sends no message.
 
 ### 3.3 Edit result
 
@@ -121,13 +116,13 @@ For one received `ApplyEditsMessage`, [`DiagramSession`](../../../extension-host
 
 1. routes the message by checking `msg.type === "applyEdits"`;
 2. creates one `vscode.WorkspaceEdit`;
-3. resolves every `LineEdit.lineNumber` with `document.lineAt(...)`;
-4. replaces that complete line range with `LineEdit.newText`;
+3. converts every `SourceEdit.start` and `SourceEdit.end` to a VS Code `Range`;
+4. replaces that range with `SourceEdit.replacementText`;
 5. sets the `shinyOriginatedEdit` flag;
 6. awaits `vscode.workspace.applyEdit(workspaceEdit)` without checking the returned boolean;
 7. immediately posts the document's complete current text as `SourceUpdateMessage`.
 
-The Host does not validate line bounds, duplicate or overlapping replacements, message shape, source version, or request ordering. It does not serialize requests through an explicit queue and does not catch and convert edit exceptions into protocol data. See [diagramSession.ts](../../../extension-host/diagramSession.ts).
+The Host does not validate position bounds, duplicate or overlapping ranges, message shape, source version, or request ordering. It does not serialize requests through an explicit queue and does not catch and convert edit exceptions into protocol data. See [diagramSession.ts](../../../extension-host/diagramSession.ts).
 
 For matching document changes not marked as Shiny-originated, the session restarts a 500 ms timer and then posts the complete source. The `shinyOriginatedEdit` boolean skips the next matching document-change event; the implementation comments explicitly note that this mechanism is not race-condition safe. See [`DEBOUNCE_MS` and `onDocumentChange`](../../../extension-host/diagramSession.ts).
 
@@ -142,9 +137,9 @@ On the Webview side, [`isHostMessage`](../../../webview/src/extensionBridge/type
 | Activation and panel lifecycle | VS Code activation, `shiny.openDiagram`, current active editor | A new `WebviewPanel`; optionally one `DiagramSession` | Command disposable; panel-owned session disposal callback | [extension.ts](../../../extension-host/extension.ts) |
 | Webview provisioning | Extension context, Webview, optional active document | CSP-constrained HTML, initial source JSON, bundled script/style URIs | No long-lived application state | [webviewProvider.ts](../../../extension-host/webviewProvider.ts) |
 | Diagram session | One `TextDocument`, one `WebviewPanel`, document-change events, `ApplyEditsMessage` | One `WorkspaceEdit` per request and complete `SourceUpdateMessage` values | Bound document and panel, disposables, 500 ms debounce timer, `shinyOriginatedEdit` flag | [diagramSession.ts](../../../extension-host/diagramSession.ts) |
-| Host protocol declarations | TypeScript imports | `SourceUpdateMessage`, `LineEdit`, `ApplyEditsMessage`, and direction unions | Compile-time declarations only | [protocol.ts](../../../extension-host/protocol.ts) |
+| Host protocol declarations | TypeScript imports | `SourceUpdateMessage`, `SourcePosition`, `SourceEdit`, `ApplyEditsMessage`, and direction unions | Compile-time declarations only | [protocol.ts](../../../extension-host/protocol.ts) |
 
-The Extension Host does not parse Mermaid, build the Controller model, derive View data, or interpret semantic editor commands. Its edit path mechanically replaces the document lines requested by the Webview. See [diagramSession.ts](../../../extension-host/diagramSession.ts).
+The Extension Host does not parse Mermaid, build the Controller model, derive View data, or interpret semantic editor commands. Its edit path mechanically applies the source ranges requested by the Webview. See [diagramSession.ts](../../../extension-host/diagramSession.ts).
 
 ## 5. Webview
 
@@ -156,9 +151,7 @@ The Extension Host does not parse Mermaid, build the Controller model, derive Vi
 | Controller | `sourceText`, `onApplyEdits`, View `EditorCommand`, partial canvas-state updates | `ParseResult`, `ElementViews`, React context values, and successful Controller edits | `CanvasState`; memoized source-derived projection | [AppController.tsx](../../../webview/src/controller/AppController.tsx) |
 | View | Editor-state, dispatch, and canvas-state contexts; DOM and React Flow events | React output, wired `EditorCommand` values, and transient selection changes | Autorender/editor mode; React Flow node and edge working state | [App.tsx](../../../webview/src/view/App/App.tsx), [ClassDiagram.tsx](../../../webview/src/view/App/EditorView/ClassDiagram/ClassDiagram.tsx) |
 
-[`AppController`](../../../webview/src/controller/AppController.tsx) is the Controller orchestrator. It invokes the public Parse, Derive Views, and Commands facades; constructs the three context values; and renders [`App`](../../../webview/src/view/App/App.tsx). The current Controller imports View runtime values through the root [`view/index.ts`](../../../webview/src/view/index.ts), command types through [`view/commands/index.ts`](../../../webview/src/view/commands/index.ts), and render types through [`view/views/index.ts`](../../../webview/src/view/views/index.ts).
-
-**Standards deviation:** [view/index.ts](../../../webview/src/view/index.ts) is a prohibited root barrel, and [`AppController`](../../../webview/src/controller/AppController.tsx) should consume runtime APIs through [view/App/index.ts](../../../webview/src/view/App/index.ts) and [view/contexts/index.ts](../../../webview/src/view/contexts/index.ts), as specified by [Architectural Standards](./architectural-standards.md#611-view-root-organization).
+[`AppController`](../../../webview/src/controller/AppController.tsx) is the Controller orchestrator. It invokes the public Parse, Derive Views, and Commands facades; constructs the three context values; and renders [`App`](../../../webview/src/view/App/App.tsx). The current Controller imports View APIs through [`view/App`](../../../webview/src/view/App/index.ts), [`view/contexts`](../../../webview/src/view/contexts/index.ts), [`view/commands`](../../../webview/src/view/commands/index.ts), and [`view/views`](../../../webview/src/view/views/index.ts), as specified by [Architectural Standards](./architectural-standards.md#611-view-root-organization).
 
 ### 5.2 Vocabulary contracts
 
@@ -186,7 +179,7 @@ type AppControllerProps = {
 
 [`ExtensionBridge`](../../../webview/src/extensionBridge/ExtensionBridge.tsx) owns `sourceText` and implements `onApplyEdits`. The callback is synchronous and returns no result. There is no snapshot object, document version, promise, operation status, or synchronization-error data at this boundary.
 
-The callback accepts the Controller-owned [`SourceEdit`](../../../webview/src/controller/commands/sourceEdit.ts) union, converts it to wire [`LineEdit`](../../../webview/src/extensionBridge/protocol.ts) values as described in [Section 3.2](#32-edit-request), and calls [`vscode.postMessage`](../../../webview/src/extensionBridge/vscodeApi.ts).
+The callback accepts the Controller-owned [`SourceEdit`](../../../webview/src/controller/commands/sourceEdit.ts), converts it to the structurally equivalent wire [`SourceEdit`](../../../webview/src/extensionBridge/protocol.ts) as described in [Section 3.2](#32-edit-request), and calls [`vscode.postMessage`](../../../webview/src/extensionBridge/vscodeApi.ts).
 
 ### 6.2 Controller and View read contract
 
@@ -473,30 +466,19 @@ type CommandResult =
     };
 ```
 
-The Controller-owned [`SourceEdit`](../../../webview/src/controller/commands/sourceEdit.ts) is:
+The Controller-owned [`SourceEdit`](../../../webview/src/controller/commands/sourceEdit.ts) is the canonical zero-based range replacement:
 
 ```ts
-type SourceEdit =
-  | {
-      readonly kind: "replaceLine";
-      readonly lineNumber: number;
-      readonly newText: string;
-    }
-  | {
-      readonly kind: "insertLine";
-      readonly lineNumber: number;
-      readonly newText: string;
-    }
-  | {
-      readonly kind: "deleteLine";
-      readonly lineNumber: number;
-    }
-  | {
-      readonly kind: "replaceRange";
-      readonly startLine: number;
-      readonly endLine: number;
-      readonly newText: string;
-    };
+type SourcePosition = {
+  readonly line: number;
+  readonly character: number;
+};
+
+type SourceEdit = {
+  readonly start: SourcePosition;
+  readonly end: SourcePosition;
+  readonly replacementText: string;
+};
 ```
 
 [`applyCommand`](../../../webview/src/controller/commands/applyCommand.ts) has the current signature:
@@ -510,18 +492,18 @@ function applyCommand(
 
 Current handler behavior:
 
-| Handler | Current calculation | Emitted `SourceEdit` kinds |
+| Handler | Current calculation | Emitted `SourceEdit` ranges |
 |---|---|---|
-| [Generate](../../../webview/src/controller/commands/workers/handlers/generateCommandHandler.ts) | Replaces malformed spatial annotations; lays out missing classes in one horizontal row below existing boxes; appends new annotation text by replacing an anchor line with multiline text | `replaceLine`, `replaceRange` |
-| [Class add](../../../webview/src/controller/commands/workers/handlers/classAddCommandHandler.ts) | Generates `NewClass` or the first available numbered variant from every model class, including implicit classes; accepts the View-defined rectangle; inserts a minimal class declaration before the existing spatial-annotation section and appends the new `@spatial` after existing spatial annotations. If no spatial section exists, appends both lines after existing diagram content. Overlap is allowed, and automatic selection is outside this feature. | Zero-width `SourceEdit` insertions |
-| [Class box](../../../webview/src/controller/commands/workers/handlers/classBoxCommandHandler.ts) | Rewrites the existing spatial-annotation line with the requested rectangle | `replaceLine` |
-| [Style](../../../webview/src/controller/commands/workers/handlers/styleCommandHandler.ts) | Rewrites an existing applied `classDef` line with one property inserted or replaced | `replaceLine` |
+| [Generate](../../../webview/src/controller/commands/workers/handlers/generateCommandHandler.ts) | Replaces malformed spatial annotations; lays out missing classes in one horizontal row below existing boxes; appends new annotation text at an anchor position | Non-empty replacements for malformed annotations; zero-width insertion for appended annotations |
+| [Class add](../../../webview/src/controller/commands/workers/handlers/classAddCommandHandler.ts) | Generates `NewClass` or the first available numbered variant from every model class, including implicit classes; accepts the View-defined rectangle; inserts a minimal class declaration before the existing spatial-annotation section and appends the new `@spatial` after existing spatial annotations. If no spatial section exists, appends both lines after existing diagram content. Overlap is allowed, and automatic selection is outside this feature. | Zero-width insertions |
+| [Class box](../../../webview/src/controller/commands/workers/handlers/classBoxCommandHandler.ts) | Rewrites the existing spatial-annotation range with the requested rectangle | Non-empty replacement |
+| [Style](../../../webview/src/controller/commands/workers/handlers/styleCommandHandler.ts) | Rewrites an existing applied `classDef` range with one property inserted or replaced | Non-empty replacement |
 | [Class content](../../../webview/src/controller/commands/workers/handlers/classContentCommandHandler.ts) | Returns `ok: false` / not implemented | None |
 | [Namespace](../../../webview/src/controller/commands/workers/handlers/namespaceCommandHandler.ts) | Returns `ok: false` / not implemented | None |
 | [Relationship](../../../webview/src/controller/commands/workers/handlers/relationshipCommandHandler.ts) | Returns `ok: false` / not implemented | None |
 | [Note](../../../webview/src/controller/commands/workers/handlers/noteCommandHandler.ts) | Returns `ok: false` / not implemented | None |
 
-No current handler emits `insertLine` or `deleteLine`. Generate placement uses `DEFAULT_WIDTH = 200`, `DEFAULT_HEIGHT = 150`, and `MARGIN = 40` from [layoutConstants.ts](../../../webview/src/controller/commands/workers/generateLayout/layoutConstants.ts); [`gridPlacement`](../../../webview/src/controller/commands/workers/generateLayout/gridPlacement.ts) places generated boxes left-to-right in a single row.
+Generate placement uses `DEFAULT_WIDTH = 200`, `DEFAULT_HEIGHT = 150`, and `MARGIN = 40` from [layoutConstants.ts](../../../webview/src/controller/commands/workers/generateLayout/layoutConstants.ts); [`gridPlacement`](../../../webview/src/controller/commands/workers/generateLayout/gridPlacement.ts) places generated boxes left-to-right in a single row.
 
 The public Commands facade exports only `applyCommand` and `SourceEdit` through [controller/commands/index.ts](../../../webview/src/controller/commands/index.ts). `CommandContext` and `CommandResult` remain internal.
 
@@ -552,8 +534,8 @@ The currently wired persisted-edit paths are Generate, class movement, and class
 | Header / interaction hook | Button, React Flow drag-stop, color input event, or placement-overlay draw | Emits `generate`, `class.move`, `style.setClassProperty`, or `class.add` | [AppHeader.tsx](../../../webview/src/view/App/AppHeader/AppHeader.tsx), [useClassBoxNodeInteractions.ts](../../../webview/src/view/App/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts), [useStylePaneInteractions.ts](../../../webview/src/view/App/EditorView/StylePane/useStylePaneInteractions.ts), [usePlacementOverlayInteractions.ts](../../../webview/src/view/App/EditorView/ClassDiagram/PlacementOverlay/usePlacementOverlayInteractions.ts) |
 | AppController | `EditorCommand`, current `sourceText`, current non-invalid model, optional malformed annotations | Builds `CommandContext`, calls `applyCommand`, and forwards only successful non-empty edits | [AppController.tsx](../../../webview/src/controller/AppController.tsx) |
 | Commands | `EditorCommand`, `CommandContext` | Calculates `CommandResult` and supported `SourceEdit[]` | [applyCommand.ts](../../../webview/src/controller/commands/applyCommand.ts), [commandExecution.ts](../../../webview/src/controller/commands/commandExecution.ts) |
-| Extension Bridge | `SourceEdit[]` | Converts supported edits to `LineEdit[]`; drops unsupported variants; posts `ApplyEditsMessage` when non-empty | [ExtensionBridge.tsx](../../../webview/src/extensionBridge/ExtensionBridge.tsx), [protocol.ts](../../../webview/src/extensionBridge/protocol.ts) |
-| Diagram session | `ApplyEditsMessage`, bound `TextDocument` | Replaces complete line ranges in one `WorkspaceEdit`, awaits application, then posts the complete source | [diagramSession.ts](../../../extension-host/diagramSession.ts) |
+| Extension Bridge | `SourceEdit[]` | Maps Controller edits field-for-field to protocol `SourceEdit[]`; posts `ApplyEditsMessage` when non-empty | [ExtensionBridge.tsx](../../../webview/src/extensionBridge/ExtensionBridge.tsx), [protocol.ts](../../../webview/src/extensionBridge/protocol.ts) |
+| Diagram session | `ApplyEditsMessage`, bound `TextDocument` | Replaces source ranges in one `WorkspaceEdit`, awaits application, then posts the complete source | [diagramSession.ts](../../../extension-host/diagramSession.ts) |
 | Extension Bridge and AppController | Subsequent `SourceUpdateMessage` | Replace `sourceText` and recalculate the projection through [Section 8.1](#81-authoritative-source-projection) | [ExtensionBridge.tsx](../../../webview/src/extensionBridge/ExtensionBridge.tsx), [AppController.tsx](../../../webview/src/controller/AppController.tsx) |
 
 There is no optimistic local model mutation, request correlation, acknowledgement, version check, or visible command-failure state in this path. The post-edit source update is the only source refresh.

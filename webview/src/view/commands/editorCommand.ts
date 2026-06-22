@@ -15,7 +15,7 @@ import type {
 } from "../App/EditorView/ClassDiagram/ClassBox/commands";
 import type { MemberCommand } from "../App/EditorView/ClassDiagram/ClassBox/MemberTable/commands";
 import type { ClassAddCommand } from "../App/EditorView/ClassDiagram/PlacementOverlay/commands";
-import type { StyleCommand } from "../App/EditorView/StylePane/commands";
+import type { ClassDeleteCommand, StyleCommand } from "../App/EditorView/StylePane/commands";
 
 export type EditorCommand =
   | GenerateCommand
@@ -27,4 +27,5 @@ export type EditorCommand =
   | NamespaceCommand
   | RelationshipCommand
   | NoteCommand
-  | StyleCommand;
+  | StyleCommand
+  | ClassDeleteCommand;

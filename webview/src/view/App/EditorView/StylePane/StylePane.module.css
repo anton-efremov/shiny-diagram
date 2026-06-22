@@ -186,3 +186,33 @@
 .textSwatch {
   background: var(--style-color, var(--shiny-text));
 }
+
+.actionArea {
+  display: flex;
+  justify-content: stretch;
+  padding-top: 4px;
+  border-top: 1px solid var(--shiny-border);
+}
+
+.deleteButton {
+  width: 100%;
+  min-height: 32px;
+  padding: 7px 10px;
+  border: 1px solid var(--shiny-text-error);
+  color: var(--shiny-text-error);
+  background: var(--shiny-surface);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deleteButton:hover {
+  color: var(--shiny-surface);
+  background: var(--shiny-text-error);
+}
+
+.deleteButton:focus-visible {
+  outline: 2px solid var(--shiny-text-error);
+  outline-offset: 2px;
+}

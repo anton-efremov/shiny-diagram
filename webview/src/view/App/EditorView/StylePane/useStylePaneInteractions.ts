@@ -2,7 +2,7 @@
  * @fileoverview Hook for translating style-pane edits into editor commands.
  */
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import type { ClassBoxView } from "../ClassDiagram/ClassBox/views";
 import type { ClassId } from "../../../../shared/ids";
 import { useEditorDispatch } from "../../../contexts/EditorDispatchContext";
@@ -14,6 +14,7 @@ type UseStylePaneInteractionsOptions = {
 
 type UseStylePaneInteractionsResult = {
   onFillColorChange: (fill: string) => void;
+  onDeleteClick: () => void;
 };
 
 /**
@@ -38,5 +39,46 @@ export function useStylePaneInteractions({
     [selectedClassId, selectedView, dispatch]
   );
 
-  return { onFillColorChange };
+  const onDeleteClick = useCallback(() => {
+    if (!selectedClassId) return;
+    dispatch({ type: "class.delete", classId: selectedClassId });
+  }, [selectedClassId, dispatch]);
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent): void {
+      if (
+        !selectedClassId ||
+        event.defaultPrevented ||
+        event.repeat ||
+        event.key !== "Delete" ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey ||
+        isEditableTarget(event.target)
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      dispatch({ type: "class.delete", classId: selectedClassId });
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedClassId, dispatch]);
+
+  return { onFillColorChange, onDeleteClick };
+}
+
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false;
+
+  const tagName = target.tagName.toLowerCase();
+  if (tagName === "input" || tagName === "textarea" || tagName === "select") return true;
+
+  return (
+    (target instanceof HTMLElement && target.isContentEditable) ||
+    target.closest("[contenteditable]:not([contenteditable='false'])") !== null
+  );
 }

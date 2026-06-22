@@ -7,6 +7,7 @@ import type { CommandContext, CommandResult } from "./commandExecution";
 import { handleClassAddCommand } from "./workers/handlers/classAddCommandHandler";
 import { handleClassBoxCommand } from "./workers/handlers/classBoxCommandHandler";
 import { handleClassContentCommand } from "./workers/handlers/classContentCommandHandler";
+import { handleClassDeleteCommand } from "./workers/handlers/classDeleteCommandHandler";
 import { handleGenerateCommand } from "./workers/handlers/generateCommandHandler";
 import { handleNamespaceCommand } from "./workers/handlers/namespaceCommandHandler";
 import { handleNoteCommand } from "./workers/handlers/noteCommandHandler";
@@ -24,6 +25,9 @@ export function applyCommand(command: EditorCommand, context: CommandContext): C
     case "class.move":
     case "class.resize":
       return handleClassBoxCommand(command, context);
+
+    case "class.delete":
+      return handleClassDeleteCommand(command, context);
 
     case "style.setClassProperty":
       return handleStyleCommand(command, context);

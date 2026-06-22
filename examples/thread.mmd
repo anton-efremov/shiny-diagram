@@ -17,7 +17,6 @@ direction TB
 	    +attachFile(FileAttachment attachment) void
 	    +removeAttachment(UUID attachmentId) void
     }
-
     class UserContact {
 	    +UUID id
 	    +String name
@@ -27,35 +26,25 @@ direction TB
 	    +removeCommunicationChannel(UUID channelId) void
     }
 
-	class UserCont {
-	    +UUID id
-	    +String name
-	    +String emailAddress
-	    +List~CommunicationChannel~ preferredChannels
-	    +addCommunicationChannel(CommunicationChannel channel) void
-	    +removeCommunicationChannel(UUID channelId) void
-    }
 
-    ConversationThread --> TextMessage : contains
     ConversationThread --> UserContact : involves
 
     %% Native Style Applications
     class ConversationThread:::Rose
-    class TextMessage:::Pine
     class UserContact:::Pine
+	class TextMessage:::Pine
 
     %% Native Style Definitions
     classDef Rose stroke-width:1px,stroke-dasharray:none,stroke:#FF5978,fill:#e6e9ef,color:#8E2236
-    classDef Pine stroke-width:1px,stroke-dasharray:none,stroke:#254336,fill:#29ae74,color:#FFFFFF
+    classDef Pine stroke-width:1px,stroke-dasharray:none,stroke:#254336,fill:#3a8866,color:#FFFFFF
 
 
 
 
 
-%% @spatial:TextMessage x=413 y=-77 w=285 h=243
-%% @spatial:UserContact x=-13 y=-419 w=329 h=266
-%% @spatial:ConversationThread x=62 y=-6 w=230 h=190
-%% @spatial:UserCont x=93 y=304 w=200 h=150
+%% @spatial:UserContact x=-206 y=-408 w=349 h=275
+%% @spatial:ConversationThread x=200 y=-155 w=230 h=190
+%% @spatial:TextMessage x=-98 y=-32 w=200 h=150
 
 
 

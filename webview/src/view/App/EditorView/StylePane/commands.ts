@@ -11,3 +11,8 @@ export type StyleCommand = {
   readonly property: StylePropertyName;
   readonly value: string;
 };
+
+export type ClassDeleteCommand = {
+  readonly type: "class.delete";
+  readonly classId: ClassId;
+};

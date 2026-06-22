@@ -69,6 +69,7 @@ export default function ClassDiagram(): ReactElement {
           nodesDraggable={!isPlacementActive}
           nodesConnectable={false}
           elementsSelectable={false}
+          deleteKeyCode={null}
           panOnDrag={!isPlacementActive}
           zoomOnScroll
         >
