@@ -31,15 +31,25 @@ export default function ClassDiagram(): ReactElement {
   const isPlacementActive = canvasState.placementMode !== null;
 
   const [rfNodes, setRfNodes] = useState<ClassBoxNodeDescriptor[]>(() =>
-    toClassBoxNodeDescriptors(elementViews?.classes ?? [], canvasState.selectedClassId)
+    toClassBoxNodeDescriptors(elementViews?.classes ?? [], canvasState.selectedClassIds)
   );
   const [rfEdges, setRfEdges] = useState<RelationshipEdgeDescriptor[]>(() =>
     toRelationshipEdgeDescriptors(elementViews?.classes ?? [], elementViews?.relationships ?? [])
   );
 
   useEffect(() => {
-    setRfNodes(toClassBoxNodeDescriptors(elementViews?.classes ?? [], canvasState.selectedClassId));
-  }, [elementViews?.classes, canvasState.selectedClassId]);
+    setRfNodes(toClassBoxNodeDescriptors(elementViews?.classes ?? [], []));
+  }, [elementViews?.classes]);
+
+  useEffect(() => {
+    const selected = new Set(canvasState.selectedClassIds);
+    setRfNodes((prev) =>
+      prev.map((node) => ({
+        ...node,
+        selected: selected.has(node.data.classId),
+      }))
+    );
+  }, [canvasState.selectedClassIds, elementViews?.classes]);
 
   useEffect(() => {
     setRfEdges(
@@ -51,8 +61,8 @@ export default function ClassDiagram(): ReactElement {
     setRfNodes((prev) => applyNodeChanges(changes, prev));
   }, []);
 
-  const { onNodeDragStop, onNodeClick } = useClassBoxNodeInteractions(elementViews);
-  const { onPaneClick } = useCanvasInteractions();
+  const { onNodeDragStop } = useClassBoxNodeInteractions(elementViews);
+  const { onSelectionChange } = useCanvasInteractions(elementViews);
 
   return (
     <section className={styles.diagramShell} aria-label="Static editor boxes">
@@ -62,13 +72,15 @@ export default function ClassDiagram(): ReactElement {
           edges={rfEdges}
           nodeTypes={{ classBox: ClassBox }}
           onNodesChange={handleNodesChange}
-          onNodeClick={onNodeClick}
-          onPaneClick={onPaneClick}
+          onSelectionChange={onSelectionChange}
           onNodeDragStop={onNodeDragStop}
           fitView
           nodesDraggable={!isPlacementActive}
           nodesConnectable={false}
-          elementsSelectable={false}
+          elementsSelectable={!isPlacementActive}
+          nodesFocusable={!isPlacementActive}
+          edgesFocusable={false}
+          disableKeyboardA11y
           deleteKeyCode={null}
           panOnDrag={!isPlacementActive}
           zoomOnScroll

@@ -14,10 +14,10 @@ export type StyleCommand = {
 
 export type ClassDeleteCommand = {
   readonly type: "class.delete";
-  readonly classId: ClassId;
+  readonly classIds: readonly ClassId[];
 };
 
 export type ClassDuplicateCommand = {
   readonly type: "class.duplicate";
-  readonly classId: ClassId;
+  readonly classIds: readonly ClassId[];
 };

@@ -3,16 +3,13 @@
  */
 
 import { useCallback } from "react";
-import type { MouseEvent } from "react";
 import type { OnNodeDrag } from "@xyflow/react";
 import type { ElementViews } from "../views";
 import { useEditorDispatch } from "../../../contexts/EditorDispatchContext";
-import { useCanvasState } from "../../../contexts/CanvasStateContext";
 import type { ClassBoxNodeDescriptor } from "./reactFlowAdapters";
 
 type UseClassBoxInteractionsResult = {
   onNodeDragStop: OnNodeDrag<ClassBoxNodeDescriptor>;
-  onNodeClick: (event: MouseEvent, node: ClassBoxNodeDescriptor) => void;
 };
 
 /**
@@ -22,35 +19,32 @@ export function useClassBoxNodeInteractions(
   views: ElementViews | null
 ): UseClassBoxInteractionsResult {
   const dispatch = useEditorDispatch();
-  const { setCanvasState } = useCanvasState();
 
   const onNodeDragStop = useCallback<OnNodeDrag<ClassBoxNodeDescriptor>>(
-    (_event, rfNode) => {
-      const view = views?.classes.find((v) => v.classId === rfNode.id);
-      if (!view) return;
+    (_event, _rfNode, rfNodes) => {
+      const viewsById = new Map(views?.classes.map((view) => [view.classId, view]) ?? []);
+      const moves = rfNodes.flatMap((rfNode) => {
+        const view = viewsById.get(rfNode.data.classId);
+        if (!view) return [];
 
-      dispatch({
-        type: "class.move",
-        classId: view.classId,
-        rect: {
-          x: rfNode.position.x,
-          y: rfNode.position.y,
-          w: view.w,
-          h: view.h,
-        },
+        return [
+          {
+            classId: view.classId,
+            rect: {
+              x: rfNode.position.x,
+              y: rfNode.position.y,
+              w: view.w,
+              h: view.h,
+            },
+          },
+        ];
       });
+
+      if (moves.length === 0) return;
+      dispatch({ type: "class.move", moves });
     },
     [views, dispatch]
   );
 
-  const onNodeClick = useCallback(
-    (_event: MouseEvent, rfNode: ClassBoxNodeDescriptor) => {
-      const view = views?.classes.find((v) => v.classId === rfNode.id);
-      if (!view) return;
-      setCanvasState({ selectedClassId: view.classId });
-    },
-    [views, setCanvasState]
-  );
-
-  return { onNodeDragStop, onNodeClick };
+  return { onNodeDragStop };
 }

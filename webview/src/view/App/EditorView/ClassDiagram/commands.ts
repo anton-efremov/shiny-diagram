@@ -9,6 +9,10 @@ import type { StylePropertyName } from "../../../../shared/styleTypes";
 
 export type ClassMoveCommand = {
   readonly type: "class.move";
+  readonly moves: readonly ClassMoveEntry[];
+};
+
+export type ClassMoveEntry = {
   readonly classId: ClassId;
   readonly rect: Rect;
 };

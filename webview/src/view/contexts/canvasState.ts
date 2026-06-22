@@ -7,8 +7,8 @@ import type { ClassId } from "../../shared/ids";
 export type PlacementMode = "class";
 
 export type CanvasState = {
-  selectedClassId: ClassId | null;
+  selectedClassIds: readonly ClassId[];
   placementMode: PlacementMode | null;
 };
 
-export const defaultCanvasState: CanvasState = { selectedClassId: null, placementMode: null };
+export const defaultCanvasState: CanvasState = { selectedClassIds: [], placementMode: null };

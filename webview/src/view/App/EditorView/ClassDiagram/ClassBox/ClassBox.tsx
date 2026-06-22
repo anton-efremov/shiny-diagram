@@ -4,6 +4,7 @@ import { Handle, NodeResizer, Position } from "@xyflow/react";
 import type { ClassBoxView } from "./views";
 import MemberTable from "./MemberTable/MemberTable";
 import { useClassBoxInteractions } from "./useClassBoxInteractions";
+import { useCanvasState } from "../../../../contexts/CanvasStateContext";
 import styles from "./ClassBox.module.css";
 
 type ClassBoxNode = Node<ClassBoxView, "classBox">;
@@ -35,6 +36,8 @@ export default function ClassBox({
   const fields = data.members.filter((m) => m.kind === "field");
   const methods = data.members.filter((m) => m.kind === "method");
   const { onResizeEnd } = useClassBoxInteractions(data);
+  const { canvasState } = useCanvasState();
+  const isSoleSelection = selected && canvasState.selectedClassIds.length === 1;
   const className = [
     styles.classBox,
     selected ? styles.selected : "",
@@ -55,7 +58,7 @@ export default function ClassBox({
     <div className={className} style={dynamicVars} title={data.classId}>
       <NodeResizer
         nodeId={id}
-        isVisible={selected}
+        isVisible={isSoleSelection}
         minWidth={80}
         minHeight={48}
         handleClassName={styles.resizeHandle}

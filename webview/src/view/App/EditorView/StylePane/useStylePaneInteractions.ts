@@ -8,7 +8,7 @@ import type { ClassId } from "../../../../shared/ids";
 import { useEditorDispatch } from "../../../contexts/EditorDispatchContext";
 
 type UseStylePaneInteractionsOptions = {
-  selectedClassId: ClassId | null;
+  selectedClassIds: readonly ClassId[];
   selectedView: ClassBoxView | undefined;
 };
 
@@ -22,10 +22,11 @@ type UseStylePaneInteractionsResult = {
  * Dispatches class style updates from style-pane controls.
  */
 export function useStylePaneInteractions({
-  selectedClassId,
+  selectedClassIds,
   selectedView,
 }: UseStylePaneInteractionsOptions): UseStylePaneInteractionsResult {
   const dispatch = useEditorDispatch();
+  const selectedClassId = selectedClassIds.length === 1 ? selectedClassIds[0] : null;
 
   const onFillColorChange = useCallback(
     (fill: string) => {
@@ -41,19 +42,19 @@ export function useStylePaneInteractions({
   );
 
   const onDeleteClick = useCallback(() => {
-    if (!selectedClassId) return;
-    dispatch({ type: "class.delete", classId: selectedClassId });
-  }, [selectedClassId, dispatch]);
+    if (selectedClassIds.length === 0) return;
+    dispatch({ type: "class.delete", classIds: selectedClassIds });
+  }, [selectedClassIds, dispatch]);
 
   const onDuplicate = useCallback(() => {
-    if (!selectedClassId) return;
-    dispatch({ type: "class.duplicate", classId: selectedClassId });
-  }, [selectedClassId, dispatch]);
+    if (selectedClassIds.length === 0) return;
+    dispatch({ type: "class.duplicate", classIds: selectedClassIds });
+  }, [selectedClassIds, dispatch]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent): void {
       if (
-        !selectedClassId ||
+        selectedClassIds.length === 0 ||
         event.defaultPrevented ||
         event.repeat ||
         event.key !== "Delete" ||
@@ -67,12 +68,12 @@ export function useStylePaneInteractions({
       }
 
       event.preventDefault();
-      dispatch({ type: "class.delete", classId: selectedClassId });
+      dispatch({ type: "class.delete", classIds: selectedClassIds });
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedClassId, dispatch]);
+  }, [selectedClassIds, dispatch]);
 
   return { onFillColorChange, onDuplicate, onDeleteClick };
 }

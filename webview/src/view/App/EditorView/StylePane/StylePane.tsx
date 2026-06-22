@@ -10,14 +10,16 @@ import styles from "./StylePane.module.css";
 export default function StylePane(): ReactElement {
   const { elementViews } = useEditorState();
   const { canvasState } = useCanvasState();
-  const selectedView = elementViews?.classes.find((v) => v.classId === canvasState.selectedClassId);
+  const selectedClassIds = new Set(canvasState.selectedClassIds);
+  const selectedViews = elementViews?.classes.filter((v) => selectedClassIds.has(v.classId)) ?? [];
+  const selectedView = selectedViews.length === 1 ? selectedViews[0] : undefined;
 
   const { onFillColorChange, onDuplicate, onDeleteClick } = useStylePaneInteractions({
-    selectedClassId: selectedView?.classId ?? null,
+    selectedClassIds: selectedViews.map((view) => view.classId),
     selectedView,
   });
 
-  if (!selectedView) {
+  if (selectedViews.length === 0) {
     return (
       <aside className={styles.stylePane} aria-label="Styles pane">
         <header className={styles.header}>Styles</header>
@@ -26,9 +28,41 @@ export default function StylePane(): ReactElement {
     );
   }
 
-  const fill = selectedView.style?.fill;
-  const stroke = selectedView.style?.stroke;
-  const color = selectedView.style?.color;
+  if (selectedViews.length > 1) {
+    return (
+      <aside className={styles.stylePane} aria-label="Styles pane">
+        <header className={styles.header}>Styles</header>
+        <section className={styles.selectionPanel} aria-label="Selected class actions">
+          <div className={styles.multiSelectionSummary}>
+            <div className={styles.selectionType}>Selection</div>
+            <h2 className={styles.className}>{selectedViews.length} classes selected</h2>
+          </div>
+
+          <div className={styles.actionArea}>
+            <button className={styles.actionButton} type="button" onClick={onDuplicate}>
+              Duplicate selected
+            </button>
+            <button
+              className={`${styles.actionButton} ${styles.deleteButton}`}
+              type="button"
+              onClick={onDeleteClick}
+            >
+              Delete selected
+            </button>
+          </div>
+        </section>
+      </aside>
+    );
+  }
+
+  const singleSelectedView = selectedView;
+  if (!singleSelectedView) {
+    throw new Error("Expected one selected class view");
+  }
+
+  const fill = singleSelectedView.style?.fill;
+  const stroke = singleSelectedView.style?.stroke;
+  const color = singleSelectedView.style?.color;
   const dynamicVars = {
     "--style-fill": fill,
     "--style-stroke": stroke,
@@ -47,20 +81,20 @@ export default function StylePane(): ReactElement {
           <div className={styles.selectionAccent} aria-hidden="true" />
           <div className={styles.selectionCopy}>
             <div className={styles.selectionType}>Class</div>
-            <h2 className={styles.className}>{selectedView.header.label}</h2>
-            {selectedView.header.stereotype ? (
+            <h2 className={styles.className}>{singleSelectedView.header.label}</h2>
+            {singleSelectedView.header.stereotype ? (
               <div className={styles.stereotype}>
-                &lt;&lt;{selectedView.header.stereotype}&gt;&gt;
+                &lt;&lt;{singleSelectedView.header.stereotype}&gt;&gt;
               </div>
             ) : null}
           </div>
         </div>
 
         <div className={styles.previewCard} aria-label="Selected class color preview">
-          <div className={styles.previewHeader}>{selectedView.header.label}</div>
+          <div className={styles.previewHeader}>{singleSelectedView.header.label}</div>
           <div className={styles.previewBody}>
-            {selectedView.style?.name ? (
-              <span className={styles.styleName}>{selectedView.style.name}</span>
+            {singleSelectedView.style?.name ? (
+              <span className={styles.styleName}>{singleSelectedView.style.name}</span>
             ) : (
               "Default style"
             )}

@@ -17,14 +17,16 @@ export type RelationshipEdgeDescriptor = ReactFlowEdge;
  */
 export function toClassBoxNodeDescriptors(
   classes: readonly ClassBoxView[],
-  selectedClassId: ClassId | null
+  selectedClassIds: readonly ClassId[]
 ): ClassBoxNodeDescriptor[] {
+  const selected = new Set<ClassId>(selectedClassIds);
+
   return classes.map((view) => ({
     id: view.classId,
     type: "classBox" as const,
     position: { x: view.x, y: view.y },
     data: view,
-    selected: view.classId === selectedClassId,
+    selected: selected.has(view.classId),
     width: view.w,
     height: view.h,
     style: { width: view.w, height: view.h },
@@ -57,6 +59,8 @@ export function toRelationshipEdgeDescriptors(
         targetHandle: `target-${targetSide}`,
         label: rel.label,
         type: "default",
+        selectable: false,
+        focusable: false,
       },
     ];
   });

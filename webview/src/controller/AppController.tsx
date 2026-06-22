@@ -27,7 +27,7 @@ type AppControllerProps = {
 };
 
 type PendingSelection = {
-  readonly classId: ClassId;
+  readonly classIds: readonly ClassId[];
   readonly sourceText: string;
 };
 
@@ -65,21 +65,23 @@ export default function AppController({
 
   useEffect(() => {
     setCanvasStateRaw((prev) => {
-      if (!prev.selectedClassId) return prev;
-      const stillExists = elementViews?.classes.some((v) => v.classId === prev.selectedClassId);
-      return stillExists ? prev : { ...prev, selectedClassId: null };
+      const classIds = reconcileSelectedClassIds(prev.selectedClassIds, elementViews);
+      return areClassIdCollectionsEqual(prev.selectedClassIds, classIds)
+        ? prev
+        : { ...prev, selectedClassIds: classIds };
     });
   }, [elementViews]);
 
   useEffect(() => {
     if (!pendingSelection || pendingSelection.sourceText === sourceText) return;
 
-    const createdClassExists = elementViews?.classes.some(
-      (view) => view.classId === pendingSelection.classId
+    const availableClassIds = new Set(elementViews?.classes.map((view) => view.classId) ?? []);
+    const createdClassesExist = pendingSelection.classIds.every((classId) =>
+      availableClassIds.has(classId)
     );
 
-    if (createdClassExists) {
-      setCanvasStateRaw((prev) => ({ ...prev, selectedClassId: pendingSelection.classId }));
+    if (createdClassesExist) {
+      setCanvasStateRaw((prev) => ({ ...prev, selectedClassIds: pendingSelection.classIds }));
     }
 
     setPendingSelection(null);
@@ -100,8 +102,8 @@ export default function AppController({
 
       const result = applyCommand(command, context);
       if (result.ok && result.edits.length > 0) {
-        if (result.createdClassId) {
-          setPendingSelection({ classId: result.createdClassId, sourceText });
+        if (result.createdClassIds) {
+          setPendingSelection({ classIds: result.createdClassIds, sourceText });
         }
         onApplyEdits(result.edits);
       }
@@ -132,4 +134,21 @@ export default function AppController({
       </CanvasStateContext.Provider>
     </EditorDispatchContext.Provider>
   );
+}
+
+function reconcileSelectedClassIds(
+  selectedClassIds: readonly ClassId[],
+  elementViews: ElementViews | null
+): readonly ClassId[] {
+  if (selectedClassIds.length === 0) return selectedClassIds;
+
+  const selected = new Set(selectedClassIds);
+  return (
+    elementViews?.classes.flatMap((view) => (selected.has(view.classId) ? [view.classId] : [])) ??
+    []
+  );
+}
+
+function areClassIdCollectionsEqual(left: readonly ClassId[], right: readonly ClassId[]): boolean {
+  return left.length === right.length && left.every((id, index) => id === right[index]);
 }

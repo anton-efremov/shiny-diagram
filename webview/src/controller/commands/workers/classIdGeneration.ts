@@ -27,14 +27,26 @@ export function generateClassId(model: DiagramTree): ClassId {
 /**
  * Generates the first available duplicate identifier for a source class.
  */
-export function generateDuplicateClassId(model: DiagramTree, sourceClassId: ClassId): ClassId {
+export function generateDuplicateClassId(
+  model: DiagramTree,
+  sourceClassId: ClassId,
+  reservedClassIds: ReadonlySet<ClassId> = new Set()
+): ClassId {
   const match = /^(.*)_(\d+)$/.exec(sourceClassId);
   const base = match ? match[1] : sourceClassId;
   let suffix = match ? Number(match[2]) + 1 : 1;
 
-  while (model.classes.has(toClassId(`${base}_${suffix}`))) {
+  while (isClassIdUnavailable(model, reservedClassIds, toClassId(`${base}_${suffix}`))) {
     suffix++;
   }
 
   return toClassId(`${base}_${suffix}`);
+}
+
+function isClassIdUnavailable(
+  model: DiagramTree,
+  reservedClassIds: ReadonlySet<ClassId>,
+  classId: ClassId
+): boolean {
+  return model.classes.has(classId) || reservedClassIds.has(classId);
 }

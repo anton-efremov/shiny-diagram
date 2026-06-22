@@ -20,30 +20,43 @@ export function handleClassDeleteCommand(
   command: ClassDeleteCommand,
   context: CommandContext
 ): CommandResult {
-  const node = context.model.classes.get(command.classId);
-  if (!node) {
-    return { ok: false, problem: `Class ${command.classId} not found` };
+  if (command.classIds.length === 0) {
+    return { ok: false, problem: "No classes to delete" };
+  }
+
+  const classIds = new Set<ClassId>();
+  for (const classId of command.classIds) {
+    if (classIds.has(classId)) {
+      return { ok: false, problem: `Duplicate delete for class ${classId}` };
+    }
+    classIds.add(classId);
   }
 
   const ranges: LineRange[] = [];
 
-  if (node.location) {
-    const declarationRange = findClassDeclarationRange(node.location, context.sourceText);
-    if (!declarationRange) {
-      return { ok: false, problem: `No safe deletion range for class ${command.classId}` };
+  for (const classId of command.classIds) {
+    const node = context.model.classes.get(classId);
+    if (!node) {
+      return { ok: false, problem: `Class ${classId} not found` };
     }
-    ranges.push(declarationRange);
+
+    if (node.location) {
+      const declarationRange = findClassDeclarationRange(node.location, context.sourceText);
+      if (!declarationRange) {
+        return { ok: false, problem: `No safe deletion range for class ${classId}` };
+      }
+      ranges.push(declarationRange);
+    }
   }
 
   ranges.push(
-    ...findSpatialAnnotationRanges(command.classId, context.sourceText),
+    ...findSpatialAnnotationRanges(classIds, context.sourceText),
     ...context.model.appliesStyleEdges
-      .filter((edge) => edge.source === command.classId)
+      .filter((edge) => classIds.has(edge.source))
       .map((edge) => toLineRange(edge.location)),
     ...context.model.relationships
       .filter(
-        (relationship) =>
-          relationship.source === command.classId || relationship.target === command.classId
+        (relationship) => classIds.has(relationship.source) || classIds.has(relationship.target)
       )
       .map((relationship) => toLineRange(relationship.location))
   );
@@ -51,7 +64,7 @@ export function handleClassDeleteCommand(
   const edits = mergeLineRanges(ranges).map((range) => toDeleteEdit(range, context.sourceText));
 
   if (edits.length === 0) {
-    return { ok: false, problem: `No deletion ranges for class ${command.classId}` };
+    return { ok: false, problem: "No deletion ranges for selected classes" };
   }
 
   return { ok: true, edits };
@@ -79,13 +92,19 @@ function findClassDeclarationRange(location: SourceLocation, sourceText: string)
   return null;
 }
 
-function findSpatialAnnotationRanges(classId: ClassId, sourceText: string): LineRange[] {
-  const escapedClassId = escapeRegExp(classId);
-  const pattern = new RegExp(`^\\s*%%\\s+@spatial:${escapedClassId}(?:\\s|$)`);
+function findSpatialAnnotationRanges(
+  classIds: ReadonlySet<ClassId>,
+  sourceText: string
+): LineRange[] {
+  const patterns = [...classIds].map(
+    (classId) => new RegExp(`^\\s*%%\\s+@spatial:${escapeRegExp(classId)}(?:\\s|$)`)
+  );
 
   return sourceText
     .split("\n")
-    .flatMap((line, index) => (pattern.test(line) ? [{ startLine: index, endLine: index }] : []));
+    .flatMap((line, index) =>
+      patterns.some((pattern) => pattern.test(line)) ? [{ startLine: index, endLine: index }] : []
+    );
 }
 
 function toLineRange(location: SourceLocation): LineRange {

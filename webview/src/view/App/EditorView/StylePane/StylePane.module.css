@@ -58,6 +58,13 @@
   text-transform: uppercase;
 }
 
+.multiSelectionSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
 .className {
   margin: 0;
   overflow: hidden;

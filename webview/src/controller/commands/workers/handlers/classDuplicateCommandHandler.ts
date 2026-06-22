@@ -4,7 +4,7 @@
 
 import type { ClassDuplicateCommand } from "../../../../view/commands";
 import type { ClassId } from "../../../../shared/ids";
-import type { SpatialData } from "../../../model/diagramTree";
+import type { ClassNode, SpatialData } from "../../../model/diagramTree";
 import type { SourceLocation } from "../../../model/sourceLocation";
 import type { CommandContext, CommandResult } from "../../commandExecution";
 import type { SourceEdit } from "../../sourceEdit";
@@ -23,6 +23,11 @@ type LineRange = {
   readonly endLine: number;
 };
 
+type DuplicatePlan = {
+  readonly classId: ClassId;
+  readonly edits: readonly SourceEdit[];
+};
+
 /**
  * Duplicates a class declaration, spatial annotation, and first style application.
  */
@@ -30,32 +35,54 @@ export function handleClassDuplicateCommand(
   command: ClassDuplicateCommand,
   context: CommandContext
 ): CommandResult {
-  const sourceClass = context.model.classes.get(command.classId);
-  if (!sourceClass?.spatial) {
-    return { ok: false, problem: `Class ${command.classId} cannot be duplicated` };
+  if (command.classIds.length === 0) {
+    return { ok: false, problem: "No classes to duplicate" };
   }
 
-  const classId = generateDuplicateClassId(context.model, command.classId);
   const eol = getLineEnding(context.sourceText);
-  const styleLine = formatDuplicateStyleLine(command.classId, classId, context);
-  const spatialLine = formatDuplicateSpatialLine(classId, sourceClass.spatial);
+  const reservedClassIds = new Set<ClassId>();
+  const sourceClassIds = new Set<ClassId>();
+  const plans: DuplicatePlan[] = [];
 
-  const edits = sourceClass.location
-    ? buildExplicitDeclarationEdit(
-        sourceClass.location,
-        classId,
-        styleLine,
-        spatialLine,
-        context,
-        eol
-      )
-    : buildImplicitDeclarationEdit(classId, styleLine, spatialLine, context, eol);
+  for (const sourceClassId of command.classIds) {
+    if (sourceClassIds.has(sourceClassId)) {
+      return { ok: false, problem: `Duplicate source class ${sourceClassId}` };
+    }
+    sourceClassIds.add(sourceClassId);
 
-  if (!edits) {
-    return { ok: false, problem: `No safe duplicate range for class ${command.classId}` };
+    const sourceClass = context.model.classes.get(sourceClassId);
+    if (!sourceClass?.spatial) {
+      return { ok: false, problem: `Class ${sourceClassId} cannot be duplicated` };
+    }
+
+    const classId = generateDuplicateClassId(context.model, sourceClassId, reservedClassIds);
+    reservedClassIds.add(classId);
+
+    const styleLine = formatDuplicateStyleLine(sourceClassId, classId, context);
+    const spatialLine = formatDuplicateSpatialLine(classId, sourceClass.spatial);
+    const edits = sourceClass.location
+      ? buildExplicitDeclarationEdit(
+          sourceClass.location,
+          classId,
+          styleLine,
+          spatialLine,
+          context,
+          eol
+        )
+      : buildImplicitDeclarationEdit(classId, styleLine, spatialLine, context, eol);
+
+    if (!edits) {
+      return { ok: false, problem: `No safe duplicate range for class ${sourceClassId}` };
+    }
+
+    plans.push({ classId, edits });
   }
 
-  return { ok: true, edits, createdClassId: classId };
+  return {
+    ok: true,
+    edits: coalesceInsertions(plans.flatMap((plan) => plan.edits)),
+    createdClassIds: plans.map((plan) => plan.classId),
+  };
 }
 
 function buildExplicitDeclarationEdit(
@@ -127,6 +154,28 @@ function buildImplicitDeclarationEdit(
   ];
 }
 
+function coalesceInsertions(edits: readonly SourceEdit[]): SourceEdit[] {
+  const coalesced = new Map<string, SourceEdit>();
+
+  for (const edit of edits) {
+    const key = `${edit.start.line}:${edit.start.character}:${edit.end.line}:${edit.end.character}`;
+    const existing = coalesced.get(key);
+    if (!existing) {
+      coalesced.set(key, edit);
+      continue;
+    }
+
+    coalesced.set(key, {
+      ...existing,
+      replacementText: `${existing.replacementText}${edit.replacementText}`,
+    });
+  }
+
+  return [...coalesced.values()].sort(
+    (a, b) => a.start.line - b.start.line || a.start.character - b.start.character
+  );
+}
+
 function formatDuplicateStyleLine(
   sourceClassId: ClassId,
   duplicateClassId: ClassId,
@@ -178,7 +227,7 @@ function getRangeText(range: LineRange, sourceText: string, eol: string): string
 
 function getExistingSpatialAnnotations(context: CommandContext): SpatialData[] {
   return [...context.model.classes.values()]
-    .flatMap((node) => (node.spatial ? [node.spatial] : []))
+    .flatMap((node: ClassNode) => (node.spatial ? [node.spatial] : []))
     .sort((a, b) => a.location.startLine - b.location.startLine);
 }
 
