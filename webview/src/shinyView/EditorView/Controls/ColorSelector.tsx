@@ -2,6 +2,7 @@
  * @fileoverview Shared Shiny View color selector control.
  */
 
+import { useId, useRef } from "react";
 import type { ChangeEvent, ReactElement, ReactNode } from "react";
 import styles from "./ColorSelector.module.css";
 
@@ -26,31 +27,51 @@ export default function ColorSelector({
   onChange,
   className,
 }: ColorSelectorProps): ReactElement {
+  const inputId = useId();
+  const lastEmittedValueRef = useRef<string | null>(null);
+
   function handleChange(event: ChangeEvent<HTMLInputElement>): void {
-    onChange(event.currentTarget.value);
+    emitChange(event.currentTarget.value);
+  }
+
+  function handleApplyClick(): void {
+    emitChange(pickerValue);
+  }
+
+  function emitChange(value: string): void {
+    if (lastEmittedValueRef.current === value) return;
+
+    lastEmittedValueRef.current = value;
+    onChange(value);
   }
 
   return (
-    <label className={[styles.selector, className ?? ""].filter(Boolean).join(" ")}>
-      <span className={styles.icon} aria-hidden="true">
-        {icon}
-      </span>
-      <span
-        className={[styles.swatch, mixed ? styles.mixed : ""].filter(Boolean).join(" ")}
-        style={!mixed && swatchColor ? { background: swatchColor } : undefined}
-        aria-hidden="true"
-      />
-      <span className={styles.copy}>
-        <span className={styles.label}>{label}</span>
-        <span className={styles.value}>{displayValue}</span>
-      </span>
+    <div className={[styles.selector, className ?? ""].filter(Boolean).join(" ")}>
+      <label className={styles.pickerLabel} htmlFor={inputId}>
+        <span className={styles.icon} aria-hidden="true">
+          {icon}
+        </span>
+        <span
+          className={[styles.swatch, mixed ? styles.mixed : ""].filter(Boolean).join(" ")}
+          style={!mixed && swatchColor ? { background: swatchColor } : undefined}
+          aria-hidden="true"
+        />
+        <span className={styles.copy}>
+          <span className={styles.label}>{label}</span>
+          <span className={styles.value}>{displayValue}</span>
+        </span>
+      </label>
       <input
+        id={inputId}
         className={styles.input}
         type="color"
         value={pickerValue}
         aria-label={`${label}: ${displayValue}`}
         onChange={handleChange}
       />
-    </label>
+      <button className={styles.applyButton} type="button" onClick={handleApplyClick}>
+        Apply
+      </button>
+    </div>
   );
 }

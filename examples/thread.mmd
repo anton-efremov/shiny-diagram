@@ -16,44 +16,6 @@ direction TB
 	    +addCommunicationChannel(CommunicationChannel channel) void
 	    +removeCommunicationChannel(UUID channelId) void
     }
-    class UserContact_2 {
-	    +UUID id
-	    +String name
-	    +String emailAddress
-	    +List~CommunicationChannel~ preferredChannels
-	    +addCommunicationChannel(CommunicationChannel channel) void
-	    +removeCommunicationChannel(UUID channelId) void
-    }
-    class UserContact_5 {
-	    +UUID id
-	    +String name
-	    +String emailAddress
-	    +List~CommunicationChannel~ preferredChannels
-	    +addCommunicationChannel(CommunicationChannel channel) void
-	    +removeCommunicationChannel(UUID channelId) void
-    }
-class UserContact_5:::PineSelected2
-%% @spatial:UserContact_5 x=-118 y=-278 w=266 h=191
-    class UserContact_4 {
-	    +UUID id
-	    +String name
-	    +String emailAddress
-	    +List~CommunicationChannel~ preferredChannels
-	    +addCommunicationChannel(CommunicationChannel channel) void
-	    +removeCommunicationChannel(UUID channelId) void
-    }
-    class UserContact_6 {
-	    +UUID id
-	    +String name
-	    +String emailAddress
-	    +List~CommunicationChannel~ preferredChannels
-	    +addCommunicationChannel(CommunicationChannel channel) void
-	    +removeCommunicationChannel(UUID channelId) void
-    }
-class UserContact_6:::PineSelected2
-%% @spatial:UserContact_6 x=-90 y=-55 w=266 h=191
-class UserContact_4:::PineSelected2
-%% @spatial:UserContact_4 x=-374 y=-105 w=266 h=191
     class UserContact_3 {
 	    +UUID id
 	    +String name
@@ -63,9 +25,11 @@ class UserContact_4:::PineSelected2
 	    +removeCommunicationChannel(UUID channelId) void
     }
 class UserContact_3:::Pine
-%% @spatial:UserContact_3 x=205 y=-148 w=224 h=196
-class UserContact_2:::PineSelected2
-%% @spatial:UserContact_2 x=-402 y=-328 w=266 h=191
+class NewClass
+class NewClass_1
+class NewClass_1:::ShinyStyleSelected
+class NewClass1
+
 
 
     ConversationThread --> UserContact : involves
@@ -73,6 +37,8 @@ class UserContact_2:::PineSelected2
     %% Native Style Applications
     class ConversationThread:::Rose
     class UserContact:::PineSelectedSelected
+class NewClass:::ShinyStyleSelected
+class NewClass1:::ShinyStyleSelected2
 
     %% Native Style Definitions
     classDef Rose stroke-width:1px,stroke-dasharray:none,stroke:#FF5978,fill:#a5a240,color:#050505
@@ -80,13 +46,20 @@ class UserContact_2:::PineSelected2
     classDef PineSelected stroke-width:1px,stroke-dasharray:none,stroke:#275340,fill:#3a8866,color:#FFFFFF
     classDef PineSelected stroke-width:1px,stroke-dasharray:none,stroke:#234d3b,fill:#3a8866,color:#FFFFFF
     classDef PineSelected2 stroke-width:1px,stroke-dasharray:none,stroke:#254336,fill:#3a8866,color:#000000
+classDef ShinyStyleSelected fill:#a92323,stroke:#2b1d1d
+classDef ShinyStyleSelected2 fill:#cdc71d,color:#000000
 
 
 
 
 
-%% @spatial:UserContact x=-155 y=-521 w=293 h=214
-%% @spatial:ConversationThread x=217 y=-450 w=230 h=190
+%% @spatial:UserContact x=-232 y=-402 w=293 h=214
+%% @spatial:ConversationThread x=-277 y=-155 w=200 h=150
+%% @spatial:NewClass x=146 y=-390 w=200 h=150
+%% @spatial:NewClass1 x=-84 y=45 w=200 h=150
+%% @spatial:UserContact_3 x=33 y=-160 w=200 h=150
+%% @spatial:NewClass_1 x=295 y=-137 w=200 h=150
+
 
 
 

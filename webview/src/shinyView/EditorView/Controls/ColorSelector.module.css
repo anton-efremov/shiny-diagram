@@ -3,9 +3,8 @@
  */
 
 .selector {
-  position: relative;
   display: grid;
-  grid-template-columns: 18px 18px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
   min-width: 0;
@@ -14,7 +13,6 @@
   border: 1px solid var(--shiny-button-border);
   color: var(--shiny-text);
   background: var(--shiny-button-secondary-bg);
-  cursor: pointer;
 }
 
 .selector:hover {
@@ -25,6 +23,15 @@
 .selector:focus-within {
   outline: 2px solid var(--shiny-accent);
   outline-offset: 2px;
+}
+
+.pickerLabel {
+  display: grid;
+  grid-template-columns: 18px 18px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  cursor: pointer;
 }
 
 .icon {
@@ -77,9 +84,33 @@
 
 .input {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
   opacity: 0;
+  white-space: nowrap;
+}
+
+.applyButton {
+  min-height: 24px;
+  padding: 3px 6px;
+  border: 1px solid var(--shiny-button-border);
+  color: var(--shiny-button-secondary-fg);
+  background: var(--shiny-surface);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
+}
+
+.applyButton:hover {
+  color: var(--shiny-button-fg);
+  background: var(--shiny-button-bg);
+}
+
+.applyButton:focus-visible {
+  outline: 2px solid var(--shiny-accent);
+  outline-offset: 2px;
 }

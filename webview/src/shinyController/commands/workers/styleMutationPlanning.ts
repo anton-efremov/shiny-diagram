@@ -32,7 +32,7 @@ export function planClassStyleMutation(
   const currentStyleByClassId = getCurrentStyleByClassId(context.model);
   const consumersByStyleId = getConsumersByStyleId(context.model);
   const grouped = groupSelectedClasses(command.classIds, currentStyleByClassId);
-  const reservedStyleIds = new Set(context.model.styleDefs.keys());
+  const reservedStyleIds = getReservedStyleIds(context.model);
   const edits: SourceEdit[] = [];
 
   for (const group of grouped.styledGroups.values()) {
@@ -158,6 +158,13 @@ function getConsumersByStyleId(model: DiagramTree): Map<StyleDefId, Set<ClassId>
     }
   }
   return consumers;
+}
+
+function getReservedStyleIds(model: DiagramTree): Set<StyleDefId> {
+  return new Set([
+    ...model.styleDefs.keys(),
+    ...model.appliesStyleEdges.map((edge) => edge.target),
+  ]);
 }
 
 function groupSelectedClasses(
