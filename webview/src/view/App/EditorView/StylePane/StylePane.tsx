@@ -12,7 +12,7 @@ export default function StylePane(): ReactElement {
   const { canvasState } = useCanvasState();
   const selectedView = elementViews?.classes.find((v) => v.classId === canvasState.selectedClassId);
 
-  const { onFillColorChange, onDeleteClick } = useStylePaneInteractions({
+  const { onFillColorChange, onDuplicate, onDeleteClick } = useStylePaneInteractions({
     selectedClassId: selectedView?.classId ?? null,
     selectedView,
   });
@@ -88,7 +88,14 @@ export default function StylePane(): ReactElement {
         </dl>
 
         <div className={styles.actionArea}>
-          <button className={styles.deleteButton} type="button" onClick={onDeleteClick}>
+          <button className={styles.actionButton} type="button" onClick={onDuplicate}>
+            Duplicate
+          </button>
+          <button
+            className={`${styles.actionButton} ${styles.deleteButton}`}
+            type="button"
+            onClick={onDeleteClick}
+          >
             Delete class
           </button>
         </div>

@@ -25,6 +25,16 @@ direction TB
 	    +addCommunicationChannel(CommunicationChannel channel) void
 	    +removeCommunicationChannel(UUID channelId) void
     }
+    class UserContact_1 {
+	    +UUID id
+	    +String name
+	    +String emailAddress
+	    +List~CommunicationChannel~ preferredChannels
+	    +addCommunicationChannel(CommunicationChannel channel) void
+	    +removeCommunicationChannel(UUID channelId) void
+    }
+class UserContact_1:::Pine
+%% @spatial:UserContact_1 x=137 y=-39 w=224 h=196
 
 
     ConversationThread --> UserContact : involves
@@ -42,9 +52,9 @@ direction TB
 
 
 
-%% @spatial:UserContact x=-206 y=-408 w=349 h=275
-%% @spatial:ConversationThread x=200 y=-155 w=230 h=190
-%% @spatial:TextMessage x=-98 y=-32 w=200 h=150
+%% @spatial:UserContact x=-223 y=-337 w=313 h=218
+%% @spatial:ConversationThread x=178 y=-431 w=230 h=190
+%% @spatial:TextMessage x=-129 y=2 w=200 h=150
 
 
 

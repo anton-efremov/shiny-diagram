@@ -17,4 +17,8 @@ export type {
 } from "../App/EditorView/ClassDiagram/ClassBox/commands";
 export type { ClassAddCommand } from "../App/EditorView/ClassDiagram/PlacementOverlay/commands";
 export type { MemberCommand } from "../App/EditorView/ClassDiagram/ClassBox/MemberTable/commands";
-export type { ClassDeleteCommand, StyleCommand } from "../App/EditorView/StylePane/commands";
+export type {
+  ClassDeleteCommand,
+  ClassDuplicateCommand,
+  StyleCommand,
+} from "../App/EditorView/StylePane/commands";

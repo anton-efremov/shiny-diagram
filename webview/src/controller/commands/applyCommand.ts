@@ -8,6 +8,7 @@ import { handleClassAddCommand } from "./workers/handlers/classAddCommandHandler
 import { handleClassBoxCommand } from "./workers/handlers/classBoxCommandHandler";
 import { handleClassContentCommand } from "./workers/handlers/classContentCommandHandler";
 import { handleClassDeleteCommand } from "./workers/handlers/classDeleteCommandHandler";
+import { handleClassDuplicateCommand } from "./workers/handlers/classDuplicateCommandHandler";
 import { handleGenerateCommand } from "./workers/handlers/generateCommandHandler";
 import { handleNamespaceCommand } from "./workers/handlers/namespaceCommandHandler";
 import { handleNoteCommand } from "./workers/handlers/noteCommandHandler";
@@ -28,6 +29,9 @@ export function applyCommand(command: EditorCommand, context: CommandContext): C
 
     case "class.delete":
       return handleClassDeleteCommand(command, context);
+
+    case "class.duplicate":
+      return handleClassDuplicateCommand(command, context);
 
     case "style.setClassProperty":
       return handleStyleCommand(command, context);

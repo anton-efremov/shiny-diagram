@@ -19,10 +19,16 @@ import {
 import type { CanvasState } from "../view/contexts";
 import type { EditorCommand } from "../view/commands";
 import type { EditorHeaderState, ElementViews } from "../view/views";
+import type { ClassId } from "../shared/ids";
 
 type AppControllerProps = {
   sourceText: string;
   onApplyEdits: (edits: SourceEdit[]) => void;
+};
+
+type PendingSelection = {
+  readonly classId: ClassId;
+  readonly sourceText: string;
 };
 
 function toHeaderState(parseResult: ParseResult): EditorHeaderState {
@@ -46,6 +52,7 @@ export default function AppController({
   onApplyEdits,
 }: AppControllerProps): ReactElement {
   const [canvasState, setCanvasStateRaw] = useState<CanvasState>(defaultCanvasState);
+  const [pendingSelection, setPendingSelection] = useState<PendingSelection | null>(null);
 
   const parseResult = useMemo(() => parseDiagram(sourceText), [sourceText]);
 
@@ -64,6 +71,20 @@ export default function AppController({
     });
   }, [elementViews]);
 
+  useEffect(() => {
+    if (!pendingSelection || pendingSelection.sourceText === sourceText) return;
+
+    const createdClassExists = elementViews?.classes.some(
+      (view) => view.classId === pendingSelection.classId
+    );
+
+    if (createdClassExists) {
+      setCanvasStateRaw((prev) => ({ ...prev, selectedClassId: pendingSelection.classId }));
+    }
+
+    setPendingSelection(null);
+  }, [sourceText, elementViews, pendingSelection]);
+
   const dispatch = useCallback(
     (command: EditorCommand) => {
       if (!model) return;
@@ -79,6 +100,9 @@ export default function AppController({
 
       const result = applyCommand(command, context);
       if (result.ok && result.edits.length > 0) {
+        if (result.createdClassId) {
+          setPendingSelection({ classId: result.createdClassId, sourceText });
+        }
         onApplyEdits(result.edits);
       }
     },

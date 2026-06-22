@@ -3,7 +3,7 @@
  */
 
 import type { StyleDefNode } from "../../model/diagramTree";
-import type { ClassId } from "../../../shared/ids";
+import type { ClassId, StyleDefId } from "../../../shared/ids";
 import type { StylePropertyName } from "../../../shared/styleTypes";
 
 /**
@@ -11,6 +11,26 @@ import type { StylePropertyName } from "../../../shared/styleTypes";
  */
 export function formatClassDeclaration(classId: ClassId): string {
   return `class ${classId}`;
+}
+
+/**
+ * Duplicates a class declaration or block by replacing only the declared class ID.
+ */
+export function formatDuplicatedClassDeclaration(
+  declarationText: string,
+  classId: ClassId
+): string | null {
+  const match = /^(\s*class\s+)(\w+)/.exec(declarationText);
+  if (!match) return null;
+
+  return `${match[1]}${classId}${declarationText.slice(match[0].length)}`;
+}
+
+/**
+ * Formats a native Mermaid class style application line.
+ */
+export function formatClassStyleApplication(classId: ClassId, styleDefId: StyleDefId): string {
+  return `class ${classId}:::${styleDefId}`;
 }
 
 /**

@@ -16,3 +16,8 @@ export type ClassDeleteCommand = {
   readonly type: "class.delete";
   readonly classId: ClassId;
 };
+
+export type ClassDuplicateCommand = {
+  readonly type: "class.duplicate";
+  readonly classId: ClassId;
+};

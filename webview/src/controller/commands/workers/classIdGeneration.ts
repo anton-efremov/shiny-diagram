@@ -23,3 +23,18 @@ export function generateClassId(model: DiagramTree): ClassId {
 
   return toClassId(`${BASE_CLASS_ID}${suffix}`);
 }
+
+/**
+ * Generates the first available duplicate identifier for a source class.
+ */
+export function generateDuplicateClassId(model: DiagramTree, sourceClassId: ClassId): ClassId {
+  const match = /^(.*)_(\d+)$/.exec(sourceClassId);
+  const base = match ? match[1] : sourceClassId;
+  let suffix = match ? Number(match[2]) + 1 : 1;
+
+  while (model.classes.has(toClassId(`${base}_${suffix}`))) {
+    suffix++;
+  }
+
+  return toClassId(`${base}_${suffix}`);
+}

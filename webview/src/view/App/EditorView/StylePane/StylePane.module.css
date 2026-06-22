@@ -188,23 +188,40 @@
 }
 
 .actionArea {
-  display: flex;
-  justify-content: stretch;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
   padding-top: 4px;
   border-top: 1px solid var(--shiny-border);
 }
 
-.deleteButton {
+.actionButton {
   width: 100%;
   min-height: 32px;
   padding: 7px 10px;
-  border: 1px solid var(--shiny-text-error);
-  color: var(--shiny-text-error);
-  background: var(--shiny-surface);
+  border: 1px solid var(--shiny-button-border);
+  color: var(--shiny-button-secondary-fg);
+  background: var(--shiny-button-secondary-bg);
   font: inherit;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.actionButton:hover {
+  color: var(--shiny-button-fg);
+  background: var(--shiny-button-bg);
+}
+
+.actionButton:focus-visible {
+  outline: 2px solid var(--shiny-accent);
+  outline-offset: 2px;
+}
+
+.deleteButton {
+  border-color: var(--shiny-text-error);
+  color: var(--shiny-text-error);
+  background: var(--shiny-surface);
 }
 
 .deleteButton:hover {

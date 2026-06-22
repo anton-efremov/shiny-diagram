@@ -14,6 +14,7 @@ type UseStylePaneInteractionsOptions = {
 
 type UseStylePaneInteractionsResult = {
   onFillColorChange: (fill: string) => void;
+  onDuplicate: () => void;
   onDeleteClick: () => void;
 };
 
@@ -44,6 +45,11 @@ export function useStylePaneInteractions({
     dispatch({ type: "class.delete", classId: selectedClassId });
   }, [selectedClassId, dispatch]);
 
+  const onDuplicate = useCallback(() => {
+    if (!selectedClassId) return;
+    dispatch({ type: "class.duplicate", classId: selectedClassId });
+  }, [selectedClassId, dispatch]);
+
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent): void {
       if (
@@ -68,7 +74,7 @@ export function useStylePaneInteractions({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedClassId, dispatch]);
 
-  return { onFillColorChange, onDeleteClick };
+  return { onFillColorChange, onDuplicate, onDeleteClick };
 }
 
 function isEditableTarget(target: EventTarget | null): boolean {
