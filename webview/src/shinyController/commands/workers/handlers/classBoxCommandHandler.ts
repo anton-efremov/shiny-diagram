@@ -56,13 +56,14 @@ function handleClassMoveCommand(command: ClassMoveCommand, context: CommandConte
     seen.add(move.classId);
   }
 
-  const replacements = command.moves.map((move) => {
+  const replacements = [];
+  for (const move of command.moves) {
     const node = context.model.classes.get(move.classId);
     if (!node?.spatial) {
-      return null;
+      return { ok: false, problem: `No spatial data for moved class ${move.classId}` };
     }
 
-    return {
+    replacements.push({
       location: node.spatial.location,
       replacementText: formatSpatialAnnotation(
         move.classId,
@@ -71,19 +72,13 @@ function handleClassMoveCommand(command: ClassMoveCommand, context: CommandConte
         move.rect.w,
         move.rect.h
       ),
-    };
-  });
-
-  if (replacements.some((replacement) => replacement === null)) {
-    return { ok: false, problem: "No spatial data for moved class" };
+    });
   }
 
-  const sorted = replacements
-    .filter((replacement): replacement is NonNullable<typeof replacement> => replacement !== null)
-    .sort(
-      (a, b) =>
-        a.location.startLine - b.location.startLine || a.location.startChar - b.location.startChar
-    );
+  const sorted = replacements.sort(
+    (a, b) =>
+      a.location.startLine - b.location.startLine || a.location.startChar - b.location.startChar
+  );
 
   for (let index = 1; index < sorted.length; index++) {
     if (rangesOverlap(sorted[index - 1].location, sorted[index].location)) {

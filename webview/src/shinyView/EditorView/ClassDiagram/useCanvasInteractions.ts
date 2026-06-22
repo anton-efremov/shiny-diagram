@@ -10,6 +10,7 @@ import type { ClassBoxNodeDescriptor, RelationshipEdgeDescriptor } from "./react
 
 type UseCanvasInteractionsResult = {
   onSelectionChange: OnSelectionChangeFunc<ClassBoxNodeDescriptor, RelationshipEdgeDescriptor>;
+  onPaneClick: () => void;
 };
 
 /**
@@ -42,7 +43,13 @@ export function useCanvasInteractions(
     [views, selectedClassIds, onSelectedClassIdsChange]
   );
 
-  return { onSelectionChange };
+  const onPaneClick = useCallback(() => {
+    if (selectedClassIds.length === 0) return;
+
+    onSelectedClassIdsChange([]);
+  }, [selectedClassIds, onSelectedClassIdsChange]);
+
+  return { onSelectionChange, onPaneClick };
 }
 
 function areClassIdCollectionsEqual(left: readonly ClassId[], right: readonly ClassId[]): boolean {

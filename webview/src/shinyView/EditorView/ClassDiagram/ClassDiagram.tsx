@@ -53,8 +53,8 @@ export default function ClassDiagram({
   );
 
   useEffect(() => {
-    setRfNodes(toClassBoxNodeDescriptors(elements.classes, [], dispatch));
-  }, [elements.classes, dispatch]);
+    setRfNodes(toClassBoxNodeDescriptors(elements.classes, selectedClassIds, dispatch));
+  }, [elements.classes, selectedClassIds, dispatch]);
 
   useEffect(() => {
     const selected = new Set(selectedClassIds);
@@ -81,7 +81,7 @@ export default function ClassDiagram({
   }, []);
 
   const { onNodeDragStop } = useClassBoxNodeInteractions(elements, dispatch);
-  const { onSelectionChange } = useCanvasInteractions(
+  const { onSelectionChange, onPaneClick } = useCanvasInteractions(
     elements,
     selectedClassIds,
     onSelectedClassIdsChange
@@ -96,6 +96,7 @@ export default function ClassDiagram({
           nodeTypes={{ classBox: ClassBox }}
           onNodesChange={handleNodesChange}
           onSelectionChange={onSelectionChange}
+          onPaneClick={onPaneClick}
           onNodeDragStop={onNodeDragStop}
           fitView
           nodesDraggable={!isPlacementActive}

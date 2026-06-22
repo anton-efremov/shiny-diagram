@@ -22,16 +22,27 @@ export function useClassBoxNodeInteractions(
   const onNodeDragStop = useCallback<OnNodeDrag<ClassBoxNodeDescriptor>>(
     (_event, _rfNode, rfNodes) => {
       const viewsById = new Map(views.classes.map((view) => [view.classId, view]));
-      const moves = rfNodes.flatMap((rfNode) => {
-        const view = viewsById.get(rfNode.data.classId);
-        if (!view) return [];
+      const finalPositionsByClassId = new Map(
+        rfNodes.flatMap((rfNode) => {
+          if (rfNode.type !== "classBox") return [];
+
+          const view = viewsById.get(rfNode.data.classId);
+          if (!view) return [];
+
+          return [[view.classId, rfNode.position] as const];
+        })
+      );
+
+      const moves = views.classes.flatMap((view) => {
+        const position = finalPositionsByClassId.get(view.classId);
+        if (!position) return [];
 
         return [
           {
             classId: view.classId,
             rect: {
-              x: rfNode.position.x,
-              y: rfNode.position.y,
+              x: position.x,
+              y: position.y,
               w: view.w,
               h: view.h,
             },

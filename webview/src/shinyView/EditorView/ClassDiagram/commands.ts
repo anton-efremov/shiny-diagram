@@ -8,6 +8,10 @@ import type { RelationshipType } from "../../../shared/relationshipTypes";
 import type { StylePropertyName } from "../../../shared/styleTypes";
 
 export type ClassMoveCommand = {
+  /**
+   * One completed React Flow drag gesture. A gesture may move one class or a
+   * selected group, but it is persisted as one aggregate command.
+   */
   readonly type: "class.move";
   readonly moves: readonly ClassMoveEntry[];
 };
