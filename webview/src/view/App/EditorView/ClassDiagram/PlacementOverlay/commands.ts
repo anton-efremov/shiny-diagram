@@ -8,5 +8,3 @@ export type ClassAddCommand = {
   readonly type: "class.add";
   readonly rect: Rect;
 };
-
-export type PlacementOverlayCommand = ClassAddCommand;

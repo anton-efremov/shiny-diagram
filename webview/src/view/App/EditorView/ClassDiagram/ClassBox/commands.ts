@@ -1,10 +1,9 @@
 /**
- * @fileoverview Editor commands owned by class-box rendering and content.
+ * @fileoverview Editor commands owned by class-box interactions.
  */
 
 import type { Rect } from "../../../../../shared/geometry";
 import type { ClassId } from "../../../../../shared/ids";
-import type { MemberCommand } from "./MemberTable/commands";
 
 export type ClassBoxCommand = {
   readonly type: "class.resize";
@@ -17,5 +16,3 @@ export type ClassHeaderCommand = {
   readonly classId: ClassId;
   readonly label: string;
 };
-
-export type ClassContentCommand = ClassHeaderCommand | MemberCommand;

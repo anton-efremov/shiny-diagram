@@ -6,7 +6,6 @@
 export type { GenerateCommand } from "../App/AppHeader/commands";
 export type { EditorCommand } from "./editorCommand";
 export type {
-  ClassDiagramCommand,
   ClassMoveCommand,
   NamespaceCommand,
   NoteCommand,
@@ -14,14 +13,8 @@ export type {
 } from "../App/EditorView/ClassDiagram/commands";
 export type {
   ClassBoxCommand,
-  ClassContentCommand,
+  ClassHeaderCommand,
 } from "../App/EditorView/ClassDiagram/ClassBox/commands";
-export type {
-  ClassAddCommand,
-  PlacementOverlayCommand,
-} from "../App/EditorView/ClassDiagram/PlacementOverlay/commands";
-export type {
-  MemberCommand,
-  MemberPrefix,
-} from "../App/EditorView/ClassDiagram/ClassBox/MemberTable/commands";
+export type { ClassAddCommand } from "../App/EditorView/ClassDiagram/PlacementOverlay/commands";
+export type { MemberCommand } from "../App/EditorView/ClassDiagram/ClassBox/MemberTable/commands";
 export type { StyleCommand } from "../App/EditorView/StylePane/commands";
