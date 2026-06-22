@@ -26,39 +26,7 @@
 }
 
 .toolButton {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  min-width: 40px;
-  height: 30px;
-  min-height: 30px;
-  padding: 0;
-  border: 1px solid var(--shiny-button-border);
-  color: var(--shiny-text-muted);
-  background: var(--shiny-button-secondary-bg);
-  cursor: default;
-  opacity: 0.72;
-}
-
-.toolButton:hover {
-  border-color: var(--shiny-button-border);
-}
-
-.enabledToolButton {
-  color: var(--shiny-text);
-  cursor: pointer;
-  opacity: 1;
-}
-
-.enabledToolButton:hover,
-.enabledToolButton:focus-visible {
-  border-color: var(--shiny-accent);
-}
-
-.activeToolButton {
-  border-color: var(--shiny-accent);
-  background: var(--shiny-button-bg);
-  color: var(--shiny-button-fg);
+  justify-self: center;
 }
 
 .toolIcon {

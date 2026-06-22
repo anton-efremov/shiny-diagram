@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
-import type { NodeChange } from "@xyflow/react";
+import type { NodeChange, NodeTypes } from "@xyflow/react";
 import {
   applyNodeChanges,
   Background,
@@ -19,10 +19,13 @@ import PlacementOverlay from "./PlacementOverlay/PlacementOverlay";
 import {
   type ClassBoxNodeDescriptor,
   type RelationshipEdgeDescriptor,
+  projectClassBoxNodeSelection,
   toClassBoxNodeDescriptors,
   toRelationshipEdgeDescriptors,
 } from "./reactFlowAdapters";
 import styles from "./ClassDiagram.module.css";
+
+const nodeTypes = { classBox: ClassBox } satisfies NodeTypes;
 
 type ClassDiagramProps = {
   elements: ElementViews;
@@ -45,6 +48,9 @@ export default function ClassDiagram({
   dispatch,
 }: ClassDiagramProps): ReactElement {
   const isPlacementActive = placementMode !== null;
+  const selectedClassIdsRef = useRef(selectedClassIds);
+  selectedClassIdsRef.current = selectedClassIds;
+
   const [rfNodes, setRfNodes] = useState<ClassBoxNodeDescriptor[]>(() =>
     toClassBoxNodeDescriptors(elements.classes, selectedClassIds, dispatch)
   );
@@ -53,24 +59,12 @@ export default function ClassDiagram({
   );
 
   useEffect(() => {
-    setRfNodes(toClassBoxNodeDescriptors(elements.classes, selectedClassIds, dispatch));
-  }, [elements.classes, selectedClassIds, dispatch]);
+    setRfNodes(toClassBoxNodeDescriptors(elements.classes, selectedClassIdsRef.current, dispatch));
+  }, [elements.classes, dispatch]);
 
   useEffect(() => {
-    const selected = new Set(selectedClassIds);
-    const hasSoleSelection = selectedClassIds.length === 1;
-    setRfNodes((prev) =>
-      prev.map((node) => ({
-        ...node,
-        selected: selected.has(node.data.classId),
-        data: {
-          ...node.data,
-          dispatch,
-          isSoleSelection: hasSoleSelection && selected.has(node.data.classId),
-        },
-      }))
-    );
-  }, [selectedClassIds, dispatch]);
+    setRfNodes((prev) => projectClassBoxNodeSelection(prev, selectedClassIds));
+  }, [selectedClassIds]);
 
   useEffect(() => {
     setRfEdges(toRelationshipEdgeDescriptors(elements.classes, elements.relationships));
@@ -82,8 +76,7 @@ export default function ClassDiagram({
 
   const { onNodeDragStop } = useClassBoxNodeInteractions(elements, dispatch);
   const { onSelectionChange, onPaneClick } = useCanvasInteractions(
-    elements,
-    selectedClassIds,
+    elements.classes,
     onSelectedClassIdsChange
   );
 
@@ -93,7 +86,7 @@ export default function ClassDiagram({
         <ReactFlow
           nodes={rfNodes}
           edges={rfEdges}
-          nodeTypes={{ classBox: ClassBox }}
+          nodeTypes={nodeTypes}
           onNodesChange={handleNodesChange}
           onSelectionChange={onSelectionChange}
           onPaneClick={onPaneClick}

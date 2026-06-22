@@ -2,7 +2,7 @@
  * @fileoverview Coordinates Shiny parsing, derivation, commands, and View composition.
  */
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
 import type { ReactElement } from "react";
 import { parseDiagram } from "./parse";
 import { deriveElementViews } from "./deriveViews";
@@ -15,6 +15,11 @@ import type { EditorViewModel, ElementViews } from "../shinyView/views";
 type ShinyControllerProps = {
   sourceText: string;
   onApplyEdits: (edits: SourceEdit[]) => void;
+};
+
+type CommandExecutionInputs = {
+  readonly context: Parameters<typeof applyCommand>[1] | null;
+  readonly onApplyEdits: (edits: SourceEdit[]) => void;
 };
 
 /**
@@ -48,26 +53,36 @@ export default function ShinyController({
     return { status: "ready", elements };
   }, [parseResult, elementViews]);
 
-  const dispatch: EditorDispatch = useCallback(
-    (command) => {
-      if (!model) return;
+  const commandExecutionInputs: CommandExecutionInputs = {
+    context: model
+      ? {
+          sourceText,
+          model,
+          malformedAnnotations:
+            parseResult.status === "missingAnnotations"
+              ? parseResult.malformedAnnotations
+              : undefined,
+        }
+      : null,
+    onApplyEdits,
+  };
+  const commandExecutionInputsRef = useRef<CommandExecutionInputs>(commandExecutionInputs);
 
-      const context = {
-        sourceText,
-        model,
-        malformedAnnotations:
-          parseResult.status === "missingAnnotations"
-            ? parseResult.malformedAnnotations
-            : undefined,
-      };
+  useLayoutEffect(() => {
+    commandExecutionInputsRef.current = commandExecutionInputs;
+  });
 
-      const result = applyCommand(command, context);
-      if (result.ok && result.edits.length > 0) {
-        onApplyEdits(result.edits);
-      }
-    },
-    [sourceText, model, parseResult, onApplyEdits]
-  );
+  const dispatch: EditorDispatch = useCallback((command) => {
+    const { context, onApplyEdits: applyEdits } = commandExecutionInputsRef.current;
+    if (!context) return;
+
+    const result = applyCommand(command, context);
+    if (result.ok && result.edits.length > 0) {
+      applyEdits(result.edits);
+    }
+  }, []);
+
+  commandExecutionInputsRef.current = commandExecutionInputs;
 
   return <EditorView view={editorViewModel} dispatch={dispatch} />;
 }

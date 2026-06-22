@@ -2,10 +2,10 @@
  * @fileoverview Hook for translating canvas pane interactions into View state updates.
  */
 
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import type { OnSelectionChangeFunc } from "@xyflow/react";
-import type { ElementViews } from "../views";
 import type { ClassId } from "../../../shared/ids";
+import type { ClassBoxView } from "./ClassBox/views";
 import type { ClassBoxNodeDescriptor, RelationshipEdgeDescriptor } from "./reactFlowAdapters";
 
 type UseCanvasInteractionsResult = {
@@ -17,41 +17,34 @@ type UseCanvasInteractionsResult = {
  * Synchronizes ReactFlow selection to View-owned canvas state.
  */
 export function useCanvasInteractions(
-  views: ElementViews,
-  selectedClassIds: readonly ClassId[],
+  classes: readonly ClassBoxView[],
   onSelectedClassIdsChange: (classIds: readonly ClassId[]) => void
 ): UseCanvasInteractionsResult {
+  const classIdOrderRef = useRef<readonly ClassId[]>([]);
+  const onSelectedClassIdsChangeRef = useRef(onSelectedClassIdsChange);
+  classIdOrderRef.current = classes.map((view) => view.classId);
+  onSelectedClassIdsChangeRef.current = onSelectedClassIdsChange;
+
   const onSelectionChange = useCallback<
     OnSelectionChangeFunc<ClassBoxNodeDescriptor, RelationshipEdgeDescriptor>
-  >(
-    ({ nodes }) => {
-      const selected = new Set<ClassId>();
-      for (const node of nodes) {
-        if (node.type === "classBox") {
-          selected.add(node.data.classId);
-        }
+  >(({ nodes }) => {
+    const selected = new Set<ClassId>();
+    for (const node of nodes) {
+      if (node.type === "classBox") {
+        selected.add(node.data.classId);
       }
+    }
 
-      const orderedSelection = views.classes.flatMap((view) =>
-        selected.has(view.classId) ? [view.classId] : []
-      );
+    const orderedSelection = classIdOrderRef.current.flatMap((classId) =>
+      selected.has(classId) ? [classId] : []
+    );
 
-      if (areClassIdCollectionsEqual(selectedClassIds, orderedSelection)) return;
-
-      onSelectedClassIdsChange(orderedSelection);
-    },
-    [views, selectedClassIds, onSelectedClassIdsChange]
-  );
+    onSelectedClassIdsChangeRef.current(orderedSelection);
+  }, []);
 
   const onPaneClick = useCallback(() => {
-    if (selectedClassIds.length === 0) return;
-
-    onSelectedClassIdsChange([]);
-  }, [selectedClassIds, onSelectedClassIdsChange]);
+    onSelectedClassIdsChangeRef.current([]);
+  }, []);
 
   return { onSelectionChange, onPaneClick };
-}
-
-function areClassIdCollectionsEqual(left: readonly ClassId[], right: readonly ClassId[]): boolean {
-  return left.length === right.length && left.every((id, index) => id === right[index]);
 }

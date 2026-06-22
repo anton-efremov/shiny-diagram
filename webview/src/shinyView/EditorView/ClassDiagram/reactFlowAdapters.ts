@@ -46,6 +46,43 @@ export function toClassBoxNodeDescriptors(
 }
 
 /**
+ * Projects View-owned selection onto existing ReactFlow class nodes.
+ */
+export function projectClassBoxNodeSelection(
+  nodes: readonly ClassBoxNodeDescriptor[],
+  selectedClassIds: readonly ClassId[]
+): ClassBoxNodeDescriptor[] {
+  const selected = new Set<ClassId>(selectedClassIds);
+  const hasSoleSelection = selectedClassIds.length === 1;
+  let didChange = false;
+
+  const projected = nodes.map((node) => {
+    const isSelected = selected.has(node.data.classId);
+    const isSoleSelection = hasSoleSelection && isSelected;
+
+    if (node.selected === isSelected && node.data.isSoleSelection === isSoleSelection) {
+      return node;
+    }
+
+    didChange = true;
+
+    return {
+      ...node,
+      selected: isSelected,
+      data:
+        node.data.isSoleSelection === isSoleSelection
+          ? node.data
+          : {
+              ...node.data,
+              isSoleSelection,
+            },
+    };
+  });
+
+  return didChange ? projected : (nodes as ClassBoxNodeDescriptor[]);
+}
+
+/**
  * Converts relationship views into ReactFlow edge descriptors.
  */
 export function toRelationshipEdgeDescriptors(

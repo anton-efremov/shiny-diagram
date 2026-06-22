@@ -4,17 +4,18 @@
 
 import { useCallback, useEffect } from "react";
 import type { EditorDispatch } from "../../commands/editorCommand";
-import type { ClassBoxView } from "../ClassDiagram/ClassBox/views";
 import type { ClassId } from "../../../shared/ids";
+import type { StyleCommand } from "./commands";
 
 type UseStylePaneInteractionsOptions = {
   dispatch: EditorDispatch;
   selectedClassIds: readonly ClassId[];
-  selectedView: ClassBoxView | undefined;
 };
 
 type UseStylePaneInteractionsResult = {
   onFillColorChange: (fill: string) => void;
+  onStrokeColorChange: (stroke: string) => void;
+  onTextColorChange: (color: string) => void;
   onDuplicate: () => void;
   onDeleteClick: () => void;
 };
@@ -25,21 +26,33 @@ type UseStylePaneInteractionsResult = {
 export function useStylePaneInteractions({
   dispatch,
   selectedClassIds,
-  selectedView,
 }: UseStylePaneInteractionsOptions): UseStylePaneInteractionsResult {
-  const soleSelectedClassId = selectedClassIds.length === 1 ? selectedClassIds[0] : null;
-
-  const onFillColorChange = useCallback(
-    (fill: string) => {
-      if (!soleSelectedClassId || !selectedView?.style) return;
+  const dispatchStyleChange = useCallback(
+    (property: StyleCommand["property"], value: string) => {
+      if (selectedClassIds.length === 0) return;
       dispatch({
         type: "style.setClassProperty",
-        classId: soleSelectedClassId,
-        property: "fill",
-        value: fill,
+        classIds: selectedClassIds,
+        property,
+        value,
       });
     },
-    [soleSelectedClassId, selectedView, dispatch]
+    [selectedClassIds, dispatch]
+  );
+
+  const onFillColorChange = useCallback(
+    (fill: string) => dispatchStyleChange("fill", fill),
+    [dispatchStyleChange]
+  );
+
+  const onStrokeColorChange = useCallback(
+    (stroke: string) => dispatchStyleChange("stroke", stroke),
+    [dispatchStyleChange]
+  );
+
+  const onTextColorChange = useCallback(
+    (color: string) => dispatchStyleChange("color", color),
+    [dispatchStyleChange]
   );
 
   const onDeleteClick = useCallback(() => {
@@ -76,7 +89,7 @@ export function useStylePaneInteractions({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedClassIds, dispatch]);
 
-  return { onFillColorChange, onDuplicate, onDeleteClick };
+  return { onFillColorChange, onStrokeColorChange, onTextColorChange, onDuplicate, onDeleteClick };
 }
 
 function isEditableTarget(target: EventTarget | null): boolean {

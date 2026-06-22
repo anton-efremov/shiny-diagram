@@ -3,12 +3,11 @@
  */
 
 import type { ClassId } from "../../../shared/ids";
-import type { StylePropertyName } from "../../../shared/styleTypes";
 
 export type StyleCommand = {
   readonly type: "style.setClassProperty";
-  readonly classId: ClassId;
-  readonly property: StylePropertyName;
+  readonly classIds: readonly ClassId[];
+  readonly property: "fill" | "stroke" | "color";
   readonly value: string;
 };
 

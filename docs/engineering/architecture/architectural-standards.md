@@ -251,6 +251,7 @@ shinyView/
 - Controller must consume View APIs through `shinyView/EditorView`, `shinyView/commands`, and `shinyView/views`.
 - Controller handlers should import the narrow owner-defined command contracts they handle through `shinyView/commands`.
 - View internals use direct imports from the defining modules and must not import their own public facades.
+- `EditorView/Controls` is an internal, presentation-only cluster shared by sibling components inside the `EditorView` subtree. It is not a new architectural layer, View-root facade, or cross-layer UI package. Shell components must not import it.
 
 #### 6.1.3 Permitted deviations
 

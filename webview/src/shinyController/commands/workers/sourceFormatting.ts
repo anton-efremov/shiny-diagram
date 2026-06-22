@@ -34,6 +34,17 @@ export function formatClassStyleApplication(classId: ClassId, styleDefId: StyleD
 }
 
 /**
+ * Formats a minimal Mermaid classDef line.
+ */
+export function formatMinimalStyleDef(
+  styleDefId: StyleDefId,
+  property: "fill" | "stroke" | "color",
+  value: string
+): string {
+  return `classDef ${styleDefId} ${property}:${value}`;
+}
+
+/**
  * Formats a complete Shiny spatial annotation line.
  */
 export function formatSpatialAnnotation(
@@ -76,4 +87,67 @@ export function formatStyleProperty(
   }
 
   return `${prefix}${properties.join(",")}`;
+}
+
+/**
+ * Clones a Mermaid classDef line under a new style ID and changes one property.
+ */
+export function formatClonedStyleDefProperty(
+  style: StyleDefNode,
+  styleDefId: StyleDefId,
+  property: "fill" | "stroke" | "color",
+  value: string
+): string {
+  const match = /^(\s*classDef\s+)(\w+)(\s+)(.*)$/.exec(style.location.raw);
+  if (!match) {
+    return formatMinimalStyleDef(styleDefId, property, value);
+  }
+
+  return `${match[1]}${styleDefId}${match[3]}${formatProperties(match[4], property, value)}`;
+}
+
+/**
+ * Retargets a class style application to another style definition.
+ */
+export function formatRetargetedClassStyleApplication(
+  rawApplication: string,
+  styleDefId: StyleDefId
+): string | null {
+  const match = /^(\s*class\s+\w+:::)(\w+)(.*)$/.exec(rawApplication);
+  if (!match) return null;
+
+  return `${match[1]}${styleDefId}${match[3]}`;
+}
+
+function formatProperties(
+  rawProperties: string,
+  property: "fill" | "stroke" | "color",
+  value: string
+): string {
+  const properties = rawProperties
+    .split(",")
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+
+  const index = properties.findIndex((p) => toSemanticPropertyName(p) === property);
+
+  if (index === -1) {
+    properties.push(`${property}:${value}`);
+  } else {
+    properties[index] = `${property}:${value}`;
+  }
+
+  return properties.join(",");
+}
+
+function toSemanticPropertyName(propertyText: string): string {
+  const key = propertyText.split(":", 1)[0]?.trim();
+  switch (key) {
+    case "stroke-width":
+      return "strokeWidth";
+    case "stroke-dasharray":
+      return "strokeDasharray";
+    default:
+      return key;
+  }
 }

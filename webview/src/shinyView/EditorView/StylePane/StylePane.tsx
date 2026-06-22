@@ -1,7 +1,12 @@
 import type { CSSProperties, ReactElement } from "react";
 import type { EditorDispatch } from "../../commands/editorCommand";
-import type { ClassBoxView } from "./../ClassDiagram/ClassBox/views";
-import { useStylePaneInteractions as useStylePaneInteractions } from "./useStylePaneInteractions";
+import ColorSelector from "../Controls/ColorSelector";
+import ControlButton from "../Controls/ControlButton";
+import { BorderIcon, DeleteIcon, DuplicateIcon, FillIcon, TextColorIcon } from "../Controls/icons";
+import type { ClassBoxView } from "../ClassDiagram/ClassBox/views";
+import { aggregateClassStyles } from "./styleAggregation";
+import type { AggregatedStyleProperty } from "./styleAggregation";
+import { useStylePaneInteractions } from "./useStylePaneInteractions";
 import styles from "./StylePane.module.css";
 
 type StylePaneProps = {
@@ -14,12 +19,13 @@ type StylePaneProps = {
  */
 export default function StylePane({ selectedClassViews, dispatch }: StylePaneProps): ReactElement {
   const selectedView = selectedClassViews.length === 1 ? selectedClassViews[0] : undefined;
+  const aggregatedStyles = aggregateClassStyles(selectedClassViews);
 
-  const { onFillColorChange, onDuplicate, onDeleteClick } = useStylePaneInteractions({
-    dispatch,
-    selectedClassIds: selectedClassViews.map((view) => view.classId),
-    selectedView,
-  });
+  const { onFillColorChange, onStrokeColorChange, onTextColorChange, onDuplicate, onDeleteClick } =
+    useStylePaneInteractions({
+      dispatch,
+      selectedClassIds: selectedClassViews.map((view) => view.classId),
+    });
 
   if (selectedClassViews.length === 0) {
     return (
@@ -30,41 +36,9 @@ export default function StylePane({ selectedClassViews, dispatch }: StylePanePro
     );
   }
 
-  if (selectedClassViews.length > 1) {
-    return (
-      <aside className={styles.stylePane} aria-label="Styles pane">
-        <header className={styles.header}>Styles</header>
-        <section className={styles.selectionPanel} aria-label="Selected class actions">
-          <div className={styles.multiSelectionSummary}>
-            <div className={styles.selectionType}>Selection</div>
-            <h2 className={styles.className}>{selectedClassViews.length} classes selected</h2>
-          </div>
-
-          <div className={styles.actionArea}>
-            <button className={styles.actionButton} type="button" onClick={onDuplicate}>
-              Duplicate selected
-            </button>
-            <button
-              className={`${styles.actionButton} ${styles.deleteButton}`}
-              type="button"
-              onClick={onDeleteClick}
-            >
-              Delete selected
-            </button>
-          </div>
-        </section>
-      </aside>
-    );
-  }
-
-  const singleSelectedView = selectedView;
-  if (!singleSelectedView) {
-    throw new Error("Expected one selected class view");
-  }
-
-  const fill = singleSelectedView.style?.fill;
-  const stroke = singleSelectedView.style?.stroke;
-  const color = singleSelectedView.style?.color;
+  const fill = selectedView?.style?.fill;
+  const stroke = selectedView?.style?.stroke;
+  const color = selectedView?.style?.color;
   const dynamicVars = {
     "--style-fill": fill,
     "--style-stroke": stroke,
@@ -79,87 +53,96 @@ export default function StylePane({ selectedClassViews, dispatch }: StylePanePro
         style={dynamicVars}
         aria-label="Selected class styles"
       >
-        <div className={styles.selectionSummary}>
-          <div className={styles.selectionAccent} aria-hidden="true" />
-          <div className={styles.selectionCopy}>
-            <div className={styles.selectionType}>Class</div>
-            <h2 className={styles.className}>{singleSelectedView.header.label}</h2>
-            {singleSelectedView.header.stereotype ? (
-              <div className={styles.stereotype}>
-                &lt;&lt;{singleSelectedView.header.stereotype}&gt;&gt;
-              </div>
-            ) : null}
+        {selectedView ? (
+          <div className={styles.selectionSummary}>
+            <div className={styles.selectionAccent} aria-hidden="true" />
+            <div className={styles.selectionCopy}>
+              <div className={styles.selectionType}>Class</div>
+              <h2 className={styles.className}>{selectedView.header.label}</h2>
+              {selectedView.header.stereotype ? (
+                <div className={styles.stereotype}>
+                  &lt;&lt;{selectedView.header.stereotype}&gt;&gt;
+                </div>
+              ) : null}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className={styles.multiSelectionSummary}>
+            <div className={styles.selectionType}>Selection</div>
+            <h2 className={styles.className}>{selectedClassViews.length} classes selected</h2>
+          </div>
+        )}
 
-        <div className={styles.previewCard} aria-label="Selected class color preview">
-          <div className={styles.previewHeader}>{singleSelectedView.header.label}</div>
-          <div className={styles.previewBody}>
-            {singleSelectedView.style?.name ? (
-              <span className={styles.styleName}>{singleSelectedView.style.name}</span>
-            ) : (
-              "Default style"
-            )}
+        {selectedView ? (
+          <div className={styles.previewCard} aria-label="Selected class color preview">
+            <div className={styles.previewHeader}>{selectedView.header.label}</div>
+            <div className={styles.previewBody}>
+              {selectedView.style?.name ? (
+                <span className={styles.styleName}>{selectedView.style.name}</span>
+              ) : (
+                "Default style"
+              )}
+            </div>
           </div>
-        </div>
+        ) : null}
 
-        <dl className={styles.styleList}>
-          <div className={styles.styleRow}>
-            <dt className={styles.styleLabel}>Fill</dt>
-            <dd className={styles.styleValue}>
-              <label className={styles.colorControl}>
-                <span className={styles.colorInputLabel}>Fill color</span>
-                <input
-                  className={styles.colorInput}
-                  type="color"
-                  value={toColorInputValue(fill)}
-                  onChange={(event) => onFillColorChange(event.currentTarget.value)}
-                />
-                <span>{fill ?? "Default"}</span>
-              </label>
-            </dd>
-          </div>
-          <StyleValue label="Stroke" value={stroke} swatchClassName={styles.strokeSwatch} />
-          <StyleValue label="Text" value={color} swatchClassName={styles.textSwatch} />
-        </dl>
+        <div className={styles.styleList}>
+          <ColorSelector
+            label="Fill"
+            icon={<FillIcon />}
+            {...toColorSelectorProps(aggregatedStyles.fill)}
+            onChange={onFillColorChange}
+          />
+          <ColorSelector
+            label="Border"
+            icon={<BorderIcon />}
+            {...toColorSelectorProps(aggregatedStyles.stroke)}
+            onChange={onStrokeColorChange}
+          />
+          <ColorSelector
+            label="Text"
+            icon={<TextColorIcon />}
+            {...toColorSelectorProps(aggregatedStyles.color)}
+            onChange={onTextColorChange}
+          />
+        </div>
 
         <div className={styles.actionArea}>
-          <button className={styles.actionButton} type="button" onClick={onDuplicate}>
-            Duplicate
-          </button>
-          <button
-            className={`${styles.actionButton} ${styles.deleteButton}`}
-            type="button"
+          <ControlButton
+            icon={<DuplicateIcon />}
+            label={selectedView ? "Duplicate" : "Duplicate selected"}
+            onClick={onDuplicate}
+          />
+          <ControlButton
+            icon={<DeleteIcon />}
+            label={selectedView ? "Delete class" : "Delete selected"}
+            tone="danger"
             onClick={onDeleteClick}
-          >
-            Delete class
-          </button>
+          />
         </div>
       </section>
     </aside>
   );
 }
 
-function toColorInputValue(value: string | undefined): string {
-  return /^#[0-9a-fA-F]{6}$/.test(value ?? "") ? (value ?? "#ffffff") : "#ffffff";
-}
+function toColorSelectorProps(property: AggregatedStyleProperty): {
+  readonly displayValue: string;
+  readonly pickerValue: string;
+  readonly swatchColor?: string;
+  readonly mixed: boolean;
+} {
+  if (property.kind === "multiple") {
+    return {
+      displayValue: "Multiple",
+      pickerValue: property.pickerValue,
+      mixed: true,
+    };
+  }
 
-function StyleValue({
-  label,
-  value,
-  swatchClassName,
-}: {
-  label: string;
-  value?: string;
-  swatchClassName: string;
-}): ReactElement {
-  return (
-    <div className={styles.styleRow}>
-      <dt className={styles.styleLabel}>{label}</dt>
-      <dd className={styles.styleValue}>
-        <span className={`${styles.swatch} ${swatchClassName}`} aria-hidden="true" />
-        <span>{value ?? "Default"}</span>
-      </dd>
-    </div>
-  );
+  return {
+    displayValue: property.value ?? "Default",
+    pickerValue: property.pickerValue,
+    swatchColor: property.value,
+    mixed: false,
+  };
 }

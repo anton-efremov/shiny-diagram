@@ -1,4 +1,6 @@
 import type { ReactElement } from "react";
+import ControlButton from "../Controls/ControlButton";
+import { ClassIcon } from "../Controls/icons";
 import type { PlacementMode } from "../placementMode";
 import { useToolPaneInteractions } from "./useToolPaneInteractions";
 import styles from "./ToolPane.module.css";
@@ -52,43 +54,44 @@ export default function ToolPane({
         {classTools.map((tool, index) => {
           const isClassTool = index === 0;
           return (
-            <button
+            <ControlButton
               key={tool.name}
-              className={[
-                styles.toolButton,
-                isClassTool ? styles.enabledToolButton : "",
-                isClassTool && isClassPlacementActive ? styles.activeToolButton : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              type="button"
-              aria-disabled={isClassTool ? undefined : "true"}
-              aria-pressed={isClassTool ? isClassPlacementActive : undefined}
-              tabIndex={isClassTool ? 0 : -1}
+              className={styles.toolButton}
+              variant="compact"
+              icon={
+                isClassTool ? (
+                  <ClassIcon />
+                ) : (
+                  <span className={styles.toolIcon} aria-hidden="true">
+                    {tool.icon}
+                  </span>
+                )
+              }
+              aria-label={tool.name}
+              disabled={!isClassTool}
+              active={isClassTool && isClassPlacementActive}
+              pressed={isClassTool ? isClassPlacementActive : undefined}
               title={tool.name}
               onClick={isClassTool ? onClassToolClick : undefined}
-            >
-              <span className={styles.toolIcon} aria-hidden="true">
-                {tool.icon}
-              </span>
-            </button>
+            />
           );
         })}
       </div>
       <div className={styles.toolGroup} aria-label="Relationship elements">
         {relationshipTools.map((tool) => (
-          <button
+          <ControlButton
             key={tool.name}
             className={styles.toolButton}
-            type="button"
-            aria-disabled="true"
-            tabIndex={-1}
+            variant="compact"
+            icon={
+              <span className={styles.toolIcon} aria-hidden="true">
+                {tool.icon}
+              </span>
+            }
+            aria-label={tool.name}
+            disabled
             title={tool.name}
-          >
-            <span className={styles.toolIcon} aria-hidden="true">
-              {tool.icon}
-            </span>
-          </button>
+          />
         ))}
       </div>
     </aside>

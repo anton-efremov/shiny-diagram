@@ -1,5 +1,7 @@
 import type { ReactElement } from "react";
 import type { EditorDispatch } from "../../commands/editorCommand";
+import ControlButton from "../Controls/ControlButton";
+import { GenerateIcon } from "../Controls/icons";
 import type { EditorViewModel } from "../views";
 import { useEditorStatusInteractions } from "./useEditorStatusInteractions";
 import styles from "./EditorStatus.module.css";
@@ -24,9 +26,7 @@ export default function EditorStatus({ view, dispatch }: EditorStatusProps): Rea
   return (
     <div className={styles.statusMessage}>
       ⚠ Missing annotations
-      <button className={styles.generateButton} type="button" onClick={onGenerate}>
-        Generate
-      </button>
+      <ControlButton icon={<GenerateIcon />} label="Generate" onClick={onGenerate} />
     </div>
   );
 }
