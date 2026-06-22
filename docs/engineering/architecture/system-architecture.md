@@ -1,8 +1,8 @@
 # System Architecture
 
 > **Implementation state:** Current  
-> **Document state:** Stale  
-> **Last reviewed:** 2026-06-21  
+> **Document state:** Maintained  
+> **Last reviewed:** 2026-06-22  
 > **Scope:** Current subsystem responsibilities, data contracts, synchronization, and calculations
 
 ## Index
@@ -45,8 +45,10 @@ Structural policy is defined in [Architectural Standards](./architectural-standa
 │                                   Webview                       │
 │                         ┌─────────────────────────┐             │
 │                         │ Extension Bridge        │             │
-│                         │ Controller              │             │
-│                         │ View                    │             │
+│                         │ WebViewShell            │             │
+│                         │ ├─ MermaidRenderer      │             │
+│                         │ └─ ShinyController      │             │
+│                         │    └─ EditorView        │             │
 │                         └─────────────────────────┘             │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -98,7 +100,7 @@ type ApplyEditsMessage = {
 
 `start` and `end` are zero-based source positions, and `end` is exclusive. An empty range inserts `replacementText`; a non-empty range with empty `replacementText` deletes the range; a non-empty range with non-empty `replacementText` replaces the range.
 
-The request contains no request ID or base version. Controller [`SourceEdit`](../../../webview/src/controller/commands/sourceEdit.ts) has the same structural shape as the wire edit. [`ExtensionBridge.toProtocolEdit`](../../../webview/src/extensionBridge/ExtensionBridge.tsx) maps it field-for-field into the protocol-owned edit declaration. If the Controller returns no edits, [`ExtensionBridge`](../../../webview/src/extensionBridge/ExtensionBridge.tsx) sends no message.
+The request contains no request ID or base version. Controller [`SourceEdit`](../../../webview/src/shinyController/commands/sourceEdit.ts) has the same structural shape as the wire edit. [`ExtensionBridge.toProtocolEdit`](../../../webview/src/extensionBridge/ExtensionBridge.tsx) maps it field-for-field into the protocol-owned edit declaration. If the Controller returns no edits, [`ExtensionBridge`](../../../webview/src/extensionBridge/ExtensionBridge.tsx) sends no message.
 
 ### 3.3 Edit result
 
@@ -106,7 +108,7 @@ There is no edit-result message or edit-result data contract. [`HostToWebviewMes
 
 [`DiagramSession`](../../../extension-host/diagramSession.ts) awaits `vscode.workspace.applyEdit(...)` but does not inspect its boolean result. It then posts a new `SourceUpdateMessage`. Consequently, the Webview receives the source text observed after the attempt, but it cannot correlate that update to a particular request or distinguish success, rejection, staleness, and failure through the protocol.
 
-Controller command failures use the internal [`CommandResult`](../../../webview/src/controller/commands/commandExecution.ts), not a Host result. [`AppController`](../../../webview/src/controller/AppController.tsx) forwards only successful, non-empty edits and currently discards failure problems without exposing them to the View.
+Controller command failures use the internal [`CommandResult`](../../../webview/src/shinyController/commands/commandExecution.ts), not a Host result. [`ShinyController`](../../../webview/src/shinyController/ShinyController.tsx) forwards only successful, non-empty edits and currently discards failure problems without exposing them to the View.
 
 **Standards deviation:** transport outcomes and edit-application outcomes are not distinguishable, contrary to [Architectural Standards](./architectural-standards.md#33-boundary-adapters).
 
@@ -147,58 +149,69 @@ The Extension Host does not parse Mermaid, build the Controller model, derive Vi
 
 | Layer | Receives | Produces | Maintains | Implementation |
 |---|---|---|---|---|
-| Extension Bridge | Host-injected initial string, `window.message` data, Controller `SourceEdit[]` callback values | `sourceText` for the Controller and wire `ApplyEditsMessage` values | Current source string | [ExtensionBridge.tsx](../../../webview/src/extensionBridge/ExtensionBridge.tsx), [initialData.ts](../../../webview/src/extensionBridge/initialData.ts), [vscodeApi.ts](../../../webview/src/extensionBridge/vscodeApi.ts) |
-| Controller | `sourceText`, `onApplyEdits`, View `EditorCommand`, partial canvas-state updates | `ParseResult`, `ElementViews`, React context values, and successful Controller edits | `CanvasState`; memoized source-derived projection | [AppController.tsx](../../../webview/src/controller/AppController.tsx) |
-| View | Editor-state, dispatch, and canvas-state contexts; DOM and React Flow events | React output, wired `EditorCommand` values, and transient selection changes | Autorender/editor mode; React Flow node and edge working state | [App.tsx](../../../webview/src/view/App/App.tsx), [ClassDiagram.tsx](../../../webview/src/view/App/EditorView/ClassDiagram/ClassDiagram.tsx) |
+| Extension Bridge | Host-injected initial string, `window.message` data, Controller `SourceEdit[]` callback values | `sourceText` for Shell and wire `ApplyEditsMessage` values | Current source string | [ExtensionBridge.tsx](../../../webview/src/extensionBridge/ExtensionBridge.tsx), [initialData.ts](../../../webview/src/extensionBridge/initialData.ts), [vscodeApi.ts](../../../webview/src/extensionBridge/vscodeApi.ts) |
+| Shell | `sourceText`, `onApplyEdits`, mode-toggle input | Selected product branch: standard Mermaid rendering or Shiny editor | `WebViewMode` (`"mermaid" \| "shiny"`) | [WebViewShell.tsx](../../../webview/src/webviewShell/WebViewShell.tsx), [MermaidRenderer.tsx](../../../webview/src/mermaidRenderer/MermaidRenderer.tsx) |
+| Controller | `sourceText`, `onApplyEdits`, View `EditorCommand`, partial canvas-state updates | `ParseResult`, `ElementViews`, React context values, and successful Controller edits | `CanvasState`; memoized source-derived projection | [ShinyController.tsx](../../../webview/src/shinyController/ShinyController.tsx) |
+| View | Editor-state, dispatch, and canvas-state contexts; DOM and React Flow events | React output, wired `EditorCommand` values, and transient selection changes | React Flow node and edge working state | [EditorView.tsx](../../../webview/src/shinyView/EditorView/EditorView.tsx), [ClassDiagram.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassDiagram.tsx) |
 
-[`AppController`](../../../webview/src/controller/AppController.tsx) is the Controller orchestrator. It invokes the public Parse, Derive Views, and Commands facades; constructs the three context values; and renders [`App`](../../../webview/src/view/App/App.tsx). The current Controller imports View APIs through [`view/App`](../../../webview/src/view/App/index.ts), [`view/contexts`](../../../webview/src/view/contexts/index.ts), [`view/commands`](../../../webview/src/view/commands/index.ts), and [`view/views`](../../../webview/src/view/views/index.ts), as specified by [Architectural Standards](./architectural-standards.md#611-view-root-organization).
+[`WebViewShell`](../../../webview/src/webviewShell/WebViewShell.tsx) owns the product-level Mermaid/Shiny mode and mounts only the selected branch. Mermaid mode mounts [`MermaidRenderer`](../../../webview/src/mermaidRenderer/MermaidRenderer.tsx) with `sourceText`; Shiny mode mounts [`ShinyController`](../../../webview/src/shinyController/ShinyController.tsx) with `sourceText` and the edit callback.
+
+[`ShinyController`](../../../webview/src/shinyController/ShinyController.tsx) is the Shiny Controller orchestrator. It invokes the public Parse, Derive Views, and Commands facades; constructs the three context values; and renders [`EditorView`](../../../webview/src/shinyView/EditorView/EditorView.tsx). The Controller imports View APIs through [`shinyView/EditorView`](../../../webview/src/shinyView/EditorView/index.ts), [`shinyView/contexts`](../../../webview/src/shinyView/contexts/index.ts), [`shinyView/commands`](../../../webview/src/shinyView/commands/index.ts), and [`shinyView/views`](../../../webview/src/shinyView/views/index.ts), as specified by [Architectural Standards](./architectural-standards.md#611-view-root-organization).
 
 ### 5.2 Vocabulary contracts
 
 | Contract area            | Current contents and access path                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `shared/`                | Branded diagram identities in [ids.ts](../../../webview/src/shared/ids.ts), `Rect` and `Point` in [geometry.ts](../../../webview/src/shared/geometry.ts), `RelationshipType` in [relationshipTypes.ts](../../../webview/src/shared/relationshipTypes.ts), and `StylePropertyName` in [styleTypes.ts](../../../webview/src/shared/styleTypes.ts). There is no shared root barrel.                                                                                           |
-| `controller/model/`      | Source-derived nodes, edges, members, annotations, spatial data, and `DiagramTree` in [diagramTree.ts](../../../webview/src/controller/model/diagramTree.ts), plus `SourceLocation` in [sourceLocation.ts](../../../webview/src/controller/model/sourceLocation.ts). There is no model root barrel.                                                                                                                                                                        |
-| `controller/commands/`   | Public `applyCommand` and `SourceEdit` through [index.ts](../../../webview/src/controller/commands/index.ts); internal `CommandContext` and `CommandResult` in [commandExecution.ts](../../../webview/src/controller/commands/commandExecution.ts).                                                                                                                                                                                                                        |
-| `view/commands/`         | Component-owned command declarations re-exported by [view/commands/index.ts](../../../webview/src/view/commands/index.ts); aggregate `EditorCommand` in [editorCommand.ts](../../../webview/src/view/commands/editorCommand.ts).                                                                                                                                                                                                                                           |
-| `view/views/`            | Component-owned render declarations re-exported by [view/views/index.ts](../../../webview/src/view/views/index.ts).                                                                                                                                                                                                                                                                                                                                                        |
-| `view/contexts/`         | Context providers, `CanvasState`, and `defaultCanvasState` are exposed through [view/contexts/index.ts](../../../webview/src/view/contexts/index.ts); context value shapes and consumer hooks remain in [EditorStateContext.ts](../../../webview/src/view/contexts/EditorStateContext.ts), [EditorDispatchContext.ts](../../../webview/src/view/contexts/EditorDispatchContext.ts), and [CanvasStateContext.ts](../../../webview/src/view/contexts/CanvasStateContext.ts). |
+| `shinyController/model/`      | Source-derived nodes, edges, members, annotations, spatial data, and `DiagramTree` in [diagramTree.ts](../../../webview/src/shinyController/model/diagramTree.ts), plus `SourceLocation` in [sourceLocation.ts](../../../webview/src/shinyController/model/sourceLocation.ts). There is no model root barrel.                                                                                                                                                                        |
+| `shinyController/commands/`   | Public `applyCommand` and `SourceEdit` through [index.ts](../../../webview/src/shinyController/commands/index.ts); internal `CommandContext` and `CommandResult` in [commandExecution.ts](../../../webview/src/shinyController/commands/commandExecution.ts).                                                                                                                                                                                                                        |
+| `shinyView/commands/`         | Component-owned command declarations re-exported by [shinyView/commands/index.ts](../../../webview/src/shinyView/commands/index.ts); aggregate `EditorCommand` in [editorCommand.ts](../../../webview/src/shinyView/commands/editorCommand.ts).                                                                                                                                                                                                                                           |
+| `shinyView/views/`            | Component-owned render declarations re-exported by [shinyView/views/index.ts](../../../webview/src/shinyView/views/index.ts).                                                                                                                                                                                                                                                                                                                                                        |
+| `shinyView/contexts/`         | Context providers, `CanvasState`, and `defaultCanvasState` are exposed through [shinyView/contexts/index.ts](../../../webview/src/shinyView/contexts/index.ts); context value shapes and consumer hooks remain in [EditorStateContext.ts](../../../webview/src/shinyView/contexts/EditorStateContext.ts), [EditorDispatchContext.ts](../../../webview/src/shinyView/contexts/EditorDispatchContext.ts), and [CanvasStateContext.ts](../../../webview/src/shinyView/contexts/CanvasStateContext.ts). |
 
 ## 6. Webview layer contracts
 
-### 6.1 Extension Bridge and Controller
+### 6.1 Extension Bridge, Shell, and Controller
 
-The current Controller input is the non-exported [`AppControllerProps`](../../../webview/src/controller/AppController.tsx):
+The current Shell input is the private `WebViewShellProps` in [`WebViewShell.tsx`](../../../webview/src/webviewShell/WebViewShell.tsx):
 
 ```ts
-type AppControllerProps = {
+type WebViewShellProps = {
   sourceText: string;
   onApplyEdits: (edits: SourceEdit[]) => void;
 };
 ```
 
-[`ExtensionBridge`](../../../webview/src/extensionBridge/ExtensionBridge.tsx) owns `sourceText` and implements `onApplyEdits`. The callback is synchronous and returns no result. There is no snapshot object, document version, promise, operation status, or synchronization-error data at this boundary.
+The current Controller input is the non-exported [`ShinyControllerProps`](../../../webview/src/shinyController/ShinyController.tsx):
 
-The callback accepts the Controller-owned [`SourceEdit`](../../../webview/src/controller/commands/sourceEdit.ts), converts it to the structurally equivalent wire [`SourceEdit`](../../../webview/src/extensionBridge/protocol.ts) as described in [Section 3.2](#32-edit-request), and calls [`vscode.postMessage`](../../../webview/src/extensionBridge/vscodeApi.ts).
+```ts
+type ShinyControllerProps = {
+  sourceText: string;
+  onApplyEdits: (edits: SourceEdit[]) => void;
+};
+```
+
+[`ExtensionBridge`](../../../webview/src/extensionBridge/ExtensionBridge.tsx) owns `sourceText` and implements `onApplyEdits`. [`WebViewShell`](../../../webview/src/webviewShell/WebViewShell.tsx) passes the same edit callback directly to [`ShinyController`](../../../webview/src/shinyController/ShinyController.tsx) when Shiny mode is mounted. The callback is synchronous and returns no result. There is no snapshot object, document version, promise, operation status, or synchronization-error data at this boundary.
+
+The callback accepts the Controller-owned [`SourceEdit`](../../../webview/src/shinyController/commands/sourceEdit.ts), converts it to the structurally equivalent wire [`SourceEdit`](../../../webview/src/extensionBridge/protocol.ts) as described in [Section 3.2](#32-edit-request), and calls [`vscode.postMessage`](../../../webview/src/extensionBridge/vscodeApi.ts).
 
 ### 6.2 Controller and View read contract
 
-The current editor-state context value is defined privately in [EditorStateContext.ts](../../../webview/src/view/contexts/EditorStateContext.ts):
+The current editor-state context value is defined privately in [EditorStateContext.ts](../../../webview/src/shinyView/contexts/EditorStateContext.ts):
 
 ```ts
 type EditorStateContextValue = {
-  readonly sourceText: string;
-  readonly parseStatus: EditorHeaderState;
+  readonly editorStatus: EditorStatusView;
   readonly elementViews: ElementViews | null;
 };
 ```
 
-There is no operation-status field.
+There is no `sourceText` or operation-status field in the View-facing context.
 
-[`EditorHeaderState`](../../../webview/src/view/App/AppHeader/views.ts) is:
+[`EditorStatusView`](../../../webview/src/shinyView/EditorView/EditorStatus/views.ts) is:
 
 ```ts
-type EditorHeaderState =
+type EditorStatusView =
   | { readonly status: "ready" }
   | { readonly status: "invalidSyntax"; readonly message: string }
   | {
@@ -207,7 +220,7 @@ type EditorHeaderState =
     };
 ```
 
-[`ElementViews`](../../../webview/src/view/App/EditorView/views.ts) is:
+[`ElementViews`](../../../webview/src/shinyView/EditorView/views.ts) is:
 
 ```ts
 type ElementViews = {
@@ -217,7 +230,7 @@ type ElementViews = {
 };
 ```
 
-[`ClassBoxView`](../../../webview/src/view/App/EditorView/ClassDiagram/ClassBox/views.ts) and [`ClassBoxMemberView`](../../../webview/src/view/App/EditorView/ClassDiagram/ClassBox/MemberTable/views.ts) are:
+[`ClassBoxView`](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/views.ts) and [`ClassBoxMemberView`](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/MemberTable/views.ts) are:
 
 ```ts
 type ClassBoxView = {
@@ -247,7 +260,7 @@ type ClassBoxMemberView = {
 };
 ```
 
-[`NamespaceBoxView` and `RelationshipView`](../../../webview/src/view/App/EditorView/ClassDiagram/views.ts) are:
+[`NamespaceBoxView` and `RelationshipView`](../../../webview/src/shinyView/EditorView/ClassDiagram/views.ts) are:
 
 ```ts
 type NamespaceBoxView = {
@@ -274,15 +287,15 @@ type RelationshipView = {
 
 Current consumption is narrower than these declarations:
 
-- [`ClassDiagram`](../../../webview/src/view/App/EditorView/ClassDiagram/ClassDiagram.tsx) converts `classes` and `relationships` to React Flow data but does not render `namespaces`.
-- [`reactFlowAdapters.ts`](../../../webview/src/view/App/EditorView/ClassDiagram/reactFlowAdapters.ts) uses relationship endpoints and `label`; it does not currently render `relationType`, source multiplicity, or target multiplicity.
-- [`deriveNamespaceBoxViews`](../../../webview/src/controller/deriveViews/workers/deriveNamespaceBoxViews.ts) does not set `NamespaceBoxView.style`.
-- [`MemberTable`](../../../webview/src/view/App/EditorView/ClassDiagram/ClassBox/MemberTable/MemberTable.tsx) displays member prefix and text as read-only content.
-- [`EditorView`](../../../webview/src/view/App/EditorView/EditorView.tsx) renders the class-diagram editor only for `ready`; `invalidSyntax` and `missingAnnotations` render status content instead.
+- [`ClassDiagram`](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassDiagram.tsx) converts `classes` and `relationships` to React Flow data but does not render `namespaces`.
+- [`reactFlowAdapters.ts`](../../../webview/src/shinyView/EditorView/ClassDiagram/reactFlowAdapters.ts) uses relationship endpoints and `label`; it does not currently render `relationType`, source multiplicity, or target multiplicity.
+- [`deriveNamespaceBoxViews`](../../../webview/src/shinyController/deriveViews/workers/deriveNamespaceBoxViews.ts) does not set `NamespaceBoxView.style`.
+- [`MemberTable`](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/MemberTable/MemberTable.tsx) displays member prefix and text as read-only content.
+- [`EditorView`](../../../webview/src/shinyView/EditorView/EditorView.tsx) renders the class-diagram editor only for `ready`; `invalidSyntax` and `missingAnnotations` render status content instead.
 
 ### 6.3 View and Controller command contract
 
-The declared aggregate is [`EditorCommand`](../../../webview/src/view/commands/editorCommand.ts):
+The declared aggregate is [`EditorCommand`](../../../webview/src/shinyView/commands/editorCommand.ts):
 
 ```ts
 type EditorCommand =
@@ -295,22 +308,22 @@ The current declaration and implementation coverage is:
 
 | Command family | Current declared data | Current wiring and handler status | Contract source | Handler source |
 |---|---|---|---|---|
-| Generate | `{ type: "generate" }` | Emitted by the header when editor mode reports missing annotations; implemented | [AppHeader/commands.ts](../../../webview/src/view/App/AppHeader/commands.ts), [AppHeader.tsx](../../../webview/src/view/App/AppHeader/AppHeader.tsx) | [generateCommandHandler.ts](../../../webview/src/controller/commands/workers/handlers/generateCommandHandler.ts) |
-| Class geometry | `class.move` or `class.resize` with `classId` and `rect: Rect` | `class.move` is emitted after React Flow drag-stop; both discriminants are implemented by the same handler. The current View has no `class.resize` dispatch path, although [ClassBox.tsx](../../../webview/src/view/App/EditorView/ClassDiagram/ClassBox/ClassBox.tsx) renders resize-handle elements. | [ClassBox/commands.ts](../../../webview/src/view/App/EditorView/ClassDiagram/ClassBox/commands.ts), [useClassBoxNodeInteractions.ts](../../../webview/src/view/App/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts) | [classBoxCommandHandler.ts](../../../webview/src/controller/commands/workers/handlers/classBoxCommandHandler.ts) |
-| Class placement | `class.add` with the drawn flow-space rectangle | The Class tool activates transient class-placement mode through Canvas State. [`PlacementOverlay`](../../../webview/src/view/App/EditorView/ClassDiagram/PlacementOverlay/PlacementOverlay.tsx) owns the full-viewport drawing surface, converts pointer positions to React Flow coordinates, emits `class.add` with the normalized final rectangle, and exits placement mode after a meaningful draw. Existing boxes may be drawn over through the overlay placement surface; overlap is allowed, and the existing selection is not changed. | [PlacementOverlay/commands.ts](../../../webview/src/view/App/EditorView/ClassDiagram/PlacementOverlay/commands.ts), [ToolPane.tsx](../../../webview/src/view/App/EditorView/ToolPane/ToolPane.tsx), [useToolPaneInteractions.ts](../../../webview/src/view/App/EditorView/ToolPane/useToolPaneInteractions.ts), [usePlacementOverlayInteractions.ts](../../../webview/src/view/App/EditorView/ClassDiagram/PlacementOverlay/usePlacementOverlayInteractions.ts) | [classAddCommandHandler.ts](../../../webview/src/controller/commands/workers/handlers/classAddCommandHandler.ts) |
-| Class content | `class.header.setLabel` carries `classId`, `label`; `class.member.setText` carries `classId`, `memberId`, `text`; `class.member.setPrefix` carries `classId`, `memberId`, `prefix: MemberPrefix` | Header and members are rendered read-only; the handler returns `ok: false` with “not yet implemented” | [ClassBox/commands.ts](../../../webview/src/view/App/EditorView/ClassDiagram/ClassBox/commands.ts), [MemberTable/commands.ts](../../../webview/src/view/App/EditorView/ClassDiagram/ClassBox/MemberTable/commands.ts), [MemberTable.tsx](../../../webview/src/view/App/EditorView/ClassDiagram/ClassBox/MemberTable/MemberTable.tsx) | [classContentCommandHandler.ts](../../../webview/src/controller/commands/workers/handlers/classContentCommandHandler.ts) |
-| Namespace | `namespace.move` carries `namespaceId`, `delta: Point`; `namespace.setStyle` carries `namespaceId`, `property`, `value` | Namespace views are derived but not rendered; the handler returns “not yet implemented” | [ClassDiagram/commands.ts](../../../webview/src/view/App/EditorView/ClassDiagram/commands.ts), [ElementViews](../../../webview/src/view/App/EditorView/views.ts) | [namespaceCommandHandler.ts](../../../webview/src/controller/commands/workers/handlers/namespaceCommandHandler.ts) |
-| Relationship | `relationship.setType` carries `relationshipId`, `relationType`; `relationship.setMultiplicity` carries `relationshipId`, `endpoint`, `value`; `relationship.setLabel` carries `relationshipId`, `label` | Relationships are displayed as non-editable default React Flow edges; the handler returns “not yet implemented” | [ClassDiagram/commands.ts](../../../webview/src/view/App/EditorView/ClassDiagram/commands.ts), [reactFlowAdapters.ts](../../../webview/src/view/App/EditorView/ClassDiagram/reactFlowAdapters.ts) | [relationshipCommandHandler.ts](../../../webview/src/controller/commands/workers/handlers/relationshipCommandHandler.ts) |
-| Note | `note.move` and `note.resize` carry `noteId`, `rect`; `note.setText` carries `noteId`, `text` | No note node or note collection exists in the current Controller model, and no note is rendered; the handler returns “not yet implemented” | [ClassDiagram/commands.ts](../../../webview/src/view/App/EditorView/ClassDiagram/commands.ts), [diagramTree.ts](../../../webview/src/controller/model/diagramTree.ts), [ids.ts](../../../webview/src/shared/ids.ts) | [noteCommandHandler.ts](../../../webview/src/controller/commands/workers/handlers/noteCommandHandler.ts) |
-| Class style | `style.setClassProperty` carries `classId`, `property: StylePropertyName`, `value` | Implemented only for a class already connected to an existing `classDef`. The current Style Pane emits only `property: "fill"` and only when the selected class has style data. | [StylePane/commands.ts](../../../webview/src/view/App/EditorView/StylePane/commands.ts), [useStylePaneInteractions.ts](../../../webview/src/view/App/EditorView/StylePane/useStylePaneInteractions.ts) | [styleCommandHandler.ts](../../../webview/src/controller/commands/workers/handlers/styleCommandHandler.ts) |
+| Generate | `{ type: "generate" }` | Emitted by `EditorStatus` when Shiny editor status reports missing annotations; implemented | [EditorStatus/commands.ts](../../../webview/src/shinyView/EditorView/EditorStatus/commands.ts), [EditorStatus.tsx](../../../webview/src/shinyView/EditorView/EditorStatus/EditorStatus.tsx) | [generateCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/generateCommandHandler.ts) |
+| Class geometry | `class.move` or `class.resize` with `classId` and `rect: Rect` | `class.move` is emitted after React Flow drag-stop; both discriminants are implemented by the same handler. The current View has no `class.resize` dispatch path, although [ClassBox.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/ClassBox.tsx) renders resize-handle elements. | [ClassBox/commands.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/commands.ts), [useClassBoxNodeInteractions.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts) | [classBoxCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/classBoxCommandHandler.ts) |
+| Class placement | `class.add` with the drawn flow-space rectangle | The Class tool activates transient class-placement mode through Canvas State. [`PlacementOverlay`](../../../webview/src/shinyView/EditorView/ClassDiagram/PlacementOverlay/PlacementOverlay.tsx) owns the full-viewport drawing surface, converts pointer positions to React Flow coordinates, emits `class.add` with the normalized final rectangle, and exits placement mode after a meaningful draw. Existing boxes may be drawn over through the overlay placement surface; overlap is allowed, and the existing selection is not changed. | [PlacementOverlay/commands.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/PlacementOverlay/commands.ts), [ToolPane.tsx](../../../webview/src/shinyView/EditorView/ToolPane/ToolPane.tsx), [useToolPaneInteractions.ts](../../../webview/src/shinyView/EditorView/ToolPane/useToolPaneInteractions.ts), [usePlacementOverlayInteractions.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/PlacementOverlay/usePlacementOverlayInteractions.ts) | [classAddCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/classAddCommandHandler.ts) |
+| Class content | `class.header.setLabel` carries `classId`, `label`; `class.member.setText` carries `classId`, `memberId`, `text`; `class.member.setPrefix` carries `classId`, `memberId`, `prefix: MemberPrefix` | Header and members are rendered read-only; the handler returns `ok: false` with “not yet implemented” | [ClassBox/commands.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/commands.ts), [MemberTable/commands.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/MemberTable/commands.ts), [MemberTable.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/MemberTable/MemberTable.tsx) | [classContentCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/classContentCommandHandler.ts) |
+| Namespace | `namespace.move` carries `namespaceId`, `delta: Point`; `namespace.setStyle` carries `namespaceId`, `property`, `value` | Namespace views are derived but not rendered; the handler returns “not yet implemented” | [ClassDiagram/commands.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/commands.ts), [ElementViews](../../../webview/src/shinyView/EditorView/views.ts) | [namespaceCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/namespaceCommandHandler.ts) |
+| Relationship | `relationship.setType` carries `relationshipId`, `relationType`; `relationship.setMultiplicity` carries `relationshipId`, `endpoint`, `value`; `relationship.setLabel` carries `relationshipId`, `label` | Relationships are displayed as non-editable default React Flow edges; the handler returns “not yet implemented” | [ClassDiagram/commands.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/commands.ts), [reactFlowAdapters.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/reactFlowAdapters.ts) | [relationshipCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/relationshipCommandHandler.ts) |
+| Note | `note.move` and `note.resize` carry `noteId`, `rect`; `note.setText` carries `noteId`, `text` | No note node or note collection exists in the current Controller model, and no note is rendered; the handler returns “not yet implemented” | [ClassDiagram/commands.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/commands.ts), [diagramTree.ts](../../../webview/src/shinyController/model/diagramTree.ts), [ids.ts](../../../webview/src/shared/ids.ts) | [noteCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/noteCommandHandler.ts) |
+| Class style | `style.setClassProperty` carries `classId`, `property: StylePropertyName`, `value` | Implemented only for a class already connected to an existing `classDef`. The current Style Pane emits only `property: "fill"` and only when the selected class has style data. | [StylePane/commands.ts](../../../webview/src/shinyView/EditorView/StylePane/commands.ts), [useStylePaneInteractions.ts](../../../webview/src/shinyView/EditorView/StylePane/useStylePaneInteractions.ts) | [styleCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/styleCommandHandler.ts) |
 
-[`ToolPane`](../../../webview/src/view/App/EditorView/ToolPane/ToolPane.tsx) displays disabled class and relationship tool buttons and emits no commands.
+[`ToolPane`](../../../webview/src/shinyView/EditorView/ToolPane/ToolPane.tsx) displays disabled class and relationship tool buttons and emits no commands.
 
 All declared commands use shared IDs and value vocabulary from [shared/ids.ts](../../../webview/src/shared/ids.ts), [shared/geometry.ts](../../../webview/src/shared/geometry.ts), [shared/relationshipTypes.ts](../../../webview/src/shared/relationshipTypes.ts), and [shared/styleTypes.ts](../../../webview/src/shared/styleTypes.ts).
 
 ### 6.4 Shared View state contract
 
-The current View-owned [`CanvasState`](../../../webview/src/view/contexts/canvasState.ts) is:
+The current View-owned [`CanvasState`](../../../webview/src/shinyView/contexts/canvasState.ts) is:
 
 ```ts
 type CanvasState = {
@@ -324,7 +337,7 @@ const defaultCanvasState: CanvasState = {
 };
 ```
 
-The non-exported value type used by [`CanvasStateContext`](../../../webview/src/view/contexts/CanvasStateContext.ts) is:
+The non-exported value type used by [`CanvasStateContext`](../../../webview/src/shinyView/contexts/CanvasStateContext.ts) is:
 
 ```ts
 type CanvasStateContextValue = {
@@ -333,15 +346,15 @@ type CanvasStateContextValue = {
 };
 ```
 
-[`AppController`](../../../webview/src/controller/AppController.tsx) hosts the state, shallow-merges partial updates, and clears `selectedClassId` when the selected class disappears from the latest `ElementViews`. [`useClassBoxNodeInteractions`](../../../webview/src/view/App/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts) selects a class on node click, and [`useCanvasInteractions`](../../../webview/src/view/App/EditorView/ClassDiagram/useCanvasInteractions.ts) clears selection on pane click.
+[`ShinyController`](../../../webview/src/shinyController/ShinyController.tsx) hosts the state, shallow-merges partial updates, and clears `selectedClassId` when the selected class disappears from the latest `ElementViews`. [`useClassBoxNodeInteractions`](../../../webview/src/shinyView/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts) selects a class on node click, and [`useCanvasInteractions`](../../../webview/src/shinyView/EditorView/ClassDiagram/useCanvasInteractions.ts) clears selection on pane click.
 
-`placementMode` is transient View-owned state. [`ToolPane`](../../../webview/src/view/App/EditorView/ToolPane/ToolPane.tsx) activates class placement through the Canvas State update boundary and does not emit a source-changing command. [`PlacementOverlay`](../../../webview/src/view/App/EditorView/ClassDiagram/PlacementOverlay/PlacementOverlay.tsx) is rendered over the React Flow viewport while placement is active; it owns the pointer drawing surface, keeps the drag origin and draft rectangle locally, converts pointer positions to flow-space coordinates with React Flow, emits `class.add` with the normalized final rectangle, then clears `placementMode`. Normal node selection, movement, and resizing are suspended by the overlay while placement is active.
+`placementMode` is transient View-owned state. [`ToolPane`](../../../webview/src/shinyView/EditorView/ToolPane/ToolPane.tsx) activates class placement through the Canvas State update boundary and does not emit a source-changing command. [`PlacementOverlay`](../../../webview/src/shinyView/EditorView/ClassDiagram/PlacementOverlay/PlacementOverlay.tsx) is rendered over the React Flow viewport while placement is active; it owns the pointer drawing surface, keeps the drag origin and draft rectangle locally, converts pointer positions to flow-space coordinates with React Flow, emits `class.add` with the normalized final rectangle, then clears `placementMode`. Normal node selection, movement, and resizing are suspended by the overlay while placement is active.
 
 ## 7. Controller component contracts
 
 ### 7.1 Controller model
 
-[`SourceLocation`](../../../webview/src/controller/model/sourceLocation.ts) is:
+[`SourceLocation`](../../../webview/src/shinyController/model/sourceLocation.ts) is:
 
 ```ts
 type SourceLocation = {
@@ -353,7 +366,7 @@ type SourceLocation = {
 };
 ```
 
-The aggregate [`DiagramTree`](../../../webview/src/controller/model/diagramTree.ts) is:
+The aggregate [`DiagramTree`](../../../webview/src/shinyController/model/diagramTree.ts) is:
 
 ```ts
 type DiagramTree = {
@@ -366,7 +379,7 @@ type DiagramTree = {
 };
 ```
 
-The same [diagramTree.ts](../../../webview/src/controller/model/diagramTree.ts) defines the current model data:
+The same [diagramTree.ts](../../../webview/src/shinyController/model/diagramTree.ts) defines the current model data:
 
 - `ClassNode`, including members, optional class annotation, optional spatial data, and `location: SourceLocation | null`;
 - `ClassField` and `ClassMethod`, each with a branded `MemberId` and exact source location;
@@ -378,13 +391,13 @@ Implicit classes synthesized from relationships can have `location: null`. Class
 
 ### 7.2 Parse
 
-The public function is [`parseDiagram`](../../../webview/src/controller/parse/parseDiagram.ts):
+The public function is [`parseDiagram`](../../../webview/src/shinyController/parse/parseDiagram.ts):
 
 ```ts
 function parseDiagram(source: string): ParseResult;
 ```
 
-[`EditorDiagnostic` and `ParseResult`](../../../webview/src/controller/parse/parseResult.ts) are:
+[`EditorDiagnostic` and `ParseResult`](../../../webview/src/shinyController/parse/parseResult.ts) are:
 
 ```ts
 type EditorDiagnostic = {
@@ -417,20 +430,20 @@ type ParseResult =
     };
 ```
 
-Current calculation in [parseDiagram.ts](../../../webview/src/controller/parse/parseDiagram.ts):
+Current calculation in [parseDiagram.ts](../../../webview/src/shinyController/parse/parseDiagram.ts):
 
 1. the first non-empty, non-comment line must be `classDiagram` or start with `classDiagram `;
-2. [`tokenize`](../../../webview/src/controller/parse/workers/tokenizer.ts) produces source tokens;
-3. [`buildSpatiallyUnawareDiagramTree`](../../../webview/src/controller/parse/workers/buildDiagramTree.ts) builds nodes and edges, then implicit relationship endpoints are synthesized as class nodes;
-4. [`parseSpatialAnnotations` and `attachSpatial`](../../../webview/src/controller/parse/workers/spatialAnnotations.ts) parse valid and malformed `%% @spatial` annotations and attach valid geometry;
+2. [`tokenize`](../../../webview/src/shinyController/parse/workers/tokenizer.ts) produces source tokens;
+3. [`buildSpatiallyUnawareDiagramTree`](../../../webview/src/shinyController/parse/workers/buildDiagramTree.ts) builds nodes and edges, then implicit relationship endpoints are synthesized as class nodes;
+4. [`parseSpatialAnnotations` and `attachSpatial`](../../../webview/src/shinyController/parse/workers/spatialAnnotations.ts) parse valid and malformed `%% @spatial` annotations and attach valid geometry;
 5. any class without spatial data produces `missingAnnotations`; otherwise the result is `ready`;
 6. thrown errors and a missing class-diagram header produce `invalidSyntax` with a `syntaxError` diagnostic.
 
-Although `EditorDiagnostic.kind` declares five values, the current `parseDiagram` implementation constructs only `syntaxError`; `ready` and `missingAnnotations` currently return empty `diagnostics` arrays. The Parse public facade exports only `parseDiagram` and `ParseResult` through [controller/parse/index.ts](../../../webview/src/controller/parse/index.ts).
+Although `EditorDiagnostic.kind` declares five values, the current `parseDiagram` implementation constructs only `syntaxError`; `ready` and `missingAnnotations` currently return empty `diagnostics` arrays. The Parse public facade exports only `parseDiagram` and `ParseResult` through [shinyController/parse/index.ts](../../../webview/src/shinyController/parse/index.ts).
 
 ### 7.3 Derive Views
 
-The public function is [`deriveElementViews`](../../../webview/src/controller/deriveViews/deriveElementViews.ts):
+The public function is [`deriveElementViews`](../../../webview/src/shinyController/deriveViews/deriveElementViews.ts):
 
 ```ts
 function deriveElementViews(model: DiagramTree): ElementViews;
@@ -438,15 +451,15 @@ function deriveElementViews(model: DiagramTree): ElementViews;
 
 It calculates the aggregate by invoking three workers:
 
-- [`deriveClassBoxViews`](../../../webview/src/controller/deriveViews/workers/deriveClassBoxViews.ts) emits only classes with spatial data; copies geometry; formats field and method text; and resolves the first applied style definition into `fill`, `stroke`, `color`, and `name`.
-- [`deriveNamespaceBoxViews`](../../../webview/src/controller/deriveViews/workers/deriveNamespaceBoxViews.ts) finds spatial member classes and calculates a 12-pixel padded union with [`unionRects`](../../../webview/src/controller/deriveViews/workers/layoutBounds.ts). A namespace with no spatial members receives `{ x: 0, y: 0, w: 120, h: 80 }`.
-- [`deriveRelationshipViews`](../../../webview/src/controller/deriveViews/workers/deriveRelationshipViews.ts) emits only relationships whose source and target classes both have spatial data.
+- [`deriveClassBoxViews`](../../../webview/src/shinyController/deriveViews/workers/deriveClassBoxViews.ts) emits only classes with spatial data; copies geometry; formats field and method text; and resolves the first applied style definition into `fill`, `stroke`, `color`, and `name`.
+- [`deriveNamespaceBoxViews`](../../../webview/src/shinyController/deriveViews/workers/deriveNamespaceBoxViews.ts) finds spatial member classes and calculates a 12-pixel padded union with [`unionRects`](../../../webview/src/shinyController/deriveViews/workers/layoutBounds.ts). A namespace with no spatial members receives `{ x: 0, y: 0, w: 120, h: 80 }`.
+- [`deriveRelationshipViews`](../../../webview/src/shinyController/deriveViews/workers/deriveRelationshipViews.ts) emits only relationships whose source and target classes both have spatial data.
 
-The public facade exports only `deriveElementViews` through [controller/deriveViews/index.ts](../../../webview/src/controller/deriveViews/index.ts). The current [viewModels.ts](../../../webview/src/controller/deriveViews/viewModels.ts) contains no declarations.
+The public facade exports only `deriveElementViews` through [shinyController/deriveViews/index.ts](../../../webview/src/shinyController/deriveViews/index.ts). The current [viewModels.ts](../../../webview/src/shinyController/deriveViews/viewModels.ts) contains no declarations.
 
 ### 7.4 Commands
 
-The internal [`CommandContext` and `CommandResult`](../../../webview/src/controller/commands/commandExecution.ts) are:
+The internal [`CommandContext` and `CommandResult`](../../../webview/src/shinyController/commands/commandExecution.ts) are:
 
 ```ts
 type CommandContext = {
@@ -466,7 +479,7 @@ type CommandResult =
     };
 ```
 
-The Controller-owned [`SourceEdit`](../../../webview/src/controller/commands/sourceEdit.ts) is the canonical zero-based range replacement:
+The Controller-owned [`SourceEdit`](../../../webview/src/shinyController/commands/sourceEdit.ts) is the canonical zero-based range replacement:
 
 ```ts
 type SourcePosition = {
@@ -481,7 +494,7 @@ type SourceEdit = {
 };
 ```
 
-[`applyCommand`](../../../webview/src/controller/commands/applyCommand.ts) has the current signature:
+[`applyCommand`](../../../webview/src/shinyController/commands/applyCommand.ts) has the current signature:
 
 ```ts
 function applyCommand(
@@ -494,18 +507,18 @@ Current handler behavior:
 
 | Handler | Current calculation | Emitted `SourceEdit` ranges |
 |---|---|---|
-| [Generate](../../../webview/src/controller/commands/workers/handlers/generateCommandHandler.ts) | Replaces malformed spatial annotations; lays out missing classes in one horizontal row below existing boxes; appends new annotation text at an anchor position | Non-empty replacements for malformed annotations; zero-width insertion for appended annotations |
-| [Class add](../../../webview/src/controller/commands/workers/handlers/classAddCommandHandler.ts) | Generates `NewClass` or the first available numbered variant from every model class, including implicit classes; accepts the View-defined rectangle; inserts a minimal class declaration before the existing spatial-annotation section and appends the new `@spatial` after existing spatial annotations. If no spatial section exists, appends both lines after existing diagram content. Overlap is allowed, and automatic selection is outside this feature. | Zero-width insertions |
-| [Class box](../../../webview/src/controller/commands/workers/handlers/classBoxCommandHandler.ts) | Rewrites the existing spatial-annotation range with the requested rectangle | Non-empty replacement |
-| [Style](../../../webview/src/controller/commands/workers/handlers/styleCommandHandler.ts) | Rewrites an existing applied `classDef` range with one property inserted or replaced | Non-empty replacement |
-| [Class content](../../../webview/src/controller/commands/workers/handlers/classContentCommandHandler.ts) | Returns `ok: false` / not implemented | None |
-| [Namespace](../../../webview/src/controller/commands/workers/handlers/namespaceCommandHandler.ts) | Returns `ok: false` / not implemented | None |
-| [Relationship](../../../webview/src/controller/commands/workers/handlers/relationshipCommandHandler.ts) | Returns `ok: false` / not implemented | None |
-| [Note](../../../webview/src/controller/commands/workers/handlers/noteCommandHandler.ts) | Returns `ok: false` / not implemented | None |
+| [Generate](../../../webview/src/shinyController/commands/workers/handlers/generateCommandHandler.ts) | Replaces malformed spatial annotations; lays out missing classes in one horizontal row below existing boxes; appends new annotation text at an anchor position | Non-empty replacements for malformed annotations; zero-width insertion for appended annotations |
+| [Class add](../../../webview/src/shinyController/commands/workers/handlers/classAddCommandHandler.ts) | Generates `NewClass` or the first available numbered variant from every model class, including implicit classes; accepts the View-defined rectangle; inserts a minimal class declaration before the existing spatial-annotation section and appends the new `@spatial` after existing spatial annotations. If no spatial section exists, appends both lines after existing diagram content. Overlap is allowed, and automatic selection is outside this feature. | Zero-width insertions |
+| [Class box](../../../webview/src/shinyController/commands/workers/handlers/classBoxCommandHandler.ts) | Rewrites the existing spatial-annotation range with the requested rectangle | Non-empty replacement |
+| [Style](../../../webview/src/shinyController/commands/workers/handlers/styleCommandHandler.ts) | Rewrites an existing applied `classDef` range with one property inserted or replaced | Non-empty replacement |
+| [Class content](../../../webview/src/shinyController/commands/workers/handlers/classContentCommandHandler.ts) | Returns `ok: false` / not implemented | None |
+| [Namespace](../../../webview/src/shinyController/commands/workers/handlers/namespaceCommandHandler.ts) | Returns `ok: false` / not implemented | None |
+| [Relationship](../../../webview/src/shinyController/commands/workers/handlers/relationshipCommandHandler.ts) | Returns `ok: false` / not implemented | None |
+| [Note](../../../webview/src/shinyController/commands/workers/handlers/noteCommandHandler.ts) | Returns `ok: false` / not implemented | None |
 
-Generate placement uses `DEFAULT_WIDTH = 200`, `DEFAULT_HEIGHT = 150`, and `MARGIN = 40` from [layoutConstants.ts](../../../webview/src/controller/commands/workers/generateLayout/layoutConstants.ts); [`gridPlacement`](../../../webview/src/controller/commands/workers/generateLayout/gridPlacement.ts) places generated boxes left-to-right in a single row.
+Generate placement uses `DEFAULT_WIDTH = 200`, `DEFAULT_HEIGHT = 150`, and `MARGIN = 40` from [layoutConstants.ts](../../../webview/src/shinyController/commands/workers/generateLayout/layoutConstants.ts); [`gridPlacement`](../../../webview/src/shinyController/commands/workers/generateLayout/gridPlacement.ts) places generated boxes left-to-right in a single row.
 
-The public Commands facade exports only `applyCommand` and `SourceEdit` through [controller/commands/index.ts](../../../webview/src/controller/commands/index.ts). `CommandContext` and `CommandResult` remain internal.
+The public Commands facade exports only `applyCommand` and `SourceEdit` through [shinyController/commands/index.ts](../../../webview/src/shinyController/commands/index.ts). `CommandContext` and `CommandResult` remain internal.
 
 ## 8. End-to-end calculations
 
@@ -518,12 +531,13 @@ In this section, “persisted” means applied to the bound VS Code `TextDocumen
 | Webview provisioning | Optional active `TextDocument` | Serializes `document.getText()` or `""` into the initial HTML | [webviewProvider.ts](../../../extension-host/webviewProvider.ts) |
 | Diagram session | Bound `TextDocument` after a relevant change or edit attempt | Posts `SourceUpdateMessage { sourceText: document.getText() }` | [diagramSession.ts](../../../extension-host/diagramSession.ts), [protocol.ts](../../../extension-host/protocol.ts) |
 | Extension Bridge | Initial JSON string or `SourceUpdateMessage` | Replaces its in-memory `sourceText` state | [initialData.ts](../../../webview/src/extensionBridge/initialData.ts), [ExtensionBridge.tsx](../../../webview/src/extensionBridge/ExtensionBridge.tsx) |
-| Parse facade | `sourceText` | Calculates `ParseResult` and, when syntax is accepted, `DiagramTree` | [parseDiagram.ts](../../../webview/src/controller/parse/parseDiagram.ts), [parseResult.ts](../../../webview/src/controller/parse/parseResult.ts) |
-| Derive Views facade | Non-invalid `DiagramTree` | Calculates `ElementViews` | [deriveElementViews.ts](../../../webview/src/controller/deriveViews/deriveElementViews.ts) |
-| AppController | `sourceText`, `ParseResult`, `ElementViews` | Calculates `EditorHeaderState`, context values, and the active model reference | [AppController.tsx](../../../webview/src/controller/AppController.tsx) |
-| App and Editor View | Editor-state context | Select autorender/editor mode; editor mode displays errors/missing IDs or the editor shell | [App.tsx](../../../webview/src/view/App/App.tsx), [EditorView.tsx](../../../webview/src/view/App/EditorView/EditorView.tsx) |
-| React Flow adapters | `ClassBoxView[]`, `RelationshipView[]`, selected class ID | Calculates React Flow node and edge descriptors; chooses edge handles from box-center geometry | [reactFlowAdapters.ts](../../../webview/src/view/App/EditorView/ClassDiagram/reactFlowAdapters.ts) |
-| View components | Context values and React Flow descriptors | Render the class boxes, members, default edges, style panel, disabled tool panel, and controls | [ClassDiagram.tsx](../../../webview/src/view/App/EditorView/ClassDiagram/ClassDiagram.tsx), [ClassBox.tsx](../../../webview/src/view/App/EditorView/ClassDiagram/ClassBox/ClassBox.tsx), [MemberTable.tsx](../../../webview/src/view/App/EditorView/ClassDiagram/ClassBox/MemberTable/MemberTable.tsx), [StylePane.tsx](../../../webview/src/view/App/EditorView/StylePane/StylePane.tsx), [ToolPane.tsx](../../../webview/src/view/App/EditorView/ToolPane/ToolPane.tsx) |
+| WebViewShell | `sourceText`, local `WebViewMode` | Mounts only `MermaidRenderer` in Mermaid mode or `ShinyController` in Shiny mode | [WebViewShell.tsx](../../../webview/src/webviewShell/WebViewShell.tsx), [state.ts](../../../webview/src/webviewShell/state.ts) |
+| Parse facade | `sourceText` | Calculates `ParseResult` and, when syntax is accepted, `DiagramTree` | [parseDiagram.ts](../../../webview/src/shinyController/parse/parseDiagram.ts), [parseResult.ts](../../../webview/src/shinyController/parse/parseResult.ts) |
+| Derive Views facade | Non-invalid `DiagramTree` | Calculates `ElementViews` | [deriveElementViews.ts](../../../webview/src/shinyController/deriveViews/deriveElementViews.ts) |
+| ShinyController | `sourceText`, `ParseResult`, `ElementViews` | Calculates `EditorStatusView`, context values, and the active model reference | [ShinyController.tsx](../../../webview/src/shinyController/ShinyController.tsx) |
+| EditorView | Editor-state context | Displays Shiny invalid-syntax, missing-annotation, or ready editor branches | [EditorView.tsx](../../../webview/src/shinyView/EditorView/EditorView.tsx), [EditorStatus.tsx](../../../webview/src/shinyView/EditorView/EditorStatus/EditorStatus.tsx) |
+| React Flow adapters | `ClassBoxView[]`, `RelationshipView[]`, selected class ID | Calculates React Flow node and edge descriptors; chooses edge handles from box-center geometry | [reactFlowAdapters.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/reactFlowAdapters.ts) |
+| View components | Context values and React Flow descriptors | Render the class boxes, members, default edges, style panel, disabled tool panel, and controls | [ClassDiagram.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassDiagram.tsx), [ClassBox.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/ClassBox.tsx), [MemberTable.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/MemberTable/MemberTable.tsx), [StylePane.tsx](../../../webview/src/shinyView/EditorView/StylePane/StylePane.tsx), [ToolPane.tsx](../../../webview/src/shinyView/EditorView/ToolPane/ToolPane.tsx) |
 
 ### 8.2 Persisted visual edit
 
@@ -531,12 +545,12 @@ The currently wired persisted-edit paths are Generate, class movement, and class
 
 | Producer | Input data | Current calculation | Implementation |
 |---|---|---|---|
-| Header / interaction hook | Button, React Flow drag-stop, color input event, or placement-overlay draw | Emits `generate`, `class.move`, `style.setClassProperty`, or `class.add` | [AppHeader.tsx](../../../webview/src/view/App/AppHeader/AppHeader.tsx), [useClassBoxNodeInteractions.ts](../../../webview/src/view/App/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts), [useStylePaneInteractions.ts](../../../webview/src/view/App/EditorView/StylePane/useStylePaneInteractions.ts), [usePlacementOverlayInteractions.ts](../../../webview/src/view/App/EditorView/ClassDiagram/PlacementOverlay/usePlacementOverlayInteractions.ts) |
-| AppController | `EditorCommand`, current `sourceText`, current non-invalid model, optional malformed annotations | Builds `CommandContext`, calls `applyCommand`, and forwards only successful non-empty edits | [AppController.tsx](../../../webview/src/controller/AppController.tsx) |
-| Commands | `EditorCommand`, `CommandContext` | Calculates `CommandResult` and supported `SourceEdit[]` | [applyCommand.ts](../../../webview/src/controller/commands/applyCommand.ts), [commandExecution.ts](../../../webview/src/controller/commands/commandExecution.ts) |
+| Editor status / interaction hook | Generate button, React Flow drag-stop, color input event, or placement-overlay draw | Emits `generate`, `class.move`, `style.setClassProperty`, or `class.add` | [EditorStatus.tsx](../../../webview/src/shinyView/EditorView/EditorStatus/EditorStatus.tsx), [useClassBoxNodeInteractions.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts), [useStylePaneInteractions.ts](../../../webview/src/shinyView/EditorView/StylePane/useStylePaneInteractions.ts), [usePlacementOverlayInteractions.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/PlacementOverlay/usePlacementOverlayInteractions.ts) |
+| ShinyController | `EditorCommand`, current `sourceText`, current non-invalid model, optional malformed annotations | Builds `CommandContext`, calls `applyCommand`, and forwards only successful non-empty edits | [ShinyController.tsx](../../../webview/src/shinyController/ShinyController.tsx) |
+| Commands | `EditorCommand`, `CommandContext` | Calculates `CommandResult` and supported `SourceEdit[]` | [applyCommand.ts](../../../webview/src/shinyController/commands/applyCommand.ts), [commandExecution.ts](../../../webview/src/shinyController/commands/commandExecution.ts) |
 | Extension Bridge | `SourceEdit[]` | Maps Controller edits field-for-field to protocol `SourceEdit[]`; posts `ApplyEditsMessage` when non-empty | [ExtensionBridge.tsx](../../../webview/src/extensionBridge/ExtensionBridge.tsx), [protocol.ts](../../../webview/src/extensionBridge/protocol.ts) |
 | Diagram session | `ApplyEditsMessage`, bound `TextDocument` | Replaces source ranges in one `WorkspaceEdit`, awaits application, then posts the complete source | [diagramSession.ts](../../../extension-host/diagramSession.ts) |
-| Extension Bridge and AppController | Subsequent `SourceUpdateMessage` | Replace `sourceText` and recalculate the projection through [Section 8.1](#81-authoritative-source-projection) | [ExtensionBridge.tsx](../../../webview/src/extensionBridge/ExtensionBridge.tsx), [AppController.tsx](../../../webview/src/controller/AppController.tsx) |
+| Extension Bridge and ShinyController | Subsequent `SourceUpdateMessage` | Replace `sourceText` and recalculate the projection through [Section 8.1](#81-authoritative-source-projection) | [ExtensionBridge.tsx](../../../webview/src/extensionBridge/ExtensionBridge.tsx), [ShinyController.tsx](../../../webview/src/shinyController/ShinyController.tsx) |
 
 There is no optimistic local model mutation, request correlation, acknowledgement, version check, or visible command-failure state in this path. The post-edit source update is the only source refresh.
 
@@ -544,21 +558,21 @@ There is no optimistic local model mutation, request correlation, acknowledgemen
 
 | Producer | Input data | Current calculation | Implementation |
 |---|---|---|---|
-| App | Mode toggle | Replaces local `Mode`, whose values are `"autorender" \| "editor"` | [App.tsx](../../../webview/src/view/App/App.tsx) |
-| Class-box interaction hook | React Flow node click | Sets `CanvasState.selectedClassId` | [useClassBoxNodeInteractions.ts](../../../webview/src/view/App/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts) |
-| Canvas interaction hook | React Flow pane click | Clears `CanvasState.selectedClassId` | [useCanvasInteractions.ts](../../../webview/src/view/App/EditorView/ClassDiagram/useCanvasInteractions.ts) |
-| AppController | Partial `CanvasState` update | Shallow-merges the update; also clears a selection no longer present in derived class views | [AppController.tsx](../../../webview/src/controller/AppController.tsx) |
-| ClassDiagram | Derived views, selected class, React Flow `NodeChange[]` | Rebuilds descriptors when source-derived data changes and applies local node changes while interacting | [ClassDiagram.tsx](../../../webview/src/view/App/EditorView/ClassDiagram/ClassDiagram.tsx) |
+| WebViewShell | Mode toggle | Replaces local `WebViewMode`, whose values are `"mermaid" \| "shiny"` | [WebViewShell.tsx](../../../webview/src/webviewShell/WebViewShell.tsx) |
+| Class-box interaction hook | React Flow node click | Sets `CanvasState.selectedClassId` | [useClassBoxNodeInteractions.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts) |
+| Canvas interaction hook | React Flow pane click | Clears `CanvasState.selectedClassId` | [useCanvasInteractions.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/useCanvasInteractions.ts) |
+| ShinyController | Partial `CanvasState` update | Shallow-merges the update; also clears a selection no longer present in derived class views | [ShinyController.tsx](../../../webview/src/shinyController/ShinyController.tsx) |
+| ClassDiagram | Derived views, selected class, React Flow `NodeChange[]` | Rebuilds descriptors when source-derived data changes and applies local node changes while interacting | [ClassDiagram.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassDiagram.tsx) |
 
 None of this state is written to the Mermaid document. Class movement becomes persisted only on drag-stop, when the View emits `class.move` through the path in [Section 8.2](#82-persisted-visual-edit).
 
-### 8.4 Autorender
+### 8.4 Mermaid rendering
 
-[`App`](../../../webview/src/view/App/App.tsx) passes the current `sourceText` directly to [`AutorenderView`](../../../webview/src/view/App/AutorenderView/AutorenderView.tsx). [`useAutorender`](../../../webview/src/view/App/AutorenderView/useAutorender.ts):
+[`WebViewShell`](../../../webview/src/webviewShell/WebViewShell.tsx) passes the current `sourceText` directly to [`MermaidRenderer`](../../../webview/src/mermaidRenderer/MermaidRenderer.tsx) only while Mermaid mode is active. [`useMermaidRender`](../../../webview/src/mermaidRenderer/useMermaidRender.ts):
 
 1. normalizes `stroke-width:` to `strokeWidth:` and `stroke-dasharray:` to `strokeDasharray:` on `classDef` lines;
 2. initializes Mermaid with `startOnLoad: false`, `securityLevel: "strict"`, `htmlLabels: false`, the base theme, and CSS-derived theme variables;
 3. calls `mermaid.render(...)` with the normalized source;
 4. places the returned SVG in the container or exposes a local render-error string.
 
-Autorender does not consume `ParseResult`, `DiagramTree`, or `ElementViews`. A source string can therefore fail or succeed in autorender independently of the Controller parser's supported subset.
+Mermaid rendering does not consume `ParseResult`, `DiagramTree`, or `ElementViews`. A source string can therefore fail or succeed in Mermaid rendering independently of the Controller parser's supported subset.

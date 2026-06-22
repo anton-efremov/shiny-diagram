@@ -8,15 +8,6 @@ direction TB
 	    +addParticipant(UserContact participant) void
     }
 
-    class TextMessage {
-	    +UUID id
-	    +String content
-	    +DateTime timestamp
-	    +UserContact sender
-	    +List~FileAttachment~ attachments
-	    +attachFile(FileAttachment attachment) void
-	    +removeAttachment(UUID attachmentId) void
-    }
     class UserContact {
 	    +UUID id
 	    +String name
@@ -33,8 +24,18 @@ direction TB
 	    +addCommunicationChannel(CommunicationChannel channel) void
 	    +removeCommunicationChannel(UUID channelId) void
     }
+    class UserContact_2 {
+	    +UUID id
+	    +String name
+	    +String emailAddress
+	    +List~CommunicationChannel~ preferredChannels
+	    +addCommunicationChannel(CommunicationChannel channel) void
+	    +removeCommunicationChannel(UUID channelId) void
+    }
+class UserContact_2:::Pine
+%% @spatial:UserContact_2 x=182 y=-118 w=224 h=196
 class UserContact_1:::Pine
-%% @spatial:UserContact_1 x=137 y=-39 w=224 h=196
+%% @spatial:UserContact_1 x=-91 y=-16 w=224 h=196
 
 
     ConversationThread --> UserContact : involves
@@ -42,7 +43,6 @@ class UserContact_1:::Pine
     %% Native Style Applications
     class ConversationThread:::Rose
     class UserContact:::Pine
-	class TextMessage:::Pine
 
     %% Native Style Definitions
     classDef Rose stroke-width:1px,stroke-dasharray:none,stroke:#FF5978,fill:#e6e9ef,color:#8E2236
@@ -52,9 +52,8 @@ class UserContact_1:::Pine
 
 
 
-%% @spatial:UserContact x=-223 y=-337 w=313 h=218
+%% @spatial:UserContact x=-200 y=-295 w=313 h=218
 %% @spatial:ConversationThread x=178 y=-431 w=230 h=190
-%% @spatial:TextMessage x=-129 y=2 w=200 h=150
 
 
 

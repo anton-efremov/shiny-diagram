@@ -1,15 +1,15 @@
 /**
- * @fileoverview Coordinates host messaging between VS Code and the React webview.
+ * @fileoverview Coordinates host messaging and mounts the Webview Shell.
  */
 
 import { useCallback, useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import type { SourceEdit as ControllerSourceEdit } from "../controller/commands";
+import type { SourceEdit as ControllerSourceEdit } from "../shinyController/commands";
 import type { ApplyEditsMessage, SourceEdit as ProtocolSourceEdit } from "./protocol";
 import { readInitialData } from "./initialData";
 import { isHostMessage } from "./typeGuards";
 import { vscode } from "./vscodeApi";
-import AppController from "../controller/AppController";
+import { WebViewShell } from "../webviewShell";
 
 function toProtocolEdit(edit: ControllerSourceEdit): ProtocolSourceEdit {
   return {
@@ -43,5 +43,5 @@ export default function ExtensionBridge(): ReactElement {
     vscode.postMessage(message);
   }, []);
 
-  return <AppController sourceText={sourceText} onApplyEdits={handleApplyEdits} />;
+  return <WebViewShell sourceText={sourceText} onApplyEdits={handleApplyEdits} />;
 }

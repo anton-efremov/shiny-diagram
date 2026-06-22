@@ -1,0 +1,22 @@
+/**
+ * @fileoverview Styles for the Shiny editor status surface.
+ */
+
+.statusMessage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 4px 0;
+  color: var(--shiny-text-error);
+  font-size: 13px;
+}
+
+.generateButton {
+  padding: 3px 10px;
+  border: 1px solid var(--shiny-button-border);
+  color: var(--shiny-button-secondary-fg);
+  background: var(--shiny-button-secondary-bg);
+  cursor: pointer;
+  font-size: 12px;
+}

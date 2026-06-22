@@ -33,8 +33,8 @@ Normative terms:
 | Scope | Pattern | Project interpretation |
 | --- | --- | --- |
 | Extension | **Message-Based Integration across Isolated Runtimes** | Extension Host and Webview communicate only through an explicit, validated protocol. |
-| Webview | **Strict Layered Architecture** | All dependencies, including type imports and re-exports, follow `extensionBridge → controller → view`; `shared` is a dependency-free foundation. |
-| Controller | **Application Controller with a Functional Core** | `AppController` orchestrates independent functional components; sibling components do not orchestrate one another. |
+| Webview | **Strict Layered Architecture** | All dependencies, including type imports and re-exports, follow `extensionBridge → webviewShell`, then either `mermaidRenderer` or `shinyController → shinyView`; `shared` is a dependency-free foundation. |
+| Controller | **Application Controller with a Functional Core** | `ShinyController` orchestrates independent functional components; sibling components do not orchestrate one another. |
 | View | **Component-Based UI with Ownership-Based Composition** | React structure follows ownership; component contracts remain local and are exposed through semantic View facades. |
 
 ## 3. Extension runtime boundary
@@ -87,9 +87,11 @@ The source-edit payload is one canonical range replacement:
 ```text
 extensionBridge
       ↓
-controller
-      ↓
-view
+webviewShell
+      ├── mermaidRenderer
+      └── shinyController
+              ↓
+          shinyView
 
 shared  ← dependency-free foundation used by Webview layers
 ```
@@ -112,9 +114,10 @@ Layering constrains **static knowledge**, not the direction of every runtime cal
 
 Examples:
 
+- Shell owns the product-level Mermaid/Shiny mode, mounts either standard Mermaid rendering or the Shiny product branch, and does not parse Shiny source or coordinate Shiny commands.
 - Controller defines its `SourceEdit[]` output and the edit-application callback it requires; Extension Bridge implements that callback and constructs the corresponding protocol-owned edit payload.
 - The Webview and Extension Host protocol modules independently define the same wire messages; neither imports the other or an application-owned contract.
-- View defines `EditorCommand`, `CanvasState`, render contracts, contexts, and context handles; Controller supplies values and implementations conforming to those contracts.
+- View defines `EditorCommand`, `CanvasState`, render contracts, contexts, and context handles; Controller supplies values and implementations conforming to those contracts. Raw `sourceText` must not enter the View layer.
 
 ### 4.3 Particular layer access rules
 
@@ -123,11 +126,13 @@ The table governs imports between Webview-owned modules. Platform APIs and third
 | Consumer                              | Permitted dependencies                                                                                 |
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | `extensionBridge/protocol.ts`         | None; the protocol module defines its complete wire contract locally                                   |
-| Other `extensionBridge` modules       | Own modules; Controller public API; `shared/`                                                          |
-| `controller/AppController`            | Controller components and model; `view/App`; `view/commands`; `view/views`; `view/contexts`; `shared/` |
-| Controller components                 | Own component internals; `controller/model`; relevant View contract facade; `shared/`                  |
-| `view`                                | View modules; `shared/`                                                                                |
-| `controller/model`                    | Sibling files within `controller/model/`; `shared/`                                                    |
+| Other `extensionBridge` modules       | Own modules; `webviewShell`; type-only Controller edit contracts; `shared/`                            |
+| `webviewShell` modules                | Own modules; `mermaidRenderer`; `shinyController/ShinyController`; type-only Controller edit contracts; `shared/` |
+| `mermaidRenderer` modules             | Own modules; `shared/`                                                                                |
+| `shinyController/ShinyController`            | Controller components and model; `shinyView/EditorView`; `shinyView/commands`; `shinyView/views`; `shinyView/contexts`; `shared/` |
+| Controller components                 | Own component internals; `shinyController/model`; relevant View contract facade; `shared/`                  |
+| `shinyView`                           | Shiny View modules; `shared/`                                                                          |
+| `shinyController/model`                    | Sibling files within `shinyController/model/`; `shared/`                                                    |
 | `shared`                              | Other dependency-free shared modules only                                                              |
 
 Additional constraints:
@@ -136,16 +141,17 @@ Additional constraints:
 - The Webview and Extension Host protocol declarations must remain structurally synchronized.
 - Controller must not deep-import the View component tree.
 - Controller workers must not import React, React Flow, DOM, VS Code, or protocol modules.
-- Extension Bridge must not import Controller model files, workers, or View modules.
+- Shell must not import Extension Bridge or View modules.
+- Extension Bridge must not import Controller model files, workers, ShinyController, or View modules.
 
 ### 4.4 Shared vocabulary areas
 
 - `shared/` contains stable vocabulary whose semantics cross Webview layers, such as canonical identities and generic geometry.
-- `controller/model/` contains source-derived vocabulary shared by Controller components.
+- `shinyController/model/` contains source-derived vocabulary shared by Controller components.
 - A shared area might be divided into submodules for namespace convenience 
 - A narrower shared area may depend only on itself (e.g. own submodules) or more foundational shared areas.  
 - A shared area must not depend on any layer or component that consumes it.
-- `shared/` and `controller/model/` must not have root barrels.
+- `shared/` and `shinyController/model/` must not have root barrels.
 
 ## 5. Controller component architecture
 
@@ -153,7 +159,7 @@ Additional constraints:
 
 ```text
                  ┌──────── parse
-AppController ───┼──────── deriveViews
+ShinyController ───┼──────── deriveViews
                  └──────── commands
 ```
 
@@ -201,7 +207,7 @@ The names are roles, not mandatory filenames.
 
 ### 5.5 Shared Controller model
 
-- Source-derived contracts consumed by multiple Controller components belong to `controller/model/`.
+- Source-derived contracts consumed by multiple Controller components belong to `shinyController/model/`.
 - The model is shared Controller vocabulary, not a component, and has no facade.
 - Consumers import model declarations from their defining files.
 - The model must not depend on Parse, Derive Views, Commands, View, or Extension Bridge.
@@ -219,8 +225,8 @@ The names are roles, not mandatory filenames.
 #### 6.1.1 View root organization
 
 ```text
-view/
-├── App/
+shinyView/
+├── EditorView/
 │   └── index.ts
 ├── commands/
 │   ├── index.ts
@@ -232,7 +238,7 @@ view/
 └── ui/
 ```
 
-- `App/` owns the React application tree. Its `index.ts` exports only the `App` runtime entry point.
+- `EditorView/` owns the React Shiny editor tree. Its `index.ts` exports only the `EditorView` runtime entry point.
 - `commands/`, `views/`, and `contexts/` expose stable semantic APIs to Controller.
 - `ui/` contains visual primitives only after multiple legitimate View consumers exist.
 - The View root must not contain `index.ts`.
@@ -240,19 +246,19 @@ view/
 
 #### 6.1.2 Semantic facade areas
 
-- `view/commands/editorCommand.ts` defines `EditorCommand`, the single View-wide aggregate across command owners.
-- `view/commands/index.ts` re-exports `EditorCommand` and selected owner-defined command contracts required by Controller; it does not define or aggregate commands.
-- `view/views/index.ts` re-exports selected component-owned render contracts.
-- `view/contexts/index.ts` re-exports View contexts and the contracts, defaults, and handles required to provide them.
+- `shinyView/commands/editorCommand.ts` defines `EditorCommand`, the single View-wide aggregate across command owners.
+- `shinyView/commands/index.ts` re-exports `EditorCommand` and selected owner-defined command contracts required by Controller; it does not define or aggregate commands.
+- `shinyView/views/index.ts` re-exports selected component-owned render contracts.
+- `shinyView/contexts/index.ts` re-exports View contexts and the contracts, defaults, and handles required to provide them.
 - Facade `index.ts` files contain re-exports only.
 - A facade area may contain dedicated layer-wide aggregate contract modules, but no rendering, state coordination, or interaction implementation.
-- Controller must consume View APIs through `view/App`, `view/commands`, `view/views`, and `view/contexts`.
-- Controller handlers should import the narrow owner-defined command contracts they handle through `view/commands`.
+- Controller must consume View APIs through `shinyView/EditorView`, `shinyView/commands`, `shinyView/views`, and `shinyView/contexts`.
+- Controller handlers should import the narrow owner-defined command contracts they handle through `shinyView/commands`.
 - View internals use direct imports from the defining modules and must not import their own public facades.
 
 #### 6.1.3 Permitted deviations
 
-- A new View-root area requires a View-wide semantic responsibility not owned by `App/`.
+- A new View-root area requires a View-wide semantic responsibility not owned by `EditorView/`.
 - A new root area must expose a purpose-specific API and must not become a miscellaneous shared folder.
 - Convenience and anticipated growth are not sufficient reasons to add a root area.
 
@@ -294,7 +300,7 @@ Examples:
 
 - `views.ts` defines the read-only data accepted by the component's render boundary.
 - A child component owns its render contract.
-- A parent might aggregate child render contracts by importing them directly from their defining modules. View internals must not import through `view/views`; that facade is reserved for external consumers.
+- A parent might aggregate child render contracts by importing them directly from their defining modules. View internals must not import through `shinyView/views`; that facade is reserved for external consumers.
 
 #### 6.2.3 State ownership
 
@@ -363,16 +369,18 @@ All analyzed imports and re-exports are dependencies. Package and platform impor
 | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `main.tsx`                            | Extension Bridge runtime entry                                                                                               |
 | `extensionBridge/protocol.ts`         | None                                                                                                                         |
-| Other `extensionBridge/**` modules    | Own modules; `controller/AppController`; type-only exports from `controller/commands`; `shared/**`                           |
-| `controller/AppController.tsx`        | Controller component facades; `controller/model/**`; `view/App`; `view/commands`; `view/views`; `view/contexts`; `shared/**` |
-| `controller/parse/**`                 | Own component modules; `controller/model/**`; `shared/**`                                                                    |
-| `controller/deriveViews/**`           | Own component modules; `controller/model/**`; `view/views`; `shared/**`                                                      |
-| `controller/commands/**`              | Own component modules; `controller/model/**`; `view/commands`; `shared/**`                                                   |
-| `controller/model/**`                 | Other `controller/model/**` modules; `shared/**`                                                                             |
-| `view/**`                             | Other View modules; `shared/**`                                                                                              |
+| Other `extensionBridge/**` modules    | Own modules; `webviewShell`; type-only exports from `shinyController/commands`; `shared/**`                                      |
+| `webviewShell/**`                            | Own modules; `mermaidRenderer/**`; `shinyController/ShinyController`; type-only exports from `shinyController/commands`; `shared/**` |
+| `mermaidRenderer/**`                  | Own modules; `shared/**`                                                                                                    |
+| `shinyController/ShinyController.tsx`        | Controller component facades; `shinyController/model/**`; `shinyView/EditorView`; `shinyView/commands`; `shinyView/views`; `shinyView/contexts`; `shared/**` |
+| `shinyController/parse/**`                 | Own component modules; `shinyController/model/**`; `shared/**`                                                                    |
+| `shinyController/deriveViews/**`           | Own component modules; `shinyController/model/**`; `shinyView/views`; `shared/**`                                                      |
+| `shinyController/commands/**`              | Own component modules; `shinyController/model/**`; `shinyView/commands`; `shared/**`                                                   |
+| `shinyController/model/**`                 | Other `shinyController/model/**` modules; `shared/**`                                                                             |
+| `shinyView/**`                        | Other Shiny View modules; `shared/**`                                                                  |
 | `shared/**`                           | Other `shared/**` modules                                                                                                    |
 
-Controller components may not import one another. Data shared between them passes through `AppController`, `controller/model/`, or `shared/` according to semantic ownership.
+Controller components may not import one another. Data shared between them passes through `ShinyController`, `shinyController/model/`, or `shared/` according to semantic ownership.
 
 Protocol enforcement:
 
@@ -384,23 +392,26 @@ Protocol enforcement:
 The boundary checker recognizes these facade files:
 
 ```text
-controller/parse/index.ts
-controller/deriveViews/index.ts
-controller/commands/index.ts
-view/App/index.ts
-view/commands/index.ts
-view/views/index.ts
-view/contexts/index.ts
+webviewShell/index.ts
+shinyController/parse/index.ts
+shinyController/deriveViews/index.ts
+shinyController/commands/index.ts
+shinyView/EditorView/index.ts
+shinyView/commands/index.ts
+shinyView/views/index.ts
+shinyView/contexts/index.ts
 ```
 
 Facade rules:
 - Imports from outside a Controller component must target that component's root facade.
 - View implementation modules use direct local imports and must not import through View facades.
 - Facade files may contain only comments and re-export declarations.
-- `view/App/index.ts` may expose only the `App` runtime entry.
+- `webviewShell/index.ts` may expose only the `WebViewShell` runtime entry.
+- `shinyView/EditorView/index.ts` may expose only the `EditorView` runtime entry.
 - These root barrels are prohibited:
-	  - `view/index.ts`
-	  - `controller/model/index.ts`
+	  - `webviewShell/WebViewShell/index.ts`
+	  - `shinyView/index.ts`
+	  - `shinyController/model/index.ts`
 	  - `shared/index.ts`
 
 ### 7.4 Execution
@@ -423,7 +434,7 @@ The checker verifies module structure, protocol self-containment, and synchroniz
 | **Layer** | An ordered group of modules governed by one dependency direction. |
 | **Component** | A cohesive group of modules with one public boundary and private implementation. |
 | **React component subtree** | A React component and the child components, state, contracts, styles, and interactions it semantically owns. |
-| **Shared contract area** | A non-layer component that defines vocabulary used by several consumers, such as `shared/` or `controller/model/`. |
+| **Shared contract area** | A non-layer component that defines vocabulary used by several consumers, such as `shared/` or `shinyController/model/`. |
 | **Boundary** | The public interaction point through which one runtime, layer, or component uses another. |
 | **Contract** | The types and callable signatures that define a boundary. |
 | **Protocol contract** | A self-contained JSON-compatible wire declaration defined independently and kept synchronized at both isolated runtimes. |
@@ -475,8 +486,8 @@ Avoid **controls** in architectural descriptions unless its exact meaning is sta
 
 | Artifact | Defined by | Owned by | Constructed or hosted by | Consumed by |
 |---|---|---|---|---|
-| `EditorCommand` | Owner-local `commands.ts` files; aggregate in `view/commands/editorCommand.ts` | View | View interaction handlers | Controller Commands |
+| `EditorCommand` | Owner-local `commands.ts` files; aggregate in `shinyView/commands/editorCommand.ts` | View | View interaction handlers | Controller Commands |
 | `ElementViews` and nested render contracts | Component-local `views.ts` files | View | Controller Derive Views | View components |
-| `CanvasState` | The owning View component’s `state.ts` | Owning View component | May be hosted by `AppController`; distributed through View context | View components |
+| `CanvasState` | The owning View component’s `state.ts` | Owning View component | May be hosted by `ShinyController`; distributed through View context | View components |
 | `SourceEdit` | Controller Commands | Controller Commands | Command handlers | Extension Bridge |
 | Protocol message contracts | Independently in `webview/src/extensionBridge/protocol.ts` and `extension-host/protocol.ts` | Extension runtime boundary | Boundary adapters construct and validate protocol values | Opposite runtime boundary adapter |

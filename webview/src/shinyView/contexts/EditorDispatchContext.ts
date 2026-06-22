@@ -1,0 +1,16 @@
+/**
+ * @fileoverview React context providing dispatch to descendant view components.
+ */
+import { createContext, useContext } from "react";
+import type { EditorCommand } from "../commands/editorCommand";
+
+export const EditorDispatchContext = createContext<((command: EditorCommand) => void) | null>(null);
+
+/**
+ * Consumes editor command dispatch within a descendant of ShinyController.
+ */
+export function useEditorDispatch(): (command: EditorCommand) => void {
+  const dispatch = useContext(EditorDispatchContext);
+  if (!dispatch) throw new Error("useEditorDispatch must be used within ShinyController");
+  return dispatch;
+}

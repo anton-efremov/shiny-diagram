@@ -30,23 +30,29 @@ const CONTROLLER_COMPONENTS = ["parse", "deriveViews", "commands"];
 const CONTROLLER_COMPONENT_SET = new Set(CONTROLLER_COMPONENTS);
 
 const REQUIRED_FACADES = new Set([
+  "shell/index.ts",
   "controller/parse/index.ts",
   "controller/deriveViews/index.ts",
   "controller/commands/index.ts",
-  "view/App/index.ts",
+  "view/EditorView/index.ts",
   "view/commands/index.ts",
   "view/views/index.ts",
   "view/contexts/index.ts",
 ]);
 
 const VIEW_FACADES = new Set([
-  "view/App/index.ts",
+  "view/EditorView/index.ts",
   "view/commands/index.ts",
   "view/views/index.ts",
   "view/contexts/index.ts",
 ]);
 
-const PROHIBITED_BARRELS = ["view/index.ts", "controller/model/index.ts", "shared/index.ts"];
+const PROHIBITED_BARRELS = [
+  "shell/WebViewShell/index.ts",
+  "view/index.ts",
+  "controller/model/index.ts",
+  "shared/index.ts",
+];
 
 const violations = [];
 
@@ -408,23 +414,44 @@ function permittedDependencyRule(file, dependency, target) {
     if (isUnder(target, "extensionBridge") || isUnder(target, "shared")) {
       return true;
     }
-    if (target === "controller/AppController.tsx") return true;
+    if (target === "shell/index.ts") return true;
     if (target === "controller/commands/index.ts" && dependency.isTypeOnly) {
       return true;
     }
     if (target === "controller/commands/index.ts") {
       return "Extension Bridge may consume controller/commands only through a type-only dependency";
     }
-    return "Extension Bridge may depend only on its own modules, controller/AppController, type-only controller/commands, or shared";
+    return "Extension Bridge may depend only on its own modules, shell, type-only controller/commands, or shared";
   }
 
-  if (file === "controller/AppController.tsx") {
+  if (isUnder(file, "shell")) {
+    if (isUnder(target, "shell") || isUnder(target, "shared")) {
+      return true;
+    }
+    if (isUnder(target, "mermaidRenderer")) return true;
+    if (target === "controller/ShinyController.tsx") return true;
+    if (target === "controller/commands/index.ts" && dependency.isTypeOnly) {
+      return true;
+    }
+    if (target === "controller/commands/index.ts") {
+      return "Shell may consume controller/commands only through a type-only dependency";
+    }
+    return "Shell may depend only on its own modules, mermaidRenderer, controller/ShinyController, type-only controller/commands, or shared";
+  }
+
+  if (isUnder(file, "mermaidRenderer")) {
+    return isUnder(target, "mermaidRenderer") || isUnder(target, "shared")
+      ? true
+      : "Mermaid renderer may depend only on its own modules or shared";
+  }
+
+  if (file === "controller/ShinyController.tsx") {
     if (isControllerComponentFacade(target)) return true;
     if (isUnder(target, "controller/model") || isUnder(target, "shared")) {
       return true;
     }
     if (VIEW_FACADES.has(target)) return true;
-    return "controller/AppController may depend only on Controller component facades, controller/model, view/App, view/commands, view/views, view/contexts, or shared";
+    return "controller/ShinyController may depend only on Controller component facades, controller/model, view/EditorView, view/commands, view/views, view/contexts, or shared";
   }
 
   const sourceComponent = controllerComponent(file);
@@ -532,8 +559,28 @@ function checkFacade(file, sourceFile, compilerOptions, cache) {
     checkFacadeTarget(file, dependency, target);
   }
 
-  if (file === "view/App/index.ts") {
-    checkAppFacade(file, sourceFile, reExports, compilerOptions, cache);
+  if (file === "shell/index.ts") {
+    checkSingleRuntimeFacade(
+      file,
+      sourceFile,
+      reExports,
+      compilerOptions,
+      cache,
+      "shell",
+      "WebViewShell"
+    );
+  }
+
+  if (file === "view/EditorView/index.ts") {
+    checkSingleRuntimeFacade(
+      file,
+      sourceFile,
+      reExports,
+      compilerOptions,
+      cache,
+      "view/EditorView",
+      "EditorView"
+    );
   }
 }
 
@@ -565,7 +612,18 @@ function checkFacadeTarget(file, dependency, target) {
     return;
   }
 
-  if (file === "view/App/index.ts") return;
+  if (file === "shell/index.ts") {
+    if (!isUnder(target, "shell")) {
+      reportDependency(
+        file,
+        dependency,
+        "shell facade may re-export only the WebViewShell runtime from shell"
+      );
+    }
+    return;
+  }
+
+  if (file === "view/EditorView/index.ts") return;
 
   if (VIEW_FACADES.has(file)) {
     if (!isUnder(target, "view") || VIEW_FACADES.has(target)) {
@@ -759,7 +817,15 @@ function hasReadonlyModifier(node) {
   );
 }
 
-function checkAppFacade(file, sourceFile, reExports, compilerOptions, cache) {
+function checkSingleRuntimeFacade(
+  file,
+  sourceFile,
+  reExports,
+  compilerOptions,
+  cache,
+  ownerDirectory,
+  runtimeEntryName
+) {
   const runtimeExports = [];
   let invalidShape = false;
 
@@ -772,11 +838,11 @@ function checkAppFacade(file, sourceFile, reExports, compilerOptions, cache) {
       cache
     );
 
-    if (!target || !isUnder(target, "view/App")) {
+    if (!target || !isUnder(target, ownerDirectory)) {
       reportDependency(
         file,
         dependency,
-        "view/App facade must re-export the App runtime from a module owned by view/App"
+        `${file} must re-export the ${runtimeEntryName} runtime from a module owned by ${ownerDirectory}`
       );
       invalidShape = true;
     }
@@ -799,8 +865,8 @@ function checkAppFacade(file, sourceFile, reExports, compilerOptions, cache) {
     }
   }
 
-  if (invalidShape || runtimeExports.length !== 1 || runtimeExports[0] !== "App") {
-    reportFile(file, "view/App/index.ts may expose exactly one runtime entry: App");
+  if (invalidShape || runtimeExports.length !== 1 || runtimeExports[0] !== runtimeEntryName) {
+    reportFile(file, `${file} may expose exactly one runtime entry: ${runtimeEntryName}`);
   }
 }
 
