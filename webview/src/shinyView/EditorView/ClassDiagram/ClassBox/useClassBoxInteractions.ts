@@ -4,7 +4,7 @@
 
 import { useCallback } from "react";
 import type { OnResizeEnd } from "@xyflow/react";
-import { useEditorDispatch } from "../../../contexts/EditorDispatchContext";
+import type { EditorDispatch } from "../../../commands/editorCommand";
 import type { ClassBoxView } from "./views";
 
 type UseClassBoxInteractionsResult = {
@@ -14,9 +14,10 @@ type UseClassBoxInteractionsResult = {
 /**
  * Dispatches class-box resize commands from ReactFlow node resize events.
  */
-export function useClassBoxInteractions(data: ClassBoxView): UseClassBoxInteractionsResult {
-  const dispatch = useEditorDispatch();
-
+export function useClassBoxInteractions(
+  data: ClassBoxView,
+  dispatch: EditorDispatch
+): UseClassBoxInteractionsResult {
   const onResizeEnd = useCallback<OnResizeEnd>(
     (_event, params) => {
       dispatch({

@@ -17,7 +17,6 @@ export type CommandResult =
   | {
       readonly ok: true;
       readonly edits: SourceEdit[];
-      readonly createdClassIds?: readonly ClassId[];
     }
   | {
       readonly ok: false;

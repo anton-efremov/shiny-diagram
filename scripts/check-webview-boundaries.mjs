@@ -30,27 +30,26 @@ const CONTROLLER_COMPONENTS = ["parse", "deriveViews", "commands"];
 const CONTROLLER_COMPONENT_SET = new Set(CONTROLLER_COMPONENTS);
 
 const REQUIRED_FACADES = new Set([
-  "shell/index.ts",
-  "controller/parse/index.ts",
-  "controller/deriveViews/index.ts",
-  "controller/commands/index.ts",
-  "view/EditorView/index.ts",
-  "view/commands/index.ts",
-  "view/views/index.ts",
-  "view/contexts/index.ts",
+  "webviewShell/index.ts",
+  "shinyController/parse/index.ts",
+  "shinyController/deriveViews/index.ts",
+  "shinyController/commands/index.ts",
+  "shinyView/EditorView/index.ts",
+  "shinyView/commands/index.ts",
+  "shinyView/views/index.ts",
 ]);
 
-const VIEW_FACADES = new Set([
-  "view/EditorView/index.ts",
-  "view/commands/index.ts",
-  "view/views/index.ts",
-  "view/contexts/index.ts",
+const SHINY_VIEW_FACADES = new Set([
+  "shinyView/EditorView/index.ts",
+  "shinyView/commands/index.ts",
+  "shinyView/views/index.ts",
 ]);
 
 const PROHIBITED_BARRELS = [
-  "shell/WebViewShell/index.ts",
-  "view/index.ts",
-  "controller/model/index.ts",
+  "webviewShell/WebViewShell/index.ts",
+  "shinyView/contexts/index.ts",
+  "shinyView/index.ts",
+  "shinyController/model/index.ts",
   "shared/index.ts",
 ];
 
@@ -76,6 +75,13 @@ function main() {
 
   for (const absoluteFile of listSourceFiles(sourceRoot)) {
     const file = toSourceRelative(absoluteFile);
+    if (isUnder(file, "shinyView/contexts")) {
+      reportFile(
+        file,
+        "shinyView/contexts is prohibited; pass EditorViewModel and EditorDispatch through props"
+      );
+    }
+
     const sourceText = readFileSync(absoluteFile, "utf8");
     const sourceFile = ts.createSourceFile(
       absoluteFile,
@@ -372,7 +378,7 @@ function checkDependency(file, dependency, target) {
       reportDependency(
         file,
         dependency,
-        `imports from outside controller/${targetComponent} must target ${facade}`
+        `imports from outside shinyController/${targetComponent} must target ${facade}`
       );
     }
   }
@@ -385,15 +391,19 @@ function checkDependency(file, dependency, target) {
     reportDependency(
       file,
       dependency,
-      `controller/${sourceComponent} workers must not import through their own public facade`
+      `shinyController/${sourceComponent} workers must not import through their own public facade`
     );
   }
 
-  if (isUnder(file, "view") && !VIEW_FACADES.has(file) && VIEW_FACADES.has(target)) {
+  if (
+    isUnder(file, "shinyView") &&
+    !SHINY_VIEW_FACADES.has(file) &&
+    SHINY_VIEW_FACADES.has(target)
+  ) {
     reportDependency(
       file,
       dependency,
-      "View implementation modules must use direct local imports, not View public facades"
+      "Shiny View implementation modules must use direct local imports, not Shiny View public facades"
     );
   }
 
@@ -414,29 +424,29 @@ function permittedDependencyRule(file, dependency, target) {
     if (isUnder(target, "extensionBridge") || isUnder(target, "shared")) {
       return true;
     }
-    if (target === "shell/index.ts") return true;
-    if (target === "controller/commands/index.ts" && dependency.isTypeOnly) {
+    if (target === "webviewShell/index.ts") return true;
+    if (target === "shinyController/commands/index.ts" && dependency.isTypeOnly) {
       return true;
     }
-    if (target === "controller/commands/index.ts") {
-      return "Extension Bridge may consume controller/commands only through a type-only dependency";
+    if (target === "shinyController/commands/index.ts") {
+      return "Extension Bridge may consume shinyController/commands only through a type-only dependency";
     }
-    return "Extension Bridge may depend only on its own modules, shell, type-only controller/commands, or shared";
+    return "Extension Bridge may depend only on its own modules, webviewShell, type-only shinyController/commands, or shared";
   }
 
-  if (isUnder(file, "shell")) {
-    if (isUnder(target, "shell") || isUnder(target, "shared")) {
+  if (isUnder(file, "webviewShell")) {
+    if (isUnder(target, "webviewShell") || isUnder(target, "shared")) {
       return true;
     }
     if (isUnder(target, "mermaidRenderer")) return true;
-    if (target === "controller/ShinyController.tsx") return true;
-    if (target === "controller/commands/index.ts" && dependency.isTypeOnly) {
+    if (target === "shinyController/ShinyController.tsx") return true;
+    if (target === "shinyController/commands/index.ts" && dependency.isTypeOnly) {
       return true;
     }
-    if (target === "controller/commands/index.ts") {
-      return "Shell may consume controller/commands only through a type-only dependency";
+    if (target === "shinyController/commands/index.ts") {
+      return "Shell may consume shinyController/commands only through a type-only dependency";
     }
-    return "Shell may depend only on its own modules, mermaidRenderer, controller/ShinyController, type-only controller/commands, or shared";
+    return "Shell may depend only on its own modules, mermaidRenderer, shinyController/ShinyController, type-only shinyController/commands, or shared";
   }
 
   if (isUnder(file, "mermaidRenderer")) {
@@ -445,61 +455,61 @@ function permittedDependencyRule(file, dependency, target) {
       : "Mermaid renderer may depend only on its own modules or shared";
   }
 
-  if (file === "controller/ShinyController.tsx") {
+  if (file === "shinyController/ShinyController.tsx") {
     if (isControllerComponentFacade(target)) return true;
-    if (isUnder(target, "controller/model") || isUnder(target, "shared")) {
+    if (isUnder(target, "shinyController/model") || isUnder(target, "shared")) {
       return true;
     }
-    if (VIEW_FACADES.has(target)) return true;
-    return "controller/ShinyController may depend only on Controller component facades, controller/model, view/EditorView, view/commands, view/views, view/contexts, or shared";
+    if (SHINY_VIEW_FACADES.has(target)) return true;
+    return "shinyController/ShinyController may depend only on Controller component facades, shinyController/model, shinyView/EditorView, shinyView/commands, shinyView/views, or shared";
   }
 
   const sourceComponent = controllerComponent(file);
   if (sourceComponent === "parse") {
     if (
-      isUnder(target, "controller/parse") ||
-      isUnder(target, "controller/model") ||
+      isUnder(target, "shinyController/parse") ||
+      isUnder(target, "shinyController/model") ||
       isUnder(target, "shared")
     ) {
       return true;
     }
-    return "controller/parse may depend only on its own component, controller/model, or shared";
+    return "shinyController/parse may depend only on its own component, shinyController/model, or shared";
   }
 
   if (sourceComponent === "deriveViews") {
     if (
-      isUnder(target, "controller/deriveViews") ||
-      isUnder(target, "controller/model") ||
-      target === "view/views/index.ts" ||
+      isUnder(target, "shinyController/deriveViews") ||
+      isUnder(target, "shinyController/model") ||
+      target === "shinyView/views/index.ts" ||
       isUnder(target, "shared")
     ) {
       return true;
     }
-    return "controller/deriveViews may depend only on its own component, controller/model, view/views, or shared";
+    return "shinyController/deriveViews may depend only on its own component, shinyController/model, shinyView/views, or shared";
   }
 
   if (sourceComponent === "commands") {
     if (
-      isUnder(target, "controller/commands") ||
-      isUnder(target, "controller/model") ||
-      target === "view/commands/index.ts" ||
+      isUnder(target, "shinyController/commands") ||
+      isUnder(target, "shinyController/model") ||
+      target === "shinyView/commands/index.ts" ||
       isUnder(target, "shared")
     ) {
       return true;
     }
-    return "controller/commands may depend only on its own component, controller/model, view/commands, or shared";
+    return "shinyController/commands may depend only on its own component, shinyController/model, shinyView/commands, or shared";
   }
 
-  if (isUnder(file, "controller/model")) {
-    return isUnder(target, "controller/model") || isUnder(target, "shared")
+  if (isUnder(file, "shinyController/model")) {
+    return isUnder(target, "shinyController/model") || isUnder(target, "shared")
       ? true
-      : "controller/model may depend only on controller/model or shared";
+      : "shinyController/model may depend only on shinyController/model or shared";
   }
 
-  if (isUnder(file, "view")) {
-    return isUnder(target, "view") || isUnder(target, "shared")
+  if (isUnder(file, "shinyView")) {
+    return isUnder(target, "shinyView") || isUnder(target, "shared")
       ? true
-      : "View modules may depend only on View modules or shared";
+      : "Shiny View modules may depend only on Shiny View modules or shared";
   }
 
   if (isUnder(file, "shared")) {
@@ -559,26 +569,26 @@ function checkFacade(file, sourceFile, compilerOptions, cache) {
     checkFacadeTarget(file, dependency, target);
   }
 
-  if (file === "shell/index.ts") {
+  if (file === "webviewShell/index.ts") {
     checkSingleRuntimeFacade(
       file,
       sourceFile,
       reExports,
       compilerOptions,
       cache,
-      "shell",
+      "webviewShell",
       "WebViewShell"
     );
   }
 
-  if (file === "view/EditorView/index.ts") {
+  if (file === "shinyView/EditorView/index.ts") {
     checkSingleRuntimeFacade(
       file,
       sourceFile,
       reExports,
       compilerOptions,
       cache,
-      "view/EditorView",
+      "shinyView/EditorView",
       "EditorView"
     );
   }
@@ -603,34 +613,34 @@ function checkFacadeTarget(file, dependency, target) {
   }
 
   const component = controllerComponent(file);
-  if (component && !isUnder(target, `controller/${component}`)) {
+  if (component && !isUnder(target, `shinyController/${component}`)) {
     reportDependency(
       file,
       dependency,
-      `controller/${component} facade may re-export only contracts and runtime entries owned by that component`
+      `shinyController/${component} facade may re-export only contracts and runtime entries owned by that component`
     );
     return;
   }
 
-  if (file === "shell/index.ts") {
-    if (!isUnder(target, "shell")) {
+  if (file === "webviewShell/index.ts") {
+    if (!isUnder(target, "webviewShell")) {
       reportDependency(
         file,
         dependency,
-        "shell facade may re-export only the WebViewShell runtime from shell"
+        "webviewShell facade may re-export only the WebViewShell runtime from webviewShell"
       );
     }
     return;
   }
 
-  if (file === "view/EditorView/index.ts") return;
+  if (file === "shinyView/EditorView/index.ts") return;
 
-  if (VIEW_FACADES.has(file)) {
-    if (!isUnder(target, "view") || VIEW_FACADES.has(target)) {
+  if (SHINY_VIEW_FACADES.has(file)) {
+    if (!isUnder(target, "shinyView") || SHINY_VIEW_FACADES.has(target)) {
       reportDependency(
         file,
         dependency,
-        "View semantic facades may re-export View-owned implementation contracts, not another facade or another layer"
+        "Shiny View semantic facades may re-export Shiny View-owned implementation contracts, not another facade or another layer"
       );
     }
   }
@@ -871,12 +881,12 @@ function checkSingleRuntimeFacade(
 }
 
 function controllerComponent(file) {
-  const match = /^controller\/([^/]+)\//.exec(file);
+  const match = /^shinyController\/([^/]+)\//.exec(file);
   return match && CONTROLLER_COMPONENT_SET.has(match[1]) ? match[1] : null;
 }
 
 function controllerFacade(component) {
-  return `controller/${component}/index.ts`;
+  return `shinyController/${component}/index.ts`;
 }
 
 function isControllerComponentFacade(file) {

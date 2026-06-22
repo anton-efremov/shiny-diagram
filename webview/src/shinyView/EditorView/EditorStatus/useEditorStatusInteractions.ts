@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from "react";
-import { useEditorDispatch } from "../../contexts/EditorDispatchContext";
+import type { EditorDispatch } from "../../commands/editorCommand";
 
 type UseEditorStatusInteractionsResult = {
   readonly onGenerate: () => void;
@@ -12,9 +12,9 @@ type UseEditorStatusInteractionsResult = {
 /**
  * Builds stable handlers for EditorStatus interaction surfaces.
  */
-export function useEditorStatusInteractions(): UseEditorStatusInteractionsResult {
-  const dispatch = useEditorDispatch();
-
+export function useEditorStatusInteractions(
+  dispatch: EditorDispatch
+): UseEditorStatusInteractionsResult {
   const onGenerate = useCallback(() => {
     dispatch({ type: "generate" });
   }, [dispatch]);

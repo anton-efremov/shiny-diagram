@@ -1,25 +1,27 @@
 import type { CSSProperties, ReactElement } from "react";
-import { useEditorState } from "../../contexts/EditorStateContext";
-import { useCanvasState } from "../../contexts/CanvasStateContext";
+import type { EditorDispatch } from "../../commands/editorCommand";
+import type { ClassBoxView } from "./../ClassDiagram/ClassBox/views";
 import { useStylePaneInteractions as useStylePaneInteractions } from "./useStylePaneInteractions";
 import styles from "./StylePane.module.css";
+
+type StylePaneProps = {
+  selectedClassViews: readonly ClassBoxView[];
+  dispatch: EditorDispatch;
+};
 
 /**
  * Renders the selected class style inspector.
  */
-export default function StylePane(): ReactElement {
-  const { elementViews } = useEditorState();
-  const { canvasState } = useCanvasState();
-  const selectedClassIds = new Set(canvasState.selectedClassIds);
-  const selectedViews = elementViews?.classes.filter((v) => selectedClassIds.has(v.classId)) ?? [];
-  const selectedView = selectedViews.length === 1 ? selectedViews[0] : undefined;
+export default function StylePane({ selectedClassViews, dispatch }: StylePaneProps): ReactElement {
+  const selectedView = selectedClassViews.length === 1 ? selectedClassViews[0] : undefined;
 
   const { onFillColorChange, onDuplicate, onDeleteClick } = useStylePaneInteractions({
-    selectedClassIds: selectedViews.map((view) => view.classId),
+    dispatch,
+    selectedClassIds: selectedClassViews.map((view) => view.classId),
     selectedView,
   });
 
-  if (selectedViews.length === 0) {
+  if (selectedClassViews.length === 0) {
     return (
       <aside className={styles.stylePane} aria-label="Styles pane">
         <header className={styles.header}>Styles</header>
@@ -28,14 +30,14 @@ export default function StylePane(): ReactElement {
     );
   }
 
-  if (selectedViews.length > 1) {
+  if (selectedClassViews.length > 1) {
     return (
       <aside className={styles.stylePane} aria-label="Styles pane">
         <header className={styles.header}>Styles</header>
         <section className={styles.selectionPanel} aria-label="Selected class actions">
           <div className={styles.multiSelectionSummary}>
             <div className={styles.selectionType}>Selection</div>
-            <h2 className={styles.className}>{selectedViews.length} classes selected</h2>
+            <h2 className={styles.className}>{selectedClassViews.length} classes selected</h2>
           </div>
 
           <div className={styles.actionArea}>

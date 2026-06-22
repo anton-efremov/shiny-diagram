@@ -34,3 +34,5 @@ export type EditorCommand =
   | StyleCommand
   | ClassDeleteCommand
   | ClassDuplicateCommand;
+
+export type EditorDispatch = (command: EditorCommand) => void;

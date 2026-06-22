@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { useCanvasState } from "../../contexts/CanvasStateContext";
+import type { PlacementMode } from "../placementMode";
 import { useToolPaneInteractions } from "./useToolPaneInteractions";
 import styles from "./ToolPane.module.css";
 
@@ -31,13 +31,20 @@ const relationshipTools: ToolPaneItem[] = [
   { icon: "--()", name: "Lollipop interface" },
 ];
 
+type ToolPaneProps = {
+  placementMode: PlacementMode | null;
+  onPlacementModeChange: (placementMode: PlacementMode | null) => void;
+};
+
 /**
  * Renders diagram creation tools.
  */
-export default function ToolPane(): ReactElement {
-  const { canvasState } = useCanvasState();
-  const { onClassToolClick } = useToolPaneInteractions();
-  const isClassPlacementActive = canvasState.placementMode === "class";
+export default function ToolPane({
+  placementMode,
+  onPlacementModeChange,
+}: ToolPaneProps): ReactElement {
+  const { onClassToolClick } = useToolPaneInteractions(onPlacementModeChange);
+  const isClassPlacementActive = placementMode === "class";
 
   return (
     <aside className={styles.toolPane} aria-label="Diagram tools">

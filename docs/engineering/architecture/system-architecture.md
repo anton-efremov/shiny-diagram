@@ -151,12 +151,12 @@ The Extension Host does not parse Mermaid, build the Controller model, derive Vi
 |---|---|---|---|---|
 | Extension Bridge | Host-injected initial string, `window.message` data, Controller `SourceEdit[]` callback values | `sourceText` for Shell and wire `ApplyEditsMessage` values | Current source string | [ExtensionBridge.tsx](../../../webview/src/extensionBridge/ExtensionBridge.tsx), [initialData.ts](../../../webview/src/extensionBridge/initialData.ts), [vscodeApi.ts](../../../webview/src/extensionBridge/vscodeApi.ts) |
 | Shell | `sourceText`, `onApplyEdits`, mode-toggle input | Selected product branch: standard Mermaid rendering or Shiny editor | `WebViewMode` (`"mermaid" \| "shiny"`) | [WebViewShell.tsx](../../../webview/src/webviewShell/WebViewShell.tsx), [MermaidRenderer.tsx](../../../webview/src/mermaidRenderer/MermaidRenderer.tsx) |
-| Controller | `sourceText`, `onApplyEdits`, View `EditorCommand`, partial canvas-state updates | `ParseResult`, `ElementViews`, React context values, and successful Controller edits | `CanvasState`; memoized source-derived projection | [ShinyController.tsx](../../../webview/src/shinyController/ShinyController.tsx) |
-| View | Editor-state, dispatch, and canvas-state contexts; DOM and React Flow events | React output, wired `EditorCommand` values, and transient selection changes | React Flow node and edge working state | [EditorView.tsx](../../../webview/src/shinyView/EditorView/EditorView.tsx), [ClassDiagram.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassDiagram.tsx) |
+| Controller | `sourceText`, `onApplyEdits`, View `EditorCommand` values | One `EditorViewModel`, one `EditorDispatch`, and successful Controller edits | Memoized source-derived projection | [ShinyController.tsx](../../../webview/src/shinyController/ShinyController.tsx) |
+| View | `EditorViewModel`, `EditorDispatch`, DOM and React Flow events | React output, wired `EditorCommand` values, and transient interaction state updates | Selected class IDs, placement mode, React Flow node and edge working state | [EditorView.tsx](../../../webview/src/shinyView/EditorView/EditorView.tsx), [ClassDiagram.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassDiagram.tsx) |
 
 [`WebViewShell`](../../../webview/src/webviewShell/WebViewShell.tsx) owns the product-level Mermaid/Shiny mode and mounts only the selected branch. Mermaid mode mounts [`MermaidRenderer`](../../../webview/src/mermaidRenderer/MermaidRenderer.tsx) with `sourceText`; Shiny mode mounts [`ShinyController`](../../../webview/src/shinyController/ShinyController.tsx) with `sourceText` and the edit callback.
 
-[`ShinyController`](../../../webview/src/shinyController/ShinyController.tsx) is the Shiny Controller orchestrator. It invokes the public Parse, Derive Views, and Commands facades; constructs the three context values; and renders [`EditorView`](../../../webview/src/shinyView/EditorView/EditorView.tsx). The Controller imports View APIs through [`shinyView/EditorView`](../../../webview/src/shinyView/EditorView/index.ts), [`shinyView/contexts`](../../../webview/src/shinyView/contexts/index.ts), [`shinyView/commands`](../../../webview/src/shinyView/commands/index.ts), and [`shinyView/views`](../../../webview/src/shinyView/views/index.ts), as specified by [Architectural Standards](./architectural-standards.md#611-view-root-organization).
+[`ShinyController`](../../../webview/src/shinyController/ShinyController.tsx) is the Shiny Controller orchestrator. It invokes the public Parse, Derive Views, and Commands facades; constructs one [`EditorViewModel`](../../../webview/src/shinyView/EditorView/views.ts); and renders [`EditorView`](../../../webview/src/shinyView/EditorView/EditorView.tsx) with that model and one [`EditorDispatch`](../../../webview/src/shinyView/commands/editorCommand.ts) implementation. The Controller imports View APIs through [`shinyView/EditorView`](../../../webview/src/shinyView/EditorView/index.ts), [`shinyView/commands`](../../../webview/src/shinyView/commands/index.ts), and [`shinyView/views`](../../../webview/src/shinyView/views/index.ts), as specified by [Architectural Standards](./architectural-standards.md#611-view-root-organization).
 
 ### 5.2 Vocabulary contracts
 
@@ -165,9 +165,8 @@ The Extension Host does not parse Mermaid, build the Controller model, derive Vi
 | `shared/`                | Branded diagram identities in [ids.ts](../../../webview/src/shared/ids.ts), `Rect` and `Point` in [geometry.ts](../../../webview/src/shared/geometry.ts), `RelationshipType` in [relationshipTypes.ts](../../../webview/src/shared/relationshipTypes.ts), and `StylePropertyName` in [styleTypes.ts](../../../webview/src/shared/styleTypes.ts). There is no shared root barrel.                                                                                           |
 | `shinyController/model/`      | Source-derived nodes, edges, members, annotations, spatial data, and `DiagramTree` in [diagramTree.ts](../../../webview/src/shinyController/model/diagramTree.ts), plus `SourceLocation` in [sourceLocation.ts](../../../webview/src/shinyController/model/sourceLocation.ts). There is no model root barrel.                                                                                                                                                                        |
 | `shinyController/commands/`   | Public `applyCommand` and `SourceEdit` through [index.ts](../../../webview/src/shinyController/commands/index.ts); internal `CommandContext` and `CommandResult` in [commandExecution.ts](../../../webview/src/shinyController/commands/commandExecution.ts).                                                                                                                                                                                                                        |
-| `shinyView/commands/`         | Component-owned command declarations re-exported by [shinyView/commands/index.ts](../../../webview/src/shinyView/commands/index.ts); aggregate `EditorCommand` in [editorCommand.ts](../../../webview/src/shinyView/commands/editorCommand.ts).                                                                                                                                                                                                                                           |
-| `shinyView/views/`            | Component-owned render declarations re-exported by [shinyView/views/index.ts](../../../webview/src/shinyView/views/index.ts).                                                                                                                                                                                                                                                                                                                                                        |
-| `shinyView/contexts/`         | Context providers, `CanvasState`, and `defaultCanvasState` are exposed through [shinyView/contexts/index.ts](../../../webview/src/shinyView/contexts/index.ts); context value shapes and consumer hooks remain in [EditorStateContext.ts](../../../webview/src/shinyView/contexts/EditorStateContext.ts), [EditorDispatchContext.ts](../../../webview/src/shinyView/contexts/EditorDispatchContext.ts), and [CanvasStateContext.ts](../../../webview/src/shinyView/contexts/CanvasStateContext.ts). |
+| `shinyView/commands/`         | Component-owned command declarations re-exported by [shinyView/commands/index.ts](../../../webview/src/shinyView/commands/index.ts); aggregate `EditorCommand` and `EditorDispatch` in [editorCommand.ts](../../../webview/src/shinyView/commands/editorCommand.ts).                                                                                                                                                                                                                                           |
+| `shinyView/views/`            | Component-owned render declarations and the whole-editor `EditorViewModel` re-exported by [shinyView/views/index.ts](../../../webview/src/shinyView/views/index.ts).                                                                                                                                                                                                                                                                                                                                                        |
 
 ## 6. Webview layer contracts
 
@@ -195,28 +194,32 @@ type ShinyControllerProps = {
 
 The callback accepts the Controller-owned [`SourceEdit`](../../../webview/src/shinyController/commands/sourceEdit.ts), converts it to the structurally equivalent wire [`SourceEdit`](../../../webview/src/extensionBridge/protocol.ts) as described in [Section 3.2](#32-edit-request), and calls [`vscode.postMessage`](../../../webview/src/extensionBridge/vscodeApi.ts).
 
-### 6.2 Controller and View read contract
+### 6.2 Controller and View contract
 
-The current editor-state context value is defined privately in [EditorStateContext.ts](../../../webview/src/shinyView/contexts/EditorStateContext.ts):
+The Controller/View runtime boundary is:
 
 ```ts
-type EditorStateContextValue = {
-  readonly editorStatus: EditorStatusView;
-  readonly elementViews: ElementViews | null;
-};
+<EditorView view={editorViewModel} dispatch={dispatch} />
 ```
 
-There is no `sourceText` or operation-status field in the View-facing context.
+`ShinyController` constructs the complete read model and one semantic dispatch function. There is no `sourceText`, parse result, Controller model object, source location, source edit, operation-status field, or Controller-owned transient View state in the View-facing contract.
 
-[`EditorStatusView`](../../../webview/src/shinyView/EditorView/EditorStatus/views.ts) is:
+[`EditorViewModel`](../../../webview/src/shinyView/EditorView/views.ts) is:
 
 ```ts
-type EditorStatusView =
-  | { readonly status: "ready" }
-  | { readonly status: "invalidSyntax"; readonly message: string }
+type EditorViewModel =
+  | {
+      readonly status: "invalidSyntax";
+      readonly message: string;
+    }
   | {
       readonly status: "missingAnnotations";
       readonly missingIds: readonly ClassId[];
+      readonly elements: ElementViews;
+    }
+  | {
+      readonly status: "ready";
+      readonly elements: ElementViews;
     };
 ```
 
@@ -309,8 +312,8 @@ The current declaration and implementation coverage is:
 | Command family | Current declared data | Current wiring and handler status | Contract source | Handler source |
 |---|---|---|---|---|
 | Generate | `{ type: "generate" }` | Emitted by `EditorStatus` when Shiny editor status reports missing annotations; implemented | [EditorStatus/commands.ts](../../../webview/src/shinyView/EditorView/EditorStatus/commands.ts), [EditorStatus.tsx](../../../webview/src/shinyView/EditorView/EditorStatus/EditorStatus.tsx) | [generateCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/generateCommandHandler.ts) |
-| Class geometry | `class.move` or `class.resize` with `classId` and `rect: Rect` | `class.move` is emitted after React Flow drag-stop; both discriminants are implemented by the same handler. The current View has no `class.resize` dispatch path, although [ClassBox.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/ClassBox.tsx) renders resize-handle elements. | [ClassBox/commands.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/commands.ts), [useClassBoxNodeInteractions.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts) | [classBoxCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/classBoxCommandHandler.ts) |
-| Class placement | `class.add` with the drawn flow-space rectangle | The Class tool activates transient class-placement mode through Canvas State. [`PlacementOverlay`](../../../webview/src/shinyView/EditorView/ClassDiagram/PlacementOverlay/PlacementOverlay.tsx) owns the full-viewport drawing surface, converts pointer positions to React Flow coordinates, emits `class.add` with the normalized final rectangle, and exits placement mode after a meaningful draw. Existing boxes may be drawn over through the overlay placement surface; overlap is allowed, and the existing selection is not changed. | [PlacementOverlay/commands.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/PlacementOverlay/commands.ts), [ToolPane.tsx](../../../webview/src/shinyView/EditorView/ToolPane/ToolPane.tsx), [useToolPaneInteractions.ts](../../../webview/src/shinyView/EditorView/ToolPane/useToolPaneInteractions.ts), [usePlacementOverlayInteractions.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/PlacementOverlay/usePlacementOverlayInteractions.ts) | [classAddCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/classAddCommandHandler.ts) |
+| Class geometry | `class.move` or `class.resize` with `classId` and `rect: Rect` | `class.move` is emitted after React Flow drag-stop for every moved selected node; `ClassBox` emits `class.resize` from the resize handle. Both discriminants are implemented by the same handler. | [ClassBox/commands.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/commands.ts), [useClassBoxNodeInteractions.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts), [useClassBoxInteractions.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/useClassBoxInteractions.ts) | [classBoxCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/classBoxCommandHandler.ts) |
+| Class placement | `class.add` with the drawn flow-space rectangle | The Class tool activates `EditorView`-owned class-placement mode. [`PlacementOverlay`](../../../webview/src/shinyView/EditorView/ClassDiagram/PlacementOverlay/PlacementOverlay.tsx) owns the full-viewport drawing surface, converts pointer positions to React Flow coordinates, emits `class.add` with the normalized final rectangle, and exits placement mode after a meaningful draw. Existing boxes may be drawn over through the overlay placement surface; overlap is allowed, and the existing selection is not changed. | [PlacementOverlay/commands.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/PlacementOverlay/commands.ts), [ToolPane.tsx](../../../webview/src/shinyView/EditorView/ToolPane/ToolPane.tsx), [useToolPaneInteractions.ts](../../../webview/src/shinyView/EditorView/ToolPane/useToolPaneInteractions.ts), [usePlacementOverlayInteractions.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/PlacementOverlay/usePlacementOverlayInteractions.ts) | [classAddCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/classAddCommandHandler.ts) |
 | Class content | `class.header.setLabel` carries `classId`, `label`; `class.member.setText` carries `classId`, `memberId`, `text`; `class.member.setPrefix` carries `classId`, `memberId`, `prefix: MemberPrefix` | Header and members are rendered read-only; the handler returns `ok: false` with “not yet implemented” | [ClassBox/commands.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/commands.ts), [MemberTable/commands.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/MemberTable/commands.ts), [MemberTable.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/MemberTable/MemberTable.tsx) | [classContentCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/classContentCommandHandler.ts) |
 | Namespace | `namespace.move` carries `namespaceId`, `delta: Point`; `namespace.setStyle` carries `namespaceId`, `property`, `value` | Namespace views are derived but not rendered; the handler returns “not yet implemented” | [ClassDiagram/commands.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/commands.ts), [ElementViews](../../../webview/src/shinyView/EditorView/views.ts) | [namespaceCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/namespaceCommandHandler.ts) |
 | Relationship | `relationship.setType` carries `relationshipId`, `relationType`; `relationship.setMultiplicity` carries `relationshipId`, `endpoint`, `value`; `relationship.setLabel` carries `relationshipId`, `label` | Relationships are displayed as non-editable default React Flow edges; the handler returns “not yet implemented” | [ClassDiagram/commands.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/commands.ts), [reactFlowAdapters.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/reactFlowAdapters.ts) | [relationshipCommandHandler.ts](../../../webview/src/shinyController/commands/workers/handlers/relationshipCommandHandler.ts) |
@@ -321,34 +324,21 @@ The current declaration and implementation coverage is:
 
 All declared commands use shared IDs and value vocabulary from [shared/ids.ts](../../../webview/src/shared/ids.ts), [shared/geometry.ts](../../../webview/src/shared/geometry.ts), [shared/relationshipTypes.ts](../../../webview/src/shared/relationshipTypes.ts), and [shared/styleTypes.ts](../../../webview/src/shared/styleTypes.ts).
 
-### 6.4 Shared View state contract
+### 6.4 Transient View state
 
-The current View-owned [`CanvasState`](../../../webview/src/shinyView/contexts/canvasState.ts) is:
+Each independent transient state domain lives at the narrowest View ancestor shared by its consumers.
 
-```ts
-type CanvasState = {
-  selectedClassId: ClassId | null;
-  placementMode: "class" | null;
-};
+| State domain | Owner | Consumers |
+|---|---|---|
+| Selected class IDs | [`EditorView`](../../../webview/src/shinyView/EditorView/EditorView.tsx), through [`useSelectedClassIds`](../../../webview/src/shinyView/EditorView/useSelectedClassIds.ts) | `ClassDiagram`, `ClassBox`, `StylePane` |
+| Class placement mode | [`EditorView`](../../../webview/src/shinyView/EditorView/EditorView.tsx), using [`placementMode.ts`](../../../webview/src/shinyView/EditorView/placementMode.ts) | `ToolPane`, `ClassDiagram`, `PlacementOverlay` |
+| React Flow nodes and edges | [`ClassDiagram`](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassDiagram.tsx) | `ClassDiagram` and React Flow child nodes |
+| Placement drag origin and draft rectangle | [`usePlacementOverlayInteractions`](../../../webview/src/shinyView/EditorView/ClassDiagram/PlacementOverlay/usePlacementOverlayInteractions.ts) | `PlacementOverlay` |
+| Mermaid/Shiny mode | [`WebViewShell`](../../../webview/src/webviewShell/WebViewShell.tsx) | Product-level branch selection |
 
-const defaultCanvasState: CanvasState = {
-  selectedClassId: null,
-  placementMode: null,
-};
-```
+[`useSelectedClassIds`](../../../webview/src/shinyView/EditorView/useSelectedClassIds.ts) reconciles selection whenever a new `EditorViewModel` arrives: it keeps selected IDs that still exist, removes disappeared IDs, preserves class-view order, and clears selection when no class views are available. Duplicate commands create copies but do not request automatic selection of the new classes; any prior surviving selection remains selected.
 
-The non-exported value type used by [`CanvasStateContext`](../../../webview/src/shinyView/contexts/CanvasStateContext.ts) is:
-
-```ts
-type CanvasStateContextValue = {
-  readonly canvasState: CanvasState;
-  readonly setCanvasState: (update: Partial<CanvasState>) => void;
-};
-```
-
-[`ShinyController`](../../../webview/src/shinyController/ShinyController.tsx) hosts the state, shallow-merges partial updates, and clears `selectedClassId` when the selected class disappears from the latest `ElementViews`. [`useClassBoxNodeInteractions`](../../../webview/src/shinyView/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts) selects a class on node click, and [`useCanvasInteractions`](../../../webview/src/shinyView/EditorView/ClassDiagram/useCanvasInteractions.ts) clears selection on pane click.
-
-`placementMode` is transient View-owned state. [`ToolPane`](../../../webview/src/shinyView/EditorView/ToolPane/ToolPane.tsx) activates class placement through the Canvas State update boundary and does not emit a source-changing command. [`PlacementOverlay`](../../../webview/src/shinyView/EditorView/ClassDiagram/PlacementOverlay/PlacementOverlay.tsx) is rendered over the React Flow viewport while placement is active; it owns the pointer drawing surface, keeps the drag origin and draft rectangle locally, converts pointer positions to flow-space coordinates with React Flow, emits `class.add` with the normalized final rectangle, then clears `placementMode`. Normal node selection, movement, and resizing are suspended by the overlay while placement is active.
+[`ToolPane`](../../../webview/src/shinyView/EditorView/ToolPane/ToolPane.tsx) activates class placement without emitting a source-changing command. [`PlacementOverlay`](../../../webview/src/shinyView/EditorView/ClassDiagram/PlacementOverlay/PlacementOverlay.tsx) is rendered over the React Flow viewport while placement is active; it owns the pointer drawing surface, keeps the drag origin and draft rectangle locally, converts pointer positions to flow-space coordinates with React Flow, emits `class.add` with the normalized final rectangle, then clears placement mode. Normal node selection, movement, and resizing are suspended by the overlay while placement is active.
 
 ## 7. Controller component contracts
 
@@ -534,10 +524,10 @@ In this section, “persisted” means applied to the bound VS Code `TextDocumen
 | WebViewShell | `sourceText`, local `WebViewMode` | Mounts only `MermaidRenderer` in Mermaid mode or `ShinyController` in Shiny mode | [WebViewShell.tsx](../../../webview/src/webviewShell/WebViewShell.tsx), [state.ts](../../../webview/src/webviewShell/state.ts) |
 | Parse facade | `sourceText` | Calculates `ParseResult` and, when syntax is accepted, `DiagramTree` | [parseDiagram.ts](../../../webview/src/shinyController/parse/parseDiagram.ts), [parseResult.ts](../../../webview/src/shinyController/parse/parseResult.ts) |
 | Derive Views facade | Non-invalid `DiagramTree` | Calculates `ElementViews` | [deriveElementViews.ts](../../../webview/src/shinyController/deriveViews/deriveElementViews.ts) |
-| ShinyController | `sourceText`, `ParseResult`, `ElementViews` | Calculates `EditorStatusView`, context values, and the active model reference | [ShinyController.tsx](../../../webview/src/shinyController/ShinyController.tsx) |
-| EditorView | Editor-state context | Displays Shiny invalid-syntax, missing-annotation, or ready editor branches | [EditorView.tsx](../../../webview/src/shinyView/EditorView/EditorView.tsx), [EditorStatus.tsx](../../../webview/src/shinyView/EditorView/EditorStatus/EditorStatus.tsx) |
-| React Flow adapters | `ClassBoxView[]`, `RelationshipView[]`, selected class ID | Calculates React Flow node and edge descriptors; chooses edge handles from box-center geometry | [reactFlowAdapters.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/reactFlowAdapters.ts) |
-| View components | Context values and React Flow descriptors | Render the class boxes, members, default edges, style panel, disabled tool panel, and controls | [ClassDiagram.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassDiagram.tsx), [ClassBox.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/ClassBox.tsx), [MemberTable.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/MemberTable/MemberTable.tsx), [StylePane.tsx](../../../webview/src/shinyView/EditorView/StylePane/StylePane.tsx), [ToolPane.tsx](../../../webview/src/shinyView/EditorView/ToolPane/ToolPane.tsx) |
+| ShinyController | `sourceText`, `ParseResult`, `ElementViews` | Calculates `EditorViewModel`, `EditorDispatch`, and the active model reference | [ShinyController.tsx](../../../webview/src/shinyController/ShinyController.tsx) |
+| EditorView | `EditorViewModel`, `EditorDispatch` | Displays Shiny invalid-syntax, missing-annotation, or ready editor branches; owns selection and placement mode | [EditorView.tsx](../../../webview/src/shinyView/EditorView/EditorView.tsx), [EditorStatus.tsx](../../../webview/src/shinyView/EditorView/EditorStatus/EditorStatus.tsx) |
+| React Flow adapters | `ClassBoxView[]`, `RelationshipView[]`, selected class IDs, dispatch | Calculates React Flow node and edge descriptors; chooses edge handles from box-center geometry | [reactFlowAdapters.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/reactFlowAdapters.ts) |
+| View components | Props and React Flow descriptors | Render the class boxes, members, default edges, style panel, disabled tool panel, and controls | [ClassDiagram.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassDiagram.tsx), [ClassBox.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/ClassBox.tsx), [MemberTable.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassBox/MemberTable/MemberTable.tsx), [StylePane.tsx](../../../webview/src/shinyView/EditorView/StylePane/StylePane.tsx), [ToolPane.tsx](../../../webview/src/shinyView/EditorView/ToolPane/ToolPane.tsx) |
 
 ### 8.2 Persisted visual edit
 
@@ -559,10 +549,10 @@ There is no optimistic local model mutation, request correlation, acknowledgemen
 | Producer | Input data | Current calculation | Implementation |
 |---|---|---|---|
 | WebViewShell | Mode toggle | Replaces local `WebViewMode`, whose values are `"mermaid" \| "shiny"` | [WebViewShell.tsx](../../../webview/src/webviewShell/WebViewShell.tsx) |
-| Class-box interaction hook | React Flow node click | Sets `CanvasState.selectedClassId` | [useClassBoxNodeInteractions.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/useClassBoxNodeInteractions.ts) |
-| Canvas interaction hook | React Flow pane click | Clears `CanvasState.selectedClassId` | [useCanvasInteractions.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/useCanvasInteractions.ts) |
-| ShinyController | Partial `CanvasState` update | Shallow-merges the update; also clears a selection no longer present in derived class views | [ShinyController.tsx](../../../webview/src/shinyController/ShinyController.tsx) |
-| ClassDiagram | Derived views, selected class, React Flow `NodeChange[]` | Rebuilds descriptors when source-derived data changes and applies local node changes while interacting | [ClassDiagram.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassDiagram.tsx) |
+| EditorView selection hook | New `EditorViewModel` or selection replacement | Keeps selected IDs that still exist, preserves class-view order, and drops disappeared IDs | [useSelectedClassIds.ts](../../../webview/src/shinyView/EditorView/useSelectedClassIds.ts) |
+| Canvas interaction hook | React Flow selection and pane events | Replaces selected class IDs or clears selection | [useCanvasInteractions.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/useCanvasInteractions.ts) |
+| ClassDiagram | Derived views, selected class IDs, React Flow `NodeChange[]` | Rebuilds descriptors when source-derived data changes and applies local node changes while interacting | [ClassDiagram.tsx](../../../webview/src/shinyView/EditorView/ClassDiagram/ClassDiagram.tsx) |
+| Placement overlay hook | Pointer drag while placement mode is active | Keeps drag origin and draft rectangle locally until it emits `class.add` | [usePlacementOverlayInteractions.ts](../../../webview/src/shinyView/EditorView/ClassDiagram/PlacementOverlay/usePlacementOverlayInteractions.ts) |
 
 None of this state is written to the Mermaid document. Class movement becomes persisted only on drag-stop, when the View emits `class.move` through the path in [Section 8.2](#82-persisted-visual-edit).
 

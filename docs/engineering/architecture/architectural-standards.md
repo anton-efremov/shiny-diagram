@@ -117,7 +117,8 @@ Examples:
 - Shell owns the product-level Mermaid/Shiny mode, mounts either standard Mermaid rendering or the Shiny product branch, and does not parse Shiny source or coordinate Shiny commands.
 - Controller defines its `SourceEdit[]` output and the edit-application callback it requires; Extension Bridge implements that callback and constructs the corresponding protocol-owned edit payload.
 - The Webview and Extension Host protocol modules independently define the same wire messages; neither imports the other or an application-owned contract.
-- View defines `EditorCommand`, `CanvasState`, render contracts, contexts, and context handles; Controller supplies values and implementations conforming to those contracts. Raw `sourceText` must not enter the View layer.
+- View defines `EditorCommand`, `EditorDispatch`, `EditorViewModel`, and render contracts. Controller constructs one `EditorViewModel` and supplies one semantic dispatch implementation through `<EditorView view={editorViewModel} dispatch={dispatch} />`. Raw `sourceText` must not enter the View layer.
+- Each independent transient state domain lives at the narrowest View ancestor shared by its consumers. `EditorView` is not a privileged global store; it is currently the common owner of selected class IDs and class placement mode.
 
 ### 4.3 Particular layer access rules
 
@@ -129,7 +130,7 @@ The table governs imports between Webview-owned modules. Platform APIs and third
 | Other `extensionBridge` modules       | Own modules; `webviewShell`; type-only Controller edit contracts; `shared/`                            |
 | `webviewShell` modules                | Own modules; `mermaidRenderer`; `shinyController/ShinyController`; type-only Controller edit contracts; `shared/` |
 | `mermaidRenderer` modules             | Own modules; `shared/`                                                                                |
-| `shinyController/ShinyController`            | Controller components and model; `shinyView/EditorView`; `shinyView/commands`; `shinyView/views`; `shinyView/contexts`; `shared/` |
+| `shinyController/ShinyController`            | Controller components and model; `shinyView/EditorView`; `shinyView/commands`; `shinyView/views`; `shared/` |
 | Controller components                 | Own component internals; `shinyController/model`; relevant View contract facade; `shared/`                  |
 | `shinyView`                           | Shiny View modules; `shared/`                                                                          |
 | `shinyController/model`                    | Sibling files within `shinyController/model/`; `shared/`                                                    |
@@ -233,26 +234,21 @@ shinyView/
 │   └── editorCommand.ts
 ├── views/
 │   └── index.ts
-├── contexts/
-│   └── index.ts
-└── ui/
 ```
 
 - `EditorView/` owns the React Shiny editor tree. Its `index.ts` exports only the `EditorView` runtime entry point.
-- `commands/`, `views/`, and `contexts/` expose stable semantic APIs to Controller.
-- `ui/` contains visual primitives only after multiple legitimate View consumers exist.
+- `commands/` and `views/` expose stable semantic APIs to Controller.
 - The View root must not contain `index.ts`.
 - Controller must not import the nested React component tree directly.
 
 #### 6.1.2 Semantic facade areas
 
 - `shinyView/commands/editorCommand.ts` defines `EditorCommand`, the single View-wide aggregate across command owners.
-- `shinyView/commands/index.ts` re-exports `EditorCommand` and selected owner-defined command contracts required by Controller; it does not define or aggregate commands.
+- `shinyView/commands/index.ts` re-exports `EditorCommand`, `EditorDispatch`, and selected owner-defined command contracts required by Controller; it does not define or aggregate commands.
 - `shinyView/views/index.ts` re-exports selected component-owned render contracts.
-- `shinyView/contexts/index.ts` re-exports View contexts and the contracts, defaults, and handles required to provide them.
 - Facade `index.ts` files contain re-exports only.
 - A facade area may contain dedicated layer-wide aggregate contract modules, but no rendering, state coordination, or interaction implementation.
-- Controller must consume View APIs through `shinyView/EditorView`, `shinyView/commands`, `shinyView/views`, and `shinyView/contexts`.
+- Controller must consume View APIs through `shinyView/EditorView`, `shinyView/commands`, and `shinyView/views`.
 - Controller handlers should import the narrow owner-defined command contracts they handle through `shinyView/commands`.
 - View internals use direct imports from the defining modules and must not import their own public facades.
 
@@ -372,7 +368,7 @@ All analyzed imports and re-exports are dependencies. Package and platform impor
 | Other `extensionBridge/**` modules    | Own modules; `webviewShell`; type-only exports from `shinyController/commands`; `shared/**`                                      |
 | `webviewShell/**`                            | Own modules; `mermaidRenderer/**`; `shinyController/ShinyController`; type-only exports from `shinyController/commands`; `shared/**` |
 | `mermaidRenderer/**`                  | Own modules; `shared/**`                                                                                                    |
-| `shinyController/ShinyController.tsx`        | Controller component facades; `shinyController/model/**`; `shinyView/EditorView`; `shinyView/commands`; `shinyView/views`; `shinyView/contexts`; `shared/**` |
+| `shinyController/ShinyController.tsx`        | Controller component facades; `shinyController/model/**`; `shinyView/EditorView`; `shinyView/commands`; `shinyView/views`; `shared/**` |
 | `shinyController/parse/**`                 | Own component modules; `shinyController/model/**`; `shared/**`                                                                    |
 | `shinyController/deriveViews/**`           | Own component modules; `shinyController/model/**`; `shinyView/views`; `shared/**`                                                      |
 | `shinyController/commands/**`              | Own component modules; `shinyController/model/**`; `shinyView/commands`; `shared/**`                                                   |
@@ -399,7 +395,6 @@ shinyController/commands/index.ts
 shinyView/EditorView/index.ts
 shinyView/commands/index.ts
 shinyView/views/index.ts
-shinyView/contexts/index.ts
 ```
 
 Facade rules:
@@ -488,6 +483,7 @@ Avoid **controls** in architectural descriptions unless its exact meaning is sta
 |---|---|---|---|---|
 | `EditorCommand` | Owner-local `commands.ts` files; aggregate in `shinyView/commands/editorCommand.ts` | View | View interaction handlers | Controller Commands |
 | `ElementViews` and nested render contracts | Component-local `views.ts` files | View | Controller Derive Views | View components |
-| `CanvasState` | The owning View component’s `state.ts` | Owning View component | May be hosted by `ShinyController`; distributed through View context | View components |
+| Selected class IDs | `EditorView/useSelectedClassIds.ts` | `EditorView` | `EditorView` state, reconciled against each View model | `ClassDiagram`, `ClassBox`, `StylePane` |
+| Class placement mode | `EditorView/placementMode.ts` | `EditorView` | `EditorView` state | `ToolPane`, `ClassDiagram`, `PlacementOverlay` |
 | `SourceEdit` | Controller Commands | Controller Commands | Command handlers | Extension Bridge |
 | Protocol message contracts | Independently in `webview/src/extensionBridge/protocol.ts` and `extension-host/protocol.ts` | Extension runtime boundary | Boundary adapters construct and validate protocol values | Opposite runtime boundary adapter |

@@ -1,13 +1,12 @@
 import type { ReactElement } from "react";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Handle, NodeResizer, Position } from "@xyflow/react";
-import type { ClassBoxView } from "./views";
+import type { ClassBoxNodeData } from "../reactFlowAdapters";
 import MemberTable from "./MemberTable/MemberTable";
 import { useClassBoxInteractions } from "./useClassBoxInteractions";
-import { useCanvasState } from "../../../contexts/CanvasStateContext";
 import styles from "./ClassBox.module.css";
 
-type ClassBoxNode = Node<ClassBoxView, "classBox">;
+type ClassBoxNode = Node<ClassBoxNodeData, "classBox">;
 
 const CONNECTION_HANDLES: ReadonlyArray<{
   id: string;
@@ -35,9 +34,8 @@ export default function ClassBox({
 }: NodeProps<ClassBoxNode>): ReactElement {
   const fields = data.members.filter((m) => m.kind === "field");
   const methods = data.members.filter((m) => m.kind === "method");
-  const { onResizeEnd } = useClassBoxInteractions(data);
-  const { canvasState } = useCanvasState();
-  const isSoleSelection = selected && canvasState.selectedClassIds.length === 1;
+  const { onResizeEnd } = useClassBoxInteractions(data, data.dispatch);
+  const isSoleSelection = selected && data.isSoleSelection;
   const className = [
     styles.classBox,
     selected ? styles.selected : "",

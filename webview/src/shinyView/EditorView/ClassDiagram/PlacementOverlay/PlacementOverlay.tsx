@@ -1,11 +1,14 @@
 import type { ReactElement } from "react";
 import type { CSSProperties } from "react";
-import type { PlacementMode } from "../../../contexts/canvasState";
+import type { EditorDispatch } from "../../../commands/editorCommand";
+import type { PlacementMode } from "../../placementMode";
 import { usePlacementOverlayInteractions } from "./usePlacementOverlayInteractions";
 import styles from "./PlacementOverlay.module.css";
 
 type PlacementOverlayProps = {
   placementMode: PlacementMode | null;
+  dispatch: EditorDispatch;
+  onPlacementModeChange: (placementMode: PlacementMode | null) => void;
 };
 
 /**
@@ -13,9 +16,13 @@ type PlacementOverlayProps = {
  */
 export default function PlacementOverlay({
   placementMode,
+  dispatch,
+  onPlacementModeChange,
 }: PlacementOverlayProps): ReactElement | null {
-  const { draftRect, onPointerDown, onPointerMove, onPointerUp } =
-    usePlacementOverlayInteractions();
+  const { draftRect, onPointerDown, onPointerMove, onPointerUp } = usePlacementOverlayInteractions(
+    dispatch,
+    () => onPlacementModeChange(null)
+  );
 
   if (!placementMode) return null;
 

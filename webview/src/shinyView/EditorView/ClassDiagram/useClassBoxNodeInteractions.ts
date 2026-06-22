@@ -4,8 +4,8 @@
 
 import { useCallback } from "react";
 import type { OnNodeDrag } from "@xyflow/react";
+import type { EditorDispatch } from "../../commands/editorCommand";
 import type { ElementViews } from "../views";
-import { useEditorDispatch } from "../../contexts/EditorDispatchContext";
 import type { ClassBoxNodeDescriptor } from "./reactFlowAdapters";
 
 type UseClassBoxInteractionsResult = {
@@ -16,13 +16,12 @@ type UseClassBoxInteractionsResult = {
  * Dispatches class movement and selection updates from ReactFlow node events.
  */
 export function useClassBoxNodeInteractions(
-  views: ElementViews | null
+  views: ElementViews,
+  dispatch: EditorDispatch
 ): UseClassBoxInteractionsResult {
-  const dispatch = useEditorDispatch();
-
   const onNodeDragStop = useCallback<OnNodeDrag<ClassBoxNodeDescriptor>>(
     (_event, _rfNode, rfNodes) => {
-      const viewsById = new Map(views?.classes.map((view) => [view.classId, view]) ?? []);
+      const viewsById = new Map(views.classes.map((view) => [view.classId, view]));
       const moves = rfNodes.flatMap((rfNode) => {
         const view = viewsById.get(rfNode.data.classId);
         if (!view) return [];

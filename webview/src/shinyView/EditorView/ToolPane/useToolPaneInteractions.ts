@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from "react";
-import { useCanvasState } from "../../contexts/CanvasStateContext";
+import type { PlacementMode } from "../placementMode";
 
 type UseToolPaneInteractionsResult = {
   onClassToolClick: () => void;
@@ -12,12 +12,12 @@ type UseToolPaneInteractionsResult = {
 /**
  * Activates diagram placement tools from Tool Pane controls.
  */
-export function useToolPaneInteractions(): UseToolPaneInteractionsResult {
-  const { setCanvasState } = useCanvasState();
-
+export function useToolPaneInteractions(
+  onPlacementModeChange: (placementMode: PlacementMode | null) => void
+): UseToolPaneInteractionsResult {
   const onClassToolClick = useCallback(() => {
-    setCanvasState({ placementMode: "class" });
-  }, [setCanvasState]);
+    onPlacementModeChange("class");
+  }, [onPlacementModeChange]);
 
   return { onClassToolClick };
 }

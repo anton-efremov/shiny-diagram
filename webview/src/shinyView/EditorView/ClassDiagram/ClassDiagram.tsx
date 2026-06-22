@@ -8,8 +8,10 @@ import {
   ReactFlow,
   ReactFlowProvider,
 } from "@xyflow/react";
-import { useEditorState } from "../../contexts/EditorStateContext";
-import { useCanvasState } from "../../contexts/CanvasStateContext";
+import type { EditorDispatch } from "../../commands/editorCommand";
+import type { ClassId } from "../../../shared/ids";
+import type { PlacementMode } from "../placementMode";
+import type { ElementViews } from "../views";
 import { useClassBoxNodeInteractions } from "./useClassBoxNodeInteractions";
 import { useCanvasInteractions } from "./useCanvasInteractions";
 import ClassBox from "./ClassBox/ClassBox";
@@ -22,47 +24,68 @@ import {
 } from "./reactFlowAdapters";
 import styles from "./ClassDiagram.module.css";
 
+type ClassDiagramProps = {
+  elements: ElementViews;
+  selectedClassIds: readonly ClassId[];
+  placementMode: PlacementMode | null;
+  onSelectedClassIdsChange: (classIds: readonly ClassId[]) => void;
+  onPlacementModeChange: (placementMode: PlacementMode | null) => void;
+  dispatch: EditorDispatch;
+};
+
 /**
  * Renders the ReactFlow class diagram canvas.
  */
-export default function ClassDiagram(): ReactElement {
-  const { elementViews } = useEditorState();
-  const { canvasState } = useCanvasState();
-  const isPlacementActive = canvasState.placementMode !== null;
-
+export default function ClassDiagram({
+  elements,
+  selectedClassIds,
+  placementMode,
+  onSelectedClassIdsChange,
+  onPlacementModeChange,
+  dispatch,
+}: ClassDiagramProps): ReactElement {
+  const isPlacementActive = placementMode !== null;
   const [rfNodes, setRfNodes] = useState<ClassBoxNodeDescriptor[]>(() =>
-    toClassBoxNodeDescriptors(elementViews?.classes ?? [], canvasState.selectedClassIds)
+    toClassBoxNodeDescriptors(elements.classes, selectedClassIds, dispatch)
   );
   const [rfEdges, setRfEdges] = useState<RelationshipEdgeDescriptor[]>(() =>
-    toRelationshipEdgeDescriptors(elementViews?.classes ?? [], elementViews?.relationships ?? [])
+    toRelationshipEdgeDescriptors(elements.classes, elements.relationships)
   );
 
   useEffect(() => {
-    setRfNodes(toClassBoxNodeDescriptors(elementViews?.classes ?? [], []));
-  }, [elementViews?.classes]);
+    setRfNodes(toClassBoxNodeDescriptors(elements.classes, [], dispatch));
+  }, [elements.classes, dispatch]);
 
   useEffect(() => {
-    const selected = new Set(canvasState.selectedClassIds);
+    const selected = new Set(selectedClassIds);
+    const hasSoleSelection = selectedClassIds.length === 1;
     setRfNodes((prev) =>
       prev.map((node) => ({
         ...node,
         selected: selected.has(node.data.classId),
+        data: {
+          ...node.data,
+          dispatch,
+          isSoleSelection: hasSoleSelection && selected.has(node.data.classId),
+        },
       }))
     );
-  }, [canvasState.selectedClassIds, elementViews?.classes]);
+  }, [selectedClassIds, dispatch]);
 
   useEffect(() => {
-    setRfEdges(
-      toRelationshipEdgeDescriptors(elementViews?.classes ?? [], elementViews?.relationships ?? [])
-    );
-  }, [elementViews?.classes, elementViews?.relationships]);
+    setRfEdges(toRelationshipEdgeDescriptors(elements.classes, elements.relationships));
+  }, [elements.classes, elements.relationships]);
 
   const handleNodesChange = useCallback((changes: NodeChange<ClassBoxNodeDescriptor>[]) => {
     setRfNodes((prev) => applyNodeChanges(changes, prev));
   }, []);
 
-  const { onNodeDragStop } = useClassBoxNodeInteractions(elementViews);
-  const { onSelectionChange } = useCanvasInteractions(elementViews);
+  const { onNodeDragStop } = useClassBoxNodeInteractions(elements, dispatch);
+  const { onSelectionChange } = useCanvasInteractions(
+    elements,
+    selectedClassIds,
+    onSelectedClassIdsChange
+  );
 
   return (
     <section className={styles.diagramShell} aria-label="Static editor boxes">
@@ -90,7 +113,11 @@ export default function ClassDiagram(): ReactElement {
           ) : null}
           <Background />
           <Controls showInteractive={false} />
-          <PlacementOverlay placementMode={canvasState.placementMode} />
+          <PlacementOverlay
+            placementMode={placementMode}
+            dispatch={dispatch}
+            onPlacementModeChange={onPlacementModeChange}
+          />
         </ReactFlow>
       </ReactFlowProvider>
     </section>

@@ -24,7 +24,6 @@ type LineRange = {
 };
 
 type DuplicatePlan = {
-  readonly classId: ClassId;
   readonly edits: readonly SourceEdit[];
 };
 
@@ -75,13 +74,12 @@ export function handleClassDuplicateCommand(
       return { ok: false, problem: `No safe duplicate range for class ${sourceClassId}` };
     }
 
-    plans.push({ classId, edits });
+    plans.push({ edits });
   }
 
   return {
     ok: true,
     edits: coalesceInsertions(plans.flatMap((plan) => plan.edits)),
-    createdClassIds: plans.map((plan) => plan.classId),
   };
 }
 

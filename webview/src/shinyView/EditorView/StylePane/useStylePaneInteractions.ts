@@ -3,11 +3,12 @@
  */
 
 import { useCallback, useEffect } from "react";
+import type { EditorDispatch } from "../../commands/editorCommand";
 import type { ClassBoxView } from "../ClassDiagram/ClassBox/views";
 import type { ClassId } from "../../../shared/ids";
-import { useEditorDispatch } from "../../contexts/EditorDispatchContext";
 
 type UseStylePaneInteractionsOptions = {
+  dispatch: EditorDispatch;
   selectedClassIds: readonly ClassId[];
   selectedView: ClassBoxView | undefined;
 };
@@ -22,23 +23,23 @@ type UseStylePaneInteractionsResult = {
  * Dispatches class style updates from style-pane controls.
  */
 export function useStylePaneInteractions({
+  dispatch,
   selectedClassIds,
   selectedView,
 }: UseStylePaneInteractionsOptions): UseStylePaneInteractionsResult {
-  const dispatch = useEditorDispatch();
-  const selectedClassId = selectedClassIds.length === 1 ? selectedClassIds[0] : null;
+  const soleSelectedClassId = selectedClassIds.length === 1 ? selectedClassIds[0] : null;
 
   const onFillColorChange = useCallback(
     (fill: string) => {
-      if (!selectedClassId || !selectedView?.style) return;
+      if (!soleSelectedClassId || !selectedView?.style) return;
       dispatch({
         type: "style.setClassProperty",
-        classId: selectedClassId,
+        classId: soleSelectedClassId,
         property: "fill",
         value: fill,
       });
     },
-    [selectedClassId, selectedView, dispatch]
+    [soleSelectedClassId, selectedView, dispatch]
   );
 
   const onDeleteClick = useCallback(() => {

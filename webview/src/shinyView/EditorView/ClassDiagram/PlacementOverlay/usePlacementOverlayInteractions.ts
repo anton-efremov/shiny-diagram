@@ -5,8 +5,7 @@
 import { useCallback, useState } from "react";
 import type { PointerEvent } from "react";
 import { useReactFlow } from "@xyflow/react";
-import { useCanvasState } from "../../../contexts/CanvasStateContext";
-import { useEditorDispatch } from "../../../contexts/EditorDispatchContext";
+import type { EditorDispatch } from "../../../commands/editorCommand";
 import type { Point, Rect } from "../../../../shared/geometry";
 
 const DRAG_THRESHOLD = 4;
@@ -27,9 +26,10 @@ type UsePlacementOverlayInteractionsResult = {
 /**
  * Dispatches placement commands from the overlay interaction surface.
  */
-export function usePlacementOverlayInteractions(): UsePlacementOverlayInteractionsResult {
-  const dispatch = useEditorDispatch();
-  const { setCanvasState } = useCanvasState();
+export function usePlacementOverlayInteractions(
+  dispatch: EditorDispatch,
+  onPlacementComplete: () => void
+): UsePlacementOverlayInteractionsResult {
   const { screenToFlowPosition } = useReactFlow();
   const [origin, setOrigin] = useState<DrawOrigin | null>(null);
   const [draftRect, setDraftRect] = useState<Rect | null>(null);
@@ -91,9 +91,9 @@ export function usePlacementOverlayInteractions(): UsePlacementOverlayInteractio
       if (!isMeaningfulDrag) return;
 
       dispatch({ type: "class.add", rect: normalizeRect(origin.flow, endFlow) });
-      setCanvasState({ placementMode: null });
+      onPlacementComplete();
     },
-    [dispatch, origin, screenToFlowPosition, setCanvasState]
+    [dispatch, origin, screenToFlowPosition, onPlacementComplete]
   );
 
   return { draftRect, onPointerDown, onPointerMove, onPointerUp };

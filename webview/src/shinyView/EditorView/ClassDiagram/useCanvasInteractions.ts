@@ -4,7 +4,6 @@
 
 import { useCallback } from "react";
 import type { OnSelectionChangeFunc } from "@xyflow/react";
-import { useCanvasState } from "../../contexts/CanvasStateContext";
 import type { ElementViews } from "../views";
 import type { ClassId } from "../../../shared/ids";
 import type { ClassBoxNodeDescriptor, RelationshipEdgeDescriptor } from "./reactFlowAdapters";
@@ -16,9 +15,11 @@ type UseCanvasInteractionsResult = {
 /**
  * Synchronizes ReactFlow selection to View-owned canvas state.
  */
-export function useCanvasInteractions(views: ElementViews | null): UseCanvasInteractionsResult {
-  const { canvasState, setCanvasState } = useCanvasState();
-
+export function useCanvasInteractions(
+  views: ElementViews,
+  selectedClassIds: readonly ClassId[],
+  onSelectedClassIdsChange: (classIds: readonly ClassId[]) => void
+): UseCanvasInteractionsResult {
   const onSelectionChange = useCallback<
     OnSelectionChangeFunc<ClassBoxNodeDescriptor, RelationshipEdgeDescriptor>
   >(
@@ -30,14 +31,15 @@ export function useCanvasInteractions(views: ElementViews | null): UseCanvasInte
         }
       }
 
-      const orderedSelection =
-        views?.classes.flatMap((view) => (selected.has(view.classId) ? [view.classId] : [])) ?? [];
+      const orderedSelection = views.classes.flatMap((view) =>
+        selected.has(view.classId) ? [view.classId] : []
+      );
 
-      if (areClassIdCollectionsEqual(canvasState.selectedClassIds, orderedSelection)) return;
+      if (areClassIdCollectionsEqual(selectedClassIds, orderedSelection)) return;
 
-      setCanvasState({ selectedClassIds: orderedSelection });
+      onSelectedClassIdsChange(orderedSelection);
     },
-    [views, canvasState.selectedClassIds, setCanvasState]
+    [views, selectedClassIds, onSelectedClassIdsChange]
   );
 
   return { onSelectionChange };

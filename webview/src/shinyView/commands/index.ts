@@ -4,7 +4,7 @@
  */
 
 export type { GenerateCommand } from "../EditorView/EditorStatus/commands";
-export type { EditorCommand } from "./editorCommand";
+export type { EditorCommand, EditorDispatch } from "./editorCommand";
 export type {
   ClassMoveCommand,
   NamespaceCommand,
