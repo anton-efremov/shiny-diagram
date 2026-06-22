@@ -1,5 +1,5 @@
 /**
- * @fileoverview Hook for translating Tool Pane interactions into canvas state updates.
+ * @fileoverview Hook for translating Tool Pane interactions into class-placement-mode updates.
  */
 
 import { useCallback } from "react";

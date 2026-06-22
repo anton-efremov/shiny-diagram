@@ -403,11 +403,12 @@ Facade rules:
 - Facade files may contain only comments and re-export declarations.
 - `webviewShell/index.ts` may expose only the `WebViewShell` runtime entry.
 - `shinyView/EditorView/index.ts` may expose only the `EditorView` runtime entry.
+- `shinyController/ShinyController.tsx` may not directly call React `useState` or `useReducer`; the checker recognizes named, aliased, namespace, and default React imports for those calls.
 - These root barrels are prohibited:
-	  - `webviewShell/WebViewShell/index.ts`
-	  - `shinyView/index.ts`
-	  - `shinyController/model/index.ts`
-	  - `shared/index.ts`
+  - `webviewShell/WebViewShell/index.ts`
+  - `shinyView/index.ts`
+  - `shinyController/model/index.ts`
+  - `shared/index.ts`
 
 ### 7.4 Execution
 
@@ -417,7 +418,7 @@ npm run check:boundaries
 
 The command exits with a non-zero status and reports each violating file, module specifier, and rule. It is included in `npm run check`.
 
-The checker verifies module structure, protocol self-containment, and synchronization of the duplicated protocol declarations. Semantic ownership, component cohesion, interaction arbitration, and whether the protocol expresses the correct product semantics remain review concerns.
+The checker verifies module structure, protocol self-containment, synchronization of the duplicated protocol declarations, and direct React `useState` / `useReducer` ownership in `ShinyController`. The state-hook check is intentionally narrow and covers direct React hook calls only; semantic state ownership hidden behind arbitrary custom hooks, component cohesion, interaction arbitration, and whether the protocol expresses the correct product semantics remain review concerns.
 
 ## 8. Reference: terminology
 

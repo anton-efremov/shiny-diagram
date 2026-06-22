@@ -91,6 +91,10 @@ function main() {
       absoluteFile.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS
     );
 
+    if (file === "shinyController/ShinyController.tsx") {
+      checkShinyControllerStateHooks(file, sourceFile);
+    }
+
     if (file === WEBVIEW_PROTOCOL_FILE) {
       protocolSources.set(file, sourceFile);
       checkProtocolDependencies(file, sourceFile);
@@ -644,6 +648,78 @@ function checkFacadeTarget(file, dependency, target) {
       );
     }
   }
+}
+
+function checkShinyControllerStateHooks(file, sourceFile) {
+  const reactStateHookNames = new Set();
+  const reactObjectNames = new Set();
+
+  for (const statement of sourceFile.statements) {
+    if (!ts.isImportDeclaration(statement)) continue;
+    if (!ts.isStringLiteralLike(statement.moduleSpecifier)) continue;
+    if (statement.moduleSpecifier.text !== "react") continue;
+
+    const clause = statement.importClause;
+    if (!clause || clause.isTypeOnly) continue;
+
+    if (clause.name) {
+      reactObjectNames.add(clause.name.text);
+    }
+
+    const bindings = clause.namedBindings;
+    if (!bindings) continue;
+
+    if (ts.isNamespaceImport(bindings)) {
+      reactObjectNames.add(bindings.name.text);
+      continue;
+    }
+
+    if (ts.isNamedImports(bindings)) {
+      for (const element of bindings.elements) {
+        if (element.isTypeOnly) continue;
+        const importedName = element.propertyName?.text ?? element.name.text;
+        if (importedName === "useState" || importedName === "useReducer") {
+          reactStateHookNames.add(element.name.text);
+        }
+      }
+    }
+  }
+
+  function visit(node) {
+    if (ts.isCallExpression(node) && isReactStateHookCall(node.expression)) {
+      const position = sourceFile.getLineAndCharacterOfPosition(
+        node.expression.getStart(sourceFile)
+      );
+      report({
+        file,
+        line: position.line + 1,
+        column: position.character + 1,
+        kind: "controller state",
+        specifier: node.expression.getText(sourceFile),
+        rule: "ShinyController may derive and orchestrate source-backed data but must not own transient View state with React useState/useReducer",
+      });
+      return;
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  function isReactStateHookCall(expression) {
+    if (ts.isIdentifier(expression)) {
+      return reactStateHookNames.has(expression.text);
+    }
+
+    if (!ts.isPropertyAccessExpression(expression)) return false;
+    if (expression.name.text !== "useState" && expression.name.text !== "useReducer") {
+      return false;
+    }
+
+    return (
+      ts.isIdentifier(expression.expression) && reactObjectNames.has(expression.expression.text)
+    );
+  }
+
+  visit(sourceFile);
 }
 
 function checkProtocolDependencies(file, sourceFile, displayFileName) {
