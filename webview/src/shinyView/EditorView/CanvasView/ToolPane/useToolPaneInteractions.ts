@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from "react";
-import { useDispatchEditorStateAction } from "../../contexts";
+import { useDispatchEditorStateAction } from "../contexts";
 
 type UseToolPaneInteractionsResult = {
   onClassToolClick: () => void;

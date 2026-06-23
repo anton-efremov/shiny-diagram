@@ -1,10 +1,11 @@
 /**
- * @fileoverview Editor-level transient UI state.
+ * @fileoverview Ready editor transient UI state.
  */
 
-import type { ClassId } from "../../shared/ids";
-import type { PlacementMode } from "./placementMode";
-import type { ElementViews } from "./views";
+import type { ClassId } from "../../../shared/ids";
+import type { ElementViews } from "../views";
+
+export type PlacementMode = "class";
 
 export type EditorState = {
   readonly selectedClassIds: readonly ClassId[];

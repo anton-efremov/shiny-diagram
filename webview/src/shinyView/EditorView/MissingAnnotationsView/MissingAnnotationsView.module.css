@@ -1,17 +1,6 @@
 /**
- * @fileoverview Styles for the visual editor shell and parse-status states.
+ * @fileoverview Styles for the missing-annotations editor interface.
  */
-
-.editorShell {
-  display: grid;
-  grid-template-columns: 104px minmax(0, 1fr) minmax(220px, 260px);
-  gap: 12px;
-  align-items: stretch;
-}
-
-.canvasRegion {
-  min-width: 0;
-}
 
 .statusMessage {
   display: flex;
@@ -23,15 +12,9 @@
   font-size: 13px;
 }
 
-.errorCanvas,
 .missingCanvas {
   padding: 24px;
   color: var(--shiny-text-muted);
-}
-
-.errorMessage {
-  margin: 0;
-  color: var(--shiny-text-error);
 }
 
 .missingLabel {

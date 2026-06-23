@@ -5,9 +5,9 @@
 import { useCallback } from "react";
 import type { ReactElement } from "react";
 import { useDispatchCommand } from "../contexts";
-import styles from "../EditorView.module.css";
 import ControlButton from "../../ui/ControlButton/ControlButton";
 import { GenerateIcon } from "../../ui/icons/icons";
+import styles from "./MissingAnnotationsView.module.css";
 import type { MissingAnnotationsViewModel } from "./views";
 
 type MissingAnnotationsViewProps = {

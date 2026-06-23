@@ -3,7 +3,7 @@
  * @presents Invalid-syntax editor-state interface.
  */
 import type { ReactElement } from "react";
-import styles from "../EditorView.module.css";
+import styles from "./ErrorView.module.css";
 import type { ErrorViewModel } from "./views";
 
 type ErrorViewProps = {

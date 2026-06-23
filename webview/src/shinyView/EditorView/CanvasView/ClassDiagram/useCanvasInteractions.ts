@@ -5,7 +5,7 @@
 import { useCallback, useRef } from "react";
 import type { OnSelectionChangeFunc } from "@xyflow/react";
 import type { ClassId } from "../../../../shared/ids";
-import { useDispatchEditorStateAction } from "../../contexts";
+import { useDispatchEditorStateAction } from "../contexts";
 import type { ClassBoxNodeDescriptor, RelationshipEdgeDescriptor } from "./reactFlowAdapters";
 
 type UseCanvasInteractionsResult = {

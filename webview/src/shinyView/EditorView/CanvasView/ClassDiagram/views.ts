@@ -6,7 +6,7 @@ import type { Rect } from "../../../../shared/geometry";
 import type { ClassId, NamespaceId, RelationshipId } from "../../../../shared/ids";
 import type { RelationshipType } from "../../../../shared/relationshipTypes";
 import type { ClassBoxView } from "./ClassBox/views";
-import type { PlacementMode } from "../../placementMode";
+import type { PlacementMode } from "../editorState";
 
 export type ClassDiagramView = {
   readonly elements: {

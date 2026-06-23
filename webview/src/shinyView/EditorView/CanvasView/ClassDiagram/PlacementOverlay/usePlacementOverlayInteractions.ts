@@ -6,7 +6,8 @@ import { useCallback, useState } from "react";
 import type { PointerEvent } from "react";
 import { useReactFlow } from "@xyflow/react";
 import type { Point, Rect } from "../../../../../shared/geometry";
-import { useDispatchCommand, useDispatchEditorStateAction } from "../../../contexts";
+import { useDispatchEditorStateAction } from "../../contexts";
+import { useDispatchCommand } from "../../../contexts";
 
 const DRAG_THRESHOLD = 4;
 

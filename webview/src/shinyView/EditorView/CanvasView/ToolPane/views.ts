@@ -2,7 +2,7 @@
  * @fileoverview Render contract for the tool pane.
  */
 
-import type { PlacementMode } from "../../placementMode";
+import type { PlacementMode } from "../editorState";
 
 export type ToolPaneView = {
   readonly placementMode: PlacementMode | null;
