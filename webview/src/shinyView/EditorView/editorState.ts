@@ -4,6 +4,7 @@
 
 import type { ClassId } from "../../shared/ids";
 import type { PlacementMode } from "./placementMode";
+import type { ElementViews } from "./views";
 
 export type EditorState = {
   readonly selectedClassIds: readonly ClassId[];
@@ -20,7 +21,7 @@ export type EditorStateAction =
     }
   | {
       readonly type: "selection.reconcileClassIds";
-      readonly classIds: readonly ClassId[];
+      readonly elements: ElementViews | null;
     }
   | {
       readonly type: "placement.setMode";
@@ -47,7 +48,7 @@ export function editorStateReducer(state: EditorState, action: EditorStateAction
     case "selection.reconcileClassIds":
       return updateSelectedClassIds(
         state,
-        reconcileSelectedClassIds(state.selectedClassIds, action.classIds)
+        reconcileSelectedClassIds(state.selectedClassIds, action.elements)
       );
     case "placement.setMode":
       return state.placementMode === action.placementMode
@@ -70,8 +71,11 @@ function updateSelectedClassIds(
 
 function reconcileSelectedClassIds(
   selectedClassIds: readonly ClassId[],
-  classIds: readonly ClassId[]
+  elements: ElementViews | null
 ): readonly ClassId[] {
+  if (!elements) return selectedClassIds.length === 0 ? selectedClassIds : [];
+
+  const classIds = elements.classes.map((classView) => classView.classId);
   if (selectedClassIds.length === 0 || classIds.length === 0)
     return selectedClassIds.length === 0 ? selectedClassIds : [];
 

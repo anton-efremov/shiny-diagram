@@ -28,9 +28,10 @@ type EditorViewProps = {
 /**
  * Renders the visual class-diagram editor shell.
  */
-export default function EditorView({ view, dispatch }: EditorViewProps): ReactElement {
-  const dispatchCommand = dispatch;
-
+export default function EditorView({
+  view,
+  dispatch: dispatchCommand,
+}: EditorViewProps): ReactElement {
   // @job coordinate:shared-state
   const [editorState, dispatchEditorStateAction] = useReducer(
     editorStateReducer,
@@ -44,7 +45,7 @@ export default function EditorView({ view, dispatch }: EditorViewProps): ReactEl
   useEffect(() => {
     dispatchEditorStateAction({
       type: "selection.reconcileClassIds",
-      classIds: elements?.classes.map((classView) => classView.classId) ?? [],
+      elements,
     });
   }, [elements]);
 
