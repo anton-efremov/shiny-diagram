@@ -1,4 +1,4 @@
 export {
-  EditorStateDispatchProvider,
+  EditorStateDispatchContext,
   useDispatchEditorStateAction,
 } from "./EditorStateDispatchContext";

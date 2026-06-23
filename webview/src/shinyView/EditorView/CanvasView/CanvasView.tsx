@@ -7,7 +7,7 @@ import { useEffect, useReducer } from "react";
 import type { ReactElement } from "react";
 import ClassDiagram from "./ClassDiagram/ClassDiagram";
 import { toClassDiagramView, toStylePaneView, toToolPaneView } from "./childViews";
-import { EditorStateDispatchProvider } from "./contexts";
+import { EditorStateDispatchContext } from "./contexts";
 import { editorStateReducer, initialEditorState } from "./editorState";
 import StylePane from "./StylePane/StylePane";
 import ToolPane from "./ToolPane/ToolPane";
@@ -47,7 +47,7 @@ export default function CanvasView({ view }: CanvasViewProps): ReactElement {
 
   // @job render:layout
   return (
-    <EditorStateDispatchProvider dispatchEditorStateAction={dispatchEditorStateAction}>
+    <EditorStateDispatchContext.Provider value={dispatchEditorStateAction}>
       <section className={styles.editorShell} aria-label="Class diagram editor">
         <ToolPane view={toolPaneView} />
         <div className={styles.canvasRegion}>
@@ -55,6 +55,6 @@ export default function CanvasView({ view }: CanvasViewProps): ReactElement {
         </div>
         <StylePane view={stylePaneView} />
       </section>
-    </EditorStateDispatchProvider>
+    </EditorStateDispatchContext.Provider>
   );
 }

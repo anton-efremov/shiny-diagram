@@ -1,1 +1,1 @@
-export { CommandDispatchProvider, useDispatchCommand } from "./CommandDispatchContext";
+export { CommandDispatchContext, useDispatchCommand } from "./CommandDispatchContext";

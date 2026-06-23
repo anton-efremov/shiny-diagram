@@ -6,7 +6,7 @@ import type { ReactElement } from "react";
 import type { EditorDispatch } from "../commands/editorCommand";
 import CanvasView from "./CanvasView/CanvasView";
 import type { CanvasViewModel } from "./CanvasView/views";
-import { CommandDispatchProvider } from "./contexts";
+import { CommandDispatchContext } from "./contexts";
 import ErrorView from "./ErrorView/ErrorView";
 import type { ErrorViewModel } from "./ErrorView/views";
 import MissingAnnotationsView from "./MissingAnnotationsView/MissingAnnotationsView";
@@ -54,7 +54,6 @@ export default function EditorView({
   view,
   dispatch: dispatchCommand,
 }: EditorViewProps): ReactElement {
-  
   // @job logic:branch-views
   const editorInterface = (() => {
     switch (view.status) {
@@ -84,8 +83,8 @@ export default function EditorView({
 
   // @job coordinate:providers
   return (
-    <CommandDispatchProvider dispatchCommand={dispatchCommand}>
+    <CommandDispatchContext.Provider value={dispatchCommand}>
       {editorInterface}
-    </CommandDispatchProvider>
+    </CommandDispatchContext.Provider>
   );
 }
