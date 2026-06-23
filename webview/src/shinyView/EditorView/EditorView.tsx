@@ -25,6 +25,18 @@ type EditorViewProps = {
   dispatch: EditorDispatch;
 };
 
+// @job-helper logic:child-view
+function toEditorStatusView(view: EditorViewModel): EditorStatusView {
+  switch (view.status) {
+    case "ready":
+      return { status: "ready" };
+    case "invalidSyntax":
+      return { status: "invalidSyntax", message: view.message };
+    case "missingAnnotations":
+      return { status: "missingAnnotations" };
+  }
+}
+
 /**
  * Renders the visual class-diagram editor shell.
  */
@@ -32,6 +44,7 @@ export default function EditorView({
   view,
   dispatch: dispatchCommand,
 }: EditorViewProps): ReactElement {
+  
   // @job coordinate:shared-state
   const [editorState, dispatchEditorStateAction] = useReducer(
     editorStateReducer,
@@ -55,8 +68,10 @@ export default function EditorView({
     return elements?.classes.filter((classView) => selected.has(classView.classId)) ?? [];
   }, [elements, editorState.selectedClassIds]);
 
-  // @job coordinate:branch-views
+  // @job logic:child-view
   const statusView = toEditorStatusView(view);
+
+  // @job coordinate:branch-views
   const toolPaneView: ToolPaneView = { placementMode: editorState.placementMode };
   const stylePaneView: StylePaneView = { selectedClassViews };
 
@@ -130,15 +145,4 @@ export default function EditorView({
       </EditorStateDispatchProvider>
     </CommandDispatchProvider>
   );
-}
-
-function toEditorStatusView(view: EditorViewModel): EditorStatusView {
-  switch (view.status) {
-    case "ready":
-      return { status: "ready" };
-    case "invalidSyntax":
-      return { status: "invalidSyntax", message: view.message };
-    case "missingAnnotations":
-      return { status: "missingAnnotations" };
-  }
 }
