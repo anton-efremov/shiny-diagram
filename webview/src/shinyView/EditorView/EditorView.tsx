@@ -1,24 +1,23 @@
 /**
- * @role [H+P] Hub plus presentational
+ * @role [H] Hub
  * @coordinates Editor shell branches across status, tools, canvas, and styles.
  * @logic Status-specific editor branch selection.
- * @presents Editor layout boundary.
  */
 import { useEffect, useMemo, useReducer } from "react";
 import type { ReactElement } from "react";
 import type { EditorDispatch } from "../commands/editorCommand";
-import ClassDiagram from "./ClassDiagram/ClassDiagram";
-import type { ClassDiagramView } from "./ClassDiagram/views";
+import CanvasView from "./CanvasView/CanvasView";
+import type { CanvasViewModel } from "./CanvasView/views";
+import type { ClassDiagramView } from "./CanvasView/ClassDiagram/views";
 import { CommandDispatchProvider, EditorStateDispatchProvider } from "./contexts";
 import { editorStateReducer, initialEditorState } from "./editorState";
-import EditorStatus from "./EditorStatus/EditorStatus";
-import type { EditorStatusView } from "./EditorStatus/views";
-import type { StylePaneView } from "./StylePane/views";
-import StylePane from "./StylePane/StylePane";
-import ToolPane from "./ToolPane/ToolPane";
-import type { ToolPaneView } from "./ToolPane/views";
+import ErrorView from "./ErrorView/ErrorView";
+import type { ErrorViewModel } from "./ErrorView/views";
+import MissingAnnotationsView from "./MissingAnnotationsView/MissingAnnotationsView";
+import type { MissingAnnotationsViewModel } from "./MissingAnnotationsView/views";
+import type { StylePaneView } from "./CanvasView/StylePane/views";
+import type { ToolPaneView } from "./CanvasView/ToolPane/views";
 import type { EditorViewModel } from "./views";
-import styles from "./EditorView.module.css";
 
 type EditorViewProps = {
   view: EditorViewModel;
@@ -26,19 +25,64 @@ type EditorViewProps = {
 };
 
 // @job-helper logic:child-view
-function toEditorStatusView(view: EditorViewModel): EditorStatusView {
-  switch (view.status) {
-    case "ready":
-      return { status: "ready" };
-    case "invalidSyntax":
-      return { status: "invalidSyntax", message: view.message };
-    case "missingAnnotations":
-      return { status: "missingAnnotations" };
-  }
+function toToolPaneView(placementMode: ToolPaneView["placementMode"]): ToolPaneView {
+  return { placementMode };
+}
+
+// @job-helper logic:child-view
+function toStylePaneView(selectedClassViews: StylePaneView["selectedClassViews"]): StylePaneView {
+  return { selectedClassViews };
+}
+
+// @job-helper logic:child-view
+function toCanvasView({
+  view,
+  toolPaneView,
+  stylePaneView,
+  selectedClassIds,
+}: {
+  readonly view: Extract<EditorViewModel, { readonly status: "ready" }>;
+  readonly toolPaneView: ToolPaneView;
+  readonly stylePaneView: StylePaneView;
+  readonly selectedClassIds: ClassDiagramView["selectedClassIds"];
+}): CanvasViewModel {
+  const classDiagramView: ClassDiagramView = {
+    elements: view.elements,
+    selectedClassIds,
+    placementMode: toolPaneView.placementMode,
+  };
+
+  return {
+    toolPaneView,
+    classDiagramView,
+    stylePaneView,
+  };
+}
+
+// @job-helper logic:child-view
+function toErrorView({
+  view,
+}: {
+  readonly view: Extract<EditorViewModel, { readonly status: "invalidSyntax" }>;
+}): ErrorViewModel {
+  return {
+    message: view.message,
+  };
+}
+
+// @job-helper logic:child-view
+function toMissingAnnotationsView({
+  view,
+}: {
+  readonly view: Extract<EditorViewModel, { readonly status: "missingAnnotations" }>;
+}): MissingAnnotationsViewModel {
+  return {
+    missingIds: view.missingIds,
+  };
 }
 
 /**
- * Renders the visual class-diagram editor shell.
+ * Coordinates the visual class-diagram editor shell.
  */
 export default function EditorView({
   view,
@@ -69,79 +113,46 @@ export default function EditorView({
   }, [elements, editorState.selectedClassIds]);
 
   // @job logic:child-view
-  const statusView = toEditorStatusView(view);
+  const toolPaneView = toToolPaneView(editorState.placementMode);
+
+  // @job logic:child-view
+  const stylePaneView = toStylePaneView(selectedClassViews);
 
   // @job coordinate:branch-views
-  const toolPaneView: ToolPaneView = { placementMode: editorState.placementMode };
-  const stylePaneView: StylePaneView = { selectedClassViews };
+  const editorInterface = (() => {
+    switch (view.status) {
+      case "ready": {
+        // @job logic:child-view
+        const canvasView = toCanvasView({
+          view,
+          toolPaneView,
+          stylePaneView,
+          selectedClassIds: editorState.selectedClassIds,
+        });
+        return <CanvasView view={canvasView} />;
+      }
+      case "invalidSyntax": {
+        // @job logic:child-view
+        const errorView = toErrorView({
+          view,
+        });
+        return <ErrorView view={errorView} />;
+      }
+      case "missingAnnotations": {
+        // @job logic:child-view
+        const missingAnnotationsView = toMissingAnnotationsView({
+          view,
+        });
+        return <MissingAnnotationsView view={missingAnnotationsView} />;
+      }
+    }
+  })();
 
-  // @job logic:ui-prop
-  if (view.status === "invalidSyntax") {
-    // @job render:layout
-    return (
-      <CommandDispatchProvider dispatchCommand={dispatchCommand}>
-        <EditorStateDispatchProvider dispatchEditorStateAction={dispatchEditorStateAction}>
-          <EditorStatus view={statusView} />
-          <section className={styles.editorShell} aria-label="Class diagram editor">
-            <ToolPane view={toolPaneView} />
-            <div className={styles.canvasRegion}>
-              <div className={styles.errorCanvas}>
-                <p className={styles.errorMessage}>{view.message}</p>
-              </div>
-            </div>
-            <StylePane view={stylePaneView} />
-          </section>
-        </EditorStateDispatchProvider>
-      </CommandDispatchProvider>
-    );
-  }
-
-  // @job logic:ui-prop
-  if (view.status === "missingAnnotations") {
-    // @job render:layout
-    return (
-      <CommandDispatchProvider dispatchCommand={dispatchCommand}>
-        <EditorStateDispatchProvider dispatchEditorStateAction={dispatchEditorStateAction}>
-          <EditorStatus view={statusView} />
-          <section className={styles.editorShell} aria-label="Class diagram editor">
-            <ToolPane view={toolPaneView} />
-            <div className={styles.canvasRegion}>
-              <div className={styles.missingCanvas}>
-                <p className={styles.missingLabel}>Classes without spatial annotations:</p>
-                <ul className={styles.missingList}>
-                  {view.missingIds.map((id) => (
-                    <li key={id} className={styles.missingItem}>
-                      {id}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            <StylePane view={stylePaneView} />
-          </section>
-        </EditorStateDispatchProvider>
-      </CommandDispatchProvider>
-    );
-  }
-
-  const classDiagramView: ClassDiagramView = {
-    elements: view.elements,
-    selectedClassIds: editorState.selectedClassIds,
-    placementMode: editorState.placementMode,
-  };
-
-  // @job render:layout
+  // @job coordinate:providers
   return (
     <CommandDispatchProvider dispatchCommand={dispatchCommand}>
       <EditorStateDispatchProvider dispatchEditorStateAction={dispatchEditorStateAction}>
-        <EditorStatus view={statusView} />
-        <section className={styles.editorShell} aria-label="Class diagram editor">
-          <ToolPane view={toolPaneView} />
-          <div className={styles.canvasRegion}>
-            <ClassDiagram view={classDiagramView} />
-          </div>
-          <StylePane view={stylePaneView} />
-        </section>
+        {editorInterface}
       </EditorStateDispatchProvider>
     </CommandDispatchProvider>
   );

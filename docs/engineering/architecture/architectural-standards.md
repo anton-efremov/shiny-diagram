@@ -229,6 +229,10 @@ The names are roles, not mandatory filenames.
 shinyView/
 ├── EditorView/
 │   └── index.ts
+├── ui/
+│   ├── ControlButton/
+│   ├── ColorSelector/
+│   └── icons/
 ├── commands/
 │   ├── index.ts
 │   └── editorCommand.ts
@@ -237,6 +241,7 @@ shinyView/
 ```
 
 - `EditorView/` owns the React Shiny editor tree. Its `index.ts` exports only the `EditorView` runtime entry point.
+- `ui/` owns shared presentation-only controls and icons used inside the Shiny View layer. It must not define editor state, commands, render contracts, or application behavior.
 - `commands/` and `views/` expose stable semantic APIs to Controller.
 - The View root must not contain `index.ts`.
 - Controller must not import the nested React component tree directly.
@@ -251,7 +256,7 @@ shinyView/
 - Controller must consume View APIs through `shinyView/EditorView`, `shinyView/commands`, and `shinyView/views`.
 - Controller handlers should import the narrow owner-defined command contracts they handle through `shinyView/commands`.
 - View internals use direct imports from the defining modules and must not import their own public facades.
-- `EditorView/Controls` is an internal, presentation-only cluster shared by sibling components inside the `EditorView` subtree. It is not a new architectural layer, View-root facade, or cross-layer UI package. Shell components must not import it.
+- `shinyView/ui` is an internal View-layer UI package for reusable presentation-only components. It is not a facade, must not contain a root `index.ts`, and must not be imported by Shell, Controller, Extension Bridge, or Mermaid Renderer modules.
 
 #### 6.1.3 Permitted deviations
 

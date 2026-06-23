@@ -1,0 +1,49 @@
+/**
+ * @role [P] Presentational
+ * @presents Missing-annotations editor-state interface.
+ */
+import { useCallback } from "react";
+import type { ReactElement } from "react";
+import { useDispatchCommand } from "../contexts";
+import styles from "../EditorView.module.css";
+import ControlButton from "../../ui/ControlButton/ControlButton";
+import { GenerateIcon } from "../../ui/icons/icons";
+import type { MissingAnnotationsViewModel } from "./views";
+
+type MissingAnnotationsViewProps = {
+  readonly view: MissingAnnotationsViewModel;
+};
+
+/**
+ * Renders the missing annotations editor interface.
+ */
+export default function MissingAnnotationsView({
+  view,
+}: MissingAnnotationsViewProps): ReactElement {
+  const dispatchCommand = useDispatchCommand();
+
+  // @job wire:command
+  const onGenerate = useCallback(() => {
+    dispatchCommand({ type: "generate" });
+  }, [dispatchCommand]);
+
+  // @job render:layout
+  return (
+    <>
+      <div className={styles.statusMessage}>
+        ⚠ Missing annotations
+        <ControlButton icon={<GenerateIcon />} label="Generate" onClick={onGenerate} />
+      </div>
+      <div className={styles.missingCanvas}>
+        <p className={styles.missingLabel}>Classes without spatial annotations:</p>
+        <ul className={styles.missingList}>
+          {view.missingIds.map((id) => (
+            <li key={id} className={styles.missingItem}>
+              {id}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
+  );
+}

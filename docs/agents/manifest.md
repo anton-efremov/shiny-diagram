@@ -27,6 +27,7 @@ If the brief conflicts with maintained/current architecture documentation, stop 
 
 When you receive the implementation brief:
 
+* Before editing, inspect current working-tree status. Treat existing unstaged and untracked files as human work in progress. Do not overwrite, revert, reformat, or “fix” them unless the brief explicitly asks. If the requested task touches files with pre-existing unstaged changes, read those files as the current source of truth and preserve unrelated edits.
 * implement it in one pass
 * think through the implementation internally before editing
 * do not ask for approval before editing unless the brief is impossible or conflicts with architecture
