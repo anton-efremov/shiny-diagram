@@ -3,14 +3,8 @@
  */
 
 import { useCallback, useEffect } from "react";
-import type { EditorDispatch } from "../../commands/editorCommand";
-import type { ClassId } from "../../../shared/ids";
+import { useEditorClassSelectionState, useEditorCommandDispatch } from "../contexts";
 import type { StyleCommand } from "./commands";
-
-type UseStylePaneInteractionsOptions = {
-  dispatch: EditorDispatch;
-  selectedClassIds: readonly ClassId[];
-};
 
 type UseStylePaneInteractionsResult = {
   onFillColorChange: (fill: string) => void;
@@ -23,10 +17,9 @@ type UseStylePaneInteractionsResult = {
 /**
  * Dispatches class style updates from style-pane controls.
  */
-export function useStylePaneInteractions({
-  dispatch,
-  selectedClassIds,
-}: UseStylePaneInteractionsOptions): UseStylePaneInteractionsResult {
+export function useStylePaneInteractions(): UseStylePaneInteractionsResult {
+  const dispatch = useEditorCommandDispatch();
+  const { selectedClassIds } = useEditorClassSelectionState();
   const dispatchStyleChange = useCallback(
     (property: StyleCommand["property"], value: string) => {
       if (selectedClassIds.length === 0) return;

@@ -3,7 +3,6 @@
  */
 
 import type { Edge as ReactFlowEdge, Node as ReactFlowNode } from "@xyflow/react";
-import type { EditorDispatch } from "../../commands/editorCommand";
 import type { ClassBoxView } from "./ClassBox/views";
 import type { RelationshipView } from "./views";
 import type { ClassId } from "../../../shared/ids";
@@ -11,7 +10,6 @@ import type { ClassId } from "../../../shared/ids";
 export type BoxSide = "top" | "right" | "bottom" | "left";
 
 export type ClassBoxNodeData = ClassBoxView & {
-  readonly dispatch: EditorDispatch;
   readonly isSoleSelection: boolean;
 };
 
@@ -23,8 +21,7 @@ export type RelationshipEdgeDescriptor = ReactFlowEdge;
  */
 export function toClassBoxNodeDescriptors(
   classes: readonly ClassBoxView[],
-  selectedClassIds: readonly ClassId[],
-  dispatch: EditorDispatch
+  selectedClassIds: readonly ClassId[]
 ): ClassBoxNodeDescriptor[] {
   const selected = new Set<ClassId>(selectedClassIds);
   const hasSoleSelection = selectedClassIds.length === 1;
@@ -35,7 +32,6 @@ export function toClassBoxNodeDescriptors(
     position: { x: view.x, y: view.y },
     data: {
       ...view,
-      dispatch,
       isSoleSelection: hasSoleSelection && selected.has(view.classId),
     },
     selected: selected.has(view.classId),

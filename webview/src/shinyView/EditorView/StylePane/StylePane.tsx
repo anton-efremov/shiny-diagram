@@ -1,31 +1,23 @@
 import type { CSSProperties, ReactElement } from "react";
-import type { EditorDispatch } from "../../commands/editorCommand";
 import ColorSelector from "../Controls/ColorSelector";
 import ControlButton from "../Controls/ControlButton";
 import { BorderIcon, DeleteIcon, DuplicateIcon, FillIcon, TextColorIcon } from "../Controls/icons";
-import type { ClassBoxView } from "../ClassDiagram/ClassBox/views";
+import { useEditorClassSelectionState } from "../contexts";
 import { aggregateClassStyles } from "./styleAggregation";
 import type { AggregatedStyleProperty } from "./styleAggregation";
 import { useStylePaneInteractions } from "./useStylePaneInteractions";
 import styles from "./StylePane.module.css";
 
-type StylePaneProps = {
-  selectedClassViews: readonly ClassBoxView[];
-  dispatch: EditorDispatch;
-};
-
 /**
  * Renders the selected class style inspector.
  */
-export default function StylePane({ selectedClassViews, dispatch }: StylePaneProps): ReactElement {
+export default function StylePane(): ReactElement {
+  const { selectedClassViews } = useEditorClassSelectionState();
   const selectedView = selectedClassViews.length === 1 ? selectedClassViews[0] : undefined;
   const aggregatedStyles = aggregateClassStyles(selectedClassViews);
 
   const { onFillColorChange, onStrokeColorChange, onTextColorChange, onDuplicate, onDeleteClick } =
-    useStylePaneInteractions({
-      dispatch,
-      selectedClassIds: selectedClassViews.map((view) => view.classId),
-    });
+    useStylePaneInteractions();
 
   if (selectedClassViews.length === 0) {
     return (

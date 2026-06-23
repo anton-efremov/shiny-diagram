@@ -34,7 +34,7 @@ export default function ClassBox({
 }: NodeProps<ClassBoxNode>): ReactElement {
   const fields = data.members.filter((m) => m.kind === "field");
   const methods = data.members.filter((m) => m.kind === "method");
-  const { onResizeEnd } = useClassBoxInteractions(data, data.dispatch);
+  const { onResizeEnd } = useClassBoxInteractions(data);
   const isSoleSelection = selected && data.isSoleSelection;
   const className = [
     styles.classBox,

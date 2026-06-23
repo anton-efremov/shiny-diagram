@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import ControlButton from "../Controls/ControlButton";
 import { ClassIcon } from "../Controls/icons";
-import type { PlacementMode } from "../placementMode";
+import { useEditorPlacementModeState } from "../contexts";
 import { useToolPaneInteractions } from "./useToolPaneInteractions";
 import styles from "./ToolPane.module.css";
 
@@ -33,19 +33,12 @@ const relationshipTools: ToolPaneItem[] = [
   { icon: "--()", name: "Lollipop interface" },
 ];
 
-type ToolPaneProps = {
-  placementMode: PlacementMode | null;
-  onPlacementModeChange: (placementMode: PlacementMode | null) => void;
-};
-
 /**
  * Renders diagram creation tools.
  */
-export default function ToolPane({
-  placementMode,
-  onPlacementModeChange,
-}: ToolPaneProps): ReactElement {
-  const { onClassToolClick } = useToolPaneInteractions(onPlacementModeChange);
+export default function ToolPane(): ReactElement {
+  const { placementMode } = useEditorPlacementModeState();
+  const { onClassToolClick } = useToolPaneInteractions();
   const isClassPlacementActive = placementMode === "class";
 
   return (

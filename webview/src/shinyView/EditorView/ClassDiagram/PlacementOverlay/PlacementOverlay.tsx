@@ -1,28 +1,16 @@
 import type { ReactElement } from "react";
 import type { CSSProperties } from "react";
-import type { EditorDispatch } from "../../../commands/editorCommand";
-import type { PlacementMode } from "../../placementMode";
+import { useEditorPlacementModeState } from "../../contexts";
 import { usePlacementOverlayInteractions } from "./usePlacementOverlayInteractions";
 import styles from "./PlacementOverlay.module.css";
-
-type PlacementOverlayProps = {
-  placementMode: PlacementMode | null;
-  dispatch: EditorDispatch;
-  onPlacementModeChange: (placementMode: PlacementMode | null) => void;
-};
 
 /**
  * Renders the active placement interaction layer over the diagram viewport.
  */
-export default function PlacementOverlay({
-  placementMode,
-  dispatch,
-  onPlacementModeChange,
-}: PlacementOverlayProps): ReactElement | null {
-  const { draftRect, onPointerDown, onPointerMove, onPointerUp } = usePlacementOverlayInteractions(
-    dispatch,
-    () => onPlacementModeChange(null)
-  );
+export default function PlacementOverlay(): ReactElement | null {
+  const { placementMode } = useEditorPlacementModeState();
+  const { draftRect, onPointerDown, onPointerMove, onPointerUp } =
+    usePlacementOverlayInteractions();
 
   if (!placementMode) return null;
 

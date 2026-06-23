@@ -1,84 +1,35 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
-import type { NodeChange, NodeTypes } from "@xyflow/react";
+import type { NodeTypes } from "@xyflow/react";
+import { Background, Controls, ReactFlow, ReactFlowProvider } from "@xyflow/react";
 import {
-  applyNodeChanges,
-  Background,
-  Controls,
-  ReactFlow,
-  ReactFlowProvider,
-} from "@xyflow/react";
-import type { EditorDispatch } from "../../commands/editorCommand";
-import type { ClassId } from "../../../shared/ids";
-import type { PlacementMode } from "../placementMode";
-import type { ElementViews } from "../views";
+  useEditorClassSelectionState,
+  useEditorPlacementModeState,
+  useEditorStatusModelState,
+} from "../contexts";
 import { useClassBoxNodeInteractions } from "./useClassBoxNodeInteractions";
+import { useClassDiagramFlowState } from "./useClassDiagramFlowState";
 import { useCanvasInteractions } from "./useCanvasInteractions";
 import ClassBox from "./ClassBox/ClassBox";
 import PlacementOverlay from "./PlacementOverlay/PlacementOverlay";
-import {
-  type ClassBoxNodeDescriptor,
-  type RelationshipEdgeDescriptor,
-  projectClassBoxNodeSelection,
-  toClassBoxNodeDescriptors,
-  toRelationshipEdgeDescriptors,
-} from "./reactFlowAdapters";
 import styles from "./ClassDiagram.module.css";
 
 const nodeTypes = { classBox: ClassBox } satisfies NodeTypes;
 
-type ClassDiagramProps = {
-  elements: ElementViews;
-  selectedClassIds: readonly ClassId[];
-  placementMode: PlacementMode | null;
-  onSelectedClassIdsChange: (classIds: readonly ClassId[]) => void;
-  onPlacementModeChange: (placementMode: PlacementMode | null) => void;
-  dispatch: EditorDispatch;
-};
-
 /**
  * Renders the ReactFlow class diagram canvas.
  */
-export default function ClassDiagram({
-  elements,
-  selectedClassIds,
-  placementMode,
-  onSelectedClassIdsChange,
-  onPlacementModeChange,
-  dispatch,
-}: ClassDiagramProps): ReactElement {
+export default function ClassDiagram(): ReactElement {
+  const { elements } = useEditorStatusModelState();
+  const { selectedClassIds } = useEditorClassSelectionState();
+  const { placementMode } = useEditorPlacementModeState();
+  if (!elements) {
+    throw new Error("ClassDiagram requires editor elements");
+  }
+
   const isPlacementActive = placementMode !== null;
-  const selectedClassIdsRef = useRef(selectedClassIds);
-  selectedClassIdsRef.current = selectedClassIds;
-
-  const [rfNodes, setRfNodes] = useState<ClassBoxNodeDescriptor[]>(() =>
-    toClassBoxNodeDescriptors(elements.classes, selectedClassIds, dispatch)
-  );
-  const [rfEdges, setRfEdges] = useState<RelationshipEdgeDescriptor[]>(() =>
-    toRelationshipEdgeDescriptors(elements.classes, elements.relationships)
-  );
-
-  useEffect(() => {
-    setRfNodes(toClassBoxNodeDescriptors(elements.classes, selectedClassIdsRef.current, dispatch));
-  }, [elements.classes, dispatch]);
-
-  useEffect(() => {
-    setRfNodes((prev) => projectClassBoxNodeSelection(prev, selectedClassIds));
-  }, [selectedClassIds]);
-
-  useEffect(() => {
-    setRfEdges(toRelationshipEdgeDescriptors(elements.classes, elements.relationships));
-  }, [elements.classes, elements.relationships]);
-
-  const handleNodesChange = useCallback((changes: NodeChange<ClassBoxNodeDescriptor>[]) => {
-    setRfNodes((prev) => applyNodeChanges(changes, prev));
-  }, []);
-
-  const { onNodeDragStop } = useClassBoxNodeInteractions(elements, dispatch);
-  const { onSelectionChange, onPaneClick } = useCanvasInteractions(
-    elements.classes,
-    onSelectedClassIdsChange
-  );
+  const { rfNodes, rfEdges, onNodesChange } = useClassDiagramFlowState(elements, selectedClassIds);
+  const { onNodeDragStop } = useClassBoxNodeInteractions();
+  const { onSelectionChange, onPaneClick } = useCanvasInteractions();
 
   return (
     <section className={styles.diagramShell} aria-label="Static editor boxes">
@@ -87,7 +38,7 @@ export default function ClassDiagram({
           nodes={rfNodes}
           edges={rfEdges}
           nodeTypes={nodeTypes}
-          onNodesChange={handleNodesChange}
+          onNodesChange={onNodesChange}
           onSelectionChange={onSelectionChange}
           onPaneClick={onPaneClick}
           onNodeDragStop={onNodeDragStop}
@@ -107,11 +58,7 @@ export default function ClassDiagram({
           ) : null}
           <Background />
           <Controls showInteractive={false} />
-          <PlacementOverlay
-            placementMode={placementMode}
-            dispatch={dispatch}
-            onPlacementModeChange={onPlacementModeChange}
-          />
+          <PlacementOverlay />
         </ReactFlow>
       </ReactFlowProvider>
     </section>

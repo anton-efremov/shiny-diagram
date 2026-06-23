@@ -1,12 +1,10 @@
-import { useMemo, useState } from "react";
 import type { ReactElement } from "react";
 import type { EditorDispatch } from "../commands/editorCommand";
-import type { PlacementMode } from "./placementMode";
 import ClassDiagram from "./ClassDiagram/ClassDiagram";
+import { EditorViewProvider, useEditorStatusModelState } from "./contexts";
 import EditorStatus from "./EditorStatus/EditorStatus";
 import StylePane from "./StylePane/StylePane";
 import ToolPane from "./ToolPane/ToolPane";
-import { useSelectedClassIds } from "./useSelectedClassIds";
 import type { EditorViewModel } from "./views";
 import styles from "./EditorView.module.css";
 
@@ -19,26 +17,28 @@ type EditorViewProps = {
  * Renders the visual class-diagram editor shell.
  */
 export default function EditorView({ view, dispatch }: EditorViewProps): ReactElement {
-  const elements = view.status === "invalidSyntax" ? null : view.elements;
-  const { selectedClassIds, setSelectedClassIds } = useSelectedClassIds(elements);
-  const [placementMode, setPlacementMode] = useState<PlacementMode | null>(null);
-  const selectedClassViews = useMemo(() => {
-    const selected = new Set(selectedClassIds);
-    return elements?.classes.filter((classView) => selected.has(classView.classId)) ?? [];
-  }, [elements, selectedClassIds]);
+  return (
+    <EditorViewProvider view={view} dispatch={dispatch}>
+      <EditorViewContent />
+    </EditorViewProvider>
+  );
+}
+
+function EditorViewContent(): ReactElement {
+  const { view } = useEditorStatusModelState();
 
   if (view.status === "invalidSyntax") {
     return (
       <>
-        <EditorStatus view={view} dispatch={dispatch} />
+        <EditorStatus />
         <section className={styles.editorShell} aria-label="Class diagram editor">
-          <ToolPane placementMode={placementMode} onPlacementModeChange={setPlacementMode} />
+          <ToolPane />
           <div className={styles.canvasRegion}>
             <div className={styles.errorCanvas}>
               <p className={styles.errorMessage}>{view.message}</p>
             </div>
           </div>
-          <StylePane selectedClassViews={selectedClassViews} dispatch={dispatch} />
+          <StylePane />
         </section>
       </>
     );
@@ -47,9 +47,9 @@ export default function EditorView({ view, dispatch }: EditorViewProps): ReactEl
   if (view.status === "missingAnnotations") {
     return (
       <>
-        <EditorStatus view={view} dispatch={dispatch} />
+        <EditorStatus />
         <section className={styles.editorShell} aria-label="Class diagram editor">
-          <ToolPane placementMode={placementMode} onPlacementModeChange={setPlacementMode} />
+          <ToolPane />
           <div className={styles.canvasRegion}>
             <div className={styles.missingCanvas}>
               <p className={styles.missingLabel}>Classes without spatial annotations:</p>
@@ -62,7 +62,7 @@ export default function EditorView({ view, dispatch }: EditorViewProps): ReactEl
               </ul>
             </div>
           </div>
-          <StylePane selectedClassViews={selectedClassViews} dispatch={dispatch} />
+          <StylePane />
         </section>
       </>
     );
@@ -70,20 +70,13 @@ export default function EditorView({ view, dispatch }: EditorViewProps): ReactEl
 
   return (
     <>
-      <EditorStatus view={view} dispatch={dispatch} />
+      <EditorStatus />
       <section className={styles.editorShell} aria-label="Class diagram editor">
-        <ToolPane placementMode={placementMode} onPlacementModeChange={setPlacementMode} />
+        <ToolPane />
         <div className={styles.canvasRegion}>
-          <ClassDiagram
-            elements={view.elements}
-            selectedClassIds={selectedClassIds}
-            placementMode={placementMode}
-            onSelectedClassIdsChange={setSelectedClassIds}
-            onPlacementModeChange={setPlacementMode}
-            dispatch={dispatch}
-          />
+          <ClassDiagram />
         </div>
-        <StylePane selectedClassViews={selectedClassViews} dispatch={dispatch} />
+        <StylePane />
       </section>
     </>
   );

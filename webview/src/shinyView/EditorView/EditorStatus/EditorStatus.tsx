@@ -1,21 +1,16 @@
 import type { ReactElement } from "react";
-import type { EditorDispatch } from "../../commands/editorCommand";
 import ControlButton from "../Controls/ControlButton";
 import { GenerateIcon } from "../Controls/icons";
-import type { EditorViewModel } from "../views";
+import { useEditorStatusModelState } from "../contexts";
 import { useEditorStatusInteractions } from "./useEditorStatusInteractions";
 import styles from "./EditorStatus.module.css";
-
-type EditorStatusProps = {
-  view: EditorViewModel;
-  dispatch: EditorDispatch;
-};
 
 /**
  * Renders Shiny-only editor status and source-generation actions.
  */
-export default function EditorStatus({ view, dispatch }: EditorStatusProps): ReactElement | null {
-  const { onGenerate } = useEditorStatusInteractions(dispatch);
+export default function EditorStatus(): ReactElement | null {
+  const { view } = useEditorStatusModelState();
+  const { onGenerate } = useEditorStatusInteractions();
 
   if (view.status === "ready") return null;
 

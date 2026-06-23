@@ -4,8 +4,7 @@
 
 import { useCallback } from "react";
 import type { OnNodeDrag } from "@xyflow/react";
-import type { EditorDispatch } from "../../commands/editorCommand";
-import type { ElementViews } from "../views";
+import { useEditorCommandDispatch, useEditorStatusModelState } from "../contexts";
 import type { ClassBoxNodeDescriptor } from "./reactFlowAdapters";
 
 type UseClassBoxInteractionsResult = {
@@ -15,13 +14,14 @@ type UseClassBoxInteractionsResult = {
 /**
  * Dispatches class movement and selection updates from ReactFlow node events.
  */
-export function useClassBoxNodeInteractions(
-  views: ElementViews,
-  dispatch: EditorDispatch
-): UseClassBoxInteractionsResult {
+export function useClassBoxNodeInteractions(): UseClassBoxInteractionsResult {
+  const commandDispatch = useEditorCommandDispatch();
+  const { elements } = useEditorStatusModelState();
   const onNodeDragStop = useCallback<OnNodeDrag<ClassBoxNodeDescriptor>>(
     (_event, _rfNode, rfNodes) => {
-      const viewsById = new Map(views.classes.map((view) => [view.classId, view]));
+      if (!elements) return;
+
+      const viewsById = new Map(elements.classes.map((view) => [view.classId, view]));
       const finalPositionsByClassId = new Map(
         rfNodes.flatMap((rfNode) => {
           if (rfNode.type !== "classBox") return [];
@@ -33,7 +33,7 @@ export function useClassBoxNodeInteractions(
         })
       );
 
-      const moves = views.classes.flatMap((view) => {
+      const moves = elements.classes.flatMap((view) => {
         const position = finalPositionsByClassId.get(view.classId);
         if (!position) return [];
 
@@ -51,9 +51,9 @@ export function useClassBoxNodeInteractions(
       });
 
       if (moves.length === 0) return;
-      dispatch({ type: "class.move", moves });
+      commandDispatch({ type: "class.move", moves });
     },
-    [views, dispatch]
+    [elements, commandDispatch]
   );
 
   return { onNodeDragStop };

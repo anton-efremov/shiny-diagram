@@ -5,7 +5,11 @@
 import { useCallback, useRef } from "react";
 import type { OnSelectionChangeFunc } from "@xyflow/react";
 import type { ClassId } from "../../../shared/ids";
-import type { ClassBoxView } from "./ClassBox/views";
+import {
+  useEditorClassSelectionState,
+  useEditorStatusModelState,
+  useEditorViewDispatch,
+} from "../contexts";
 import type { ClassBoxNodeDescriptor, RelationshipEdgeDescriptor } from "./reactFlowAdapters";
 
 type UseCanvasInteractionsResult = {
@@ -16,35 +20,36 @@ type UseCanvasInteractionsResult = {
 /**
  * Synchronizes ReactFlow selection to View-owned canvas state.
  */
-export function useCanvasInteractions(
-  classes: readonly ClassBoxView[],
-  onSelectedClassIdsChange: (classIds: readonly ClassId[]) => void
-): UseCanvasInteractionsResult {
+export function useCanvasInteractions(): UseCanvasInteractionsResult {
+  const { elements } = useEditorStatusModelState();
+  const { selectedClassIds } = useEditorClassSelectionState();
+  const dispatch = useEditorViewDispatch();
   const classIdOrderRef = useRef<readonly ClassId[]>([]);
-  const onSelectedClassIdsChangeRef = useRef(onSelectedClassIdsChange);
-  classIdOrderRef.current = classes.map((view) => view.classId);
-  onSelectedClassIdsChangeRef.current = onSelectedClassIdsChange;
+  classIdOrderRef.current = elements?.classes.map((view) => view.classId) ?? selectedClassIds;
 
   const onSelectionChange = useCallback<
     OnSelectionChangeFunc<ClassBoxNodeDescriptor, RelationshipEdgeDescriptor>
-  >(({ nodes }) => {
-    const selected = new Set<ClassId>();
-    for (const node of nodes) {
-      if (node.type === "classBox") {
-        selected.add(node.data.classId);
+  >(
+    ({ nodes }) => {
+      const selected = new Set<ClassId>();
+      for (const node of nodes) {
+        if (node.type === "classBox") {
+          selected.add(node.data.classId);
+        }
       }
-    }
 
-    const orderedSelection = classIdOrderRef.current.flatMap((classId) =>
-      selected.has(classId) ? [classId] : []
-    );
+      const orderedSelection = classIdOrderRef.current.flatMap((classId) =>
+        selected.has(classId) ? [classId] : []
+      );
 
-    onSelectedClassIdsChangeRef.current(orderedSelection);
-  }, []);
+      dispatch({ type: "selection.setClassIds", classIds: orderedSelection });
+    },
+    [dispatch]
+  );
 
   const onPaneClick = useCallback(() => {
-    onSelectedClassIdsChangeRef.current([]);
-  }, []);
+    dispatch({ type: "selection.clearClassIds" });
+  }, [dispatch]);
 
   return { onSelectionChange, onPaneClick };
 }
