@@ -1,5 +1,6 @@
 /**
- * @fileoverview Shared Shiny View button control.
+ * @role [P] Presentational
+ * @presents Shared Shiny View button control.
  */
 
 import type { ButtonHTMLAttributes, ReactElement, ReactNode } from "react";
@@ -27,10 +28,14 @@ export default function ControlButton({
   children,
   ...buttonProps
 }: ControlButtonProps): ReactElement {
+  // @job adapt:presentation-shape
   const isIconOnly = variant === "compact";
   const content = children ?? label;
+
+  // @job render:a11y
   const ariaPressed = pressed ?? (active ? true : undefined);
 
+  // @job render:ui
   return (
     <button
       {...buttonProps}
@@ -46,11 +51,13 @@ export default function ControlButton({
         .filter(Boolean)
         .join(" ")}
     >
+      {/* @job render:ui */}
       {icon ? (
         <span className={styles.icon} aria-hidden="true">
           {icon}
         </span>
       ) : null}
+      {/* @job render:ui */}
       {isIconOnly ? null : <span className={styles.labelText}>{content}</span>}
     </button>
   );

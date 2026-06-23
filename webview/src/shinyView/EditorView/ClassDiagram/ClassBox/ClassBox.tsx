@@ -1,3 +1,8 @@
+/**
+ * @role [L+P] Logic plus presentational
+ * @logic Resize UI visibility for class boxes.
+ * @presents React Flow class-box node.
+ */
 import type { ReactElement } from "react";
 import type { Node, NodeProps } from "@xyflow/react";
 import { Handle, NodeResizer, Position } from "@xyflow/react";
@@ -32,10 +37,19 @@ export default function ClassBox({
   selected,
   dragging,
 }: NodeProps<ClassBoxNode>): ReactElement {
-  const fields = data.members.filter((m) => m.kind === "field");
-  const methods = data.members.filter((m) => m.kind === "method");
-  const { onResizeEnd } = useClassBoxInteractions(data);
-  const isSoleSelection = selected && data.isSoleSelection;
+  const classBoxView = data.view.view;
+
+  // @job adapt:slice-view
+  const fields = classBoxView.members.filter((m) => m.kind === "field");
+  const methods = classBoxView.members.filter((m) => m.kind === "method");
+
+  // @job wire:command
+  const { onResizeEnd } = useClassBoxInteractions(classBoxView);
+
+  // @job logic:ui-prop
+  const isResizeVisible = selected && data.view.isResizeVisible;
+
+  // @job render:style
   const className = [
     styles.classBox,
     selected ? styles.selected : "",
@@ -44,25 +58,28 @@ export default function ClassBox({
     .filter(Boolean)
     .join(" ");
 
-  const dynamicVars = data.style
+  // @job render:style
+  const dynamicVars = classBoxView.style
     ? ({
-        "--class-fill": data.style.fill,
-        "--class-stroke": data.style.stroke,
-        "--class-color": data.style.color,
+        "--class-fill": classBoxView.style.fill,
+        "--class-stroke": classBoxView.style.stroke,
+        "--class-color": classBoxView.style.color,
       } as React.CSSProperties)
     : undefined;
 
+  // @job render:ui
   return (
-    <div className={className} style={dynamicVars} title={data.classId}>
+    <div className={className} style={dynamicVars} title={classBoxView.classId}>
       <NodeResizer
         nodeId={id}
-        isVisible={isSoleSelection}
+        isVisible={isResizeVisible}
         minWidth={80}
         minHeight={48}
         handleClassName={styles.resizeHandle}
         lineClassName={styles.resizeLine}
         onResizeEnd={onResizeEnd}
       />
+      {/* @job adapt:framework-props */}
       {CONNECTION_HANDLES.map(({ id, type, position }) => (
         <Handle
           key={id}
@@ -73,16 +90,18 @@ export default function ClassBox({
           isConnectable={false}
         />
       ))}
+      {/* @job render:ui */}
       <header className={styles.header}>
-        {data.header.stereotype ? (
-          <div className={styles.stereotype} title={data.header.stereotype}>
-            &lt;&lt;{data.header.stereotype}&gt;&gt;
+        {classBoxView.header.stereotype ? (
+          <div className={styles.stereotype} title={classBoxView.header.stereotype}>
+            &lt;&lt;{classBoxView.header.stereotype}&gt;&gt;
           </div>
         ) : null}
-        <div className={styles.className} title={data.header.label}>
-          {data.header.label}
+        <div className={styles.className} title={classBoxView.header.label}>
+          {classBoxView.header.label}
         </div>
       </header>
+      {/* @job adapt:slice-view */}
       <MemberTable fields={fields} methods={methods} selected={selected} />
     </div>
   );

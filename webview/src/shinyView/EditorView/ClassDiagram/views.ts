@@ -5,6 +5,18 @@
 import type { Rect } from "../../../shared/geometry";
 import type { ClassId, NamespaceId, RelationshipId } from "../../../shared/ids";
 import type { RelationshipType } from "../../../shared/relationshipTypes";
+import type { ClassBoxView } from "./ClassBox/views";
+import type { PlacementMode } from "../placementMode";
+
+export type ClassDiagramView = {
+  readonly elements: {
+    readonly classes: readonly ClassBoxView[];
+    readonly namespaces: readonly NamespaceBoxView[];
+    readonly relationships: readonly RelationshipView[];
+  };
+  readonly selectedClassIds: readonly ClassId[];
+  readonly placementMode: PlacementMode | null;
+};
 
 export type NamespaceBoxView = {
   readonly namespaceId: NamespaceId;

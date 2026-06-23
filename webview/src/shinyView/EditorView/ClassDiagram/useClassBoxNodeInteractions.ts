@@ -4,7 +4,8 @@
 
 import { useCallback } from "react";
 import type { OnNodeDrag } from "@xyflow/react";
-import { useEditorCommandDispatch, useEditorStatusModelState } from "../contexts";
+import { useDispatchCommand } from "../contexts";
+import type { ClassBoxView } from "./ClassBox/views";
 import type { ClassBoxNodeDescriptor } from "./reactFlowAdapters";
 
 type UseClassBoxInteractionsResult = {
@@ -14,26 +15,25 @@ type UseClassBoxInteractionsResult = {
 /**
  * Dispatches class movement and selection updates from ReactFlow node events.
  */
-export function useClassBoxNodeInteractions(): UseClassBoxInteractionsResult {
-  const commandDispatch = useEditorCommandDispatch();
-  const { elements } = useEditorStatusModelState();
+export function useClassBoxNodeInteractions(
+  classes: readonly ClassBoxView[]
+): UseClassBoxInteractionsResult {
+  const dispatchCommand = useDispatchCommand();
   const onNodeDragStop = useCallback<OnNodeDrag<ClassBoxNodeDescriptor>>(
     (_event, _rfNode, rfNodes) => {
-      if (!elements) return;
-
-      const viewsById = new Map(elements.classes.map((view) => [view.classId, view]));
+      const viewsById = new Map(classes.map((view) => [view.classId, view]));
       const finalPositionsByClassId = new Map(
         rfNodes.flatMap((rfNode) => {
           if (rfNode.type !== "classBox") return [];
 
-          const view = viewsById.get(rfNode.data.classId);
+          const view = viewsById.get(rfNode.data.view.view.classId);
           if (!view) return [];
 
           return [[view.classId, rfNode.position] as const];
         })
       );
 
-      const moves = elements.classes.flatMap((view) => {
+      const moves = classes.flatMap((view) => {
         const position = finalPositionsByClassId.get(view.classId);
         if (!position) return [];
 
@@ -51,9 +51,9 @@ export function useClassBoxNodeInteractions(): UseClassBoxInteractionsResult {
       });
 
       if (moves.length === 0) return;
-      commandDispatch({ type: "class.move", moves });
+      dispatchCommand({ type: "class.move", moves });
     },
-    [elements, commandDispatch]
+    [classes, dispatchCommand]
   );
 
   return { onNodeDragStop };

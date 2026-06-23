@@ -23,3 +23,8 @@ export type ClassBoxView = {
     readonly name?: string;
   };
 };
+
+export type ClassBoxNodeView = {
+  readonly view: ClassBoxView;
+  readonly isResizeVisible: boolean;
+};

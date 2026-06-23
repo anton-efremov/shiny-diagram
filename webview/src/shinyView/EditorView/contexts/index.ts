@@ -1,7 +1,5 @@
-export { EditorViewProvider } from "./EditorStateContext";
+export { CommandDispatchProvider, useDispatchCommand } from "./CommandDispatchContext";
 export {
-  useEditorClassSelectionState,
-  useEditorPlacementModeState,
-  useEditorStatusModelState,
-} from "./EditorStateContext";
-export { useEditorCommandDispatch, useEditorViewDispatch } from "./EditorDispatchContext";
+  EditorStateDispatchProvider,
+  useDispatchEditorStateAction,
+} from "./EditorStateDispatchContext";

@@ -5,11 +5,7 @@
 import { useCallback, useRef } from "react";
 import type { OnSelectionChangeFunc } from "@xyflow/react";
 import type { ClassId } from "../../../shared/ids";
-import {
-  useEditorClassSelectionState,
-  useEditorStatusModelState,
-  useEditorViewDispatch,
-} from "../contexts";
+import { useDispatchEditorStateAction } from "../contexts";
 import type { ClassBoxNodeDescriptor, RelationshipEdgeDescriptor } from "./reactFlowAdapters";
 
 type UseCanvasInteractionsResult = {
@@ -20,12 +16,12 @@ type UseCanvasInteractionsResult = {
 /**
  * Synchronizes ReactFlow selection to View-owned canvas state.
  */
-export function useCanvasInteractions(): UseCanvasInteractionsResult {
-  const { elements } = useEditorStatusModelState();
-  const { selectedClassIds } = useEditorClassSelectionState();
-  const dispatch = useEditorViewDispatch();
+export function useCanvasInteractions(
+  classIdOrder: readonly ClassId[]
+): UseCanvasInteractionsResult {
+  const dispatchEditorStateAction = useDispatchEditorStateAction();
   const classIdOrderRef = useRef<readonly ClassId[]>([]);
-  classIdOrderRef.current = elements?.classes.map((view) => view.classId) ?? selectedClassIds;
+  classIdOrderRef.current = classIdOrder;
 
   const onSelectionChange = useCallback<
     OnSelectionChangeFunc<ClassBoxNodeDescriptor, RelationshipEdgeDescriptor>
@@ -34,7 +30,7 @@ export function useCanvasInteractions(): UseCanvasInteractionsResult {
       const selected = new Set<ClassId>();
       for (const node of nodes) {
         if (node.type === "classBox") {
-          selected.add(node.data.classId);
+          selected.add(node.data.view.view.classId);
         }
       }
 
@@ -42,14 +38,14 @@ export function useCanvasInteractions(): UseCanvasInteractionsResult {
         selected.has(classId) ? [classId] : []
       );
 
-      dispatch({ type: "selection.setClassIds", classIds: orderedSelection });
+      dispatchEditorStateAction({ type: "selection.setClassIds", classIds: orderedSelection });
     },
-    [dispatch]
+    [dispatchEditorStateAction]
   );
 
   const onPaneClick = useCallback(() => {
-    dispatch({ type: "selection.clearClassIds" });
-  }, [dispatch]);
+    dispatchEditorStateAction({ type: "selection.clearClassIds" });
+  }, [dispatchEditorStateAction]);
 
   return { onSelectionChange, onPaneClick };
 }

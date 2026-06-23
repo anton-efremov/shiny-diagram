@@ -1,5 +1,6 @@
 /**
- * @fileoverview Small decorative Shiny View control icons.
+ * @role [P] Presentational
+ * @presents Small decorative Shiny View control icons.
  */
 
 import type { ReactElement, ReactNode } from "react";
@@ -9,6 +10,7 @@ type IconProps = {
 };
 
 function IconFrame({ className, children }: IconProps & { children: ReactNode }): ReactElement {
+  // @job render:ui
   return (
     <svg
       className={className}
@@ -25,6 +27,7 @@ function IconFrame({ className, children }: IconProps & { children: ReactNode })
 }
 
 export function ClassIcon({ className }: IconProps): ReactElement {
+  // @job render:ui
   return (
     <IconFrame className={className}>
       <path
@@ -39,6 +42,7 @@ export function ClassIcon({ className }: IconProps): ReactElement {
 }
 
 export function GenerateIcon({ className }: IconProps): ReactElement {
+  // @job render:ui
   return (
     <IconFrame className={className}>
       <path
@@ -53,6 +57,7 @@ export function GenerateIcon({ className }: IconProps): ReactElement {
 }
 
 export function DuplicateIcon({ className }: IconProps): ReactElement {
+  // @job render:ui
   return (
     <IconFrame className={className}>
       <path
@@ -67,6 +72,7 @@ export function DuplicateIcon({ className }: IconProps): ReactElement {
 }
 
 export function DeleteIcon({ className }: IconProps): ReactElement {
+  // @job render:ui
   return (
     <IconFrame className={className}>
       <path
@@ -81,6 +87,7 @@ export function DeleteIcon({ className }: IconProps): ReactElement {
 }
 
 export function FillIcon({ className }: IconProps): ReactElement {
+  // @job render:ui
   return (
     <IconFrame className={className}>
       <path
@@ -96,6 +103,7 @@ export function FillIcon({ className }: IconProps): ReactElement {
 }
 
 export function BorderIcon({ className }: IconProps): ReactElement {
+  // @job render:ui
   return (
     <IconFrame className={className}>
       <path
@@ -111,6 +119,7 @@ export function BorderIcon({ className }: IconProps): ReactElement {
 }
 
 export function TextColorIcon({ className }: IconProps): ReactElement {
+  // @job render:ui
   return (
     <IconFrame className={className}>
       <path

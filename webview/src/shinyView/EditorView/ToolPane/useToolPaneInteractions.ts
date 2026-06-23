@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from "react";
-import { useEditorViewDispatch } from "../contexts";
+import { useDispatchEditorStateAction } from "../contexts";
 
 type UseToolPaneInteractionsResult = {
   onClassToolClick: () => void;
@@ -13,10 +13,10 @@ type UseToolPaneInteractionsResult = {
  * Activates diagram placement tools from Tool Pane controls.
  */
 export function useToolPaneInteractions(): UseToolPaneInteractionsResult {
-  const dispatch = useEditorViewDispatch();
+  const dispatchEditorStateAction = useDispatchEditorStateAction();
   const onClassToolClick = useCallback(() => {
-    dispatch({ type: "placement.setMode", placementMode: "class" });
-  }, [dispatch]);
+    dispatchEditorStateAction({ type: "placement.setMode", placementMode: "class" });
+  }, [dispatchEditorStateAction]);
 
   return { onClassToolClick };
 }

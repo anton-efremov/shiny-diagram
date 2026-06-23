@@ -3,14 +3,14 @@
  */
 
 import type { Edge as ReactFlowEdge, Node as ReactFlowNode } from "@xyflow/react";
-import type { ClassBoxView } from "./ClassBox/views";
+import type { ClassBoxNodeView, ClassBoxView } from "./ClassBox/views";
 import type { RelationshipView } from "./views";
 import type { ClassId } from "../../../shared/ids";
 
 export type BoxSide = "top" | "right" | "bottom" | "left";
 
-export type ClassBoxNodeData = ClassBoxView & {
-  readonly isSoleSelection: boolean;
+export type ClassBoxNodeData = {
+  readonly view: ClassBoxNodeView;
 };
 
 export type ClassBoxNodeDescriptor = ReactFlowNode<ClassBoxNodeData, "classBox">;
@@ -31,8 +31,10 @@ export function toClassBoxNodeDescriptors(
     type: "classBox" as const,
     position: { x: view.x, y: view.y },
     data: {
-      ...view,
-      isSoleSelection: hasSoleSelection && selected.has(view.classId),
+      view: {
+        view,
+        isResizeVisible: hasSoleSelection && selected.has(view.classId),
+      },
     },
     selected: selected.has(view.classId),
     width: view.w,
@@ -53,10 +55,10 @@ export function projectClassBoxNodeSelection(
   let didChange = false;
 
   const projected = nodes.map((node) => {
-    const isSelected = selected.has(node.data.classId);
-    const isSoleSelection = hasSoleSelection && isSelected;
+    const isSelected = selected.has(node.data.view.view.classId);
+    const isResizeVisible = hasSoleSelection && isSelected;
 
-    if (node.selected === isSelected && node.data.isSoleSelection === isSoleSelection) {
+    if (node.selected === isSelected && node.data.view.isResizeVisible === isResizeVisible) {
       return node;
     }
 
@@ -66,11 +68,13 @@ export function projectClassBoxNodeSelection(
       ...node,
       selected: isSelected,
       data:
-        node.data.isSoleSelection === isSoleSelection
+        node.data.view.isResizeVisible === isResizeVisible
           ? node.data
           : {
-              ...node.data,
-              isSoleSelection,
+              view: {
+                ...node.data.view,
+                isResizeVisible,
+              },
             },
     };
   });

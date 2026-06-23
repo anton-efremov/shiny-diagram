@@ -6,7 +6,7 @@ import { useCallback, useState } from "react";
 import type { PointerEvent } from "react";
 import { useReactFlow } from "@xyflow/react";
 import type { Point, Rect } from "../../../../shared/geometry";
-import { useEditorCommandDispatch, useEditorViewDispatch } from "../../contexts";
+import { useDispatchCommand, useDispatchEditorStateAction } from "../../contexts";
 
 const DRAG_THRESHOLD = 4;
 
@@ -28,8 +28,8 @@ type UsePlacementOverlayInteractionsResult = {
  */
 export function usePlacementOverlayInteractions(): UsePlacementOverlayInteractionsResult {
   const { screenToFlowPosition } = useReactFlow();
-  const commandDispatch = useEditorCommandDispatch();
-  const viewDispatch = useEditorViewDispatch();
+  const dispatchCommand = useDispatchCommand();
+  const dispatchEditorStateAction = useDispatchEditorStateAction();
   const [origin, setOrigin] = useState<DrawOrigin | null>(null);
   const [draftRect, setDraftRect] = useState<Rect | null>(null);
 
@@ -89,10 +89,10 @@ export function usePlacementOverlayInteractions(): UsePlacementOverlayInteractio
 
       if (!isMeaningfulDrag) return;
 
-      commandDispatch({ type: "class.add", rect: normalizeRect(origin.flow, endFlow) });
-      viewDispatch({ type: "placement.complete" });
+      dispatchCommand({ type: "class.add", rect: normalizeRect(origin.flow, endFlow) });
+      dispatchEditorStateAction({ type: "placement.complete" });
     },
-    [commandDispatch, origin, screenToFlowPosition, viewDispatch]
+    [dispatchCommand, dispatchEditorStateAction, origin, screenToFlowPosition]
   );
 
   return { draftRect, onPointerDown, onPointerMove, onPointerUp };

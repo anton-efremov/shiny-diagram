@@ -1,3 +1,7 @@
+/**
+ * @role [P] Presentational
+ * @presents Member table sections inside a class-box node.
+ */
 import type { ReactElement } from "react";
 import type { ClassBoxMemberView } from "./views";
 import styles from "../ClassBox.module.css";
@@ -12,8 +16,10 @@ type MemberTableProps = {
  * Renders class fields and methods inside a class box.
  */
 export default function MemberTable({ fields, methods, selected }: MemberTableProps): ReactElement {
+  // @job render:ui
   const hasFieldsAndMethods = fields.length > 0 && methods.length > 0;
 
+  // @job render:layout
   return (
     <div className={styles.body}>
       <MemberList members={fields} selected={selected} />
@@ -30,6 +36,7 @@ function MemberList({
   members: readonly ClassBoxMemberView[];
   selected: boolean;
 }): ReactElement {
+  // @job render:ui
   return (
     <div className={styles.memberList}>
       {members.map((member) => (

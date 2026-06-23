@@ -1,36 +1,47 @@
+/**
+ * @role [L+P] Logic plus presentational
+ * @logic Placement-active canvas interaction gating.
+ * @presents React Flow class diagram canvas.
+ */
 import type { ReactElement } from "react";
 import type { NodeTypes } from "@xyflow/react";
 import { Background, Controls, ReactFlow, ReactFlowProvider } from "@xyflow/react";
-import {
-  useEditorClassSelectionState,
-  useEditorPlacementModeState,
-  useEditorStatusModelState,
-} from "../contexts";
 import { useClassBoxNodeInteractions } from "./useClassBoxNodeInteractions";
 import { useClassDiagramFlowState } from "./useClassDiagramFlowState";
 import { useCanvasInteractions } from "./useCanvasInteractions";
 import ClassBox from "./ClassBox/ClassBox";
 import PlacementOverlay from "./PlacementOverlay/PlacementOverlay";
+import type { ClassDiagramView } from "./views";
 import styles from "./ClassDiagram.module.css";
 
 const nodeTypes = { classBox: ClassBox } satisfies NodeTypes;
 
+type ClassDiagramProps = {
+  readonly view: ClassDiagramView;
+};
+
 /**
  * Renders the ReactFlow class diagram canvas.
  */
-export default function ClassDiagram(): ReactElement {
-  const { elements } = useEditorStatusModelState();
-  const { selectedClassIds } = useEditorClassSelectionState();
-  const { placementMode } = useEditorPlacementModeState();
-  if (!elements) {
-    throw new Error("ClassDiagram requires editor elements");
-  }
+export default function ClassDiagram({ view }: ClassDiagramProps): ReactElement {
+  // @job logic:ui-prop
+  const isPlacementActive = view.placementMode !== null;
 
-  const isPlacementActive = placementMode !== null;
-  const { rfNodes, rfEdges, onNodesChange } = useClassDiagramFlowState(elements, selectedClassIds);
-  const { onNodeDragStop } = useClassBoxNodeInteractions();
-  const { onSelectionChange, onPaneClick } = useCanvasInteractions();
+  // @job adapt:framework-props
+  const { rfNodes, rfEdges, onNodesChange } = useClassDiagramFlowState(
+    view.elements,
+    view.selectedClassIds
+  );
 
+  // @job wire:command
+  const { onNodeDragStop } = useClassBoxNodeInteractions(view.elements.classes);
+
+  // @job wire:action
+  const { onSelectionChange, onPaneClick } = useCanvasInteractions(
+    view.elements.classes.map((classView) => classView.classId)
+  );
+
+  // @job render:ui
   return (
     <section className={styles.diagramShell} aria-label="Static editor boxes">
       <ReactFlowProvider>
@@ -53,12 +64,13 @@ export default function ClassDiagram(): ReactElement {
           panOnDrag={!isPlacementActive}
           zoomOnScroll
         >
+          {/* @job render:ui */}
           {rfNodes.length === 0 ? (
             <p className={styles.emptyState}>No spatial annotations found.</p>
           ) : null}
           <Background />
           <Controls showInteractive={false} />
-          <PlacementOverlay />
+          <PlacementOverlay view={{ placementMode: view.placementMode }} />
         </ReactFlow>
       </ReactFlowProvider>
     </section>

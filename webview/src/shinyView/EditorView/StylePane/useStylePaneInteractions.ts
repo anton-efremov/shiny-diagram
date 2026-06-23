@@ -3,8 +3,13 @@
  */
 
 import { useCallback, useEffect } from "react";
-import { useEditorClassSelectionState, useEditorCommandDispatch } from "../contexts";
+import type { ClassId } from "../../../shared/ids";
+import { useDispatchCommand } from "../contexts";
 import type { StyleCommand } from "./commands";
+
+type UseStylePaneInteractionsOptions = {
+  readonly selectedClassIds: readonly ClassId[];
+};
 
 type UseStylePaneInteractionsResult = {
   onFillColorChange: (fill: string) => void;
@@ -17,20 +22,21 @@ type UseStylePaneInteractionsResult = {
 /**
  * Dispatches class style updates from style-pane controls.
  */
-export function useStylePaneInteractions(): UseStylePaneInteractionsResult {
-  const dispatch = useEditorCommandDispatch();
-  const { selectedClassIds } = useEditorClassSelectionState();
+export function useStylePaneInteractions({
+  selectedClassIds,
+}: UseStylePaneInteractionsOptions): UseStylePaneInteractionsResult {
+  const dispatchCommand = useDispatchCommand();
   const dispatchStyleChange = useCallback(
     (property: StyleCommand["property"], value: string) => {
       if (selectedClassIds.length === 0) return;
-      dispatch({
+      dispatchCommand({
         type: "style.setClassProperty",
         classIds: selectedClassIds,
         property,
         value,
       });
     },
-    [selectedClassIds, dispatch]
+    [selectedClassIds, dispatchCommand]
   );
 
   const onFillColorChange = useCallback(
@@ -50,13 +56,13 @@ export function useStylePaneInteractions(): UseStylePaneInteractionsResult {
 
   const onDeleteClick = useCallback(() => {
     if (selectedClassIds.length === 0) return;
-    dispatch({ type: "class.delete", classIds: selectedClassIds });
-  }, [selectedClassIds, dispatch]);
+    dispatchCommand({ type: "class.delete", classIds: selectedClassIds });
+  }, [selectedClassIds, dispatchCommand]);
 
   const onDuplicate = useCallback(() => {
     if (selectedClassIds.length === 0) return;
-    dispatch({ type: "class.duplicate", classIds: selectedClassIds });
-  }, [selectedClassIds, dispatch]);
+    dispatchCommand({ type: "class.duplicate", classIds: selectedClassIds });
+  }, [selectedClassIds, dispatchCommand]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent): void {
@@ -75,12 +81,12 @@ export function useStylePaneInteractions(): UseStylePaneInteractionsResult {
       }
 
       event.preventDefault();
-      dispatch({ type: "class.delete", classIds: selectedClassIds });
+      dispatchCommand({ type: "class.delete", classIds: selectedClassIds });
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedClassIds, dispatch]);
+  }, [selectedClassIds, dispatchCommand]);
 
   return { onFillColorChange, onStrokeColorChange, onTextColorChange, onDuplicate, onDeleteClick };
 }

@@ -1,19 +1,30 @@
+/**
+ * @role [L+P] Logic plus presentational
+ * @logic Placement overlay visibility and draft rectangle projection.
+ * @presents Class placement draw overlay.
+ */
 import type { ReactElement } from "react";
 import type { CSSProperties } from "react";
-import { useEditorPlacementModeState } from "../../contexts";
 import { usePlacementOverlayInteractions } from "./usePlacementOverlayInteractions";
+import type { PlacementOverlayView } from "./views";
 import styles from "./PlacementOverlay.module.css";
+
+type PlacementOverlayProps = {
+  readonly view: PlacementOverlayView;
+};
 
 /**
  * Renders the active placement interaction layer over the diagram viewport.
  */
-export default function PlacementOverlay(): ReactElement | null {
-  const { placementMode } = useEditorPlacementModeState();
+export default function PlacementOverlay({ view }: PlacementOverlayProps): ReactElement | null {
+  // @job wire:command
   const { draftRect, onPointerDown, onPointerMove, onPointerUp } =
     usePlacementOverlayInteractions();
 
-  if (!placementMode) return null;
+  // @job logic:ui-prop
+  if (!view.placementMode) return null;
 
+  // @job adapt:presentation-shape
   const draftStyle: CSSProperties | undefined = draftRect
     ? {
         left: draftRect.x,
@@ -23,6 +34,7 @@ export default function PlacementOverlay(): ReactElement | null {
       }
     : undefined;
 
+  // @job render:ui
   return (
     <div
       className={styles.overlay}
