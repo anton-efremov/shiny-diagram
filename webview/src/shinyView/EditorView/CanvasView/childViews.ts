@@ -4,7 +4,7 @@
 
 import type { ClassId } from "../../../shared/ids";
 import type { ClassDiagramView } from "./ClassDiagram/views";
-import type { EditorState } from "./editorState";
+import type { EditorState } from "./state";
 import type { StylePaneView } from "./StylePane/views";
 import type { ToolPaneView } from "./ToolPane/views";
 import type { CanvasViewModel } from "./views";

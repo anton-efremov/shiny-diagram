@@ -5,10 +5,12 @@
 
 import { createContext, useContext } from "react";
 import type { Dispatch } from "react";
-import type { EditorStateAction } from "../editorState";
+import type { EditorStateAction } from "../state";
 
+// @job-helper logic:state:transport
 export const EditorStateDispatchContext = createContext<Dispatch<EditorStateAction> | null>(null);
 
+// @job-helper logic:state:transport
 export function useDispatchEditorStateAction(): Dispatch<EditorStateAction> {
   const dispatchEditorStateAction = useContext(EditorStateDispatchContext);
   if (!dispatchEditorStateAction) {

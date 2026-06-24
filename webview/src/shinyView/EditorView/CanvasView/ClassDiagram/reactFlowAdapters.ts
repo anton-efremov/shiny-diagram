@@ -1,5 +1,5 @@
 /**
- * @fileoverview Adapts View-owned render contracts to ReactFlow nodes and edges.
+ * @fileoverview Adapts View-owned render contracts to React Flow descriptors.
  */
 
 import type { Edge as ReactFlowEdge, Node as ReactFlowNode } from "@xyflow/react";
@@ -19,6 +19,7 @@ export type RelationshipEdgeDescriptor = ReactFlowEdge;
 /**
  * Converts class-box views into ReactFlow node descriptors.
  */
+// @job-helper adapt:framework-props
 export function toClassBoxNodeDescriptors(
   classes: readonly ClassBoxView[],
   selectedClassIds: readonly ClassId[]
@@ -44,47 +45,9 @@ export function toClassBoxNodeDescriptors(
 }
 
 /**
- * Projects View-owned selection onto existing ReactFlow class nodes.
- */
-export function projectClassBoxNodeSelection(
-  nodes: readonly ClassBoxNodeDescriptor[],
-  selectedClassIds: readonly ClassId[]
-): ClassBoxNodeDescriptor[] {
-  const selected = new Set<ClassId>(selectedClassIds);
-  const hasSoleSelection = selectedClassIds.length === 1;
-  let didChange = false;
-
-  const projected = nodes.map((node) => {
-    const isSelected = selected.has(node.data.view.view.classId);
-    const isResizeVisible = hasSoleSelection && isSelected;
-
-    if (node.selected === isSelected && node.data.view.isResizeVisible === isResizeVisible) {
-      return node;
-    }
-
-    didChange = true;
-
-    return {
-      ...node,
-      selected: isSelected,
-      data:
-        node.data.view.isResizeVisible === isResizeVisible
-          ? node.data
-          : {
-              view: {
-                ...node.data.view,
-                isResizeVisible,
-              },
-            },
-    };
-  });
-
-  return didChange ? projected : (nodes as ClassBoxNodeDescriptor[]);
-}
-
-/**
  * Converts relationship views into ReactFlow edge descriptors.
  */
+// @job-helper adapt:framework-props
 export function toRelationshipEdgeDescriptors(
   classes: readonly ClassBoxView[],
   relationships: readonly RelationshipView[]
@@ -118,6 +81,7 @@ export function toRelationshipEdgeDescriptors(
 /**
  * Chooses the source handle side facing the target class box.
  */
+// @job-helper adapt:framework-props
 export function chooseSourceSide(source: ClassBoxView, target: ClassBoxView): BoxSide {
   const sourceCenterX = source.x + source.w / 2;
   const sourceCenterY = source.y + source.h / 2;
@@ -135,6 +99,7 @@ export function chooseSourceSide(source: ClassBoxView, target: ClassBoxView): Bo
 /**
  * Returns the opposite box side for a relationship target handle.
  */
+// @job-helper adapt:framework-props
 export function oppositeSide(side: BoxSide): BoxSide {
   switch (side) {
     case "top":
