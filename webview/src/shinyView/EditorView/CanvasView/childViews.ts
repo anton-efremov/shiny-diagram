@@ -9,12 +9,12 @@ import type { StylePaneView } from "./StylePane/views";
 import type { ToolPaneView } from "./ToolPane/views";
 import type { CanvasViewModel } from "./views";
 
-// @job-helper logic:child-view
+// @job-helper logic:view:child
 export function toToolPaneView(editorState: EditorState): ToolPaneView {
   return { placementMode: editorState.placementMode };
 }
 
-// @job-helper logic:child-view
+// @job-helper logic:view:child
 export function toClassDiagramView(
   view: CanvasViewModel,
   editorState: EditorState
@@ -26,7 +26,7 @@ export function toClassDiagramView(
   };
 }
 
-// @job-helper logic:child-view
+// @job-helper logic:view:child
 export function toStylePaneView(
   view: CanvasViewModel,
   selectedClassIds: readonly ClassId[]

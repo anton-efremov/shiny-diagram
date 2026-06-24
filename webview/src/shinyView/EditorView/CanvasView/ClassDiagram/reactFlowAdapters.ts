@@ -19,7 +19,7 @@ export type RelationshipEdgeDescriptor = ReactFlowEdge;
 /**
  * Converts class-box views into ReactFlow node descriptors.
  */
-// @job-helper adapt:framework-props
+// @job-helper connect:adapt:framework
 export function toClassBoxNodeDescriptors(
   classes: readonly ClassBoxView[],
   selectedClassIds: readonly ClassId[]
@@ -47,7 +47,7 @@ export function toClassBoxNodeDescriptors(
 /**
  * Converts relationship views into ReactFlow edge descriptors.
  */
-// @job-helper adapt:framework-props
+// @job-helper connect:adapt:framework
 export function toRelationshipEdgeDescriptors(
   classes: readonly ClassBoxView[],
   relationships: readonly RelationshipView[]
@@ -81,7 +81,7 @@ export function toRelationshipEdgeDescriptors(
 /**
  * Chooses the source handle side facing the target class box.
  */
-// @job-helper adapt:framework-props
+// @job-helper connect:adapt:framework
 export function chooseSourceSide(source: ClassBoxView, target: ClassBoxView): BoxSide {
   const sourceCenterX = source.x + source.w / 2;
   const sourceCenterY = source.y + source.h / 2;
@@ -99,7 +99,7 @@ export function chooseSourceSide(source: ClassBoxView, target: ClassBoxView): Bo
 /**
  * Returns the opposite box side for a relationship target handle.
  */
-// @job-helper adapt:framework-props
+// @job-helper connect:adapt:framework
 export function oppositeSide(side: BoxSide): BoxSide {
   switch (side) {
     case "top":

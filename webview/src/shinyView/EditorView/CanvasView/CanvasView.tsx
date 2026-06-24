@@ -1,6 +1,7 @@
 /**
- * @role [H+P] Hub plus presentational
- * @coordinates Ready editor selection and placement state across tools, canvas, and styles.
+ * @role [L] Logic
+ * @logic Ready editor selection and placement state lifecycle.
+ * @transports Editor state actions to tools, canvas, and styles.
  * @presents Ready editor-state interface.
  */
 import { useCallback, useReducer } from "react";
@@ -20,9 +21,6 @@ type CanvasViewProps = {
   readonly view: CanvasViewModel;
 };
 
-/**
- * Renders the ready class diagram editor interface.
- */
 export default function CanvasView({ view }: CanvasViewProps): ReactElement {
   
   // @job logic:state:initialize
@@ -40,13 +38,13 @@ export default function CanvasView({ view }: CanvasViewProps): ReactElement {
   }, []);
   useStateReconciliation(view, reconcileSelectionWithElements);
 
-  // @job logic:child-view
+  // @job logic:view:child
   const toolPaneView = toToolPaneView(editorState);
 
-  // @job logic:child-view
+  // @job logic:view:child
   const classDiagramView = toClassDiagramView(view, editorState);
 
-  // @job logic:child-view
+  // @job logic:view:child
   const stylePaneView = toStylePaneView(view, editorState.selectedClassIds);
 
   // @job logic:state:transport

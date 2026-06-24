@@ -1,6 +1,5 @@
 /**
- * @role [H] Hub
- * @presents Transport-only Editor state action dispatch context.
+ * @fileoverview Transport-only Editor state action dispatch context.
  */
 
 import { createContext, useContext } from "react";

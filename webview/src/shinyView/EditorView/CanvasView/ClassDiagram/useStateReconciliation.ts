@@ -2,7 +2,7 @@
  * @fileoverview Prop-driven reconciliation for ClassDiagram-owned React Flow state.
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import type { ClassId } from "../../../../shared/ids";
 import type { ClassBoxView } from "./ClassBox/views";
 import type { ClassDiagramView } from "./views";
@@ -16,12 +16,9 @@ export function useStateReconciliation(
   ) => void,
   projectSelectionToNodes: (selectedClassIds: readonly ClassId[]) => void
 ): void {
-  const selectedClassIdsRef = useRef(view.selectedClassIds);
-  selectedClassIdsRef.current = view.selectedClassIds;
-
   useEffect(() => {
-    rebuildNodesFromClassViews(view.elements.classes, selectedClassIdsRef.current);
-  }, [rebuildNodesFromClassViews, view.elements.classes]);
+    rebuildNodesFromClassViews(view.elements.classes, view.selectedClassIds);
+  }, [rebuildNodesFromClassViews, view.elements.classes, view.selectedClassIds]);
 
   useEffect(() => {
     projectSelectionToNodes(view.selectedClassIds);

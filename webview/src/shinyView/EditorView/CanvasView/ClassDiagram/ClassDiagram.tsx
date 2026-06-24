@@ -1,14 +1,16 @@
 /**
- * @role [L+P] Logic plus presentational
- * @logic Placement-active canvas interaction gating.
+ * @role [L] Logic
+ * @logic React Flow node state and placement interaction props.
+ * @adapts React Flow.
  * @presents React Flow class diagram canvas.
  */
 import { useCallback, useMemo, useState } from "react";
 import type { ReactElement } from "react";
-import type { NodeChange, NodeTypes } from "@xyflow/react";
+import type { NodeChange, NodeTypes, OnNodeDrag, OnSelectionChangeFunc } from "@xyflow/react";
 import { Background, Controls, ReactFlow, ReactFlowProvider } from "@xyflow/react";
-import { useClassBoxNodeInteractions } from "./useClassBoxNodeInteractions";
-import { useCanvasInteractions } from "./useCanvasInteractions";
+import type { ClassId } from "../../../../shared/ids";
+import { useDispatchCommand } from "../../contexts";
+import { useDispatchEditorStateAction } from "../contexts";
 import ClassBox from "./ClassBox/ClassBox";
 import PlacementOverlay from "./PlacementOverlay/PlacementOverlay";
 import {
@@ -17,22 +19,18 @@ import {
   projectClassDiagramSelectionToNodes,
   rebuildClassDiagramNodesFromClassViews,
 } from "./state";
-import type { ClassBoxNodeDescriptor } from "./reactFlowAdapters";
+import type { ClassBoxNodeDescriptor, RelationshipEdgeDescriptor } from "./reactFlowAdapters";
 import { toRelationshipEdgeDescriptors } from "./reactFlowAdapters";
 import { useStateReconciliation } from "./useStateReconciliation";
 import type { ClassDiagramView } from "./views";
 import styles from "./ClassDiagram.module.css";
 
-// @job-helper adapt:framework-props
 const nodeTypes = { classBox: ClassBox } satisfies NodeTypes;
 
 type ClassDiagramProps = {
   readonly view: ClassDiagramView;
 };
 
-/**
- * Renders the ReactFlow class diagram canvas.
- */
 export default function ClassDiagram({ view }: ClassDiagramProps): ReactElement {
   
   // @job logic:state:initialize
@@ -67,14 +65,14 @@ export default function ClassDiagram({ view }: ClassDiagramProps): ReactElement 
   // @job logic:state:reconcile
   useStateReconciliation(view, rebuildNodesFromClassViews, projectSelectionToNodes);
 
-  // @job adapt:framework-props
+  // @job connect:adapt:framework
   const rfNodes = classDiagramState.rfNodes;
   const rfEdges = useMemo(
     () => toRelationshipEdgeDescriptors(view.elements.classes, view.elements.relationships),
     [view.elements.classes, view.elements.relationships]
   );
 
-  // @job logic:ui-prop
+  // @job logic:view:prop
   const isPlacementActive = view.placementMode !== null;
 
   // @job logic:state:transport
@@ -85,13 +83,77 @@ export default function ClassDiagram({ view }: ClassDiagramProps): ReactElement 
     [applyNodeChanges]
   );
 
-  // @job wire:command
-  const { onNodeDragStop } = useClassBoxNodeInteractions(view.elements.classes);
+  // @job connect:adapt:event
+  const dispatchCommand = useDispatchCommand();
+  const dispatchEditorStateAction = useDispatchEditorStateAction();
+  const onNodeDragStop = useCallback<OnNodeDrag<ClassBoxNodeDescriptor>>(
+    (_event, _rfNode, rfNodes) => {
+      const viewsById = new Map(
+        view.elements.classes.map((classView) => [classView.classId, classView])
+      );
+      const finalPositionsByClassId = new Map(
+        rfNodes.flatMap((rfNode) => {
+          if (rfNode.type !== "classBox") return [];
 
-  // @job wire:action
-  const { onSelectionChange, onPaneClick } = useCanvasInteractions(
-    view.elements.classes.map((classView) => classView.classId)
+          const classView = viewsById.get(rfNode.data.view.view.classId);
+          if (!classView) return [];
+
+          return [[classView.classId, rfNode.position] as const];
+        })
+      );
+
+      // @job logic:command:derive
+      const moves = view.elements.classes.flatMap((classView) => {
+        const position = finalPositionsByClassId.get(classView.classId);
+        if (!position) return [];
+
+        return [
+          {
+            classId: classView.classId,
+            rect: {
+              x: position.x,
+              y: position.y,
+              w: classView.w,
+              h: classView.h,
+            },
+          },
+        ];
+      });
+
+      if (moves.length === 0) return;
+
+      // @job connect:wire:command
+      dispatchCommand({ type: "class.move", moves });
+    },
+    [dispatchCommand, view.elements.classes]
   );
+
+  // @job connect:adapt:event
+  const onSelectionChange = useCallback<
+    OnSelectionChangeFunc<ClassBoxNodeDescriptor, RelationshipEdgeDescriptor>
+  >(
+    ({ nodes }) => {
+      const selected = new Set<ClassId>();
+      for (const node of nodes) {
+        if (node.type === "classBox") {
+          selected.add(node.data.view.view.classId);
+        }
+      }
+
+      const orderedSelection = view.elements.classes.flatMap((classView) =>
+        selected.has(classView.classId) ? [classView.classId] : []
+      );
+
+      // @job connect:wire:action
+      dispatchEditorStateAction({ type: "selection.setClassIds", classIds: orderedSelection });
+    },
+    [dispatchEditorStateAction, view.elements.classes]
+  );
+
+  // @job connect:wire:action
+  const onPaneClick = useCallback(() => {
+    dispatchEditorStateAction({ type: "selection.clearClassIds" });
+  }, [dispatchEditorStateAction]);
 
   // @job render:ui
   return (
