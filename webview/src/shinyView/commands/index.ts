@@ -14,9 +14,9 @@ export type {
 export type {
   ClassBoxCommand,
   ClassHeaderCommand,
-} from "../EditorView/CanvasView/ClassDiagram/ClassBox/commands";
-export type { ClassAddCommand } from "../EditorView/CanvasView/ClassDiagram/PlacementOverlay/commands";
-export type { MemberCommand } from "../EditorView/CanvasView/ClassDiagram/ClassBox/MemberTable/commands";
+} from "../EditorView/CanvasView/ClassDiagram/ReactFlowCanvasAdapter/ReactFlowClassBoxNodeAdapter/ClassBox/commands";
+export type { ClassAddCommand } from "../EditorView/CanvasView/ClassDiagram/ReactFlowCanvasAdapter/PlacementOverlay/commands";
+export type { MemberCommand } from "../EditorView/CanvasView/ClassDiagram/ReactFlowCanvasAdapter/ReactFlowClassBoxNodeAdapter/ClassBox/MemberTable/commands";
 export type {
   ClassDeleteCommand,
   ClassDuplicateCommand,

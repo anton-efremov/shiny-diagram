@@ -12,9 +12,9 @@ import type {
 import type {
   ClassBoxCommand,
   ClassHeaderCommand,
-} from "../EditorView/CanvasView/ClassDiagram/ClassBox/commands";
-import type { MemberCommand } from "../EditorView/CanvasView/ClassDiagram/ClassBox/MemberTable/commands";
-import type { ClassAddCommand } from "../EditorView/CanvasView/ClassDiagram/PlacementOverlay/commands";
+} from "../EditorView/CanvasView/ClassDiagram/ReactFlowCanvasAdapter/ReactFlowClassBoxNodeAdapter/ClassBox/commands";
+import type { MemberCommand } from "../EditorView/CanvasView/ClassDiagram/ReactFlowCanvasAdapter/ReactFlowClassBoxNodeAdapter/ClassBox/MemberTable/commands";
+import type { ClassAddCommand } from "../EditorView/CanvasView/ClassDiagram/ReactFlowCanvasAdapter/PlacementOverlay/commands";
 import type {
   ClassDeleteCommand,
   ClassDuplicateCommand,

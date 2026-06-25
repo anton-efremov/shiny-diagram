@@ -1,8 +1,9 @@
 /**
- * @fileoverview Editor commands owned by the class-member table.
+ * @fileoverview ClassBox/MemberTable editor commands.
+ * Extracted because MemberTable is an exclusively owned child component.
  */
 
-import type { ClassId, MemberId } from "../../../../../../shared/ids";
+import type { ClassId, MemberId } from "../../../../../../../../shared/ids";
 
 export type MemberPrefix = "+" | "-" | "#" | "~" | "$" | "*" | "";
 

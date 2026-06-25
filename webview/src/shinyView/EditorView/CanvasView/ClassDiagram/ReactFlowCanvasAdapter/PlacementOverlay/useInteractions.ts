@@ -1,44 +1,46 @@
 /**
- * @fileoverview Hook for translating placement overlay interactions into editor commands.
+ * @fileoverview PlacementOverlay interaction pipeline.
+ * Translates pointer events into class.add commands and placement.complete state actions.
+ * Owns no state; state is provided by PlacementOverlay.
  */
 
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import type { PointerEvent } from "react";
 import { useReactFlow } from "@xyflow/react";
-import type { Point, Rect } from "../../../../../shared/geometry";
-import { useDispatchEditorStateAction } from "../../contexts";
-import { useDispatchCommand } from "../../../contexts";
+import type { Point, Rect } from "../../../../../../shared/geometry";
+import { useDispatchEditorStateAction } from "../../../contexts";
+import { useDispatchCommand } from "../../../../contexts";
+import { toClassAddCommand } from "./commands";
 
 const DRAG_THRESHOLD = 4;
 
-type DrawOrigin = {
+export type DrawOrigin = {
   readonly pointerId: number;
   readonly client: Point;
   readonly flow: Point;
 };
 
 type UsePlacementOverlayInteractionsResult = {
-  draftRect: Rect | null;
-  onPointerDown: (event: PointerEvent<HTMLDivElement>) => void;
-  onPointerMove: (event: PointerEvent<HTMLDivElement>) => void;
-  onPointerUp: (event: PointerEvent<HTMLDivElement>) => void;
+  readonly onPointerDown: (event: PointerEvent<HTMLDivElement>) => void;
+  readonly onPointerMove: (event: PointerEvent<HTMLDivElement>) => void;
+  readonly onPointerUp: (event: PointerEvent<HTMLDivElement>) => void;
 };
 
-/**
- * Dispatches placement commands from the overlay interaction surface.
- */
-export function usePlacementOverlayInteractions(): UsePlacementOverlayInteractionsResult {
+// @job-helper connect:command:wire
+export function usePlacementOverlayInteractions(
+  origin: DrawOrigin | null,
+  setOrigin: (origin: DrawOrigin | null) => void,
+  setDraftRect: (rect: Rect | null) => void
+): UsePlacementOverlayInteractionsResult {
   const { screenToFlowPosition } = useReactFlow();
   const dispatchCommand = useDispatchCommand();
   const dispatchEditorStateAction = useDispatchEditorStateAction();
-  const [origin, setOrigin] = useState<DrawOrigin | null>(null);
-  const [draftRect, setDraftRect] = useState<Rect | null>(null);
 
+  // @job connect:event:normalize
   const onPointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
       event.preventDefault();
       event.stopPropagation();
-
       event.currentTarget.setPointerCapture(event.pointerId);
       setOrigin({
         pointerId: event.pointerId,
@@ -47,16 +49,15 @@ export function usePlacementOverlayInteractions(): UsePlacementOverlayInteractio
       });
       setDraftRect(null);
     },
-    [screenToFlowPosition]
+    [screenToFlowPosition, setOrigin, setDraftRect]
   );
 
+  // @job connect:event:normalize
   const onPointerMove = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
       if (!origin || event.pointerId !== origin.pointerId) return;
-
       event.preventDefault();
       event.stopPropagation();
-
       const bounds = event.currentTarget.getBoundingClientRect();
       setDraftRect(
         normalizeRect(
@@ -65,48 +66,51 @@ export function usePlacementOverlayInteractions(): UsePlacementOverlayInteractio
         )
       );
     },
-    [origin]
+    [origin, setDraftRect]
   );
 
+  // @job connect:event:normalize
   const onPointerUp = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
       if (!origin || event.pointerId !== origin.pointerId) return;
-
       event.preventDefault();
       event.stopPropagation();
-
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
-
       const endClient = { x: event.clientX, y: event.clientY };
       const endFlow = screenToFlowPosition(endClient);
       const isMeaningfulDrag =
         Math.abs(endClient.x - origin.client.x) >= DRAG_THRESHOLD ||
         Math.abs(endClient.y - origin.client.y) >= DRAG_THRESHOLD;
-
       setOrigin(null);
       setDraftRect(null);
-
       if (!isMeaningfulDrag) return;
 
-      dispatchCommand({ type: "class.add", rect: normalizeRect(origin.flow, endFlow) });
+      // @job logic:command:derive
+      const command = toClassAddCommand(normalizeRect(origin.flow, endFlow));
+
+      // @job connect:command:wire
+      dispatchCommand(command);
+
+      // @job connect:state:wire
       dispatchEditorStateAction({ type: "placement.complete" });
     },
-    [dispatchCommand, dispatchEditorStateAction, origin, screenToFlowPosition]
+    [
+      dispatchCommand,
+      dispatchEditorStateAction,
+      origin,
+      screenToFlowPosition,
+      setDraftRect,
+      setOrigin,
+    ]
   );
 
-  return { draftRect, onPointerDown, onPointerMove, onPointerUp };
+  return { onPointerDown, onPointerMove, onPointerUp };
 }
 
 function normalizeRect(first: Point, second: Point): Rect {
   const x = Math.min(first.x, second.x);
   const y = Math.min(first.y, second.y);
-
-  return {
-    x,
-    y,
-    w: Math.abs(second.x - first.x),
-    h: Math.abs(second.y - first.y),
-  };
+  return { x, y, w: Math.abs(second.x - first.x), h: Math.abs(second.y - first.y) };
 }

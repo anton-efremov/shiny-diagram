@@ -1,19 +1,13 @@
 /**
- * @fileoverview Render contract for class-box nodes.
+ * @fileoverview ClassBox render contract.
+ * Extracted because ClassBox is an exclusively owned child component of ReactFlowClassBoxNodeAdapter.
  */
 
-import type { ClassId } from "../../../../../shared/ids";
+import type { ClassId } from "../../../../../../../shared/ids";
 import type { ClassBoxMemberView } from "./MemberTable/views";
 
-/**
- * Exposes the classDef name so StylePane can display the applied style.
- */
-export type ClassBoxView = {
+export type ClassBoxRenderView = {
   readonly classId: ClassId;
-  readonly x: number;
-  readonly y: number;
-  readonly w: number;
-  readonly h: number;
   readonly header: { readonly label: string; readonly stereotype?: string };
   readonly members: readonly ClassBoxMemberView[];
   readonly style?: {
@@ -22,4 +16,7 @@ export type ClassBoxView = {
     readonly color?: string;
     readonly name?: string;
   };
+  readonly isSelected: boolean;
+  readonly isDragging: boolean;
+  readonly isResizeVisible: boolean;
 };

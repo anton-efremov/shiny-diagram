@@ -8,10 +8,6 @@ import type { RelationshipType } from "../../../../shared/relationshipTypes";
 import type { StylePropertyName } from "../../../../shared/styleTypes";
 
 export type ClassMoveCommand = {
-  /**
-   * One completed React Flow drag gesture. A gesture may move one class or a
-   * selected group, but it is persisted as one aggregate command.
-   */
   readonly type: "class.move";
   readonly moves: readonly ClassMoveEntry[];
 };
@@ -52,3 +48,8 @@ export type NoteCommand =
   | { readonly type: "note.move"; readonly noteId: NoteId; readonly rect: Rect }
   | { readonly type: "note.resize"; readonly noteId: NoteId; readonly rect: Rect }
   | { readonly type: "note.setText"; readonly noteId: NoteId; readonly text: string };
+
+// @job-helper logic:command:derive
+export function toClassMoveCommand(moves: readonly ClassMoveEntry[]): ClassMoveCommand {
+  return { type: "class.move", moves };
+}

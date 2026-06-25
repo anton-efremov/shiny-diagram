@@ -41,7 +41,7 @@ export const initialEditorState: EditorState = {
   placementMode: null,
 };
 
-// @job-helper logic:state:transform
+// @job-helper logic:state:update
 export function editorStateReducer(state: EditorState, action: EditorStateAction): EditorState {
   switch (action.type) {
     case "selection.setClassIds":
@@ -63,7 +63,7 @@ export function editorStateReducer(state: EditorState, action: EditorStateAction
   }
 }
 
-// @job-helper logic:state:transform
+// @job-helper logic:state:update
 function updateSelectedClassIds(
   state: EditorState,
   selectedClassIds: readonly ClassId[]
