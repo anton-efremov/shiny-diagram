@@ -1,6 +1,6 @@
 /**
- * @role [P] Presentational
- * @presents Transport-only command dispatch context.
+ * @fileoverview EditorView command dispatch context.
+ * Provides the View-to-Controller command transport and its fail-fast consumer hook.
  */
 
 import { createContext, useContext } from "react";

@@ -35,13 +35,13 @@ export type EditorStateAction =
       readonly type: "placement.cancel";
     };
 
-// @job-helper logic:state:initialize
+// @job logic:state:initialize
 export const initialEditorState: EditorState = {
   selectedClassIds: [],
   placementMode: null,
 };
 
-// @job-helper logic:state:update
+// @job logic:state:update
 export function editorStateReducer(state: EditorState, action: EditorStateAction): EditorState {
   switch (action.type) {
     case "selection.setClassIds":
@@ -63,7 +63,6 @@ export function editorStateReducer(state: EditorState, action: EditorStateAction
   }
 }
 
-// @job-helper logic:state:update
 function updateSelectedClassIds(
   state: EditorState,
   selectedClassIds: readonly ClassId[]
@@ -73,7 +72,7 @@ function updateSelectedClassIds(
     : { ...state, selectedClassIds };
 }
 
-// @job-helper logic:state:reconcile
+// @job logic:state:reconcile
 function reconcileSelectedClassIds(
   selectedClassIds: readonly ClassId[],
   elements: ElementViews | null

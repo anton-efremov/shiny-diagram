@@ -28,7 +28,7 @@ type ClassBoxProps = {
 };
 
 export default function ClassBox({ view }: ClassBoxProps): ReactElement {
-  // @job connect:command:wire
+  // @job connect:event:wire
   const { onResizeEnd } = useClassBoxInteractions(view.classId);
 
   // @job connect:child:view

@@ -3,7 +3,7 @@
  */
 
 import type { ClassId } from "../../../../shared/ids";
-import type { ClassBoxView } from "./ClassBox/views";
+import type { ClassBoxView } from "./views";
 
 export type ClassLayoutEntry = {
   readonly x: number;
@@ -22,7 +22,7 @@ export type ClassPositionChange = {
   readonly y: number;
 };
 
-// @job-helper logic:state:initialize
+// @job logic:state:initialize
 export function createInitialDiagramLayoutState(
   classes: readonly ClassBoxView[]
 ): DiagramLayoutState {
@@ -31,7 +31,7 @@ export function createInitialDiagramLayoutState(
   };
 }
 
-// @job-helper logic:state:reconcile
+// @job logic:state:reconcile
 export function reconcileLayoutWithClassViews(
   state: DiagramLayoutState,
   classes: readonly ClassBoxView[]
@@ -42,7 +42,7 @@ export function reconcileLayoutWithClassViews(
   };
 }
 
-// @job-helper logic:state:update
+// @job logic:state:update
 export function applyPositionChanges(
   state: DiagramLayoutState,
   changes: readonly ClassPositionChange[]

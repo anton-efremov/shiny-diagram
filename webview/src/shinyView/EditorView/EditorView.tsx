@@ -18,7 +18,7 @@ type EditorViewProps = {
   dispatch: EditorDispatch;
 };
 
-// @job-helper logic:child-view
+// @job logic:child:view
 function toCanvasView({
   view,
 }: {
@@ -54,25 +54,25 @@ export default function EditorView({
   view,
   dispatch: dispatchCommand,
 }: EditorViewProps): ReactElement {
-  // @job logic:branch-views
+  // @job logic:child:route
   const editorInterface = (() => {
     switch (view.status) {
       case "ready": {
-        // @job logic:child-view
+        // @job logic:child:view
         const canvasView = toCanvasView({
           view,
         });
         return <CanvasView view={canvasView} />;
       }
       case "invalidSyntax": {
-        // @job logic:child-view
+        // @job logic:child:view
         const errorView = toErrorView({
           view,
         });
         return <ErrorView view={errorView} />;
       }
       case "missingAnnotations": {
-        // @job logic:child-view
+        // @job logic:child:view
         const missingAnnotationsView = toMissingAnnotationsView({
           view,
         });
@@ -81,7 +81,7 @@ export default function EditorView({
     }
   })();
 
-  // @job coordinate:providers
+  // @job connect:command:wire
   return (
     <CommandDispatchContext.Provider value={dispatchCommand}>
       {editorInterface}

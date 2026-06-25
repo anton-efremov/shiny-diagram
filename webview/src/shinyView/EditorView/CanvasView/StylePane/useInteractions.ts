@@ -1,10 +1,16 @@
 /**
- * @fileoverview Hook for translating style-pane edits into editor commands.
+ * @fileoverview StylePane interaction pipeline.
+ * Translates style-pane edits and keyboard events into editor commands.
  */
 
 import { useCallback, useEffect } from "react";
 import type { ClassId } from "../../../../shared/ids";
 import { useDispatchCommand } from "../../contexts";
+import {
+  toClassDeleteCommand,
+  toClassDuplicateCommand,
+  toStyleSetClassPropertyCommand,
+} from "./commands";
 import type { StyleCommand } from "./commands";
 
 type UseStylePaneInteractionsOptions = {
@@ -26,15 +32,16 @@ export function useStylePaneInteractions({
   selectedClassIds,
 }: UseStylePaneInteractionsOptions): UseStylePaneInteractionsResult {
   const dispatchCommand = useDispatchCommand();
+
+  // @job connect:command:wire
   const dispatchStyleChange = useCallback(
     (property: StyleCommand["property"], value: string) => {
-      if (selectedClassIds.length === 0) return;
-      dispatchCommand({
-        type: "style.setClassProperty",
-        classIds: selectedClassIds,
+      const command = toStyleSetClassPropertyCommand({
+        selectedClassIds,
         property,
         value,
       });
+      if (command) dispatchCommand(command);
     },
     [selectedClassIds, dispatchCommand]
   );
@@ -55,17 +62,19 @@ export function useStylePaneInteractions({
   );
 
   const onDeleteClick = useCallback(() => {
-    if (selectedClassIds.length === 0) return;
-    dispatchCommand({ type: "class.delete", classIds: selectedClassIds });
+    const command = toClassDeleteCommand(selectedClassIds);
+    if (command) dispatchCommand(command);
   }, [selectedClassIds, dispatchCommand]);
 
   const onDuplicate = useCallback(() => {
-    if (selectedClassIds.length === 0) return;
-    dispatchCommand({ type: "class.duplicate", classIds: selectedClassIds });
+    const command = toClassDuplicateCommand(selectedClassIds);
+    if (command) dispatchCommand(command);
   }, [selectedClassIds, dispatchCommand]);
 
+  // @job connect:event:wire
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent): void {
+      // @job connect:event:normalize
       if (
         selectedClassIds.length === 0 ||
         event.defaultPrevented ||
@@ -81,7 +90,9 @@ export function useStylePaneInteractions({
       }
 
       event.preventDefault();
-      dispatchCommand({ type: "class.delete", classIds: selectedClassIds });
+      // @job connect:command:wire
+      const command = toClassDeleteCommand(selectedClassIds);
+      if (command) dispatchCommand(command);
     }
 
     window.addEventListener("keydown", handleKeyDown);

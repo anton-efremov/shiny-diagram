@@ -5,7 +5,7 @@
 
 import { useCallback } from "react";
 import type { ClassId } from "../../../../shared/ids";
-import type { ClassBoxView } from "./ClassBox/views";
+import type { ClassBoxView } from "./views";
 import type { ClassPositionChange } from "./state";
 import { toClassMoveCommand } from "./commands";
 import { useDispatchCommand } from "../../contexts";
@@ -17,7 +17,6 @@ type UseClassDiagramInteractionsResult = {
   readonly onPaneClick: () => void;
 };
 
-// @job-helper logic:action:derive
 export function useClassDiagramInteractions(
   classes: readonly ClassBoxView[]
 ): UseClassDiagramInteractionsResult {
@@ -48,7 +47,6 @@ export function useClassDiagramInteractions(
     [dispatchEditorStateAction]
   );
 
-  // @job connect:state:wire
   const onPaneClick = useCallback(() => {
     dispatchEditorStateAction({ type: "selection.clearClassIds" });
   }, [dispatchEditorStateAction]);

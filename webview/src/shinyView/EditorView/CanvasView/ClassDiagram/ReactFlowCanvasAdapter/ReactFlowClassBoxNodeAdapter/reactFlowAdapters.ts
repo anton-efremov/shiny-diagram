@@ -9,7 +9,7 @@ import type { ClassBoxRenderView } from "./ClassBox/views";
 
 type ClassBoxNode = Node<ClassBoxNodeData, "classBox">;
 
-// @job-helper connect:framework:props
+// @job connect:framework:props
 export function toClassBoxRenderView(props: NodeProps<ClassBoxNode>): ClassBoxRenderView {
   return {
     classId: props.data.classId,

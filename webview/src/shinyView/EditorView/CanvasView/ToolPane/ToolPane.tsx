@@ -1,12 +1,12 @@
 /**
- * @role [L+P] Logic plus presentational
+ * @role [L]+[P] Logic and Presentational
  * @logic Active class placement tool state.
  * @presents Diagram creation tool palette.
  */
 import type { ReactElement } from "react";
 import ControlButton from "../../../ui/ControlButton/ControlButton";
 import { ClassIcon } from "../../../ui/icons/icons";
-import { useToolPaneInteractions } from "./useToolPaneInteractions";
+import { useToolPaneInteractions } from "./useInteractions";
 import type { ToolPaneView } from "./views";
 import styles from "./ToolPane.module.css";
 
@@ -46,18 +46,18 @@ const relationshipTools: ToolPaneItem[] = [
  * Renders diagram creation tools.
  */
 export default function ToolPane({ view }: ToolPaneProps): ReactElement {
-  // @job wire:action
+  // @job connect:state:wire
   const { onClassToolClick } = useToolPaneInteractions();
 
-  // @job logic:ui-prop
+  // @job logic:child:view
   const isClassPlacementActive = view.placementMode === "class";
 
-  // @job render:layout
+  // @job render:structure
   return (
     <aside className={styles.toolPane} aria-label="Diagram tools">
       <div className={styles.toolGroup} aria-label="Class elements">
         {classTools.map((tool, index) => {
-          // @job logic:ui-prop
+          // @job logic:child:view
           const isClassTool = index === 0;
           return (
             <ControlButton
@@ -84,7 +84,6 @@ export default function ToolPane({ view }: ToolPaneProps): ReactElement {
         })}
       </div>
       <div className={styles.toolGroup} aria-label="Relationship elements">
-        {/* @job render:ui */}
         {relationshipTools.map((tool) => (
           <ControlButton
             key={tool.name}

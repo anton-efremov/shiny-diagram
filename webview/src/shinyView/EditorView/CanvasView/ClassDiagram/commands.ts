@@ -49,7 +49,7 @@ export type NoteCommand =
   | { readonly type: "note.resize"; readonly noteId: NoteId; readonly rect: Rect }
   | { readonly type: "note.setText"; readonly noteId: NoteId; readonly text: string };
 
-// @job-helper logic:command:derive
+// @job logic:command:derive
 export function toClassMoveCommand(moves: readonly ClassMoveEntry[]): ClassMoveCommand {
   return { type: "class.move", moves };
 }

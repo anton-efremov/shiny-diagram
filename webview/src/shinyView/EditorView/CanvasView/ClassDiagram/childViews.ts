@@ -7,7 +7,7 @@ import type { DiagramLayoutState } from "./state";
 import type { ClassDiagramView } from "./views";
 import type { ReactFlowCanvasAdapterView, ClassEntryView } from "./ReactFlowCanvasAdapter/views";
 
-// @job-helper logic:child:view
+// @job logic:child:view
 export function toClassDiagramChildView(
   state: DiagramLayoutState,
   view: ClassDiagramView

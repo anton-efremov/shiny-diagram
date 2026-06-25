@@ -25,7 +25,7 @@ export type ClassBoxNodeData = {
 export type ClassBoxNodeDescriptor = ReactFlowNode<ClassBoxNodeData, "classBox">;
 export type RelationshipEdgeDescriptor = ReactFlowEdge;
 
-// @job-helper connect:framework:props
+// @job connect:framework:props
 export function toClassBoxNodeDescriptors(
   classes: readonly ClassEntryView[],
   selectedClassIds: readonly ClassId[]
@@ -49,7 +49,6 @@ export function toClassBoxNodeDescriptors(
   }));
 }
 
-// @job-helper connect:framework:props
 export function toRelationshipEdgeDescriptors(
   classes: readonly ClassEntryView[],
   relationships: readonly RelationshipView[]
@@ -82,7 +81,6 @@ export function toRelationshipEdgeDescriptors(
 
 type BoxSide = "top" | "right" | "bottom" | "left";
 
-// @job-helper connect:framework:props
 function chooseSourceSide(source: ClassEntryView, target: ClassEntryView): BoxSide {
   const sourceCenterX = source.x + source.w / 2;
   const sourceCenterY = source.y + source.h / 2;
@@ -97,7 +95,6 @@ function chooseSourceSide(source: ClassEntryView, target: ClassEntryView): BoxSi
   return dy >= 0 ? "bottom" : "top";
 }
 
-// @job-helper connect:framework:props
 function oppositeSide(side: BoxSide): BoxSide {
   switch (side) {
     case "top":
@@ -111,7 +108,7 @@ function oppositeSide(side: BoxSide): BoxSide {
   }
 }
 
-// @job-helper connect:event:normalize
+// @job connect:event:normalize
 export function normalizePositionChanges(
   view: ReactFlowCanvasAdapterView,
   rfNodes: ClassBoxNodeDescriptor[]

@@ -27,7 +27,6 @@ type UseReactFlowCanvasAdapterInteractionsResult = {
   readonly onPaneClick: () => void;
 };
 
-// @job-helper connect:event:normalize
 export function useReactFlowCanvasAdapterInteractions(
   view: ReactFlowCanvasAdapterView,
   callbacks: ReactFlowCanvasAdapterCallbacks
@@ -46,7 +45,6 @@ export function useReactFlowCanvasAdapterInteractions(
     [callbacks]
   );
 
-  // @job connect:event:normalize
   const onNodeDragStop = useCallback<OnNodeDrag<ClassBoxNodeDescriptor>>(
     (_event, _node, rfNodes) => {
       const finalPositions = rfNodes.flatMap((rfNode) => {
@@ -58,7 +56,6 @@ export function useReactFlowCanvasAdapterInteractions(
     [callbacks]
   );
 
-  // @job connect:event:normalize
   const onSelectionChange = useCallback<
     OnSelectionChangeFunc<ClassBoxNodeDescriptor, RelationshipEdgeDescriptor>
   >(

@@ -2,7 +2,7 @@
  * @fileoverview View-side style aggregation for selected class boxes.
  */
 
-import type { ClassBoxView } from "../ClassDiagram/ClassBox/views";
+import type { ClassBoxView } from "../ClassDiagram/views";
 
 type StyleProperty = "fill" | "stroke" | "color";
 

@@ -10,7 +10,7 @@ export type ClassAddCommand = {
   readonly rect: Rect;
 };
 
-// @job-helper logic:command:derive
+// @job logic:command:derive
 export function toClassAddCommand(rect: Rect): ClassAddCommand {
   return { type: "class.add", rect };
 }

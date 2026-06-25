@@ -13,15 +13,16 @@ type UseClassBoxInteractionsResult = {
   readonly onResizeEnd: (rect: Rect) => void;
 };
 
-// @job-helper connect:command:wire
 export function useClassBoxInteractions(classId: ClassId): UseClassBoxInteractionsResult {
   const dispatchCommand = useDispatchCommand();
 
-  // @job logic:command:derive
   const onResizeEnd = useCallback(
     (rect: Rect) => {
+      // @job logic:command:derive
+      const command = toClassResizeCommand(classId, rect);
+
       // @job connect:command:wire
-      dispatchCommand(toClassResizeCommand(classId, rect));
+      dispatchCommand(command);
     },
     [classId, dispatchCommand]
   );

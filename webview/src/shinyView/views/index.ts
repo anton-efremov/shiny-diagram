@@ -4,7 +4,7 @@
  */
 
 export type { EditorViewModel, ElementViews } from "../EditorView/views";
-export type { ClassBoxView } from "../EditorView/CanvasView/ClassDiagram/ClassBox/views";
+export type { ClassBoxView } from "../EditorView/CanvasView/ClassDiagram/views";
 export type { ClassBoxMemberView } from "../EditorView/CanvasView/ClassDiagram/ReactFlowCanvasAdapter/ReactFlowClassBoxNodeAdapter/ClassBox/MemberTable/views";
 export type {
   NamespaceBoxView,

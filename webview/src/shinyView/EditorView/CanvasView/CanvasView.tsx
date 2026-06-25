@@ -1,6 +1,7 @@
 /**
  * @role [L]+[P] Logic and Presentational
  * @logic Ready editor selection and placement state lifecycle.
+ * @state editorState: selected class ids and active placement mode.
  * @presents Ready editor layout and context provision.
  */
 import { useReducer, useEffect } from "react";
@@ -19,7 +20,6 @@ type CanvasViewProps = {
 };
 
 export default function CanvasView({ view }: CanvasViewProps): ReactElement {
-  
   // @job logic:state:initialize
   const [editorState, dispatchEditorStateAction] = useReducer(
     editorStateReducer,
@@ -39,6 +39,7 @@ export default function CanvasView({ view }: CanvasViewProps): ReactElement {
   const classDiagramView = toClassDiagramView(view, editorState);
   const stylePaneView = toStylePaneView(view, editorState.selectedClassIds);
 
+  // @job connect:state:wire
   return (
     <EditorStateDispatchContext.Provider value={dispatchEditorStateAction}>
       <section className={styles.editorShell} aria-label="Class diagram editor">

@@ -17,8 +17,9 @@ The document can be updated if rules imposed are too rigid to finish a developme
 ### 1.1. Place in a full layered architecture
 
 `shinyView` is the layer in 4-layered Shiny architecture, that is responsible for rendering UI given the description of diagram state and emitting commands for edit of persistent diagram representation in layers above
-- `EditorView/index.ts` is the **local public facade of the `EditorView` component folder**.
-- `shinyView/index.ts` is the **public boundary of the whole Shiny View layer**.
+- `shinyView/EditorView/index.ts` is the runtime component facade.
+- `shinyView/views/index.ts` is the View-contract facade.
+- `shinyView/commands/index.ts` is the Command-contract facade.
 
 ### 1.2. Boundaries
 
@@ -294,7 +295,7 @@ Logic:
 /**
  * @role [L] Logic
  * @logic <decisions in scope of current component>.
- * @state <state owned by this component> (optional - in case of owned state)
+ * @state <state owned by this component> - this line is omitted only when the component owns no state
  */
 ```
 
@@ -313,7 +314,7 @@ Logic and Presentational:
 /**
  * @role [L]+[P] Logic and Presentational
  * @logic <decisions in scope of current component>.
- * @state <state owned by this component> (optional - in case of owned state)
+ * @state <state owned by this component> - this line is omitted only when the component owns no state
  * @presents <interface or surface>.
  */
 ```
@@ -346,7 +347,7 @@ Framework adapter:
 
 The same form applies to component-body code, hooks, and extracted helpers.
 
-**7.4 Region scope.** A job annotation marks one contiguous executable region in the current lexical scope. The region ends at the next job annotation, the component’s rendered `return`, or the end of the scope. Adjacent code with the same job shares one region; nested scopes inherit the active job unless they declare another.
+**7.4 Region scope.** A job annotation marks a region, not an individual declaration. It covers following executable code in the current lexical scope until the next job annotation, the component’s rendered `return`, or the end of the scope. Adjacent declarations with the same job, including callback declarations, share one annotation; repeating the annotation within that region is prohibited. Nested scopes inherit the active job unless they declare another.
 
 **7.5 Valid tags.** Job annotations use only tags defined in section 2.1.
 

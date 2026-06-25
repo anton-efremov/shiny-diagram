@@ -1,6 +1,7 @@
 /**
  * @role [L]+[P] Logic and Presentational
  * @logic DiagramLayoutState lifecycle, child view projection.
+ * @state layoutState: framework-neutral class box positions and dimensions.
  * @presents Diagram shell and empty state.
  */
 
@@ -30,9 +31,7 @@ export default function ClassDiagram({ view }: ClassDiagramProps): ReactElement 
 
   // @job logic:state:reconcile
   useEffect(() => {
-    setLayoutState((state) =>
-      reconcileLayoutWithClassViews(state, view.elements.classes)
-    );
+    setLayoutState((state) => reconcileLayoutWithClassViews(state, view.elements.classes));
   }, [view.elements.classes]);
 
   // @job logic:state:update
@@ -43,7 +42,7 @@ export default function ClassDiagram({ view }: ClassDiagramProps): ReactElement 
   // @job logic:child:view
   const canvasAdapterView = toClassDiagramChildView(layoutState, view);
 
-  // @job logic:action:derive
+  // @job connect:event:wire
   const { onDragComplete, onSelectionChange, onPaneClick } = useClassDiagramInteractions(
     view.elements.classes
   );

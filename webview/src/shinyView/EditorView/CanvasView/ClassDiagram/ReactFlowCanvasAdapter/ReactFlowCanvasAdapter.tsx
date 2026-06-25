@@ -1,6 +1,6 @@
 /**
- * @role [A] Framework Adapter
- * @connects React Flow canvas, controlled node pattern, placement overlay.
+ * @role [A] Framework adapter
+ * @adapts React Flow canvas, controlled node descriptors, and event callbacks.
  */
 
 import { useMemo } from "react";
@@ -31,7 +31,6 @@ export default function ReactFlowCanvasAdapter({
   onSelectionChange: onSelectionChangeProp,
   onPaneClick: onPaneClickProp,
 }: ReactFlowCanvasAdapterProps): ReactElement {
-
   // @job connect:framework:props
   const rfNodes = useMemo(
     () => toClassBoxNodeDescriptors(view.classes, view.selectedClassIds),
@@ -42,7 +41,7 @@ export default function ReactFlowCanvasAdapter({
     [view.classes, view.relationships]
   );
 
-  // @job connect:state:wire
+  // @job connect:event:wire
   const callbacks = useMemo(
     () => ({
       onLayoutChange,
@@ -53,7 +52,6 @@ export default function ReactFlowCanvasAdapter({
     [onLayoutChange, onDragComplete, onSelectionChangeProp, onPaneClickProp]
   );
 
-  // @job connect:event:wire
   const { onNodesChange, onNodeDragStop, onSelectionChange, onPaneClick } =
     useReactFlowCanvasAdapterInteractions(view, callbacks);
 

@@ -1,9 +1,11 @@
 /**
- * @role [P] Presentational
+ * @role [L]+[P] Logic and Presentational
+ * @logic Duplicate color-change emission suppression.
+ * @state lastEmittedValue: last color value sent through the owner callback.
  * @presents Shared Shiny View color selector control.
  */
 
-import { useId, useRef } from "react";
+import { useState } from "react";
 import type { ChangeEvent, ReactElement, ReactNode } from "react";
 import styles from "./ColorSelector.module.css";
 
@@ -28,40 +30,35 @@ export default function ColorSelector({
   onChange,
   className,
 }: ColorSelectorProps): ReactElement {
-  // @job render:a11y
-  const inputId = useId();
+  // @job logic:state:initialize
+  const [lastEmittedValue, setLastEmittedValue] = useState<string | null>(null);
 
-  // @job adapt:local-state
-  const lastEmittedValueRef = useRef<string | null>(null);
-
+  // @job connect:event:normalize
   function handleChange(event: ChangeEvent<HTMLInputElement>): void {
-    // @job adapt:raw-event
     emitChange(event.currentTarget.value);
   }
 
+  // @job connect:event:wire
   function handleApplyClick(): void {
-    // @job wire:callback
     emitChange(pickerValue);
   }
 
   function emitChange(value: string): void {
-    // @job adapt:local-state
-    if (lastEmittedValueRef.current === value) return;
+    // @job logic:state:update
+    if (lastEmittedValue === value) return;
+    setLastEmittedValue(value);
 
-    lastEmittedValueRef.current = value;
-
-    // @job wire:callback
+    // @job connect:event:wire
     onChange(value);
   }
 
-  // @job render:ui
+  // @job render:structure
   return (
     <div className={[styles.selector, className ?? ""].filter(Boolean).join(" ")}>
-      <label className={styles.pickerLabel} htmlFor={inputId}>
+      <label className={styles.pickerLabel}>
         <span className={styles.icon} aria-hidden="true">
           {icon}
         </span>
-        {/* @job render:style */}
         <span
           className={[styles.swatch, mixed ? styles.mixed : ""].filter(Boolean).join(" ")}
           style={!mixed && swatchColor ? { background: swatchColor } : undefined}
@@ -73,7 +70,6 @@ export default function ColorSelector({
         </span>
       </label>
       <input
-        id={inputId}
         className={styles.input}
         type="color"
         value={pickerValue}

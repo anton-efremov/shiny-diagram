@@ -28,14 +28,13 @@ export default function ControlButton({
   children,
   ...buttonProps
 }: ControlButtonProps): ReactElement {
-  // @job adapt:presentation-shape
+  // @job connect:child:view
   const isIconOnly = variant === "compact";
   const content = children ?? label;
 
-  // @job render:a11y
   const ariaPressed = pressed ?? (active ? true : undefined);
 
-  // @job render:ui
+  // @job render:structure
   return (
     <button
       {...buttonProps}
@@ -51,13 +50,11 @@ export default function ControlButton({
         .filter(Boolean)
         .join(" ")}
     >
-      {/* @job render:ui */}
       {icon ? (
         <span className={styles.icon} aria-hidden="true">
           {icon}
         </span>
       ) : null}
-      {/* @job render:ui */}
       {isIconOnly ? null : <span className={styles.labelText}>{content}</span>}
     </button>
   );

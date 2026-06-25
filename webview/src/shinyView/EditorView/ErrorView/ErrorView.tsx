@@ -14,7 +14,7 @@ type ErrorViewProps = {
  * Renders the invalid syntax editor interface.
  */
 export default function ErrorView({ view }: ErrorViewProps): ReactElement {
-  // @job render:layout
+  // @job render:structure
   return (
     <>
       <div className={styles.statusMessage}>⚠ Invalid Mermaid syntax: {view.message}</div>

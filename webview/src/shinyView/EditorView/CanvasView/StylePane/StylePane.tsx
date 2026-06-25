@@ -1,5 +1,5 @@
 /**
- * @role [L+P] Logic plus presentational
+ * @role [L]+[P] Logic and Presentational
  * @logic Selected class style aggregation and selection-specific actions.
  * @presents Style inspector pane.
  */
@@ -15,7 +15,7 @@ import {
 } from "../../../ui/icons/icons";
 import { aggregateClassStyles } from "./styleAggregation";
 import type { AggregatedStyleProperty } from "./styleAggregation";
-import { useStylePaneInteractions } from "./useStylePaneInteractions";
+import { useStylePaneInteractions } from "./useInteractions";
 import type { StylePaneView } from "./views";
 import styles from "./StylePane.module.css";
 
@@ -27,24 +27,22 @@ type StylePaneProps = {
  * Renders the selected class style inspector.
  */
 export default function StylePane({ view }: StylePaneProps): ReactElement {
-  // @job adapt:slice-view
+  // @job connect:child:view
   const { selectedClassViews } = view;
 
-  // @job logic:ui-prop
+  // @job logic:child:view
   const selectedView = selectedClassViews.length === 1 ? selectedClassViews[0] : undefined;
 
-  // @job logic:child-view
   const aggregatedStyles = aggregateClassStyles(selectedClassViews);
 
-  // @job wire:command
+  // @job connect:command:wire
   const { onFillColorChange, onStrokeColorChange, onTextColorChange, onDuplicate, onDeleteClick } =
     useStylePaneInteractions({
       selectedClassIds: selectedClassViews.map((classView) => classView.classId),
     });
 
-  // @job logic:ui-prop
+  // @job logic:child:route
   if (selectedClassViews.length === 0) {
-    // @job render:layout
     return (
       <aside className={styles.stylePane} aria-label="Styles pane">
         <header className={styles.header}>Styles</header>
@@ -53,7 +51,7 @@ export default function StylePane({ view }: StylePaneProps): ReactElement {
     );
   }
 
-  // @job adapt:presentation-shape
+  // @job connect:child:view
   const fill = selectedView?.style?.fill;
   const stroke = selectedView?.style?.stroke;
   const color = selectedView?.style?.color;
@@ -65,7 +63,7 @@ export default function StylePane({ view }: StylePaneProps): ReactElement {
     "--style-color": color,
   } as CSSProperties;
 
-  // @job render:layout
+  // @job render:structure
   return (
     <aside className={styles.stylePane} aria-label="Styles pane">
       <header className={styles.header}>Styles</header>
@@ -75,7 +73,6 @@ export default function StylePane({ view }: StylePaneProps): ReactElement {
         aria-label="Selected class styles"
       >
         {selectedView ? (
-          // @job render:ui
           <div className={styles.selectionSummary}>
             <div className={styles.selectionAccent} aria-hidden="true" />
             <div className={styles.selectionCopy}>
@@ -89,7 +86,6 @@ export default function StylePane({ view }: StylePaneProps): ReactElement {
             </div>
           </div>
         ) : (
-          // @job render:ui
           <div className={styles.multiSelectionSummary}>
             <div className={styles.selectionType}>Selection</div>
             <h2 className={styles.className}>{selectedClassViews.length} classes selected</h2>
@@ -97,7 +93,6 @@ export default function StylePane({ view }: StylePaneProps): ReactElement {
         )}
 
         {selectedView ? (
-          // @job render:ui
           <div className={styles.previewCard} aria-label="Selected class color preview">
             <div className={styles.previewHeader}>{selectedView.header.label}</div>
             <div className={styles.previewBody}>
@@ -110,7 +105,6 @@ export default function StylePane({ view }: StylePaneProps): ReactElement {
           </div>
         ) : null}
 
-        {/* @job render:ui */}
         <div className={styles.styleList}>
           <ColorSelector
             label="Fill"
@@ -132,7 +126,6 @@ export default function StylePane({ view }: StylePaneProps): ReactElement {
           />
         </div>
 
-        {/* @job render:ui */}
         <div className={styles.actionArea}>
           <ControlButton
             icon={<DuplicateIcon />}

@@ -18,7 +18,7 @@ export type ClassHeaderCommand = {
   readonly label: string;
 };
 
-// @job-helper logic:command:derive
+// @job logic:command:derive
 export function toClassResizeCommand(classId: ClassId, rect: Rect): ClassBoxCommand {
   return { type: "class.resize", classId, rect };
 }

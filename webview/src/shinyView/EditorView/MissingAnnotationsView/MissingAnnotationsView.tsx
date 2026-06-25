@@ -22,12 +22,12 @@ export default function MissingAnnotationsView({
 }: MissingAnnotationsViewProps): ReactElement {
   const dispatchCommand = useDispatchCommand();
 
-  // @job wire:command
+  // @job connect:command:wire
   const onGenerate = useCallback(() => {
     dispatchCommand({ type: "generate" });
   }, [dispatchCommand]);
 
-  // @job render:layout
+  // @job render:structure
   return (
     <>
       <div className={styles.statusMessage}>

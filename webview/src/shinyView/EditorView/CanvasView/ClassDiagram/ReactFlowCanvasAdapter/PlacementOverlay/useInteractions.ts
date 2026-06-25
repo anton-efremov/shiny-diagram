@@ -26,7 +26,6 @@ type UsePlacementOverlayInteractionsResult = {
   readonly onPointerUp: (event: PointerEvent<HTMLDivElement>) => void;
 };
 
-// @job-helper connect:command:wire
 export function usePlacementOverlayInteractions(
   origin: DrawOrigin | null,
   setOrigin: (origin: DrawOrigin | null) => void,
@@ -36,12 +35,13 @@ export function usePlacementOverlayInteractions(
   const dispatchCommand = useDispatchCommand();
   const dispatchEditorStateAction = useDispatchEditorStateAction();
 
-  // @job connect:event:normalize
+  // @job connect:event:wire
   const onPointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
       event.preventDefault();
       event.stopPropagation();
       event.currentTarget.setPointerCapture(event.pointerId);
+      // @job connect:event:normalize
       setOrigin({
         pointerId: event.pointerId,
         client: { x: event.clientX, y: event.clientY },
@@ -52,12 +52,12 @@ export function usePlacementOverlayInteractions(
     [screenToFlowPosition, setOrigin, setDraftRect]
   );
 
-  // @job connect:event:normalize
   const onPointerMove = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
       if (!origin || event.pointerId !== origin.pointerId) return;
       event.preventDefault();
       event.stopPropagation();
+      // @job connect:event:normalize
       const bounds = event.currentTarget.getBoundingClientRect();
       setDraftRect(
         normalizeRect(
@@ -69,7 +69,6 @@ export function usePlacementOverlayInteractions(
     [origin, setDraftRect]
   );
 
-  // @job connect:event:normalize
   const onPointerUp = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
       if (!origin || event.pointerId !== origin.pointerId) return;
@@ -79,6 +78,7 @@ export function usePlacementOverlayInteractions(
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
       const endClient = { x: event.clientX, y: event.clientY };
+      // @job connect:event:normalize
       const endFlow = screenToFlowPosition(endClient);
       const isMeaningfulDrag =
         Math.abs(endClient.x - origin.client.x) >= DRAG_THRESHOLD ||
