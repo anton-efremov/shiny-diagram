@@ -2,14 +2,19 @@
  * @fileoverview Handles View class header and member editing commands.
  */
 
-import type { ClassHeaderCommand, MemberCommand } from "../../../../shinyView/commands";
+import type { EditorCommandOf } from "../../../../shinyView/commands";
 import type { CommandContext, CommandResult } from "../../commandExecution";
+
+type ClassContentCommand =
+  | EditorCommandOf<"class.label.set">
+  | EditorCommandOf<"class.member.text.set">
+  | EditorCommandOf<"class.member.prefix.set">;
 
 /**
  * Handles class content commands that are not implemented yet.
  */
 export function handleClassContentCommand(
-  command: ClassHeaderCommand | MemberCommand,
+  command: ClassContentCommand,
   context: CommandContext
 ): CommandResult {
   void context;

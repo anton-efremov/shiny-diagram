@@ -2,7 +2,7 @@
  * @fileoverview Handles source edits for class placement commands.
  */
 
-import type { ClassAddCommand } from "../../../../shinyView/commands";
+import type { EditorCommandOf } from "../../../../shinyView/commands";
 import type { SpatialData } from "../../../model/diagramTree";
 import type { CommandContext, CommandResult } from "../../commandExecution";
 import type { SourceEdit } from "../../sourceEdit";
@@ -13,13 +13,19 @@ import { formatClassDeclaration, formatSpatialAnnotation } from "../sourceFormat
  * Inserts a new class declaration and matching spatial annotation.
  */
 export function handleClassAddCommand(
-  command: ClassAddCommand,
+  command: EditorCommandOf<"class.create">,
   context: CommandContext
 ): CommandResult {
   const classId = generateClassId(context.model);
-  const { rect } = command;
+  const { position, size } = command;
   const classLine = formatClassDeclaration(classId);
-  const spatialLine = formatSpatialAnnotation(classId, rect.x, rect.y, rect.w, rect.h);
+  const spatialLine = formatSpatialAnnotation(
+    classId,
+    position.x,
+    position.y,
+    size.width,
+    size.height
+  );
   const eol = getLineEnding(context.sourceText);
   const existingSpatial = getExistingSpatialAnnotations(context);
 

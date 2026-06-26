@@ -2,7 +2,6 @@
  * @fileoverview Plans atomic class style mutations.
  */
 
-import type { StyleCommand } from "../../../shinyView/commands";
 import type { ClassId, StyleDefId } from "../../../shared/ids";
 import { toStyleDefId } from "../../../shared/ids";
 import type { AppliesStyleEdge, DiagramTree } from "../../model/diagramTree";
@@ -17,11 +16,17 @@ import {
   formatStyleProperty,
 } from "./sourceFormatting";
 
+export type StyleMutationRequest = {
+  readonly classIds: readonly ClassId[];
+  readonly property: "fill" | "stroke" | "color";
+  readonly value: string;
+};
+
 /**
  * Plans one complete box-level style property mutation.
  */
 export function planClassStyleMutation(
-  command: StyleCommand,
+  command: StyleMutationRequest,
   context: CommandContext
 ): CommandResult {
   const validation = validateRequestedClasses(command.classIds, context.model);

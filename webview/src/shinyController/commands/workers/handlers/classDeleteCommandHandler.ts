@@ -2,7 +2,7 @@
  * @fileoverview Handles source-backed class deletion commands.
  */
 
-import type { ClassDeleteCommand } from "../../../../shinyView/commands";
+import type { EditorCommandOf } from "../../../../shinyView/commands";
 import type { ClassId } from "../../../../shared/ids";
 import type { SourceLocation } from "../../../model/sourceLocation";
 import type { CommandContext, CommandResult } from "../../commandExecution";
@@ -17,15 +17,22 @@ type LineRange = {
  * Deletes a class declaration and all source-backed references owned by that class.
  */
 export function handleClassDeleteCommand(
-  command: ClassDeleteCommand,
+  command: EditorCommandOf<"class.delete">,
   context: CommandContext
 ): CommandResult {
-  if (command.classIds.length === 0) {
-    return { ok: false, problem: "No classes to delete" };
+  return handleClassDeleteCommands([command.classId], context);
+}
+
+export function handleClassDeleteCommands(
+  requestedClassIds: readonly ClassId[],
+  context: CommandContext
+): CommandResult {
+  if (requestedClassIds.length === 0) {
+    return { ok: true, edits: [] };
   }
 
   const classIds = new Set<ClassId>();
-  for (const classId of command.classIds) {
+  for (const classId of requestedClassIds) {
     if (classIds.has(classId)) {
       return { ok: false, problem: `Duplicate delete for class ${classId}` };
     }
@@ -34,7 +41,7 @@ export function handleClassDeleteCommand(
 
   const ranges: LineRange[] = [];
 
-  for (const classId of command.classIds) {
+  for (const classId of requestedClassIds) {
     const node = context.model.classes.get(classId);
     if (!node) {
       return { ok: false, problem: `Class ${classId} not found` };

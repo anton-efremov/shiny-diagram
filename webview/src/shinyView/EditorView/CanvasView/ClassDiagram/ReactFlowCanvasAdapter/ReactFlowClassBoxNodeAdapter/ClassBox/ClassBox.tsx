@@ -1,6 +1,6 @@
 /**
  * @role [L]+[P] Logic and Presentational
- * @logic class.resize command derivation.
+ * @logic class position and size command derivation.
  * @presents Class-box node.
  */
 import type { ReactElement } from "react";

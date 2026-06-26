@@ -7,7 +7,7 @@ import { useCallback } from "react";
 import type { ClassId } from "../../../../shared/ids";
 import type { ClassBoxView } from "./views";
 import type { ClassPositionChange } from "./state";
-import { toClassMoveCommand } from "./commands";
+import { toClassMoveTransaction } from "./commands";
 import { useDispatchCommand } from "../../contexts";
 import { useDispatchEditorStateAction } from "../contexts";
 
@@ -26,14 +26,12 @@ export function useClassDiagramInteractions(
   // @job logic:command:derive
   const onDragComplete = useCallback(
     (finalPositions: readonly ClassPositionChange[]) => {
-      const sizeByClassId = new Map(classes.map((c) => [c.classId, { w: c.w, h: c.h }]));
       const moves = finalPositions.flatMap((pos) => {
-        const size = sizeByClassId.get(pos.classId);
-        if (!size) return [];
-        return [{ classId: pos.classId, rect: { x: pos.x, y: pos.y, w: size.w, h: size.h } }];
+        if (!classes.some((classView) => classView.classId === pos.classId)) return [];
+        return [{ classId: pos.classId, position: { x: pos.x, y: pos.y } }];
       });
       if (moves.length > 0) {
-        dispatchCommand(toClassMoveCommand(moves));
+        dispatchCommand(toClassMoveTransaction(moves));
       }
     },
     [classes, dispatchCommand]

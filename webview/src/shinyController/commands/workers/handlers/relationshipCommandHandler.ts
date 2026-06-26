@@ -2,8 +2,14 @@
  * @fileoverview Handles View relationship editing commands.
  */
 
-import type { RelationshipCommand } from "../../../../shinyView/commands";
+import type { EditorCommandOf } from "../../../../shinyView/commands";
 import type { CommandContext, CommandResult } from "../../commandExecution";
+
+type RelationshipCommand =
+  | EditorCommandOf<"relationship.create">
+  | EditorCommandOf<"relationship.type.set">
+  | EditorCommandOf<"relationship.multiplicity.set">
+  | EditorCommandOf<"relationship.label.set">;
 
 /**
  * Handles relationship commands that are not implemented yet.

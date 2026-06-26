@@ -2,8 +2,13 @@
  * @fileoverview Handles View note editing commands.
  */
 
-import type { NoteCommand } from "../../../../shinyView/commands";
+import type { EditorCommandOf } from "../../../../shinyView/commands";
 import type { CommandContext, CommandResult } from "../../commandExecution";
+
+type NoteCommand =
+  | EditorCommandOf<"note.position.set">
+  | EditorCommandOf<"note.size.set">
+  | EditorCommandOf<"note.text.set">;
 
 /**
  * Handles note commands that are not implemented yet.

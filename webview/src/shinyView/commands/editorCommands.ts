@@ -20,24 +20,13 @@
  * and "Emitted by" are written to the best current guess.
  */
 
-import type { Point } from "../../shared/geometry";
 import type {
-  ClassId,
-  MemberId,
-  NamespaceId,
-  NoteId,
-  RelationshipId,
-} from "../../shared/ids";
-import type { RelationshipType } from "../../shared/relationshipTypes";
-
-export type BoxSize = {
-  readonly width: number;
-  readonly height: number;
-};
-
-export type MemberPrefix = "+" | "-" | "#" | "~";
-
-export type RelationshipEndpoint = "source" | "target";
+  MemberPrefix,
+  RelationshipEndpoint,
+  RelationshipType,
+} from "../../shared/diagramVocabulary";
+import type { Point, Size } from "../../shared/geometry";
+import type { ClassId, MemberId, NamespaceId, NoteId, RelationshipId } from "../../shared/ids";
 
 /** One View-to-Controller editor transaction. */
 export type EditorCommandTransaction = readonly EditorCommand[];
@@ -51,7 +40,7 @@ export type EditorCommand =
   | {
       readonly type: "class.create";
       readonly position: Point;
-      readonly size: BoxSize;
+      readonly size: Size;
     }
 
   /*
@@ -69,7 +58,7 @@ export type EditorCommand =
   | {
       readonly type: "class.size.set";
       readonly classId: ClassId;
-      readonly size: BoxSize;
+      readonly size: Size;
     }
 
   /*
@@ -79,7 +68,7 @@ export type EditorCommand =
       readonly type: "class.duplicate";
       readonly sourceClassId: ClassId;
       readonly position: Point;
-      readonly size: BoxSize;
+      readonly size: Size;
     }
 
   /*
@@ -278,7 +267,7 @@ export type EditorCommand =
   | {
       readonly type: "note.size.set";
       readonly noteId: NoteId;
-      readonly size: BoxSize;
+      readonly size: Size;
     }
 
   /*
@@ -291,7 +280,7 @@ export type EditorCommand =
       readonly text: string;
     };
 
-export type EditorCommandType = EditorCommand["type"];
+type EditorCommandType = EditorCommand["type"];
 
 export type EditorCommandOf<TType extends EditorCommandType> = Extract<
   EditorCommand,

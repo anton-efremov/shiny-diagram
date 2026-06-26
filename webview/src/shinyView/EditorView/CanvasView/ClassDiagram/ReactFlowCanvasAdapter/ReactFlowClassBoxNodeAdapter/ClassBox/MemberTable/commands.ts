@@ -1,22 +1,33 @@
 /**
- * @fileoverview ClassBox/MemberTable editor commands.
- * Extracted because MemberTable is an exclusively owned child component.
+ * @fileoverview MemberTable editor command transaction derivation.
  */
 
 import type { ClassId, MemberId } from "../../../../../../../../shared/ids";
+import type { MemberPrefix } from "../../../../../../../../shared/diagramVocabulary";
+import type { EditorCommandTransaction } from "../../../../../../../commands/editorCommands";
 
-export type MemberPrefix = "+" | "-" | "#" | "~" | "$" | "*" | "";
+// @job logic:command:derive
+export function toMemberTextSetTransaction({
+  classId,
+  memberId,
+  text,
+}: {
+  readonly classId: ClassId;
+  readonly memberId: MemberId;
+  readonly text: string;
+}): EditorCommandTransaction {
+  return [{ type: "class.member.text.set", classId, memberId, text }];
+}
 
-export type MemberCommand =
-  | {
-      readonly type: "class.member.setText";
-      readonly classId: ClassId;
-      readonly memberId: MemberId;
-      readonly text: string;
-    }
-  | {
-      readonly type: "class.member.setPrefix";
-      readonly classId: ClassId;
-      readonly memberId: MemberId;
-      readonly prefix: MemberPrefix;
-    };
+// @job logic:command:derive
+export function toMemberPrefixSetTransaction({
+  classId,
+  memberId,
+  prefix,
+}: {
+  readonly classId: ClassId;
+  readonly memberId: MemberId;
+  readonly prefix: MemberPrefix | null;
+}): EditorCommandTransaction {
+  return [{ type: "class.member.prefix.set", classId, memberId, prefix }];
+}

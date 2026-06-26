@@ -4,7 +4,7 @@
  */
 
 import { createContext, useContext } from "react";
-import type { EditorDispatch } from "../../commands/editorCommand";
+import type { EditorDispatch } from "../../commands/editorCommands";
 
 export const CommandDispatchContext = createContext<EditorDispatch | null>(null);
 

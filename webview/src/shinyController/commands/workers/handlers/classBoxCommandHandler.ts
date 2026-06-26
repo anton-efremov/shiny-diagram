@@ -1,116 +1,130 @@
 /**
- * @fileoverview Handles View class movement and resizing commands.
+ * @fileoverview Handles View class position and size commands.
  */
 
-import type { ClassBoxCommand, ClassMoveCommand } from "../../../../shinyView/commands";
+import type { Point, Size } from "../../../../shared/geometry";
+import type { ClassId } from "../../../../shared/ids";
+import type { EditorCommandOf } from "../../../../shinyView/commands";
+import type { SourceLocation } from "../../../model/sourceLocation";
 import type { CommandContext, CommandResult } from "../../commandExecution";
+import type { SourceEdit } from "../../sourceEdit";
 import { formatSpatialAnnotation } from "../sourceFormatting";
 
+export type ClassSpatialMutation = {
+  readonly classId: ClassId;
+  readonly position?: Point;
+  readonly size?: Size;
+};
+
 /**
- * Handles class box movement and resizing source edits.
+ * Handles a class position command as a complete source edit when possible.
  */
-export function handleClassBoxCommand(
-  command: ClassMoveCommand | ClassBoxCommand,
+export function handleClassPositionSetCommand(
+  command: EditorCommandOf<"class.position.set">,
   context: CommandContext
 ): CommandResult {
-  if (command.type === "class.move") {
-    return handleClassMoveCommand(command, context);
-  }
-
-  const node = context.model.classes.get(command.classId);
-  if (!node?.spatial) {
-    return { ok: false, problem: `No spatial data for class ${command.classId}` };
-  }
-
-  const { rect } = command;
-  const newText = formatSpatialAnnotation(command.classId, rect.x, rect.y, rect.w, rect.h);
-
-  return {
-    ok: true,
-    edits: [
-      {
-        start: {
-          line: node.spatial.location.startLine,
-          character: node.spatial.location.startChar,
-        },
-        end: {
-          line: node.spatial.location.endLine,
-          character: node.spatial.location.endChar,
-        },
-        replacementText: newText,
-      },
-    ],
-  };
+  return handleClassSpatialMutation(
+    { classId: command.classId, position: command.position },
+    context
+  );
 }
 
-function handleClassMoveCommand(command: ClassMoveCommand, context: CommandContext): CommandResult {
-  if (command.moves.length === 0) {
-    return { ok: false, problem: "No classes to move" };
+/**
+ * Handles a class size command as a complete source edit when possible.
+ */
+export function handleClassSizeSetCommand(
+  command: EditorCommandOf<"class.size.set">,
+  context: CommandContext
+): CommandResult {
+  return handleClassSpatialMutation({ classId: command.classId, size: command.size }, context);
+}
+
+/**
+ * Persists one class spatial annotation using command facts plus existing source facts.
+ */
+export function handleClassSpatialMutation(
+  mutation: ClassSpatialMutation,
+  context: CommandContext
+): CommandResult {
+  const node = context.model.classes.get(mutation.classId);
+  if (!node) {
+    return { ok: false, problem: `Class ${mutation.classId} not found` };
   }
 
-  const seen = new Set<string>();
-  for (const move of command.moves) {
-    if (seen.has(move.classId)) {
-      return { ok: false, problem: `Duplicate move for class ${move.classId}` };
-    }
-    seen.add(move.classId);
+  const existing = node.spatial;
+  const position = mutation.position ?? (existing ? { x: existing.x, y: existing.y } : null);
+  const size =
+    mutation.size ?? (existing ? { width: existing.width, height: existing.height } : null);
+
+  if (!position || !size) {
+    return {
+      ok: false,
+      problem: `Incomplete spatial data for class ${mutation.classId}`,
+    };
   }
 
-  const replacements = [];
-  for (const move of command.moves) {
-    const node = context.model.classes.get(move.classId);
-    if (!node?.spatial) {
-      return { ok: false, problem: `No spatial data for moved class ${move.classId}` };
-    }
-
-    replacements.push({
-      location: node.spatial.location,
-      replacementText: formatSpatialAnnotation(
-        move.classId,
-        move.rect.x,
-        move.rect.y,
-        move.rect.w,
-        move.rect.h
-      ),
-    });
-  }
-
-  const sorted = replacements.sort(
-    (a, b) =>
-      a.location.startLine - b.location.startLine || a.location.startChar - b.location.startChar
+  const replacementText = formatSpatialAnnotation(
+    mutation.classId,
+    position.x,
+    position.y,
+    size.width,
+    size.height
   );
 
-  for (let index = 1; index < sorted.length; index++) {
-    if (rangesOverlap(sorted[index - 1].location, sorted[index].location)) {
-      return { ok: false, problem: "Overlapping class move ranges" };
-    }
+  if (existing) {
+    return {
+      ok: true,
+      edits: [toReplacementEdit(existing.location, replacementText)],
+    };
+  }
+
+  const malformed = context.malformedAnnotations?.get(mutation.classId);
+  if (malformed) {
+    return {
+      ok: true,
+      edits: [toReplacementEdit(malformed, replacementText)],
+    };
   }
 
   return {
     ok: true,
-    edits: sorted.map(({ location, replacementText }) => ({
-      start: { line: location.startLine, character: location.startChar },
-      end: { line: location.endLine, character: location.endChar },
-      replacementText,
-    })),
+    edits: [toSpatialAnnotationInsertion(context, replacementText)],
   };
 }
 
-function rangesOverlap(
-  left: {
-    readonly startLine: number;
-    readonly startChar: number;
-    readonly endLine: number;
-    readonly endChar: number;
-  },
-  right: {
-    readonly startLine: number;
-    readonly startChar: number;
-    readonly endLine: number;
-    readonly endChar: number;
+function toReplacementEdit(location: SourceLocation, replacementText: string): SourceEdit {
+  return {
+    start: { line: location.startLine, character: location.startChar },
+    end: { line: location.endLine, character: location.endChar },
+    replacementText,
+  };
+}
+
+function toSpatialAnnotationInsertion(context: CommandContext, spatialLine: string): SourceEdit {
+  const existingSpatial = [...context.model.classes.values()].flatMap((node) =>
+    node.spatial ? [node.spatial] : []
+  );
+  const sourceLines = context.sourceText.split(/\r?\n/);
+  let anchorLine: number;
+
+  if (existingSpatial.length > 0) {
+    anchorLine = Math.max(...existingSpatial.map((spatial) => spatial.location.startLine));
+  } else {
+    anchorLine = sourceLines.length - 1;
+    while (anchorLine > 0 && sourceLines[anchorLine].trim() === "") {
+      anchorLine--;
+    }
   }
-): boolean {
-  if (left.endLine < right.startLine) return false;
-  if (left.endLine === right.startLine && left.endChar <= right.startChar) return false;
-  return true;
+
+  const anchorCharacter = sourceLines[anchorLine]?.length ?? 0;
+
+  return {
+    start: { line: anchorLine, character: anchorCharacter },
+    end: { line: anchorLine, character: anchorCharacter },
+    replacementText: `${getLineEnding(context.sourceText)}${spatialLine}`,
+  };
+}
+
+function getLineEnding(sourceText: string): string {
+  return sourceText.includes("\r\n") ? "\r\n" : "\n";
 }

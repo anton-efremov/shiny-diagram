@@ -9,3 +9,4 @@ export type Rect = {
   readonly h: number;
 };
 export type Point = { readonly x: number; readonly y: number };
+export type Size = { readonly width: number; readonly height: number };

@@ -1,6 +1,6 @@
 /**
  * @fileoverview PlacementOverlay interaction pipeline.
- * Translates pointer events into class.add commands and placement.complete state actions.
+ * Translates pointer events into class.create transactions and placement.complete state actions.
  * Owns no state; state is provided by PlacementOverlay.
  */
 
@@ -10,7 +10,7 @@ import { useReactFlow } from "@xyflow/react";
 import type { Point, Rect } from "../../../../../../shared/geometry";
 import { useDispatchEditorStateAction } from "../../../contexts";
 import { useDispatchCommand } from "../../../../contexts";
-import { toClassAddCommand } from "./commands";
+import { toClassCreateTransaction } from "./commands";
 
 const DRAG_THRESHOLD = 4;
 
@@ -88,10 +88,10 @@ export function usePlacementOverlayInteractions(
       if (!isMeaningfulDrag) return;
 
       // @job logic:command:derive
-      const command = toClassAddCommand(normalizeRect(origin.flow, endFlow));
+      const transaction = toClassCreateTransaction(normalizeRect(origin.flow, endFlow));
 
       // @job connect:command:wire
-      dispatchCommand(command);
+      dispatchCommand(transaction);
 
       // @job connect:state:wire
       dispatchEditorStateAction({ type: "placement.complete" });

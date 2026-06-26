@@ -2,8 +2,15 @@
  * @fileoverview Handles View namespace editing commands.
  */
 
-import type { NamespaceCommand } from "../../../../shinyView/commands";
+import type { EditorCommandOf } from "../../../../shinyView/commands";
 import type { CommandContext, CommandResult } from "../../commandExecution";
+
+type NamespaceCommand =
+  | EditorCommandOf<"namespace.style.fillColor.set">
+  | EditorCommandOf<"namespace.style.borderColor.set">
+  | EditorCommandOf<"namespace.style.textColor.set">
+  | EditorCommandOf<"namespace.style.borderWidth.set">
+  | EditorCommandOf<"namespace.style.borderDashPattern.set">;
 
 /**
  * Handles namespace commands that are not implemented yet.

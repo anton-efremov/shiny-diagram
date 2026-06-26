@@ -1,24 +1,24 @@
 /**
- * @fileoverview ClassBox editor commands.
+ * @fileoverview ClassBox editor command transactions.
  * Extracted because ClassBox is an exclusively owned child of ReactFlowClassBoxNodeAdapter.
  */
 
 import type { Rect } from "../../../../../../../shared/geometry";
 import type { ClassId } from "../../../../../../../shared/ids";
-
-export type ClassBoxCommand = {
-  readonly type: "class.resize";
-  readonly classId: ClassId;
-  readonly rect: Rect;
-};
-
-export type ClassHeaderCommand = {
-  readonly type: "class.header.setLabel";
-  readonly classId: ClassId;
-  readonly label: string;
-};
+import type { EditorCommandTransaction } from "../../../../../../commands/editorCommands";
 
 // @job logic:command:derive
-export function toClassResizeCommand(classId: ClassId, rect: Rect): ClassBoxCommand {
-  return { type: "class.resize", classId, rect };
+export function toClassResizeTransaction(classId: ClassId, rect: Rect): EditorCommandTransaction {
+  return [
+    {
+      type: "class.position.set",
+      classId,
+      position: { x: rect.x, y: rect.y },
+    },
+    {
+      type: "class.size.set",
+      classId,
+      size: { width: rect.w, height: rect.h },
+    },
+  ];
 }

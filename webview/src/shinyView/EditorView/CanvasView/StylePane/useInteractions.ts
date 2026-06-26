@@ -1,20 +1,23 @@
 /**
  * @fileoverview StylePane interaction pipeline.
- * Translates style-pane edits and keyboard events into editor commands.
+ * Translates style-pane edits into editor commands.
  */
 
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import type { ClassId } from "../../../../shared/ids";
 import { useDispatchCommand } from "../../contexts";
+import { toClassDeleteTransaction } from "../commands";
 import {
-  toClassDeleteCommand,
-  toClassDuplicateCommand,
-  toStyleSetClassPropertyCommand,
+  toBorderColorSetTransaction,
+  toClassDuplicateTransaction,
+  toFillColorSetTransaction,
+  toTextColorSetTransaction,
 } from "./commands";
-import type { StyleCommand } from "./commands";
+import type { ClassBoxView } from "../ClassDiagram/views";
 
 type UseStylePaneInteractionsOptions = {
   readonly selectedClassIds: readonly ClassId[];
+  readonly selectedClassViews: readonly ClassBoxView[];
 };
 
 type UseStylePaneInteractionsResult = {
@@ -30,86 +33,43 @@ type UseStylePaneInteractionsResult = {
  */
 export function useStylePaneInteractions({
   selectedClassIds,
+  selectedClassViews,
 }: UseStylePaneInteractionsOptions): UseStylePaneInteractionsResult {
   const dispatchCommand = useDispatchCommand();
 
-  // @job connect:command:wire
-  const dispatchStyleChange = useCallback(
-    (property: StyleCommand["property"], value: string) => {
-      const command = toStyleSetClassPropertyCommand({
-        selectedClassIds,
-        property,
-        value,
-      });
-      if (command) dispatchCommand(command);
+  const onFillColorChange = useCallback(
+    (fill: string) => {
+      const transaction = toFillColorSetTransaction(selectedClassIds, fill);
+      if (transaction) dispatchCommand(transaction);
     },
     [selectedClassIds, dispatchCommand]
   );
 
-  const onFillColorChange = useCallback(
-    (fill: string) => dispatchStyleChange("fill", fill),
-    [dispatchStyleChange]
-  );
-
   const onStrokeColorChange = useCallback(
-    (stroke: string) => dispatchStyleChange("stroke", stroke),
-    [dispatchStyleChange]
+    (stroke: string) => {
+      const transaction = toBorderColorSetTransaction(selectedClassIds, stroke);
+      if (transaction) dispatchCommand(transaction);
+    },
+    [selectedClassIds, dispatchCommand]
   );
 
   const onTextColorChange = useCallback(
-    (color: string) => dispatchStyleChange("color", color),
-    [dispatchStyleChange]
+    (color: string) => {
+      const transaction = toTextColorSetTransaction(selectedClassIds, color);
+      if (transaction) dispatchCommand(transaction);
+    },
+    [selectedClassIds, dispatchCommand]
   );
 
   const onDeleteClick = useCallback(() => {
-    const command = toClassDeleteCommand(selectedClassIds);
-    if (command) dispatchCommand(command);
+    const transaction = toClassDeleteTransaction(selectedClassIds);
+    if (transaction) dispatchCommand(transaction);
   }, [selectedClassIds, dispatchCommand]);
 
   const onDuplicate = useCallback(() => {
-    const command = toClassDuplicateCommand(selectedClassIds);
-    if (command) dispatchCommand(command);
-  }, [selectedClassIds, dispatchCommand]);
-
-  // @job connect:event:wire
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent): void {
-      // @job connect:event:normalize
-      if (
-        selectedClassIds.length === 0 ||
-        event.defaultPrevented ||
-        event.repeat ||
-        event.key !== "Delete" ||
-        event.altKey ||
-        event.ctrlKey ||
-        event.metaKey ||
-        event.shiftKey ||
-        isEditableTarget(event.target)
-      ) {
-        return;
-      }
-
-      event.preventDefault();
-      // @job connect:command:wire
-      const command = toClassDeleteCommand(selectedClassIds);
-      if (command) dispatchCommand(command);
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedClassIds, dispatchCommand]);
+    const transaction = toClassDuplicateTransaction(selectedClassViews);
+    if (transaction) dispatchCommand(transaction);
+  }, [selectedClassViews, dispatchCommand]);
 
   return { onFillColorChange, onStrokeColorChange, onTextColorChange, onDuplicate, onDeleteClick };
-}
-
-function isEditableTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof Element)) return false;
-
-  const tagName = target.tagName.toLowerCase();
-  if (tagName === "input" || tagName === "textarea" || tagName === "select") return true;
-
-  return (
-    (target instanceof HTMLElement && target.isContentEditable) ||
-    target.closest("[contenteditable]:not([contenteditable='false'])") !== null
-  );
 }

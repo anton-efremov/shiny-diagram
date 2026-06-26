@@ -39,6 +39,7 @@ export default function StylePane({ view }: StylePaneProps): ReactElement {
   const { onFillColorChange, onStrokeColorChange, onTextColorChange, onDuplicate, onDeleteClick } =
     useStylePaneInteractions({
       selectedClassIds: selectedClassViews.map((classView) => classView.classId),
+      selectedClassViews,
     });
 
   // @job logic:child:route

@@ -20,12 +20,14 @@ The document can be updated if rules imposed are too rigid to finish a developme
 - `shinyView/EditorView/index.ts` is the runtime component facade.
 - `shinyView/views/index.ts` is the View-contract facade.
 - `shinyView/commands/index.ts` is the command-registry facade.
+- `shinyView/state/editorStates.ts` is the View state ledger.
 
 ### 1.2. Boundaries
 
 - **Entry point:** `webview/src/shinyView/**` is the Shiny View layer; the standardized editor React tree starts at `webview/src/shinyView/EditorView/`, whose root component is `EditorView`.
 - **Inputs:** immutable `view` contracts (a data object shaped for one component interface) and an `EditorDispatch` function supplied by `ShinyController`.
 - **Outputs:** normalized `EditorCommandTransaction` values, each representing one user/editor action as one or more primitive editor-domain commands sent through `EditorDispatch`.
+- **State vocabulary:** semantic View state shapes are declared in `shinyView/state/editorStates.ts`; runtime ownership stays with the component that owns the state.
 - **Editor facts:** View may decide source-agnostic editor facts available from interaction and render context, such as position and size. New persisted identities and source names are assigned by Controller.
 - **Calls outside the Shiny View tree:**
 	  - **`shared/`:** dependency-free IDs, geometry, and shared data vocabulary.
@@ -37,6 +39,7 @@ The document can be updated if rules imposed are too rigid to finish a developme
 - **view** - immutable render data shaped as component interface (Controller -> ShinyView via props). 
 - **command** - a primitive editor-domain data object from the canonical command registry; it describes editor intent without source syntax or source-edit operations.
 - **command transaction** - one user/editor action sent through `EditorDispatch` as one or more primitive commands.
+- **state ledger** - the canonical list of semantic View state shapes; it defines state vocabulary, not runtime defaults, reducers, helpers, or consumer-specific projections.
 - **state action** - an internal request to change component-owned state (e.g. selection group) through internal dispatch or callback
 - **state reconciliation** - an internal update of state, triggered by view props (e.g. excluding deleted id from selection group)
 
@@ -144,7 +147,7 @@ Component/
 Component/
 ├── Component.tsx               # logic:*; connect:*
 ├── views.ts                    # immutable input contract
-├── state.ts                    # state vocabulary and pure transformations (optional)
+├── state.ts                    # owner-local state actions, defaults, reducers, and pure transformations (optional)
 ├── useStateReconciliation.ts   # logic:state:reconcile hook and local helpers (optional)
 ├── childViews.ts               # logic:child:view and connect:child:view helpers (optional)
 ├── actions.ts                  # logic:action:derive helpers (optional)
@@ -154,7 +157,7 @@ Component/
 └── OwnedChild/                 # exclusively owned interface (optional)
 ```
 
-**4.8 State module.** `state.ts` defines state vocabulary and pure transformations; runtime storage remains in the Logic component.
+**4.8 State module.** `state.ts` defines owner-local state actions, defaults, reducers, and pure transformations; runtime storage remains in the Logic component. Semantic editor state shapes are imported from the View state ledger when the state domain is listed there.
 
 ### Framework adapter
 
@@ -205,7 +208,7 @@ render:*                                               # [L]+[P] only
 
 **5.3 The receiving component owns its View contract.** Every file that names or constructs a View shape uses the View contract owned by the receiving component. It does not redeclare or structurally fake that type.
 
-**5.4 State has one owner.** Raw setters never leave the owner. Descendants and frameworks receive typed actions or named owner callbacks.
+**5.4 State has one owner.** Raw setters never leave the owner. Descendants and frameworks receive typed actions or named owner callbacks. Central state-ledger declarations do not own runtime storage or state lifecycle.
 
 **5.5 Context transports requests, not state.** Context may carry only a typed state-action dispatch or `EditorDispatch`; current state still flows through Views and props.
 
@@ -223,17 +226,19 @@ render:*                                               # [L]+[P] only
 
 **5.12 Shared vocabulary lives at the narrowest owner.** Descendants may type-import an ancestor-owned state/action vocabulary but must not import ancestor implementation or current state.
 
+**5.13 View state ledger.** `shinyView/state/editorStates.ts` defines the semantic state shapes used by the Shiny View tree. It contains type declarations and state ownership annotations only. It must not contain defaults, constructors, predicates, reducers, state actions, or consumer-specific interpretations. Consumers derive their own scenario views from canonical state; for example, selection state lists selected entity IDs, while StylePane, shortcuts, and canvas affordances interpret that selection for their own behavior.
+
 ## 6. Pattern rules
 
 ### `logic:state:*`
 
-**6.1 State storage.** `useReducer` owns state when one transition changes multiple fields atomically or its typed dispatch is transported through Context. `useState` owns state otherwise.
+**6.1 State storage.** `useReducer` owns state when one transition changes multiple fields atomically or its typed dispatch is transported through Context. `useState` owns state otherwise. State owners store ledger-defined semantic states directly, not a generic aggregate editor state.
 
 **6.2 Framework interaction state.** Shiny-owned framework interaction state belongs to the nearest Logic component; framework-internal state remains framework-owned.
 
 ### `logic:state:update`
 
-**6.3 State transitions.** A `useState` domain represents its supported transitions through named owner callbacks. A `useReducer` domain declares `State`, `StateAction`, `initialState`, and `reducer` in `state.ts`.
+**6.3 State transitions.** A `useState` domain represents its supported transitions through named owner callbacks. A `useReducer` domain declares owner-local actions, initial values, and reducer logic in `state.ts`; ledger-owned state shape types are imported rather than redeclared.
 
 ### `logic:state:reconcile`
 
@@ -270,6 +275,8 @@ render:*                                               # [L]+[P] only
 **6.13 Framework projection.** Extracted `connect:framework:props` helpers live in the adapter-local `<framework>Adapters.ts`.
 
 ### `connect:event:wire`, `connect:state:wire`, and `connect:command:wire`
+
+**6.14 Shortcut ownership.** Keyboard shortcuts are owned by the narrowest Logic component that has the state and View context required to decide whether the shortcut is active and derive the resulting state action or `EditorCommandTransaction`. Ownership does not follow the visual control that exposes the same action or the DOM/window surface used for event registration. Shortcut handlers normalize raw keyboard events locally, keep semantic applicability checks under `logic:action:derive` or `logic:command:derive`, and wire only already-derived actions or command transactions.
 
 **6.15 Framework transport.** Framework callbacks provide local transport when sufficient; equivalent Context is not introduced.
 

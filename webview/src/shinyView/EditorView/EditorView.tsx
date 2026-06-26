@@ -3,7 +3,7 @@
  * @logic Status-interface routing and status child-view construction.
  */
 import type { ReactElement } from "react";
-import type { EditorDispatch } from "../commands/editorCommand";
+import type { EditorDispatch } from "../commands/editorCommands";
 import CanvasView from "./CanvasView/CanvasView";
 import type { CanvasViewModel } from "./CanvasView/views";
 import { CommandDispatchContext } from "./contexts";
@@ -44,6 +44,7 @@ function toMissingAnnotationsView({
 }): MissingAnnotationsViewModel {
   return {
     missingIds: view.missingIds,
+    elements: view.elements,
   };
 }
 

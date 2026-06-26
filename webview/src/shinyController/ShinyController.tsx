@@ -72,11 +72,11 @@ export default function ShinyController({
     commandExecutionInputsRef.current = commandExecutionInputs;
   });
 
-  const dispatch: EditorDispatch = useCallback((command) => {
+  const dispatch: EditorDispatch = useCallback((transaction) => {
     const { context, onApplyEdits: applyEdits } = commandExecutionInputsRef.current;
     if (!context) return;
 
-    const result = applyCommand(command, context);
+    const result = applyCommand(transaction, context);
     if (result.ok && result.edits.length > 0) {
       applyEdits(result.edits);
     }

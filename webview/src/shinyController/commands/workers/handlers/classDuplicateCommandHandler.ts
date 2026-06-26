@@ -2,7 +2,7 @@
  * @fileoverview Handles source-backed class duplication commands.
  */
 
-import type { ClassDuplicateCommand } from "../../../../shinyView/commands";
+import type { EditorCommandOf } from "../../../../shinyView/commands";
 import type { ClassId } from "../../../../shared/ids";
 import type { ClassNode, SpatialData } from "../../../model/diagramTree";
 import type { SourceLocation } from "../../../model/sourceLocation";
@@ -15,8 +15,6 @@ import {
   formatDuplicatedClassDeclaration,
   formatSpatialAnnotation,
 } from "../sourceFormatting";
-
-const DUPLICATE_OFFSET = 24;
 
 type LineRange = {
   readonly startLine: number;
@@ -31,11 +29,18 @@ type DuplicatePlan = {
  * Duplicates a class declaration, spatial annotation, and first style application.
  */
 export function handleClassDuplicateCommand(
-  command: ClassDuplicateCommand,
+  command: EditorCommandOf<"class.duplicate">,
   context: CommandContext
 ): CommandResult {
-  if (command.classIds.length === 0) {
-    return { ok: false, problem: "No classes to duplicate" };
+  return handleClassDuplicateCommands([command], context);
+}
+
+export function handleClassDuplicateCommands(
+  commands: readonly EditorCommandOf<"class.duplicate">[],
+  context: CommandContext
+): CommandResult {
+  if (commands.length === 0) {
+    return { ok: true, edits: [] };
   }
 
   const eol = getLineEnding(context.sourceText);
@@ -43,14 +48,15 @@ export function handleClassDuplicateCommand(
   const sourceClassIds = new Set<ClassId>();
   const plans: DuplicatePlan[] = [];
 
-  for (const sourceClassId of command.classIds) {
+  for (const command of commands) {
+    const sourceClassId = command.sourceClassId;
     if (sourceClassIds.has(sourceClassId)) {
       return { ok: false, problem: `Duplicate source class ${sourceClassId}` };
     }
     sourceClassIds.add(sourceClassId);
 
     const sourceClass = context.model.classes.get(sourceClassId);
-    if (!sourceClass?.spatial) {
+    if (!sourceClass) {
       return { ok: false, problem: `Class ${sourceClassId} cannot be duplicated` };
     }
 
@@ -58,7 +64,7 @@ export function handleClassDuplicateCommand(
     reservedClassIds.add(classId);
 
     const styleLine = formatDuplicateStyleLine(sourceClassId, classId, context);
-    const spatialLine = formatDuplicateSpatialLine(classId, sourceClass.spatial);
+    const spatialLine = formatDuplicateSpatialLine(classId, command);
     const edits = sourceClass.location
       ? buildExplicitDeclarationEdit(
           sourceClass.location,
@@ -185,13 +191,16 @@ function formatDuplicateStyleLine(
   return edge ? formatClassStyleApplication(duplicateClassId, edge.target) : null;
 }
 
-function formatDuplicateSpatialLine(classId: ClassId, spatial: SpatialData): string {
+function formatDuplicateSpatialLine(
+  classId: ClassId,
+  command: EditorCommandOf<"class.duplicate">
+): string {
   return formatSpatialAnnotation(
     classId,
-    spatial.x + DUPLICATE_OFFSET,
-    spatial.y + DUPLICATE_OFFSET,
-    spatial.width,
-    spatial.height
+    command.position.x,
+    command.position.y,
+    command.size.width,
+    command.size.height
   );
 }
 

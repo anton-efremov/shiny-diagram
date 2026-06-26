@@ -1,16 +1,18 @@
 /**
- * @fileoverview PlacementOverlay editor commands.
+ * @fileoverview PlacementOverlay editor command transactions.
  * Extracted because PlacementOverlay is an exclusively owned child component of ReactFlowCanvasAdapter.
  */
 
 import type { Rect } from "../../../../../../shared/geometry";
-
-export type ClassAddCommand = {
-  readonly type: "class.add";
-  readonly rect: Rect;
-};
+import type { EditorCommandTransaction } from "../../../../../commands/editorCommands";
 
 // @job logic:command:derive
-export function toClassAddCommand(rect: Rect): ClassAddCommand {
-  return { type: "class.add", rect };
+export function toClassCreateTransaction(rect: Rect): EditorCommandTransaction {
+  return [
+    {
+      type: "class.create",
+      position: { x: rect.x, y: rect.y },
+      size: { width: rect.w, height: rect.h },
+    },
+  ];
 }

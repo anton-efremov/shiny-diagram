@@ -7,6 +7,7 @@ import type { ReactElement } from "react";
 import { useDispatchCommand } from "../contexts";
 import ControlButton from "../../ui/ControlButton/ControlButton";
 import { GenerateIcon } from "../../ui/icons/icons";
+import { toMissingAnnotationTransaction } from "./commands";
 import styles from "./MissingAnnotationsView.module.css";
 import type { MissingAnnotationsViewModel } from "./views";
 
@@ -24,8 +25,8 @@ export default function MissingAnnotationsView({
 
   // @job connect:command:wire
   const onGenerate = useCallback(() => {
-    dispatchCommand({ type: "generate" });
-  }, [dispatchCommand]);
+    dispatchCommand(toMissingAnnotationTransaction(view));
+  }, [dispatchCommand, view]);
 
   // @job render:structure
   return (
