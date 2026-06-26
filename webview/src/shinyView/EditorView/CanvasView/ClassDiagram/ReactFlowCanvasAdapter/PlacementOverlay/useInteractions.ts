@@ -8,7 +8,7 @@ import { useCallback } from "react";
 import type { PointerEvent } from "react";
 import { useReactFlow } from "@xyflow/react";
 import type { Point, Rect } from "../../../../../../shared/geometry";
-import { useDispatchEditorStateAction } from "../../../contexts";
+import { useDispatchCanvasViewStateAction } from "../../../contexts";
 import { useDispatchCommand } from "../../../../contexts";
 import { toClassCreateTransaction } from "./commands";
 
@@ -33,7 +33,7 @@ export function usePlacementOverlayInteractions(
 ): UsePlacementOverlayInteractionsResult {
   const { screenToFlowPosition } = useReactFlow();
   const dispatchCommand = useDispatchCommand();
-  const dispatchEditorStateAction = useDispatchEditorStateAction();
+  const dispatchCanvasViewStateAction = useDispatchCanvasViewStateAction();
 
   // @job connect:event:wire
   const onPointerDown = useCallback(
@@ -94,11 +94,11 @@ export function usePlacementOverlayInteractions(
       dispatchCommand(transaction);
 
       // @job connect:state:wire
-      dispatchEditorStateAction({ type: "placement.complete" });
+      dispatchCanvasViewStateAction({ type: "placement.complete" });
     },
     [
+      dispatchCanvasViewStateAction,
       dispatchCommand,
-      dispatchEditorStateAction,
       origin,
       screenToFlowPosition,
       setDraftRect,

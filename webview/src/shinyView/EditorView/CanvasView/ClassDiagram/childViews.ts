@@ -1,22 +1,23 @@
 /**
  * @fileoverview ClassDiagram child-view derivation.
- * Projects DiagramLayoutState and ClassDiagramView into the adapter render contract.
+ * Projects ClassBoxLayoutState and ClassDiagramView into the adapter render contract.
  */
 
-import type { DiagramLayoutState } from "./state";
+import type { ClassBoxLayoutState } from "../../../state/editorStates";
 import type { ClassDiagramView } from "./views";
 import type { ReactFlowCanvasAdapterView, ClassEntryView } from "./ReactFlowCanvasAdapter/views";
 
 // @job logic:child:view
 export function toClassDiagramChildView(
-  state: DiagramLayoutState,
+  state: ClassBoxLayoutState,
   view: ClassDiagramView
 ): ReactFlowCanvasAdapterView {
-  const hasSoleSelection = view.selectedClassIds.length === 1;
-  const selectedId = hasSoleSelection ? view.selectedClassIds[0] : undefined;
+  const { classIds } = view.selectionState;
+  const hasSoleSelection = classIds.length === 1;
+  const selectedId = hasSoleSelection ? classIds[0] : undefined;
 
   const classes: ClassEntryView[] = view.elements.classes.flatMap((classView) => {
-    const layout = state.layoutByClassId.get(classView.classId);
+    const layout = state.rectByClassId.get(classView.classId);
     if (!layout) return [];
     return [
       {
@@ -36,8 +37,8 @@ export function toClassDiagramChildView(
   return {
     classes,
     relationships: view.elements.relationships,
-    selectedClassIds: view.selectedClassIds,
-    isPlacementActive: view.placementMode !== null,
-    placementOverlayView: { placementMode: view.placementMode },
+    selectedClassIds: classIds,
+    isPlacementActive: view.nodePlacementState !== null,
+    placementOverlayView: { nodePlacementState: view.nodePlacementState },
   };
 }

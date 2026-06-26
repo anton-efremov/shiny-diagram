@@ -3,16 +3,10 @@
  */
 
 import type { ClassId } from "../../../shared/ids";
+import type { NodePlacementState, SelectionState } from "../../state/editorStates";
 import type { ElementViews } from "../views";
 
-export type PlacementMode = "class";
-
-export type EditorState = {
-  readonly selectedClassIds: readonly ClassId[];
-  readonly placementMode: PlacementMode | null;
-};
-
-export type EditorStateAction =
+export type CanvasViewStateAction =
   | {
       readonly type: "selection.setClassIds";
       readonly classIds: readonly ClassId[];
@@ -26,7 +20,7 @@ export type EditorStateAction =
     }
   | {
       readonly type: "placement.setMode";
-      readonly placementMode: PlacementMode;
+      readonly nodePlacementState: Exclude<NodePlacementState, null>;
     }
   | {
       readonly type: "placement.complete";
@@ -36,43 +30,68 @@ export type EditorStateAction =
     };
 
 // @job logic:state:initialize
-export const initialEditorState: EditorState = {
-  selectedClassIds: [],
-  placementMode: null,
+export const initialSelectionState: SelectionState = {
+  classIds: [],
+  relationshipIds: [],
+  namespaceIds: [],
+  noteIds: [],
 };
 
+// @job logic:state:initialize
+export const initialNodePlacementState: NodePlacementState = null;
+
 // @job logic:state:update
-export function editorStateReducer(state: EditorState, action: EditorStateAction): EditorState {
-  switch (action.type) {
-    case "selection.setClassIds":
-      return updateSelectedClassIds(state, action.classIds);
-    case "selection.clearClassIds":
-      return updateSelectedClassIds(state, []);
-    case "selection.reconcileClassIds":
-      return updateSelectedClassIds(
-        state,
-        reconcileSelectedClassIds(state.selectedClassIds, action.elements)
-      );
-    case "placement.setMode":
-      return state.placementMode === action.placementMode
-        ? state
-        : { ...state, placementMode: action.placementMode };
-    case "placement.complete":
-    case "placement.cancel":
-      return state.placementMode === null ? state : { ...state, placementMode: null };
-  }
+export function toClassOnlySelectionState(classIds: readonly ClassId[]): SelectionState {
+  return {
+    classIds,
+    relationshipIds: [],
+    namespaceIds: [],
+    noteIds: [],
+  };
 }
 
-function updateSelectedClassIds(
-  state: EditorState,
-  selectedClassIds: readonly ClassId[]
-): EditorState {
-  return areClassIdCollectionsEqual(state.selectedClassIds, selectedClassIds)
-    ? state
-    : { ...state, selectedClassIds };
+// @job logic:state:update
+export function updateSelectedClassIds(
+  selectionState: SelectionState,
+  classIds: readonly ClassId[]
+): SelectionState {
+  return areClassIdCollectionsEqual(selectionState.classIds, classIds)
+    ? selectionState
+    : toClassOnlySelectionState(classIds);
 }
 
 // @job logic:state:reconcile
+export function reconcileSelectionStateWithElements(
+  selectionState: SelectionState,
+  elements: ElementViews | null
+): SelectionState {
+  const classIds = reconcileSelectedClassIds(selectionState.classIds, elements);
+  return areClassIdCollectionsEqual(selectionState.classIds, classIds)
+    ? selectionState
+    : toClassOnlySelectionState(classIds);
+}
+
+// @job logic:state:update
+export function updateNodePlacementState(
+  state: NodePlacementState,
+  nodePlacementState: NodePlacementState
+): NodePlacementState {
+  return state === nodePlacementState ? state : nodePlacementState;
+}
+
+export function canHandleClassSelectionShortcut(selectionState: SelectionState): boolean {
+  return (
+    selectionState.classIds.length > 0 &&
+    selectionState.relationshipIds.length === 0 &&
+    selectionState.namespaceIds.length === 0 &&
+    selectionState.noteIds.length === 0
+  );
+}
+
+export function isClassOnlyPlacementActive(nodePlacementState: NodePlacementState): boolean {
+  return nodePlacementState === "class";
+}
+
 function reconcileSelectedClassIds(
   selectedClassIds: readonly ClassId[],
   elements: ElementViews | null
@@ -87,6 +106,9 @@ function reconcileSelectedClassIds(
   return classIds.flatMap((classId) => (selected.has(classId) ? [classId] : []));
 }
 
-function areClassIdCollectionsEqual(left: readonly ClassId[], right: readonly ClassId[]): boolean {
+export function areClassIdCollectionsEqual(
+  left: readonly ClassId[],
+  right: readonly ClassId[]
+): boolean {
   return left.length === right.length && left.every((id, index) => id === right[index]);
 }

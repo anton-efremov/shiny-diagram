@@ -1,4 +1,4 @@
 export {
-  EditorStateDispatchContext,
-  useDispatchEditorStateAction,
-} from "./EditorStateDispatchContext";
+  CanvasViewStateDispatchContext,
+  useDispatchCanvasViewStateAction,
+} from "./CanvasViewStateDispatchContext";

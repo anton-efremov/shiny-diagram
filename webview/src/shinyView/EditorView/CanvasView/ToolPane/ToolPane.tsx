@@ -6,6 +6,7 @@
 import type { ReactElement } from "react";
 import ControlButton from "../../../ui/ControlButton/ControlButton";
 import { ClassIcon } from "../../../ui/icons/icons";
+import { isClassOnlyPlacementActive } from "../state";
 import { useToolPaneInteractions } from "./useInteractions";
 import type { ToolPaneView } from "./views";
 import styles from "./ToolPane.module.css";
@@ -50,7 +51,7 @@ export default function ToolPane({ view }: ToolPaneProps): ReactElement {
   const { onClassToolClick } = useToolPaneInteractions();
 
   // @job logic:child:view
-  const isClassPlacementActive = view.placementMode === "class";
+  const isClassPlacementActive = isClassOnlyPlacementActive(view.nodePlacementState);
 
   // @job render:structure
   return (

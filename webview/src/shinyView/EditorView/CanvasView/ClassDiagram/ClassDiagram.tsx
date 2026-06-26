@@ -1,6 +1,6 @@
 /**
  * @role [L]+[P] Logic and Presentational
- * @logic DiagramLayoutState lifecycle, child view projection.
+ * @logic ClassBoxLayoutState lifecycle, child view projection.
  * @state layoutState: framework-neutral class box positions and dimensions.
  * @presents Diagram shell and empty state.
  */
@@ -10,7 +10,7 @@ import type { ReactElement } from "react";
 import type { ClassDiagramView } from "./views";
 import {
   applyPositionChanges,
-  createInitialDiagramLayoutState,
+  createInitialClassBoxLayoutState,
   reconcileLayoutWithClassViews,
 } from "./state";
 import type { ClassPositionChange } from "./state";
@@ -26,7 +26,7 @@ type ClassDiagramProps = {
 export default function ClassDiagram({ view }: ClassDiagramProps): ReactElement {
   // @job logic:state:initialize
   const [layoutState, setLayoutState] = useState(() =>
-    createInitialDiagramLayoutState(view.elements.classes)
+    createInitialClassBoxLayoutState(view.elements.classes)
   );
 
   // @job logic:state:reconcile

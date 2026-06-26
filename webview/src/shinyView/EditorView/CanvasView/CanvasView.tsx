@@ -1,16 +1,25 @@
 /**
  * @role [L]+[P] Logic and Presentational
  * @logic Ready editor selection and placement state lifecycle.
- * @state editorState: selected class ids and active placement mode.
+ * @state selectionState: selected editor entities.
+ * @state nodePlacementState: active node placement kind.
  * @presents Ready editor layout and context provision.
  */
-import { useReducer, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import ClassDiagram from "./ClassDiagram/ClassDiagram";
 import { toClassDiagramView, toStylePaneView, toToolPaneView } from "./childViews";
 import { toClassDeleteTransaction } from "./commands";
-import { EditorStateDispatchContext } from "./contexts";
-import { editorStateReducer, initialEditorState } from "./state";
+import { CanvasViewStateDispatchContext } from "./contexts";
+import {
+  canHandleClassSelectionShortcut,
+  initialNodePlacementState,
+  initialSelectionState,
+  reconcileSelectionStateWithElements,
+  updateNodePlacementState,
+  updateSelectedClassIds,
+} from "./state";
+import type { CanvasViewStateAction } from "./state";
 import StylePane from "./StylePane/StylePane";
 import ToolPane from "./ToolPane/ToolPane";
 import { useDispatchCommand } from "../contexts";
@@ -25,25 +34,48 @@ export default function CanvasView({ view }: CanvasViewProps): ReactElement {
   const dispatchCommand = useDispatchCommand();
 
   // @job logic:state:initialize
-  const [editorState, dispatchEditorStateAction] = useReducer(
-    editorStateReducer,
-    initialEditorState
-  );
+  const [selectionState, setSelectionState] = useState(initialSelectionState);
+  // @job logic:state:initialize
+  const [nodePlacementState, setNodePlacementState] = useState(initialNodePlacementState);
+
+  // @job logic:state:update
+  const dispatchCanvasViewStateAction = useCallback((action: CanvasViewStateAction) => {
+    switch (action.type) {
+      case "selection.setClassIds":
+        setSelectionState((state) => updateSelectedClassIds(state, action.classIds));
+        return;
+      case "selection.clearClassIds":
+        setSelectionState((state) => updateSelectedClassIds(state, []));
+        return;
+      case "selection.reconcileClassIds":
+        setSelectionState((state) => reconcileSelectionStateWithElements(state, action.elements));
+        return;
+      case "placement.setMode":
+        setNodePlacementState((state) =>
+          updateNodePlacementState(state, action.nodePlacementState)
+        );
+        return;
+      case "placement.complete":
+      case "placement.cancel":
+        setNodePlacementState((state) => updateNodePlacementState(state, null));
+        return;
+    }
+  }, []);
 
   // @job logic:state:reconcile
   useEffect(() => {
-    dispatchEditorStateAction({
+    dispatchCanvasViewStateAction({
       type: "selection.reconcileClassIds",
       elements: view.elements,
     });
-  }, [view.elements]);
+  }, [view.elements, dispatchCanvasViewStateAction]);
 
   // @job connect:event:wire
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent): void {
       // @job connect:event:normalize
       if (
-        editorState.selectedClassIds.length === 0 ||
+        !canHandleClassSelectionShortcut(selectionState) ||
         event.defaultPrevented ||
         event.repeat ||
         event.key !== "Delete" ||
@@ -56,7 +88,7 @@ export default function CanvasView({ view }: CanvasViewProps): ReactElement {
         return;
       }
 
-      const transaction = toClassDeleteTransaction(editorState.selectedClassIds);
+      const transaction = toClassDeleteTransaction(selectionState.classIds);
       if (!transaction) return;
 
       event.preventDefault();
@@ -65,16 +97,16 @@ export default function CanvasView({ view }: CanvasViewProps): ReactElement {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [editorState.selectedClassIds, dispatchCommand]);
+  }, [selectionState, dispatchCommand]);
 
   // @job logic:child:view
-  const toolPaneView = toToolPaneView(editorState);
-  const classDiagramView = toClassDiagramView(view, editorState);
-  const stylePaneView = toStylePaneView(view, editorState.selectedClassIds);
+  const toolPaneView = toToolPaneView(nodePlacementState);
+  const classDiagramView = toClassDiagramView(view, selectionState, nodePlacementState);
+  const stylePaneView = toStylePaneView(view, selectionState);
 
   // @job connect:state:wire
   return (
-    <EditorStateDispatchContext.Provider value={dispatchEditorStateAction}>
+    <CanvasViewStateDispatchContext.Provider value={dispatchCanvasViewStateAction}>
       <section className={styles.editorShell} aria-label="Class diagram editor">
         <ToolPane view={toolPaneView} />
         <div className={styles.canvasRegion}>
@@ -82,7 +114,7 @@ export default function CanvasView({ view }: CanvasViewProps): ReactElement {
         </div>
         <StylePane view={stylePaneView} />
       </section>
-    </EditorStateDispatchContext.Provider>
+    </CanvasViewStateDispatchContext.Provider>
   );
 }
 

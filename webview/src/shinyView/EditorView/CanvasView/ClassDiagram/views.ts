@@ -5,7 +5,7 @@
 import type { Rect } from "../../../../shared/geometry";
 import type { ClassId, NamespaceId, RelationshipId } from "../../../../shared/ids";
 import type { RelationshipType } from "../../../../shared/relationshipTypes";
-import type { PlacementMode } from "../state";
+import type { NodePlacementState, SelectionState } from "../../../state/editorStates";
 import type { ClassBoxMemberView } from "./ReactFlowCanvasAdapter/ReactFlowClassBoxNodeAdapter/ClassBox/MemberTable/views";
 
 export type ClassDiagramView = {
@@ -14,8 +14,8 @@ export type ClassDiagramView = {
     readonly namespaces: readonly NamespaceBoxView[];
     readonly relationships: readonly RelationshipView[];
   };
-  readonly selectedClassIds: readonly ClassId[];
-  readonly placementMode: PlacementMode | null;
+  readonly selectionState: SelectionState;
+  readonly nodePlacementState: NodePlacementState;
 };
 
 /**

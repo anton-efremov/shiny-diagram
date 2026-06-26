@@ -2,69 +2,59 @@
  * @fileoverview Framework-neutral layout state for ClassDiagram.
  */
 
-import type { ClassId } from "../../../../shared/ids";
+import type { Rect } from "../../../../shared/geometry";
+import type { ClassBoxLayoutState } from "../../../state/editorStates";
 import type { ClassBoxView } from "./views";
 
-export type ClassLayoutEntry = {
-  readonly x: number;
-  readonly y: number;
-  readonly w: number;
-  readonly h: number;
-};
-
-export type DiagramLayoutState = {
-  readonly layoutByClassId: Map<ClassId, ClassLayoutEntry>;
-};
-
 export type ClassPositionChange = {
-  readonly classId: ClassId;
+  readonly classId: ClassBoxView["classId"];
   readonly x: number;
   readonly y: number;
 };
 
 // @job logic:state:initialize
-export function createInitialDiagramLayoutState(
+export function createInitialClassBoxLayoutState(
   classes: readonly ClassBoxView[]
-): DiagramLayoutState {
+): ClassBoxLayoutState {
   return {
-    layoutByClassId: new Map(classes.map((c) => [c.classId, { x: c.x, y: c.y, w: c.w, h: c.h }])),
+    rectByClassId: new Map(classes.map((c) => [c.classId, { x: c.x, y: c.y, w: c.w, h: c.h }])),
   };
 }
 
 // @job logic:state:reconcile
 export function reconcileLayoutWithClassViews(
-  state: DiagramLayoutState,
+  state: ClassBoxLayoutState,
   classes: readonly ClassBoxView[]
-): DiagramLayoutState {
-  if (isLayoutEquivalentToViews(state.layoutByClassId, classes)) return state;
+): ClassBoxLayoutState {
+  if (isLayoutEquivalentToViews(state.rectByClassId, classes)) return state;
   return {
-    layoutByClassId: new Map(classes.map((c) => [c.classId, { x: c.x, y: c.y, w: c.w, h: c.h }])),
+    rectByClassId: new Map(classes.map((c) => [c.classId, { x: c.x, y: c.y, w: c.w, h: c.h }])),
   };
 }
 
 // @job logic:state:update
 export function applyPositionChanges(
-  state: DiagramLayoutState,
+  state: ClassBoxLayoutState,
   changes: readonly ClassPositionChange[]
-): DiagramLayoutState {
+): ClassBoxLayoutState {
   let changed = false;
-  const next = new Map(state.layoutByClassId);
+  const next = new Map(state.rectByClassId);
   for (const change of changes) {
     const existing = next.get(change.classId);
     if (!existing || (existing.x === change.x && existing.y === change.y)) continue;
     next.set(change.classId, { ...existing, x: change.x, y: change.y });
     changed = true;
   }
-  return changed ? { layoutByClassId: next } : state;
+  return changed ? { rectByClassId: next } : state;
 }
 
 function isLayoutEquivalentToViews(
-  layoutByClassId: Map<ClassId, ClassLayoutEntry>,
+  rectByClassId: ReadonlyMap<ClassBoxView["classId"], Rect>,
   classes: readonly ClassBoxView[]
 ): boolean {
-  if (layoutByClassId.size !== classes.length) return false;
+  if (rectByClassId.size !== classes.length) return false;
   return classes.every((c) => {
-    const entry = layoutByClassId.get(c.classId);
+    const entry = rectByClassId.get(c.classId);
     return (
       entry !== undefined &&
       entry.x === c.x &&

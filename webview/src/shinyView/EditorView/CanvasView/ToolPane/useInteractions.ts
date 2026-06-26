@@ -4,7 +4,7 @@
  */
 
 import { useCallback } from "react";
-import { useDispatchEditorStateAction } from "../contexts";
+import { useDispatchCanvasViewStateAction } from "../contexts";
 
 type UseToolPaneInteractionsResult = {
   onClassToolClick: () => void;
@@ -14,12 +14,12 @@ type UseToolPaneInteractionsResult = {
  * Activates diagram placement tools from Tool Pane controls.
  */
 export function useToolPaneInteractions(): UseToolPaneInteractionsResult {
-  const dispatchEditorStateAction = useDispatchEditorStateAction();
+  const dispatchCanvasViewStateAction = useDispatchCanvasViewStateAction();
 
   // @job connect:state:wire
   const onClassToolClick = useCallback(() => {
-    dispatchEditorStateAction({ type: "placement.setMode", placementMode: "class" });
-  }, [dispatchEditorStateAction]);
+    dispatchCanvasViewStateAction({ type: "placement.setMode", nodePlacementState: "class" });
+  }, [dispatchCanvasViewStateAction]);
 
   return { onClassToolClick };
 }

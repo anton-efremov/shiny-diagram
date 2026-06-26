@@ -9,7 +9,7 @@ import type { ClassBoxView } from "./views";
 import type { ClassPositionChange } from "./state";
 import { toClassMoveTransaction } from "./commands";
 import { useDispatchCommand } from "../../contexts";
-import { useDispatchEditorStateAction } from "../contexts";
+import { useDispatchCanvasViewStateAction } from "../contexts";
 
 type UseClassDiagramInteractionsResult = {
   readonly onDragComplete: (finalPositions: readonly ClassPositionChange[]) => void;
@@ -21,7 +21,7 @@ export function useClassDiagramInteractions(
   classes: readonly ClassBoxView[]
 ): UseClassDiagramInteractionsResult {
   const dispatchCommand = useDispatchCommand();
-  const dispatchEditorStateAction = useDispatchEditorStateAction();
+  const dispatchCanvasViewStateAction = useDispatchCanvasViewStateAction();
 
   // @job logic:command:derive
   const onDragComplete = useCallback(
@@ -40,14 +40,14 @@ export function useClassDiagramInteractions(
   // @job connect:state:wire
   const onSelectionChange = useCallback(
     (classIds: readonly ClassId[]) => {
-      dispatchEditorStateAction({ type: "selection.setClassIds", classIds });
+      dispatchCanvasViewStateAction({ type: "selection.setClassIds", classIds });
     },
-    [dispatchEditorStateAction]
+    [dispatchCanvasViewStateAction]
   );
 
   const onPaneClick = useCallback(() => {
-    dispatchEditorStateAction({ type: "selection.clearClassIds" });
-  }, [dispatchEditorStateAction]);
+    dispatchCanvasViewStateAction({ type: "selection.clearClassIds" });
+  }, [dispatchCanvasViewStateAction]);
 
   return { onDragComplete, onSelectionChange, onPaneClick };
 }

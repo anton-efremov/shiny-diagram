@@ -2,34 +2,34 @@
  * @fileoverview Ready editor child-view derivation.
  */
 
-import type { ClassId } from "../../../shared/ids";
+import type { NodePlacementState, SelectionState } from "../../state/editorStates";
 import type { ClassDiagramView } from "./ClassDiagram/views";
-import type { EditorState } from "./state";
 import type { StylePaneView } from "./StylePane/views";
 import type { ToolPaneView } from "./ToolPane/views";
 import type { CanvasViewModel } from "./views";
 
 // @job logic:child:view
-export function toToolPaneView(editorState: EditorState): ToolPaneView {
-  return { placementMode: editorState.placementMode };
+export function toToolPaneView(nodePlacementState: NodePlacementState): ToolPaneView {
+  return { nodePlacementState };
 }
 
 export function toClassDiagramView(
   view: CanvasViewModel,
-  editorState: EditorState
+  selectionState: SelectionState,
+  nodePlacementState: NodePlacementState
 ): ClassDiagramView {
   return {
     elements: view.elements,
-    selectedClassIds: editorState.selectedClassIds,
-    placementMode: editorState.placementMode,
+    selectionState,
+    nodePlacementState,
   };
 }
 
 export function toStylePaneView(
   view: CanvasViewModel,
-  selectedClassIds: readonly ClassId[]
+  selectionState: SelectionState
 ): StylePaneView {
-  const selected = new Set(selectedClassIds);
+  const selected = new Set(selectionState.classIds);
   return {
     selectedClassViews: view.elements.classes.filter((classView) =>
       selected.has(classView.classId)

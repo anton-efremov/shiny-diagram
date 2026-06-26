@@ -29,7 +29,7 @@ export default function PlacementOverlay({ view }: PlacementOverlayProps): React
   );
 
   // @job logic:child:route
-  if (!view.placementMode) return null;
+  if (view.nodePlacementState !== "class") return null;
 
   // @job connect:child:view
   const draftStyle: CSSProperties | undefined = draftRect

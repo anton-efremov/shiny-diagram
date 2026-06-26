@@ -3,8 +3,8 @@
  * Extracted because PlacementOverlay is an exclusively owned child component of ReactFlowCanvasAdapter.
  */
 
-import type { PlacementMode } from "../../../state";
+import type { NodePlacementState } from "../../../../../state/editorStates";
 
 export type PlacementOverlayView = {
-  readonly placementMode: PlacementMode | null;
+  readonly nodePlacementState: NodePlacementState;
 };
