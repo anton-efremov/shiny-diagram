@@ -5,48 +5,16 @@
 import type { ReactElement } from "react";
 import type { EditorDispatch } from "../commands/editorCommands";
 import CanvasView from "./CanvasView/CanvasView";
-import type { CanvasViewModel } from "./CanvasView/views";
+import { toCanvasView, toErrorView, toMissingAnnotationsView } from "./childViews";
 import { CommandDispatchContext } from "./contexts";
 import ErrorView from "./ErrorView/ErrorView";
-import type { ErrorViewModel } from "./ErrorView/views";
 import MissingAnnotationsView from "./MissingAnnotationsView/MissingAnnotationsView";
-import type { MissingAnnotationsViewModel } from "./MissingAnnotationsView/views";
 import type { EditorViewModel } from "./views";
 
 type EditorViewProps = {
   view: EditorViewModel;
   dispatch: EditorDispatch;
 };
-
-// @job logic:child:view
-function toCanvasView({
-  view,
-}: {
-  readonly view: Extract<EditorViewModel, { readonly status: "ready" }>;
-}): CanvasViewModel {
-  return {
-    elements: view.elements,
-  };
-}
-function toErrorView({
-  view,
-}: {
-  readonly view: Extract<EditorViewModel, { readonly status: "invalidSyntax" }>;
-}): ErrorViewModel {
-  return {
-    message: view.message,
-  };
-}
-function toMissingAnnotationsView({
-  view,
-}: {
-  readonly view: Extract<EditorViewModel, { readonly status: "missingAnnotations" }>;
-}): MissingAnnotationsViewModel {
-  return {
-    missingIds: view.missingIds,
-    elements: view.elements,
-  };
-}
 
 /**
  * Routes the visual editor to the current status interface.

@@ -8,3 +8,8 @@ export type ConnectionHandleDescriptor = {
   readonly direction: "source" | "target";
   readonly side: "top" | "right" | "bottom" | "left";
 };
+
+export type ReactFlowConnectionHandlesAdapterView = {
+  readonly handles: readonly ConnectionHandleDescriptor[];
+  readonly className: string;
+};

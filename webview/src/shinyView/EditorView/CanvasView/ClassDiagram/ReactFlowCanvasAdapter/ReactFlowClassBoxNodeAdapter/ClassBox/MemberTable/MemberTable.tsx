@@ -3,7 +3,7 @@
  * @presents Member table sections inside a class box.
  */
 import type { ReactElement } from "react";
-import type { ClassBoxMemberView, MemberTableView } from "./views";
+import type { MemberRowView, MemberTableView } from "./views";
 import styles from "../ClassBox.module.css";
 
 type MemberTableProps = {
@@ -27,7 +27,7 @@ function MemberList({
   members,
   isSelected,
 }: {
-  members: readonly ClassBoxMemberView[];
+  members: readonly MemberRowView[];
   isSelected: boolean;
 }): ReactElement {
   // @job render:structure

@@ -4,17 +4,19 @@
 
 import type { Rect } from "../../../../shared/geometry";
 import type { ClassBoxLayoutState } from "../../../state/editorStates";
-import type { ClassBoxView } from "./views";
+import type { ClassDiagramView } from "./views";
+
+type ClassDiagramClassView = ClassDiagramView["elements"]["classes"][number];
 
 export type ClassPositionChange = {
-  readonly classId: ClassBoxView["classId"];
+  readonly classId: ClassDiagramClassView["classId"];
   readonly x: number;
   readonly y: number;
 };
 
 // @job logic:state:initialize
 export function createInitialClassBoxLayoutState(
-  classes: readonly ClassBoxView[]
+  classes: readonly ClassDiagramClassView[]
 ): ClassBoxLayoutState {
   return {
     rectByClassId: new Map(classes.map((c) => [c.classId, { x: c.x, y: c.y, w: c.w, h: c.h }])),
@@ -24,7 +26,7 @@ export function createInitialClassBoxLayoutState(
 // @job logic:state:reconcile
 export function reconcileLayoutWithClassViews(
   state: ClassBoxLayoutState,
-  classes: readonly ClassBoxView[]
+  classes: readonly ClassDiagramClassView[]
 ): ClassBoxLayoutState {
   if (isLayoutEquivalentToViews(state.rectByClassId, classes)) return state;
   return {
@@ -49,8 +51,8 @@ export function applyPositionChanges(
 }
 
 function isLayoutEquivalentToViews(
-  rectByClassId: ReadonlyMap<ClassBoxView["classId"], Rect>,
-  classes: readonly ClassBoxView[]
+  rectByClassId: ReadonlyMap<ClassDiagramClassView["classId"], Rect>,
+  classes: readonly ClassDiagramClassView[]
 ): boolean {
   if (rectByClassId.size !== classes.length) return false;
   return classes.every((c) => {

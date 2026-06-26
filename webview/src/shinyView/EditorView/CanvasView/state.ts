@@ -4,7 +4,7 @@
 
 import type { ClassId } from "../../../shared/ids";
 import type { NodePlacementState, SelectionState } from "../../state/editorStates";
-import type { ElementViews } from "../views";
+import type { CanvasElementViews } from "./views";
 
 export type CanvasViewStateAction =
   | {
@@ -16,7 +16,7 @@ export type CanvasViewStateAction =
     }
   | {
       readonly type: "selection.reconcileClassIds";
-      readonly elements: ElementViews | null;
+      readonly elements: CanvasElementViews | null;
     }
   | {
       readonly type: "placement.setMode";
@@ -63,7 +63,7 @@ export function updateSelectedClassIds(
 // @job logic:state:reconcile
 export function reconcileSelectionStateWithElements(
   selectionState: SelectionState,
-  elements: ElementViews | null
+  elements: CanvasElementViews | null
 ): SelectionState {
   const classIds = reconcileSelectedClassIds(selectionState.classIds, elements);
   return areClassIdCollectionsEqual(selectionState.classIds, classIds)
@@ -94,7 +94,7 @@ export function isClassOnlyPlacementActive(nodePlacementState: NodePlacementStat
 
 function reconcileSelectedClassIds(
   selectedClassIds: readonly ClassId[],
-  elements: ElementViews | null
+  elements: CanvasElementViews | null
 ): readonly ClassId[] {
   if (!elements) return selectedClassIds.length === 0 ? selectedClassIds : [];
 

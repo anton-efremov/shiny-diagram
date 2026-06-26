@@ -1,57 +1,18 @@
 /**
- * @fileoverview StylePane scenario and control child-view derivation.
+ * @fileoverview StylePane direct-child scenario view derivation.
  */
 
-import { aggregateClassStyles } from "./styleAggregation";
-import type { AggregatedStyleProperty } from "./styleAggregation";
-import type { StylePaneScenarioView, StylePaneView } from "./views";
+import type { ClassStylePaneView } from "./ClassStylePane/views";
+import type { EmptyStylePaneView } from "./EmptyStylePane/views";
+import type { StylePaneView } from "./views";
 
 // @job logic:child:view
-export function toStylePaneScenarioView(view: StylePaneView): StylePaneScenarioView {
-  const { selectedClassViews } = view;
-  if (selectedClassViews.length === 0) return { kind: "empty", view: {} };
-
-  const aggregatedStyles = aggregateClassStyles(selectedClassViews);
-  if (selectedClassViews.length === 1) {
-    const classView = selectedClassViews[0];
-
-    return {
-      kind: "singleClass",
-      view: {
-        classView,
-        aggregatedStyles,
-      },
-    };
-  }
-
-  return {
-    kind: "multiClass",
-    view: {
-      classViews: selectedClassViews,
-      aggregatedStyles,
-    },
-  };
+export function toEmptyStylePaneView(view: StylePaneView): EmptyStylePaneView {
+  void view;
+  return {};
 }
 
 // @job logic:child:view
-export function toColorSelectorProps(property: AggregatedStyleProperty): {
-  readonly displayValue: string;
-  readonly pickerValue: string;
-  readonly swatchColor?: string;
-  readonly mixed: boolean;
-} {
-  if (property.kind === "multiple") {
-    return {
-      displayValue: "Multiple",
-      pickerValue: property.pickerValue,
-      mixed: true,
-    };
-  }
-
-  return {
-    displayValue: property.value ?? "Default",
-    pickerValue: property.pickerValue,
-    swatchColor: property.value,
-    mixed: false,
-  };
+export function toClassStylePaneView(view: StylePaneView): ClassStylePaneView {
+  return view.classStylePane;
 }

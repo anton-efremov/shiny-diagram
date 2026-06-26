@@ -5,14 +5,14 @@
 import type { DiagramTree } from "../../model/diagramTree";
 import type { Rect } from "../../../shared/geometry";
 import type { ClassId } from "../../../shared/ids";
-import type { NamespaceBoxView } from "../../../shinyView/views";
+import type { EditorNamespaceView } from "../../../shinyView/views";
 import { unionRects } from "./layoutBounds";
 
 /**
  * Derives namespace views from class membership edges.
  */
-export function deriveNamespaceBoxViews(model: DiagramTree): NamespaceBoxView[] {
-  const views: NamespaceBoxView[] = [];
+export function deriveNamespaceBoxViews(model: DiagramTree): EditorNamespaceView[] {
+  const views: EditorNamespaceView[] = [];
 
   for (const ns of model.namespaces.values()) {
     const memberIds = model.inNamespaceEdges.filter((e) => e.target === ns.id).map((e) => e.source);

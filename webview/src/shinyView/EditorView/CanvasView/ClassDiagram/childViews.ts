@@ -23,7 +23,12 @@ export function toClassDiagramChildView(
       {
         classId: classView.classId,
         header: classView.header,
-        members: classView.members,
+        members: classView.members.map((member) => ({
+          memberId: member.memberId,
+          prefix: member.prefix,
+          text: member.text,
+          kind: member.kind,
+        })),
         style: classView.style,
         x: layout.x,
         y: layout.y,
@@ -36,7 +41,15 @@ export function toClassDiagramChildView(
 
   return {
     classes,
-    relationships: view.elements.relationships,
+    relationships: view.elements.relationships.map((relationshipView) => ({
+      relationshipId: relationshipView.relationshipId,
+      sourceClassId: relationshipView.sourceClassId,
+      targetClassId: relationshipView.targetClassId,
+      relationType: relationshipView.relationType,
+      sourceMultiplicity: relationshipView.sourceMultiplicity,
+      targetMultiplicity: relationshipView.targetMultiplicity,
+      label: relationshipView.label,
+    })),
     selectedClassIds: classIds,
     isPlacementActive: view.nodePlacementState !== null,
     placementOverlayView: { nodePlacementState: view.nodePlacementState },

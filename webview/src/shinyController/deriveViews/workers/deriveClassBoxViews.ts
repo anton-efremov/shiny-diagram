@@ -3,13 +3,13 @@
  */
 
 import type { DiagramTree } from "../../model/diagramTree";
-import type { ClassBoxView } from "../../../shinyView/views";
+import type { EditorClassView } from "../../../shinyView/views";
 
 /**
  * Derives class-box views for classes with spatial data.
  */
-export function deriveClassBoxViews(model: DiagramTree): ClassBoxView[] {
-  const views: ClassBoxView[] = [];
+export function deriveClassBoxViews(model: DiagramTree): EditorClassView[] {
+  const views: EditorClassView[] = [];
 
   for (const node of model.classes.values()) {
     if (!node.spatial) continue;

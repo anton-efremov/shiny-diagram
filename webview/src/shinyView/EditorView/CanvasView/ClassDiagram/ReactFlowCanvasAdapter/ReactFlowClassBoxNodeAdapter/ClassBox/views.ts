@@ -4,18 +4,14 @@
  */
 
 import type { ClassId } from "../../../../../../../shared/ids";
-import type { ClassBoxMemberView } from "./MemberTable/views";
+import type { ClassStyleProperties } from "../../../../../../../shared/diagramVocabulary";
+import type { MemberRowView } from "./MemberTable/views";
 
-export type ClassBoxRenderView = {
+export type ClassBoxView = {
   readonly classId: ClassId;
   readonly header: { readonly label: string; readonly stereotype?: string };
-  readonly members: readonly ClassBoxMemberView[];
-  readonly style?: {
-    readonly fill?: string;
-    readonly stroke?: string;
-    readonly color?: string;
-    readonly name?: string;
-  };
+  readonly members: readonly MemberRowView[];
+  readonly style?: ClassStyleProperties;
   readonly isSelected: boolean;
   readonly isDragging: boolean;
   readonly isResizeVisible: boolean;

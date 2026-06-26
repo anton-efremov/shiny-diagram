@@ -4,21 +4,20 @@
  */
 
 import type { Edge as ReactFlowEdge, Node as ReactFlowNode } from "@xyflow/react";
+import type { ClassStyleProperties } from "../../../../../shared/diagramVocabulary";
 import type { ClassId } from "../../../../../shared/ids";
-import type { ClassBoxMemberView } from "./ReactFlowClassBoxNodeAdapter/ClassBox/MemberTable/views";
-import type { ClassEntryView, ReactFlowCanvasAdapterView } from "./views";
-import type { RelationshipView } from "../views";
+import type {
+  ClassEntryMemberView,
+  ClassEntryView,
+  RelationshipEntryView,
+  ReactFlowCanvasAdapterView,
+} from "./views";
 
 export type ClassBoxNodeData = {
   readonly classId: ClassId;
   readonly header: { readonly label: string; readonly stereotype?: string };
-  readonly members: readonly ClassBoxMemberView[];
-  readonly style?: {
-    readonly fill?: string;
-    readonly stroke?: string;
-    readonly color?: string;
-    readonly name?: string;
-  };
+  readonly members: readonly ClassEntryMemberView[];
+  readonly style?: ClassStyleProperties;
   readonly isResizeVisible: boolean;
 };
 
@@ -51,7 +50,7 @@ export function toClassBoxNodeDescriptors(
 
 export function toRelationshipEdgeDescriptors(
   classes: readonly ClassEntryView[],
-  relationships: readonly RelationshipView[]
+  relationships: readonly RelationshipEntryView[]
 ): RelationshipEdgeDescriptor[] {
   const classesById = new Map(classes.map((e) => [e.classId, e]));
 

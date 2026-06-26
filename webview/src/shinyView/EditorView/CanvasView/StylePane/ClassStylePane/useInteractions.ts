@@ -1,89 +1,85 @@
 /**
- * @fileoverview Multi-class style pane interaction pipeline.
+ * @fileoverview Class style pane interaction pipeline.
  */
 
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useDispatchCommand } from "../../../contexts";
-import { toClassDeleteTransaction } from "../../commands";
 import {
   toBorderColorSetTransaction,
+  toClassDeleteTransaction,
   toClassDuplicateTransaction,
   toFillColorSetTransaction,
   toTextColorSetTransaction,
-} from "../commands";
-import type { MultiClassStylePaneView } from "./views";
+} from "./commands";
+import type { ClassStylePaneView } from "./views";
 
-type UseMultiClassStylePaneInteractionsResult = {
+type UseClassStylePaneInteractionsResult = {
   readonly onFillColorChange: (fill: string) => void;
-  readonly onStrokeColorChange: (stroke: string) => void;
+  readonly onBorderColorChange: (border: string) => void;
   readonly onTextColorChange: (color: string) => void;
   readonly onDuplicate: () => void;
   readonly onDeleteClick: () => void;
 };
 
-export function useMultiClassStylePaneInteractions(
-  view: MultiClassStylePaneView
-): UseMultiClassStylePaneInteractionsResult {
+export function useClassStylePaneInteractions(
+  view: ClassStylePaneView
+): UseClassStylePaneInteractionsResult {
   const dispatchCommand = useDispatchCommand();
-  const { classViews } = view;
-  const selectedClassIds = useMemo(
-    () => classViews.map((classView) => classView.classId),
-    [classViews]
-  );
+  const { selectedClasses } = view;
 
   const onFillColorChange = useCallback(
     (fill: string) => {
       // @job logic:command:derive
-      const transaction = toFillColorSetTransaction(selectedClassIds, fill);
+      const transaction = toFillColorSetTransaction(selectedClasses, fill);
       if (!transaction) return;
 
       // @job connect:command:wire
       dispatchCommand(transaction);
     },
-    [selectedClassIds, dispatchCommand]
+    [selectedClasses, dispatchCommand]
   );
 
-  const onStrokeColorChange = useCallback(
-    (stroke: string) => {
+  const onBorderColorChange = useCallback(
+    (border: string) => {
       // @job logic:command:derive
-      const transaction = toBorderColorSetTransaction(selectedClassIds, stroke);
+      const transaction = toBorderColorSetTransaction(selectedClasses, border);
       if (!transaction) return;
 
       // @job connect:command:wire
       dispatchCommand(transaction);
     },
-    [selectedClassIds, dispatchCommand]
+    [selectedClasses, dispatchCommand]
   );
 
   const onTextColorChange = useCallback(
     (color: string) => {
       // @job logic:command:derive
-      const transaction = toTextColorSetTransaction(selectedClassIds, color);
+      const transaction = toTextColorSetTransaction(selectedClasses, color);
       if (!transaction) return;
 
       // @job connect:command:wire
       dispatchCommand(transaction);
     },
-    [selectedClassIds, dispatchCommand]
+    [selectedClasses, dispatchCommand]
   );
 
   const onDeleteClick = useCallback(() => {
     // @job logic:command:derive
-    const transaction = toClassDeleteTransaction(selectedClassIds);
+    const transaction = toClassDeleteTransaction(selectedClasses);
     if (!transaction) return;
 
     // @job connect:command:wire
     dispatchCommand(transaction);
-  }, [selectedClassIds, dispatchCommand]);
+  }, [selectedClasses, dispatchCommand]);
 
   const onDuplicate = useCallback(() => {
     // @job logic:command:derive
-    const transaction = toClassDuplicateTransaction(classViews);
+    const transaction = toClassDuplicateTransaction(selectedClasses);
     if (!transaction) return;
 
     // @job connect:command:wire
     dispatchCommand(transaction);
-  }, [classViews, dispatchCommand]);
+  }, [selectedClasses, dispatchCommand]);
 
-  return { onFillColorChange, onStrokeColorChange, onTextColorChange, onDuplicate, onDeleteClick };
+  return { onFillColorChange, onBorderColorChange, onTextColorChange, onDuplicate, onDeleteClick };
 }

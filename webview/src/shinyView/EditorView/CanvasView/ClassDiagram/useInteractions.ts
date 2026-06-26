@@ -5,7 +5,7 @@
 
 import { useCallback } from "react";
 import type { ClassId } from "../../../../shared/ids";
-import type { ClassBoxView } from "./views";
+import type { ClassDiagramView } from "./views";
 import type { ClassPositionChange } from "./state";
 import { toClassMoveTransaction } from "./commands";
 import { useDispatchCommand } from "../../contexts";
@@ -17,8 +17,10 @@ type UseClassDiagramInteractionsResult = {
   readonly onPaneClick: () => void;
 };
 
+type ClassDiagramClassView = ClassDiagramView["elements"]["classes"][number];
+
 export function useClassDiagramInteractions(
-  classes: readonly ClassBoxView[]
+  classes: readonly ClassDiagramClassView[]
 ): UseClassDiagramInteractionsResult {
   const dispatchCommand = useDispatchCommand();
   const dispatchCanvasViewStateAction = useDispatchCanvasViewStateAction();

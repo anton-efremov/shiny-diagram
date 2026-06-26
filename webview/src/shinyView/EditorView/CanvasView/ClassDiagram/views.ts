@@ -1,50 +1,49 @@
 /**
- * @fileoverview Diagram-level render contracts for namespaces and relationships.
+ * @fileoverview Render contract for the class diagram canvas.
  */
 
+import type { ClassStyleProperties } from "../../../../shared/diagramVocabulary";
 import type { Rect } from "../../../../shared/geometry";
-import type { ClassId, NamespaceId, RelationshipId } from "../../../../shared/ids";
+import type { ClassId, MemberId, NamespaceId, RelationshipId } from "../../../../shared/ids";
 import type { RelationshipType } from "../../../../shared/relationshipTypes";
 import type { NodePlacementState, SelectionState } from "../../../state/editorStates";
-import type { ClassBoxMemberView } from "./ReactFlowCanvasAdapter/ReactFlowClassBoxNodeAdapter/ClassBox/MemberTable/views";
 
 export type ClassDiagramView = {
   readonly elements: {
-    readonly classes: readonly ClassBoxView[];
-    readonly namespaces: readonly NamespaceBoxView[];
-    readonly relationships: readonly RelationshipView[];
+    readonly classes: readonly ClassDiagramClassView[];
+    readonly namespaces: readonly ClassDiagramNamespaceView[];
+    readonly relationships: readonly ClassDiagramRelationshipView[];
   };
   readonly selectionState: SelectionState;
   readonly nodePlacementState: NodePlacementState;
 };
 
-/**
- * Exposes the classDef name so StylePane can display the applied style.
- */
-export type ClassBoxView = {
+type ClassDiagramClassView = {
   readonly classId: ClassId;
   readonly x: number;
   readonly y: number;
   readonly w: number;
   readonly h: number;
   readonly header: { readonly label: string; readonly stereotype?: string };
-  readonly members: readonly ClassBoxMemberView[];
-  readonly style?: {
-    readonly fill?: string;
-    readonly stroke?: string;
-    readonly color?: string;
-    readonly name?: string;
-  };
+  readonly members: readonly ClassDiagramClassMemberView[];
+  readonly style?: ClassStyleProperties;
 };
 
-export type NamespaceBoxView = {
+type ClassDiagramClassMemberView = {
+  readonly memberId: MemberId;
+  readonly prefix: string;
+  readonly text: string;
+  readonly kind: "field" | "method";
+};
+
+type ClassDiagramNamespaceView = {
   readonly namespaceId: NamespaceId;
   readonly bounds: Rect;
   readonly label: string;
-  readonly style?: { readonly fill?: string; readonly stroke?: string; readonly color?: string };
+  readonly style?: ClassStyleProperties;
 };
 
-export type RelationshipView = {
+type ClassDiagramRelationshipView = {
   readonly relationshipId: RelationshipId;
   readonly sourceClassId: ClassId;
   readonly targetClassId: ClassId;

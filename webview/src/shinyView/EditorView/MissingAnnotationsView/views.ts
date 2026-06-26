@@ -3,9 +3,15 @@
  */
 
 import type { ClassId } from "../../../shared/ids";
-import type { ElementViews } from "../views";
 
 export type MissingAnnotationsViewModel = {
   readonly missingIds: readonly ClassId[];
-  readonly elements: ElementViews;
+  readonly classes: readonly MissingAnnotationClassView[];
+};
+
+export type MissingAnnotationClassView = {
+  readonly classId: ClassId;
+  readonly x: number;
+  readonly y: number;
+  readonly h: number;
 };

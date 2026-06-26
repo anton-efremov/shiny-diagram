@@ -3,12 +3,12 @@
  */
 
 import type { DiagramTree } from "../../model/diagramTree";
-import type { RelationshipView } from "../../../shinyView/views";
+import type { EditorRelationshipView } from "../../../shinyView/views";
 
 /**
  * Derives relationship views whose endpoints both have spatial data.
  */
-export function deriveRelationshipViews(model: DiagramTree): RelationshipView[] {
+export function deriveRelationshipViews(model: DiagramTree): EditorRelationshipView[] {
   return model.relationships.flatMap((rel) => {
     const source = model.classes.get(rel.source);
     const target = model.classes.get(rel.target);

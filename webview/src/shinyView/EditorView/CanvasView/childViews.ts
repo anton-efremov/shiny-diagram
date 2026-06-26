@@ -19,7 +19,39 @@ export function toClassDiagramView(
   nodePlacementState: NodePlacementState
 ): ClassDiagramView {
   return {
-    elements: view.elements,
+    elements: {
+      classes: view.elements.classes.map((classView) => ({
+        classId: classView.classId,
+        x: classView.x,
+        y: classView.y,
+        w: classView.w,
+        h: classView.h,
+        header: classView.header,
+        members: classView.members,
+        style: classView.style
+          ? {
+              fill: classView.style.fill,
+              stroke: classView.style.stroke,
+              color: classView.style.color,
+            }
+          : undefined,
+      })),
+      namespaces: view.elements.namespaces.map((namespaceView) => ({
+        namespaceId: namespaceView.namespaceId,
+        bounds: namespaceView.bounds,
+        label: namespaceView.label,
+        style: namespaceView.style,
+      })),
+      relationships: view.elements.relationships.map((relationshipView) => ({
+        relationshipId: relationshipView.relationshipId,
+        sourceClassId: relationshipView.sourceClassId,
+        targetClassId: relationshipView.targetClassId,
+        relationType: relationshipView.relationType,
+        sourceMultiplicity: relationshipView.sourceMultiplicity,
+        targetMultiplicity: relationshipView.targetMultiplicity,
+        label: relationshipView.label,
+      })),
+    },
     selectionState,
     nodePlacementState,
   };
@@ -31,8 +63,25 @@ export function toStylePaneView(
 ): StylePaneView {
   const selected = new Set(selectionState.classIds);
   return {
-    selectedClassViews: view.elements.classes.filter((classView) =>
-      selected.has(classView.classId)
-    ),
+    classStylePane: {
+      selectedClasses: view.elements.classes.flatMap((classView) => {
+        if (!selected.has(classView.classId)) return [];
+        return [
+          {
+            classId: classView.classId,
+            label: classView.header.label,
+            stereotype: classView.header.stereotype,
+            styleName: classView.style?.name,
+            style: {
+              fill: classView.style?.fill,
+              stroke: classView.style?.stroke,
+              color: classView.style?.color,
+            },
+            position: { x: classView.x, y: classView.y },
+            size: { width: classView.w, height: classView.h },
+          },
+        ];
+      }),
+    },
   };
 }

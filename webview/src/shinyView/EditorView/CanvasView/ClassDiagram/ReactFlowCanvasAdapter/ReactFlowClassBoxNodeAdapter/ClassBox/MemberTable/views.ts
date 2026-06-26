@@ -5,7 +5,7 @@
 
 import type { MemberId } from "../../../../../../../../shared/ids";
 
-export type ClassBoxMemberView = {
+export type MemberRowView = {
   readonly memberId: MemberId;
   readonly prefix: string;
   readonly text: string;
@@ -13,7 +13,7 @@ export type ClassBoxMemberView = {
 };
 
 export type MemberTableView = {
-  readonly fields: readonly ClassBoxMemberView[];
-  readonly methods: readonly ClassBoxMemberView[];
+  readonly fields: readonly MemberRowView[];
+  readonly methods: readonly MemberRowView[];
   readonly isSelected: boolean;
 };

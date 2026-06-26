@@ -3,7 +3,7 @@
  * @adapts Handle: translates editor-facing connection handle descriptors to React Flow Handle props.
  */
 import { Handle, Position } from "@xyflow/react";
-import type { ConnectionHandleDescriptor } from "./views";
+import type { ReactFlowConnectionHandlesAdapterView } from "./views";
 
 const SIDE_TO_POSITION: Record<string, Position> = {
   top: Position.Top,
@@ -13,21 +13,19 @@ const SIDE_TO_POSITION: Record<string, Position> = {
 };
 
 type ReactFlowConnectionHandlesAdapterProps = {
-  readonly handles: readonly ConnectionHandleDescriptor[];
-  readonly className: string;
+  readonly view: ReactFlowConnectionHandlesAdapterView;
 };
 
 export default function ReactFlowConnectionHandlesAdapter({
-  handles,
-  className,
+  view,
 }: ReactFlowConnectionHandlesAdapterProps) {
   // @job connect:framework:props
   return (
     <>
-      {handles.map(({ id, direction, side }) => (
+      {view.handles.map(({ id, direction, side }) => (
         <Handle
           key={id}
-          className={className}
+          className={view.className}
           id={id}
           type={direction}
           position={SIDE_TO_POSITION[side]}
