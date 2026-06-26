@@ -2,7 +2,7 @@
 
 > **Implementation state:** Aspirational
 > **Document state:** Maintained
-> **Last reviewed:** 2026-06-22  
+> **Last reviewed:** 2026-06-26  
 > **Scope:** Structural rules for production code in the Extension Host and Webview
 
 ## Index
@@ -34,8 +34,8 @@ Normative terms:
 | --- | --- | --- |
 | Extension | **Message-Based Integration across Isolated Runtimes** | Extension Host and Webview communicate only through an explicit, validated protocol. |
 | Webview | **Strict Layered Architecture** | All dependencies, including type imports and re-exports, follow `extensionBridge → webviewShell`, then either `mermaidRenderer` or `shinyController → shinyView`; `shared` is a dependency-free foundation. |
-| Controller | **Application Controller with a Functional Core** | `ShinyController` orchestrates independent functional components; sibling components do not orchestrate one another. |
-| View | **Component-Based UI with Ownership-Based Composition** | React structure follows ownership; component contracts remain local and are exposed through semantic View facades. |
+| Controller | **Application Controller with a Functional Core** | `ShinyController` orchestrates independent functional components; Controller Commands translate editor command transactions into `SourceEdit[]` and own source identities and source-edit semantics. |
+| View | **Component-Based UI with Ownership-Based Composition** | React structure follows ownership; View owns editor interaction and layout decisions, emits editor command transactions, and exposes semantic View facades. |
 
 ## 3. Extension runtime boundary
 
@@ -114,10 +114,12 @@ Layering constrains **static knowledge**, not the direction of every runtime cal
 
 Examples:
 
-- Shell owns the product-level Mermaid/Shiny mode, mounts either standard Mermaid rendering or the Shiny product branch, and does not parse Shiny source or coordinate Shiny commands.
+- Shell owns the product-level Mermaid/Shiny mode, mounts either standard Mermaid rendering or the Shiny product branch, and does not parse Shiny source or coordinate Shiny command transactions.
 - Controller defines its `SourceEdit[]` output and the edit-application callback it requires; Extension Bridge implements that callback and constructs the corresponding protocol-owned edit payload.
 - The Webview and Extension Host protocol modules independently define the same wire messages; neither imports the other or an application-owned contract.
-- View defines `EditorCommand`, `EditorDispatch`, `EditorViewModel`, and render contracts. Controller constructs one `EditorViewModel` and supplies one semantic dispatch implementation through `<EditorView view={editorViewModel} dispatch={dispatch} />`. Raw `sourceText` must not enter the View layer.
+- The View command facade defines `EditorCommand`, `EditorCommandTransaction`, and `EditorDispatch`. `EditorCommand` is the canonical registry of primitive editor-domain command shapes. `EditorCommandTransaction` is the unit emitted to Controller.
+- Controller constructs one `EditorViewModel` and supplies one semantic dispatch implementation through `<EditorView view={editorViewModel} dispatch={dispatch} />`. Raw `sourceText` must not enter the View layer.
+- View owns source-agnostic layout choices available from interaction and render context, such as positions and sizes. Controller owns source parsing, source-edit construction, and generation of new source identities and names.
 - Each independent transient state domain lives at the narrowest View ancestor shared by its consumers. `EditorView` is not a privileged global store; it is currently the common owner of selected class IDs and class placement mode.
 
 ### 4.3 Particular layer access rules
@@ -169,6 +171,9 @@ ShinyController ───┼──────── deriveViews
 - Sibling components must not import or invoke one another.
 - Data moves between sibling components through orchestrator-owned snapshots and contracts at their proper architectural owner.
 - A component must not consume another component's private representation.
+- Controller Commands receive `EditorCommandTransaction` values and produce `SourceEdit[]` batches.
+- Controller owns source identities and source-edit semantics. View may reference existing source-derived IDs received in the View model, but Controller assigns IDs for newly created source entities.
+- Controller persists layout facts chosen by View; it must not choose diagram layout from missing annotations or UI interaction context.
 
 ### 5.2 Component anatomy
 
@@ -235,26 +240,27 @@ shinyView/
 │   └── icons/
 ├── commands/
 │   ├── index.ts
-│   └── editorCommand.ts
+│   └── editorCommands.ts
 ├── views/
 │   └── index.ts
 ```
 
 - `EditorView/` owns the React Shiny editor tree. Its `index.ts` exports only the `EditorView` runtime entry point.
 - `ui/` owns shared presentation-only controls and icons used inside the Shiny View layer. It must not define editor state, commands, render contracts, or application behavior.
-- `commands/` and `views/` expose stable semantic APIs to Controller.
+- `commands/` exposes the canonical View-to-Controller command registry and dispatch contract. `views/` exposes stable render contracts to Controller.
 - The View root must not contain `index.ts`.
 - Controller must not import the nested React component tree directly.
 
 #### 6.1.2 Semantic facade areas
 
-- `shinyView/commands/editorCommand.ts` defines `EditorCommand`, the single View-wide aggregate across command owners.
-- `shinyView/commands/index.ts` re-exports `EditorCommand`, `EditorDispatch`, and selected owner-defined command contracts required by Controller; it does not define or aggregate commands.
+- `shinyView/commands/editorCommands.ts` defines the complete canonical registry of `EditorCommand` variants, `EditorCommandTransaction`, and command helper types.
+- `shinyView/commands/index.ts` re-exports the command registry contracts and `EditorDispatch`; it does not define commands.
+- Component-local `commands.ts` files may define command-derivation helpers, but must not define or export View-to-Controller command shapes.
 - `shinyView/views/index.ts` re-exports selected component-owned render contracts.
 - Facade `index.ts` files contain re-exports only.
-- A facade area may contain dedicated layer-wide aggregate contract modules, but no rendering, state coordination, or interaction implementation.
+- A facade area may contain dedicated layer-wide contract modules, but no rendering, state coordination, or interaction implementation.
 - Controller must consume View APIs through `shinyView/EditorView`, `shinyView/commands`, and `shinyView/views`.
-- Controller handlers should import the narrow owner-defined command contracts they handle through `shinyView/commands`.
+- Controller command handlers may narrow `EditorCommand` through helper types exported by `shinyView/commands`; they must not import component-local command helpers.
 - View internals use direct imports from the defining modules and must not import their own public facades.
 - `shinyView/ui` is an internal View-layer UI package for reusable presentation-only components. It is not a facade, must not contain a root `index.ts`, and must not be imported by Shell, Controller, Extension Bridge, or Mermaid Renderer modules.
 
@@ -272,7 +278,7 @@ A component folder may use the following roles:
 | --- | --- |
 | `Component.tsx` | Renders the component and wires handlers to the DOM or framework surface it owns. |
 | `Component.module.css` | Defines styles owned by the component. |
-| `commands.ts` | Defines normalized editor commands emitted by event handlers owned by the component. |
+| `commands.ts` | Derives `EditorCommandTransaction` values from component-owned interactions using command shapes from the canonical command registry. It must not define command shapes. |
 | `views.ts` | Defines read-only render data accepted by the component. |
 | `state.ts` | Defines transient state contracts and defaults owned by the component. |
 | `useComponentInteractions.ts` | Constructs handlers registered on the component's own interaction surface. |
@@ -283,20 +289,20 @@ A component folder may use the following roles:
 - Folder nesting represents ownership, not incidental DOM depth.
 - Exclusive children are nested; independent features remain siblings.
 
-#### 6.2.1 Command ownership
+#### 6.2.1 Command origination
 
-- A command is defined to normalize raw DOM or framework event into editor intent.
-- Command ownership follows the event handler, not the entity targeted by the command.
-- A parent-owned framework handler may emit a command concerning an owned child representation.
-- A component may group several commands emitted by its own handlers into a local command family.
-- A parent must not aggregate child-owned commands merely because the child is nested in its subtree.
-- `EditorCommand` is the only aggregate spanning different command owners.
+- View-to-Controller command shapes are defined only in `shinyView/commands/editorCommands.ts`.
+- Command derivation ownership follows the event handler and the View context required to construct a fully specified editor intent, not the entity targeted by the command.
+- A parent-owned framework handler may emit a command transaction concerning an owned child representation.
+- `EditorCommandTransaction` groups primitive editor commands that belong to one user/editor action. Repeating the same primitive operation is represented by several commands in the transaction, not by a nested collection inside one command.
+- Command names use editor-domain vocabulary and name independently meaningful editor facts or operations. They must not name DOM/framework events, source syntax, annotations, `SourceEdit` operations, or generic property bags unless the property bag is intentionally open-ended.
+- View owns layout choices. For existing entities, placement changes are emitted as layout facts such as position and size commands. For create/duplicate flows where new source IDs do not yet exist, View supplies desired layout facts in the creation/duplication command and Controller assigns identities and source names.
 
 Examples:
 
-- `ClassDiagram` owns classBox-move commands produced from React Flow node-drag events.
-- `Member` owns edit event produced from member events.
-- `MemberTable` owns reorder commands produced from member-row events.
+- `ClassDiagram` owns class position and size commands produced from React Flow node interactions.
+- `StylePane` owns class style commands produced from style controls.
+- A missing-annotation flow emits concrete class position and size commands; it does not ask Controller to generate layout.
 
 #### 6.2.2 Render-contract ownership
 
@@ -323,7 +329,7 @@ Examples:
 ##### Architectural interaction loops
 
 - An interaction hook is required when an event enters either of data loops:
-	- **events with effect on source:** emit a View-owned command;
+	- **events with effect on source:** emit a View-to-Controller command transaction;
 	- **events with effect on other components**: update shared View state through its public update handle.
 - Handlers whose effects remain local to one component may remain in `Component.tsx`.
 - A local interaction may be extracted into a hook when it coordinates multiple handlers, state, effects, or refs. Pure event-data transformations belong in ordinary functions.
@@ -343,7 +349,9 @@ Examples:
 
 - View modules may import only View modules and `shared/`.
 - View contracts must not expose React, DOM, React Flow, Controller-model, or source-edit types.
-- View may update transient state and emit normalized commands.
+- View may update transient state and emit normalized editor command transactions.
+- View owns editor layout choices based on interaction and render context, and emits concrete layout facts rather than layout-generation requests.
+- View may reference existing IDs received in the View model, but must not invent source identities for new source entities.
 - View must not parse Mermaid or construct source edits.
 
 ## 7. Enforcement
@@ -432,6 +440,7 @@ The checker verifies module structure, protocol self-containment, synchronizatio
 
 | Term | Meaning |
 |---|---|
+| **Editor command transaction** | The View-to-Controller exchange unit: one user/editor action represented by one or more primitive `EditorCommand` values. |
 | **Module** | One source file with its own import and export scope. |
 | **Layer** | An ordered group of modules governed by one dependency direction. |
 | **Component** | A cohesive group of modules with one public boundary and private implementation. |
@@ -453,7 +462,7 @@ The checker verifies module structure, protocol self-containment, synchronizatio
 | **Type or contract** | Authority over its semantics, valid shape, and evolution. |
 | **State** | Authority over its meaning, lifecycle, and valid transitions. Physical storage may be lifted elsewhere. |
 | **Interaction** | Authority over the DOM or framework event surface where the handler is registered and interpreted. |
-| **Command** | Authority at the View interaction boundary where a raw event is normalized into editor intent. |
+| **Command** | Authority over the canonical command shape belongs to the View command registry; authority over command derivation belongs to the View interaction boundary with enough context to emit the editor intent. |
 | **Behavior** | Authority over the rule or decision being implemented, independent of where it is invoked. |
 
 Ownership is not established by importing, constructing, storing, implementing, or re-exporting an artifact.
@@ -471,7 +480,7 @@ Ownership is not established by importing, constructing, storing, implementing, 
 | **Implements** | Supplies executable behavior conforming to a declared contract. Implementation does not transfer contract ownership. |
 | **Provides / injects** | Passes a value or callback implementation to another module. |
 | **Registers** | Attaches a callback to a DOM, framework, or protocol event source. |
-| **Handles** | Interprets an event and chooses the resulting state update or command. |
+| **Handles** | Interprets an event and chooses the resulting state update or command transaction. |
 | **Invokes** | Calls a function or injected callback. |
 | **Emits** | Sends a normalized value through a callback, dispatch function, or event boundary. |
 | **Returns** | Produces the direct result of a function call. |
@@ -488,7 +497,8 @@ Avoid **controls** in architectural descriptions unless its exact meaning is sta
 
 | Artifact | Defined by | Owned by | Constructed or hosted by | Consumed by |
 |---|---|---|---|---|
-| `EditorCommand` | Owner-local `commands.ts` files; aggregate in `shinyView/commands/editorCommand.ts` | View | View interaction handlers | Controller Commands |
+| `EditorCommand` | `shinyView/commands/editorCommands.ts` | View command registry | View command-derivation helpers and interaction handlers | Controller Commands |
+| `EditorCommandTransaction` | `shinyView/commands/editorCommands.ts` | View-to-Controller command boundary | View command-derivation helpers and interaction handlers | `ShinyController` and Controller Commands |
 | `ElementViews` and nested render contracts | Component-local `views.ts` files | View | Controller Derive Views | View components |
 | Selected class IDs | `EditorView/useSelectedClassIds.ts` | `EditorView` | `EditorView` state, reconciled against each View model | `ClassDiagram`, `ClassBox`, `StylePane` |
 | Class placement mode | `EditorView/placementMode.ts` | `EditorView` | `EditorView` state | `ToolPane`, `ClassDiagram`, `PlacementOverlay` |

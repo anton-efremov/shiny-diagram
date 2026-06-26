@@ -5,7 +5,7 @@
 > **Scope:** `webview/src/shinyView/**`  
 > **Runtime root:** `webview/src/shinyView/EditorView/`  
 > **Audience:** Humans and coding agents  
-> **Last reviewed:** 2026-06-24  
+> **Last reviewed:** 2026-06-26  
 > **Change control:** Job tags and component roles are a closed set. Additions require updating this document first.
 
 Every bold two-part index in chapters 3–7 identifies **a rule that must be followed**. Unindexed text provides scope, definitions, rationale, or examples.
@@ -16,16 +16,17 @@ The document can be updated if rules imposed are too rigid to finish a developme
 
 ### 1.1. Place in a full layered architecture
 
-`shinyView` is the layer in 4-layered Shiny architecture, that is responsible for rendering UI given the description of diagram state and emitting commands for edit of persistent diagram representation in layers above
+`shinyView` is the layer in the 4-layered Shiny architecture that renders UI from diagram state and emits editor command transactions for persistent diagram changes handled above the View layer.
 - `shinyView/EditorView/index.ts` is the runtime component facade.
 - `shinyView/views/index.ts` is the View-contract facade.
-- `shinyView/commands/index.ts` is the Command-contract facade.
+- `shinyView/commands/index.ts` is the command-registry facade.
 
 ### 1.2. Boundaries
 
 - **Entry point:** `webview/src/shinyView/**` is the Shiny View layer; the standardized editor React tree starts at `webview/src/shinyView/EditorView/`, whose root component is `EditorView`.
-- **Inputs:** immutable `view` contracts (a data object shaped for one component interface) and an `EditorDispatch` function  supplied by `ShinyController`.
-- **Outputs:** normalized `EditorCommand` values (data objects shaped for one Controller-handled source-editing intent) sent through `EditorDispatch`.
+- **Inputs:** immutable `view` contracts (a data object shaped for one component interface) and an `EditorDispatch` function supplied by `ShinyController`.
+- **Outputs:** normalized `EditorCommandTransaction` values, each representing one user/editor action as one or more primitive editor-domain commands sent through `EditorDispatch`.
+- **Editor facts:** View may decide source-agnostic editor facts available from interaction and render context, such as position and size. New persisted identities and source names are assigned by Controller.
 - **Calls outside the Shiny View tree:**
 	  - **`shared/`:** dependency-free IDs, geometry, and shared data vocabulary.
 	  - **React and browser APIs:** rendering, lifecycle, focus, measurement, and event registration.
@@ -34,9 +35,10 @@ The document can be updated if rules imposed are too rigid to finish a developme
 ### 1.3. Key concepts
 
 - **view** - immutable render data shaped as component interface (Controller -> ShinyView via props). 
-- **command** -  a data object describing a source editing intent (ShinyView -> Controller via the Controller-supplied dispatch)
+- **command** - a primitive editor-domain data object from the canonical command registry; it describes editor intent without source syntax or source-edit operations.
+- **command transaction** - one user/editor action sent through `EditorDispatch` as one or more primitive commands.
 - **state action** - an internal request to change component-owned state (e.g. selection group) through internal dispatch or callback
-- **state reconciliation** - an internal updated of state, triggered by view props (e.g. excluding deleted id from selection group)
+- **state reconciliation** - an internal update of state, triggered by view props (e.g. excluding deleted id from selection group)
 
 ## 2. Mental model
 
@@ -54,7 +56,7 @@ Jobs that **encode editor behavior** or manage component-owned state lifecycles.
 - `logic:child:view` — construct a child-owned `view` by filtering, combining, defaulting, or deriving data.
 - `logic:child:route` — choose which child interface branch renders.
 - `logic:action:derive` — translate normalized interaction intent into the component-owned state action that should happen next.
-- `logic:command:derive` — translate normalized interaction intent into the source-editing `EditorCommand` that should be sent to the Controller.
+- `logic:command:derive` — translate normalized interaction intent into the complete `EditorCommandTransaction` that should be sent to the Controller.
 
 #### `render:*`
 
@@ -73,7 +75,7 @@ Jobs that move data through the pipeline without Shiny/editor decisions.
 - `connect:event:normalize` — convert a raw DOM, browser, React, or framework event into plain typed data; branching or intent selection belongs to `logic:action:derive` or `logic:command:derive`.
 - `connect:event:wire` — control event delivery at the boundary, such as preventing default behavior, stopping propagation, setting or releasing pointer capture, or attaching an already-defined handler to an event prop.
 - `connect:state:wire` — expose or invoke a controlled state-update channel through a typed state-action dispatch or named owner callback.
-- `connect:command:wire` — provide `EditorDispatch` transport or invoke it with a fixed or already-derived `EditorCommand`.
+- `connect:command:wire` — provide `EditorDispatch` transport or invoke it with a fixed or already-derived `EditorCommandTransaction`.
 
 ### 2.2. Roles
 
@@ -146,7 +148,7 @@ Component/
 ├── useStateReconciliation.ts   # logic:state:reconcile hook and local helpers (optional)
 ├── childViews.ts               # logic:child:view and connect:child:view helpers (optional)
 ├── actions.ts                  # logic:action:derive helpers (optional)
-├── commands.ts                 # logic:command:derive helpers (optional)
+├── commands.ts                 # logic:command:derive helpers; constructs transactions from the canonical command registry (optional)
 ├── useInteractions.ts          # # connect:event:normalize; logic:action:derive; logic:command:derive; connect:*:wire (optional)
 ├── contexts/                   # connect:state:wire; or EditorDispatch at EditorView (optional)
 └── OwnedChild/                 # exclusively owned interface (optional)
@@ -209,13 +211,13 @@ render:*                                               # [L]+[P] only
 
 **5.6 Contexts are transport-only.** Exactly one `EditorDispatch` Context may be rooted at `EditorView`; state-action Contexts are owner-scoped. Context files contain context creation, a consumer hook, and its fail-fast guard—no state, reducer, View, reconciliation, or wrapper Provider component.
 
-**5.7 **State actions and Commands are distinct.** Internal state transport uses `dispatch<Owner>StateAction`; the View-to-Controller protocol uses `dispatchCommand`. Unqualified `dispatch` is not used.
+**5.7 State actions and commands are distinct.** Internal state transport uses `dispatch<Owner>StateAction`; the View-to-Controller command boundary uses `dispatchCommand` with `EditorCommandTransaction`. Unqualified `dispatch` is not used.
 
-**5.8 **Commands are normalized.** `logic:command:derive` produces a complete Command or no-op. Commands are sent to the Controller only through `dispatchCommand` under `connect:command:wire`.
+**5.8 Commands are normalized transactions.** `logic:command:derive` produces a complete `EditorCommandTransaction` or no-op. Components construct commands from the canonical command registry and must not define command shapes. Repeating the same primitive operation is represented by several commands in the transaction, not by a nested collection inside one command. Commands are sent to the Controller only through `dispatchCommand` under `connect:command:wire`.
 
 **5.9 Raw events stay local.** DOM/framework events are normalized before passing data across the binding component boundary.
 
-**5.10 Framework details stay local.** Framework imports and types may appear only in a Framework adapter and its explicitly local subtree, including props of framework-instantiated children. They must not escape through Shiny View contracts, Commands, state-action or Context contracts, or non-adapter interface props. 
+**5.10 Framework details stay local.** Framework imports and types may appear only in a Framework adapter and its explicitly local subtree, including props of framework-instantiated children. They must not escape through Shiny View contracts, command transactions, state-action or Context contracts, or non-adapter interface props. 
 
 **5.11 Dependencies point inward.** `shinyView` may import its own modules, `shared`, React/browser APIs, and approved frameworks—never Controller, Shell, Bridge, or source-processing modules.
 
@@ -255,13 +257,13 @@ render:*                                               # [L]+[P] only
 
 **6.9 Action derivation.** State action derivation that depends on current Views, owned state, validation, or variant choice is performed by a helper that returns the action without updating state or dispatching. Extracted helpers live in `actions.ts`.
 
-**6.10 Command derivation.** Command derivation that depends on current Views, owned state, validation, or variant choice is performed by a helper that returns the Command without updating state or dispatching. Extracted helpers live in `commands.ts`.
+**6.10 Command derivation.** Command derivation that depends on current Views, owned state, validation, layout choice, or variant choice is performed by a helper that returns an `EditorCommandTransaction` without updating state or dispatching. View-owned layout choices are emitted as concrete editor facts. For existing source entities, layout changes are commands such as position and size changes. For create/duplicate flows where new source IDs do not yet exist, the transaction includes creation/duplication commands carrying desired layout facts; Controller assigns source identities. Extracted helpers live in `commands.ts`.
 
-**6.11 Protocol separation.** Commands do not mutate View-local state; state actions do not cross into the Controller protocol.
+**6.11 Command boundary separation.** Commands do not mutate View-local state; state actions do not cross into the Controller command boundary. Commands must not expose source syntax, source-edit operations, Controller model types, DOM events, or framework events.
 
 ### `connect:command:wire`
 
-**6.12 Direct command wiring.** A fixed or already-derived Command may be sent directly under `connect:command:wire`, including from a Presentational component.
+**6.12 Direct command wiring.** A fixed or already-derived `EditorCommandTransaction` may be sent directly under `connect:command:wire`, including from a Presentational component.
 
 ### `connect:framework:props`
 
@@ -363,4 +365,4 @@ The same form applies to component-body code, hooks, and extracted helpers.
 
 **7.11 JSX prop logic.** JSX props contain only trivial adaptation of already-decided values or direct fixed wiring. Shiny/editor decisions are derived in an annotated `logic:*` region before `return`.
 
-**7.12 Inline callbacks.** Inline JSX callbacks contain only direct fixed wiring. A callback that normalizes an event, transforms data, validates, branches, or derives an action or Command is extracted and annotated.
+**7.12 Inline callbacks.** Inline JSX callbacks contain only direct fixed wiring. A callback that normalizes an event, transforms data, validates, branches, or derives a state action or command transaction is extracted and annotated.
