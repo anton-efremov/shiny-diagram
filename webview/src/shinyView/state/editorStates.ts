@@ -15,7 +15,7 @@ import type {
   RelationshipId,
 } from "../../shared/ids";
 import type { Rect } from "../../shared/geometry";
-
+import type { PlaceableNodeKind } from "../../shared/diagramVocabulary";
 /*
  * Owned by: CanvasView.
  *
@@ -49,8 +49,3 @@ export type ClassBoxLayoutState = {
   readonly rectByClassId: ReadonlyMap<ClassId, Rect>;
 };
 
-/*
- * Supporting vocabulary.
- */
-
-export type PlaceableNodeKind = "class" | "note" | "namespace";
