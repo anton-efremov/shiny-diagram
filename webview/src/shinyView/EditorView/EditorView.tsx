@@ -5,11 +5,10 @@
 import type { ReactElement } from "react";
 import type { EditorDispatch } from "../commands/editorCommands";
 import CanvasView from "./CanvasView/CanvasView";
-import { toCanvasView, toErrorView, toMissingAnnotationsView } from "./childViews";
 import { CommandDispatchContext } from "./contexts";
 import ErrorView from "./ErrorView/ErrorView";
 import MissingAnnotationsView from "./MissingAnnotationsView/MissingAnnotationsView";
-import type { EditorViewModel } from "./views";
+import type { EditorViewModel } from "../views/schema";
 
 type EditorViewProps = {
   view: EditorViewModel;
@@ -27,25 +26,13 @@ export default function EditorView({
   const editorInterface = (() => {
     switch (view.status) {
       case "ready": {
-        // @job logic:child:view
-        const canvasView = toCanvasView({
-          view,
-        });
-        return <CanvasView view={canvasView} />;
+        return <CanvasView view={view.diagram} />;
       }
       case "invalidSyntax": {
-        // @job logic:child:view
-        const errorView = toErrorView({
-          view,
-        });
-        return <ErrorView view={errorView} />;
+        return <ErrorView view={view} />;
       }
       case "missingAnnotations": {
-        // @job logic:child:view
-        const missingAnnotationsView = toMissingAnnotationsView({
-          view,
-        });
-        return <MissingAnnotationsView view={missingAnnotationsView} />;
+        return <MissingAnnotationsView view={view} />;
       }
     }
   })();

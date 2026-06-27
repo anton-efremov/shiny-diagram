@@ -4,33 +4,31 @@
 
 import type { Rect } from "../../../../shared/geometry";
 import type { ClassBoxLayoutState } from "../../../state/editorStates";
-import type { ClassDiagramView } from "./views";
-
-type ClassDiagramClassView = ClassDiagramView["elements"]["classes"][number];
+import type { ClassView } from "../../../views/schema";
 
 export type ClassPositionChange = {
-  readonly classId: ClassDiagramClassView["classId"];
+  readonly classId: ClassView["classId"];
   readonly x: number;
   readonly y: number;
 };
 
 // @job logic:state:initialize
 export function createInitialClassBoxLayoutState(
-  classes: readonly ClassDiagramClassView[]
+  classes: readonly ClassView[]
 ): ClassBoxLayoutState {
   return {
-    rectByClassId: new Map(classes.map((c) => [c.classId, { x: c.x, y: c.y, w: c.w, h: c.h }])),
+    rectByClassId: new Map(classes.map((c) => [c.classId, c.bounds])),
   };
 }
 
 // @job logic:state:reconcile
 export function reconcileLayoutWithClassViews(
   state: ClassBoxLayoutState,
-  classes: readonly ClassDiagramClassView[]
+  classes: readonly ClassView[]
 ): ClassBoxLayoutState {
   if (isLayoutEquivalentToViews(state.rectByClassId, classes)) return state;
   return {
-    rectByClassId: new Map(classes.map((c) => [c.classId, { x: c.x, y: c.y, w: c.w, h: c.h }])),
+    rectByClassId: new Map(classes.map((c) => [c.classId, c.bounds])),
   };
 }
 
@@ -51,18 +49,18 @@ export function applyPositionChanges(
 }
 
 function isLayoutEquivalentToViews(
-  rectByClassId: ReadonlyMap<ClassDiagramClassView["classId"], Rect>,
-  classes: readonly ClassDiagramClassView[]
+  rectByClassId: ReadonlyMap<ClassView["classId"], Rect>,
+  classes: readonly ClassView[]
 ): boolean {
   if (rectByClassId.size !== classes.length) return false;
   return classes.every((c) => {
     const entry = rectByClassId.get(c.classId);
     return (
       entry !== undefined &&
-      entry.x === c.x &&
-      entry.y === c.y &&
-      entry.w === c.w &&
-      entry.h === c.h
+      entry.x === c.bounds.x &&
+      entry.y === c.bounds.y &&
+      entry.w === c.bounds.w &&
+      entry.h === c.bounds.h
     );
   });
 }

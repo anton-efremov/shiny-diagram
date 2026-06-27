@@ -6,9 +6,9 @@
 import { useCallback } from "react";
 import type { NodeChange, OnNodeDrag, OnSelectionChangeFunc } from "@xyflow/react";
 import type { ClassId } from "../../../../../shared/ids";
+import type { DiagramView } from "../../../../views/schema";
 import type { ClassPositionChange } from "../state";
 import type { ClassBoxNodeDescriptor, RelationshipEdgeDescriptor } from "./reactFlowAdapters";
-import type { ReactFlowCanvasAdapterView } from "./views";
 
 type ReactFlowCanvasAdapterCallbacks = {
   readonly onLayoutChange: (changes: readonly ClassPositionChange[]) => void;
@@ -28,7 +28,7 @@ type UseReactFlowCanvasAdapterInteractionsResult = {
 };
 
 export function useReactFlowCanvasAdapterInteractions(
-  view: ReactFlowCanvasAdapterView,
+  view: Pick<DiagramView, "classes">,
   callbacks: ReactFlowCanvasAdapterCallbacks
 ): UseReactFlowCanvasAdapterInteractionsResult {
   // @job connect:event:normalize
@@ -49,7 +49,7 @@ export function useReactFlowCanvasAdapterInteractions(
     (_event, _node, rfNodes) => {
       const finalPositions = rfNodes.flatMap((rfNode) => {
         if (rfNode.type !== "classBox") return [];
-        return [{ classId: rfNode.data.classId, x: rfNode.position.x, y: rfNode.position.y }];
+        return [{ classId: rfNode.data.view.classId, x: rfNode.position.x, y: rfNode.position.y }];
       });
       callbacks.onDragComplete(finalPositions);
     },
@@ -61,7 +61,7 @@ export function useReactFlowCanvasAdapterInteractions(
   >(
     ({ nodes }) => {
       const selectedIds = new Set(
-        nodes.flatMap((n) => (n.type === "classBox" ? [n.data.classId] : []))
+        nodes.flatMap((n) => (n.type === "classBox" ? [n.data.view.classId] : []))
       );
       const orderedSelection = view.classes
         .map((c) => c.classId)

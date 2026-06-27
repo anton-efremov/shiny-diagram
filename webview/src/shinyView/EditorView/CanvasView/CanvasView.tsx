@@ -5,70 +5,43 @@
  * @state nodePlacementState: active node placement kind.
  * @presents Ready editor layout and context provision.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 import type { ReactElement } from "react";
 import ClassDiagram from "./ClassDiagram/ClassDiagram";
-import { toClassDiagramView, toStylePaneView, toToolPaneView } from "./childViews";
 import { toClassDeleteTransaction } from "./commands";
 import { CanvasViewStateDispatchContext } from "./contexts";
 import {
   canHandleClassSelectionShortcut,
-  initialNodePlacementState,
-  initialSelectionState,
-  reconcileSelectionStateWithElements,
-  updateNodePlacementState,
-  updateSelectedClassIds,
+  canvasViewReducer,
+  initialCanvasViewState,
 } from "./state";
-import type { CanvasViewStateAction } from "./state";
 import StylePane from "./StylePane/StylePane";
 import ToolPane from "./ToolPane/ToolPane";
 import { useDispatchCommand } from "../contexts";
 import styles from "./CanvasView.module.css";
-import type { CanvasViewModel } from "./views";
+import type { DiagramView } from "../../views/schema";
 
 type CanvasViewProps = {
-  readonly view: CanvasViewModel;
+  readonly view: DiagramView;
 };
 
 export default function CanvasView({ view }: CanvasViewProps): ReactElement {
   const dispatchCommand = useDispatchCommand();
 
   // @job logic:state:initialize
-  const [selectionState, setSelectionState] = useState(initialSelectionState);
-  // @job logic:state:initialize
-  const [nodePlacementState, setNodePlacementState] = useState(initialNodePlacementState);
-
-  // @job logic:state:update
-  const dispatchCanvasViewStateAction = useCallback((action: CanvasViewStateAction) => {
-    switch (action.type) {
-      case "selection.setClassIds":
-        setSelectionState((state) => updateSelectedClassIds(state, action.classIds));
-        return;
-      case "selection.clearClassIds":
-        setSelectionState((state) => updateSelectedClassIds(state, []));
-        return;
-      case "selection.reconcileClassIds":
-        setSelectionState((state) => reconcileSelectionStateWithElements(state, action.elements));
-        return;
-      case "placement.setMode":
-        setNodePlacementState((state) =>
-          updateNodePlacementState(state, action.nodePlacementState)
-        );
-        return;
-      case "placement.complete":
-      case "placement.cancel":
-        setNodePlacementState((state) => updateNodePlacementState(state, null));
-        return;
-    }
-  }, []);
+  const [state, dispatchCanvasViewStateAction] = useReducer(
+    canvasViewReducer,
+    initialCanvasViewState
+  );
+  const { selectionState, nodePlacementState } = state;
 
   // @job logic:state:reconcile
   useEffect(() => {
     dispatchCanvasViewStateAction({
       type: "selection.reconcileClassIds",
-      elements: view.elements,
+      diagram: view,
     });
-  }, [view.elements, dispatchCanvasViewStateAction]);
+  }, [view, dispatchCanvasViewStateAction]);
 
   // @job connect:event:wire
   useEffect(() => {
@@ -99,20 +72,19 @@ export default function CanvasView({ view }: CanvasViewProps): ReactElement {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectionState, dispatchCommand]);
 
-  // @job logic:child:view
-  const toolPaneView = toToolPaneView(nodePlacementState);
-  const classDiagramView = toClassDiagramView(view, selectionState, nodePlacementState);
-  const stylePaneView = toStylePaneView(view, selectionState);
-
   // @job connect:state:wire
   return (
     <CanvasViewStateDispatchContext.Provider value={dispatchCanvasViewStateAction}>
       <section className={styles.editorShell} aria-label="Class diagram editor">
-        <ToolPane view={toolPaneView} />
+        <ToolPane nodePlacementState={nodePlacementState} />
         <div className={styles.canvasRegion}>
-          <ClassDiagram view={classDiagramView} />
+          <ClassDiagram
+            view={view}
+            selectionState={selectionState}
+            nodePlacementState={nodePlacementState}
+          />
         </div>
-        <StylePane view={stylePaneView} />
+        <StylePane view={view} selectionState={selectionState} />
       </section>
     </CanvasViewStateDispatchContext.Provider>
   );

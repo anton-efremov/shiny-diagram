@@ -5,12 +5,12 @@
 import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
 import type { ReactElement } from "react";
 import { parseDiagram } from "./parse";
-import { deriveElementViews } from "./deriveViews";
+import { deriveDiagramView } from "./deriveViews";
 import { applyCommand } from "./commands";
 import type { SourceEdit } from "./commands";
 import { EditorView } from "../shinyView/EditorView";
 import type { EditorDispatch } from "../shinyView/commands";
-import type { EditorViewModel, ElementViews } from "../shinyView/views";
+import type { DiagramView, EditorViewModel } from "../shinyView/views";
 
 type ShinyControllerProps = {
   sourceText: string;
@@ -33,9 +33,9 @@ export default function ShinyController({
 
   const model = parseResult.status !== "invalidSyntax" ? parseResult.model : null;
 
-  const elementViews: ElementViews | null = useMemo(() => {
+  const diagramView: DiagramView | null = useMemo(() => {
     if (!model) return null;
-    return deriveElementViews(model);
+    return deriveDiagramView(model);
   }, [model]);
 
   const editorViewModel: EditorViewModel = useMemo(() => {
@@ -46,12 +46,16 @@ export default function ShinyController({
       };
     }
 
-    const elements = elementViews ?? { classes: [], namespaces: [], relationships: [] };
+    const diagram = diagramView ?? { classes: [], namespaces: [], relationships: [] };
     if (parseResult.status === "missingAnnotations") {
-      return { status: "missingAnnotations", missingIds: parseResult.missingIds, elements };
+      return {
+        status: "missingAnnotations",
+        missingClassIds: parseResult.missingIds,
+        diagram,
+      };
     }
-    return { status: "ready", elements };
-  }, [parseResult, elementViews]);
+    return { status: "ready", diagram };
+  }, [parseResult, diagramView]);
 
   const commandExecutionInputs: CommandExecutionInputs = {
     context: model

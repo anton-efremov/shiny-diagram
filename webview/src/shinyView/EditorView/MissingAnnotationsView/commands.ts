@@ -3,7 +3,7 @@
  */
 
 import type { EditorCommandTransaction } from "../../commands/editorCommands";
-import type { MissingAnnotationClassView, MissingAnnotationsViewModel } from "./views";
+import type { ClassView, EditorViewModel } from "../../views/schema";
 
 const DEFAULT_WIDTH = 200;
 const DEFAULT_HEIGHT = 150;
@@ -11,12 +11,15 @@ const MARGIN = 40;
 
 // @job logic:command:derive
 export function toMissingAnnotationTransaction({
-  missingIds,
-  classes,
-}: MissingAnnotationsViewModel): EditorCommandTransaction {
-  const startY = computeStartY(classes);
+  missingClassIds,
+  diagram,
+}: Pick<
+  Extract<EditorViewModel, { readonly status: "missingAnnotations" }>,
+  "missingClassIds" | "diagram"
+>): EditorCommandTransaction {
+  const startY = computeStartY(diagram.classes);
 
-  return missingIds.flatMap((classId, index) => {
+  return missingClassIds.flatMap((classId, index) => {
     const x = MARGIN + index * (DEFAULT_WIDTH + MARGIN);
     const y = startY;
 
@@ -35,10 +38,10 @@ export function toMissingAnnotationTransaction({
   });
 }
 
-function computeStartY(classes: readonly MissingAnnotationClassView[]): number {
+function computeStartY(classes: readonly ClassView[]): number {
   let maxBottom = 0;
   for (const classView of classes) {
-    const bottom = classView.y + classView.h;
+    const bottom = classView.bounds.y + classView.bounds.h;
     if (bottom > maxBottom) maxBottom = bottom;
   }
   return maxBottom > 0 ? maxBottom + MARGIN : MARGIN;

@@ -4,10 +4,10 @@
  */
 import type { ReactElement } from "react";
 import styles from "./ErrorView.module.css";
-import type { ErrorViewModel } from "./views";
+import type { EditorViewModel } from "../../views/schema";
 
 type ErrorViewProps = {
-  readonly view: ErrorViewModel;
+  readonly view: Pick<Extract<EditorViewModel, { readonly status: "invalidSyntax" }>, "message">;
 };
 
 /**

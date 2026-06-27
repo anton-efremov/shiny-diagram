@@ -4,7 +4,7 @@
 
 import type { StyleDefNode } from "../../model/diagramTree";
 import type { ClassId, StyleDefId } from "../../../shared/ids";
-import type { StylePropertyName } from "../../../shared/styleTypes";
+import type { StylePropertyName } from "../../../shared/style";
 
 /**
  * Formats a minimal Mermaid class declaration line.

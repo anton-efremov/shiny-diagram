@@ -1,12 +1,5 @@
 /**
- * @fileoverview Public render contract of the View layer.
- * Flattens component-owned view definitions for Controller consumers.
+ * @fileoverview Public authoritative render schema of the View layer.
  */
 
-export type { EditorViewModel, ElementViews } from "../EditorView/views";
-export type {
-  EditorClassView,
-  EditorClassMemberView,
-  EditorNamespaceView,
-  EditorRelationshipView,
-} from "../EditorView/views";
+export type * from "./schema";

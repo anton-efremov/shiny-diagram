@@ -20,11 +20,7 @@
  * and "Emitted by" are written to the best current guess.
  */
 
-import type {
-  MemberPrefix,
-  RelationshipEndpoint,
-  RelationshipType,
-} from "../../shared/diagramVocabulary";
+import type { MemberPrefix, RelationshipEndpoint, RelationshipType } from "../../shared/uml";
 import type { Point, Size } from "../../shared/geometry";
 import type { ClassId, MemberId, NamespaceId, NoteId, RelationshipId } from "../../shared/ids";
 

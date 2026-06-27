@@ -1,5 +1,5 @@
 /**
- * @fileoverview Stable diagram identities shared across the webview pipeline.
+ * @fileoverview Branded diagram identities and their brand constructors, shared across the webview pipeline.
  */
 
 export type ClassId = string & { readonly __brand: "ClassId" };

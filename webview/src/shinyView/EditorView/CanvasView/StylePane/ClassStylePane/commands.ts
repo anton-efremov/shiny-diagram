@@ -1,15 +1,20 @@
 /**
- * @fileoverview Editor command transactions derived by the class style pane.
+ * @fileoverview Command transaction derivation for ClassStylePane.
+ *
+ * Standard pattern:
+ * - File name: `commands.ts`.
+ * - Exports `toXTransaction(...)` pure helpers.
+ * - Input: canonical view slices plus explicit UI intent values.
+ * - Output: `EditorCommandTransaction | null`.
+ * - No React imports, no context access, no dispatch, no event handling.
  */
 
 import type { EditorCommandTransaction } from "../../../../commands/editorCommands";
-import type { ClassStyleTargetView } from "./views";
+import type { ClassView } from "../../../../views/schema";
+import { DUPLICATE_OFFSET } from "../../../../config/editorUiConfig";
 
-const DUPLICATE_OFFSET = 24;
-
-// @job logic:command:derive
 export function toFillColorSetTransaction(
-  selectedClasses: readonly ClassStyleTargetView[],
+  selectedClasses: readonly ClassView[],
   fillColor: string
 ): EditorCommandTransaction | null {
   if (selectedClasses.length === 0) return null;
@@ -20,9 +25,8 @@ export function toFillColorSetTransaction(
   }));
 }
 
-// @job logic:command:derive
 export function toBorderColorSetTransaction(
-  selectedClasses: readonly ClassStyleTargetView[],
+  selectedClasses: readonly ClassView[],
   borderColor: string
 ): EditorCommandTransaction | null {
   if (selectedClasses.length === 0) return null;
@@ -33,9 +37,8 @@ export function toBorderColorSetTransaction(
   }));
 }
 
-// @job logic:command:derive
 export function toTextColorSetTransaction(
-  selectedClasses: readonly ClassStyleTargetView[],
+  selectedClasses: readonly ClassView[],
   textColor: string
 ): EditorCommandTransaction | null {
   if (selectedClasses.length === 0) return null;
@@ -46,9 +49,8 @@ export function toTextColorSetTransaction(
   }));
 }
 
-// @job logic:command:derive
 export function toClassDeleteTransaction(
-  selectedClasses: readonly ClassStyleTargetView[]
+  selectedClasses: readonly ClassView[]
 ): EditorCommandTransaction | null {
   if (selectedClasses.length === 0) return null;
   return selectedClasses.map((selectedClass) => ({
@@ -57,18 +59,17 @@ export function toClassDeleteTransaction(
   }));
 }
 
-// @job logic:command:derive
 export function toClassDuplicateTransaction(
-  selectedClasses: readonly ClassStyleTargetView[]
+  selectedClasses: readonly ClassView[]
 ): EditorCommandTransaction | null {
   if (selectedClasses.length === 0) return null;
   return selectedClasses.map((selectedClass) => ({
     type: "class.duplicate",
     sourceClassId: selectedClass.classId,
     position: {
-      x: selectedClass.position.x + DUPLICATE_OFFSET,
-      y: selectedClass.position.y + DUPLICATE_OFFSET,
+      x: selectedClass.bounds.x + DUPLICATE_OFFSET,
+      y: selectedClass.bounds.y + DUPLICATE_OFFSET,
     },
-    size: selectedClass.size,
+    size: { width: selectedClass.bounds.w, height: selectedClass.bounds.h },
   }));
 }

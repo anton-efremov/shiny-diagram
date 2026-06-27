@@ -4,20 +4,13 @@
  */
 
 import type { Edge as ReactFlowEdge, Node as ReactFlowNode } from "@xyflow/react";
-import type { ClassStyleProperties } from "../../../../../shared/diagramVocabulary";
+import type { Rect } from "../../../../../shared/geometry";
 import type { ClassId } from "../../../../../shared/ids";
-import type {
-  ClassEntryMemberView,
-  ClassEntryView,
-  RelationshipEntryView,
-  ReactFlowCanvasAdapterView,
-} from "./views";
+import type { ClassBoxLayoutState } from "../../../../state/editorStates";
+import type { ClassView, DiagramView, RelationshipView } from "../../../../views/schema";
 
 export type ClassBoxNodeData = {
-  readonly classId: ClassId;
-  readonly header: { readonly label: string; readonly stereotype?: string };
-  readonly members: readonly ClassEntryMemberView[];
-  readonly style?: ClassStyleProperties;
+  readonly view: ClassView;
   readonly isResizeVisible: boolean;
 };
 
@@ -26,33 +19,45 @@ export type RelationshipEdgeDescriptor = ReactFlowEdge;
 
 // @job connect:framework:props
 export function toClassBoxNodeDescriptors(
-  classes: readonly ClassEntryView[],
-  selectedClassIds: readonly ClassId[]
+  classes: readonly ClassView[],
+  selectedClassIds: readonly ClassId[],
+  classBoxLayoutState: ClassBoxLayoutState
 ): ClassBoxNodeDescriptor[] {
   const selected = new Set<ClassId>(selectedClassIds);
-  return classes.map((entry) => ({
-    id: entry.classId,
-    type: "classBox" as const,
-    position: { x: entry.x, y: entry.y },
-    data: {
-      classId: entry.classId,
-      header: entry.header,
-      members: entry.members,
-      style: entry.style,
-      isResizeVisible: entry.isResizeVisible,
-    },
-    selected: selected.has(entry.classId),
-    width: entry.w,
-    height: entry.h,
-    style: { width: entry.w, height: entry.h },
-  }));
+  return classes.flatMap((classView) => {
+    const layout = classBoxLayoutState.rectByClassId.get(classView.classId);
+    if (!layout) return [];
+
+    return [
+      {
+        id: classView.classId,
+        type: "classBox" as const,
+        position: { x: layout.x, y: layout.y },
+        data: {
+          view: classView,
+          isResizeVisible: selected.size === 1 && selected.has(classView.classId),
+        },
+        selected: selected.has(classView.classId),
+        width: layout.w,
+        height: layout.h,
+        style: { width: layout.w, height: layout.h },
+      },
+    ];
+  });
 }
 
 export function toRelationshipEdgeDescriptors(
-  classes: readonly ClassEntryView[],
-  relationships: readonly RelationshipEntryView[]
+  classes: readonly ClassView[],
+  relationships: readonly RelationshipView[],
+  classBoxLayoutState: ClassBoxLayoutState
 ): RelationshipEdgeDescriptor[] {
-  const classesById = new Map(classes.map((e) => [e.classId, e]));
+  const classesById = new Map(
+    classes.flatMap((classView) => {
+      const layout = classBoxLayoutState.rectByClassId.get(classView.classId);
+      if (!layout) return [];
+      return [[classView.classId, layout] as const];
+    })
+  );
 
   return relationships.flatMap((rel) => {
     const sourceEntry = classesById.get(rel.sourceClassId);
@@ -80,7 +85,7 @@ export function toRelationshipEdgeDescriptors(
 
 type BoxSide = "top" | "right" | "bottom" | "left";
 
-function chooseSourceSide(source: ClassEntryView, target: ClassEntryView): BoxSide {
+function chooseSourceSide(source: Rect, target: Rect): BoxSide {
   const sourceCenterX = source.x + source.w / 2;
   const sourceCenterY = source.y + source.h / 2;
   const targetCenterX = target.x + target.w / 2;
@@ -109,12 +114,12 @@ function oppositeSide(side: BoxSide): BoxSide {
 
 // @job connect:event:normalize
 export function normalizePositionChanges(
-  view: ReactFlowCanvasAdapterView,
+  view: Pick<DiagramView, "classes">,
   rfNodes: ClassBoxNodeDescriptor[]
 ): ReadonlyArray<{ readonly classId: ClassId; readonly x: number; readonly y: number }> {
   const classIds = new Set(view.classes.map((c) => c.classId));
   return rfNodes.flatMap((node) => {
-    if (node.type !== "classBox" || !classIds.has(node.data.classId)) return [];
-    return [{ classId: node.data.classId, x: node.position.x, y: node.position.y }];
+    if (node.type !== "classBox" || !classIds.has(node.data.view.classId)) return [];
+    return [{ classId: node.data.view.classId, x: node.position.x, y: node.position.y }];
   });
 }

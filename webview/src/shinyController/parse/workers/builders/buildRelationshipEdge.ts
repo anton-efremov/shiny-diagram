@@ -4,7 +4,7 @@
 
 import { toClassId, toRelationshipId } from "../../../../shared/ids";
 import type { RelationshipEdge } from "../../../model/diagramTree";
-import type { RelationshipType } from "../../../../shared/relationshipTypes";
+import type { RelationshipType } from "../../../../shared/uml";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
 

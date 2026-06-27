@@ -3,8 +3,8 @@
  */
 
 import type { ClassId, MemberId, NamespaceId, RelationshipId, StyleDefId } from "../../shared/ids";
-import type { RelationshipType } from "../../shared/relationshipTypes";
-import type { StylePropertyName } from "../../shared/styleTypes";
+import type { StylePropertyName } from "../../shared/style";
+import type { RelationshipType } from "../../shared/uml";
 import type { SourceLocation } from "./sourceLocation";
 
 export type Visibility = "+" | "-" | "#" | "~";

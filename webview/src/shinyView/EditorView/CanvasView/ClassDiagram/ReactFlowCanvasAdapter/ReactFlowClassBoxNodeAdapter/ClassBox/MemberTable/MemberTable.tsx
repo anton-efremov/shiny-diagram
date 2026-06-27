@@ -3,22 +3,25 @@
  * @presents Member table sections inside a class box.
  */
 import type { ReactElement } from "react";
-import type { MemberRowView, MemberTableView } from "./views";
+import type { ClassMemberView, ClassView } from "../../../../../../../views/schema";
 import styles from "../ClassBox.module.css";
 
 type MemberTableProps = {
-  readonly view: MemberTableView;
+  readonly view: Pick<ClassView, "members">;
+  readonly isSelected: boolean;
 };
 
-export default function MemberTable({ view }: MemberTableProps): ReactElement {
+export default function MemberTable({ view, isSelected }: MemberTableProps): ReactElement {
   // @job render:structure
-  const hasFieldsAndMethods = view.fields.length > 0 && view.methods.length > 0;
+  const fields = view.members.filter((member) => member.kind === "field");
+  const methods = view.members.filter((member) => member.kind === "method");
+  const hasFieldsAndMethods = fields.length > 0 && methods.length > 0;
 
   return (
     <div className={styles.body}>
-      <MemberList members={view.fields} isSelected={view.isSelected} />
+      <MemberList members={fields} isSelected={isSelected} />
       {hasFieldsAndMethods ? <div className={styles.memberDivider} aria-hidden="true" /> : null}
-      <MemberList members={view.methods} isSelected={view.isSelected} />
+      <MemberList members={methods} isSelected={isSelected} />
     </div>
   );
 }
@@ -27,7 +30,7 @@ function MemberList({
   members,
   isSelected,
 }: {
-  members: readonly MemberRowView[];
+  members: readonly ClassMemberView[];
   isSelected: boolean;
 }): ReactElement {
   // @job render:structure
@@ -37,9 +40,10 @@ function MemberList({
         <div
           key={member.memberId}
           className={isSelected ? `${styles.memberRow} nodrag` : styles.memberRow}
-          title={`${member.prefix} ${member.text}`}
+          title={`${member.prefix ?? ""} ${member.text}`.trim()}
         >
-          {member.prefix} {member.text}
+          {member.prefix ? `${member.prefix} ` : ""}
+          {member.text}
         </div>
       ))}
     </div>

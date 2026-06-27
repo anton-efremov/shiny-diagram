@@ -8,14 +8,9 @@
  * State annotations identify the View component that owns runtime storage.
  */
 
-import type {
-  ClassId,
-  NamespaceId,
-  NoteId,
-  RelationshipId,
-} from "../../shared/ids";
+import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../shared/ids";
 import type { Rect } from "../../shared/geometry";
-import type { PlaceableNodeKind } from "../../shared/diagramVocabulary";
+import type { PlaceableNodeKind } from "../../shared/nodeKinds";
 /*
  * Owned by: CanvasView.
  *
@@ -48,4 +43,3 @@ export type NodePlacementState = PlaceableNodeKind | null;
 export type ClassBoxLayoutState = {
   readonly rectByClassId: ReadonlyMap<ClassId, Rect>;
 };
-

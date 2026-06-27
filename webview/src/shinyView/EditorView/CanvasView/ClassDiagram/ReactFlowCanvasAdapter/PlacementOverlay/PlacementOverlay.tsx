@@ -8,15 +8,17 @@ import { useState } from "react";
 import type { ReactElement, CSSProperties } from "react";
 import { usePlacementOverlayInteractions } from "./useInteractions";
 import type { DrawOrigin } from "./useInteractions";
-import type { PlacementOverlayView } from "./views";
 import type { Rect } from "../../../../../../shared/geometry";
+import type { NodePlacementState } from "../../../../../state/editorStates";
 import styles from "./PlacementOverlay.module.css";
 
 type PlacementOverlayProps = {
-  readonly view: PlacementOverlayView;
+  readonly nodePlacementState: NodePlacementState;
 };
 
-export default function PlacementOverlay({ view }: PlacementOverlayProps): ReactElement | null {
+export default function PlacementOverlay({
+  nodePlacementState,
+}: PlacementOverlayProps): ReactElement | null {
   // @job logic:state:initialize
   const [origin, setOrigin] = useState<DrawOrigin | null>(null);
   const [draftRect, setDraftRect] = useState<Rect | null>(null);
@@ -29,7 +31,7 @@ export default function PlacementOverlay({ view }: PlacementOverlayProps): React
   );
 
   // @job logic:child:route
-  if (view.nodePlacementState !== "class") return null;
+  if (nodePlacementState !== "class") return null;
 
   // @job connect:child:view
   const draftStyle: CSSProperties | undefined = draftRect

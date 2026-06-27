@@ -3,13 +3,13 @@
  */
 
 import type { DiagramTree } from "../../model/diagramTree";
-import type { EditorClassView } from "../../../shinyView/views";
+import type { ClassView } from "../../../shinyView/views";
 
 /**
  * Derives class-box views for classes with spatial data.
  */
-export function deriveClassBoxViews(model: DiagramTree): EditorClassView[] {
-  const views: EditorClassView[] = [];
+export function deriveClassBoxViews(model: DiagramTree): ClassView[] {
+  const views: ClassView[] = [];
 
   for (const node of model.classes.values()) {
     if (!node.spatial) continue;
@@ -22,16 +22,17 @@ export function deriveClassBoxViews(model: DiagramTree): EditorClassView[] {
           fill: styleDef.properties.find((p) => p.property === "fill")?.value,
           stroke: styleDef.properties.find((p) => p.property === "stroke")?.value,
           color: styleDef.properties.find((p) => p.property === "color")?.value,
-          name: styleDef.id as string,
         }
       : undefined;
 
     views.push({
       classId: node.id,
-      x: node.spatial.x,
-      y: node.spatial.y,
-      w: node.spatial.width,
-      h: node.spatial.height,
+      bounds: {
+        x: node.spatial.x,
+        y: node.spatial.y,
+        w: node.spatial.width,
+        h: node.spatial.height,
+      },
       header: {
         label: node.id as string,
         stereotype: node.annotation?.value,
@@ -42,7 +43,7 @@ export function deriveClassBoxViews(model: DiagramTree): EditorClassView[] {
           const typeSuffix = member.returnType ? `: ${member.returnType}` : "";
           return {
             memberId: member.id,
-            prefix: member.visibility,
+            prefix: member.visibility ?? null,
             text: `${member.name}(${params})${typeSuffix}`,
             kind: "method" as const,
           };
@@ -50,7 +51,7 @@ export function deriveClassBoxViews(model: DiagramTree): EditorClassView[] {
         const typeSuffix = member.fieldType ? `: ${member.fieldType}` : "";
         return {
           memberId: member.id,
-          prefix: member.visibility,
+          prefix: member.visibility ?? null,
           text: `${member.name}${typeSuffix}`,
           kind: "field" as const,
         };

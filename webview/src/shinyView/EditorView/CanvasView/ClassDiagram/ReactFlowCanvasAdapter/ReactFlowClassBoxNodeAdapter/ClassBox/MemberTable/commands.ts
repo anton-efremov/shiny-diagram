@@ -3,7 +3,7 @@
  */
 
 import type { ClassId, MemberId } from "../../../../../../../../shared/ids";
-import type { MemberPrefix } from "../../../../../../../../shared/diagramVocabulary";
+import type { MemberPrefix } from "../../../../../../../../shared/uml";
 import type { EditorCommandTransaction } from "../../../../../../../commands/editorCommands";
 
 // @job logic:command:derive

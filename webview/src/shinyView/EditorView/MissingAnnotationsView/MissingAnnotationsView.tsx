@@ -9,10 +9,13 @@ import ControlButton from "../../ui/ControlButton/ControlButton";
 import { GenerateIcon } from "../../ui/icons/icons";
 import { toMissingAnnotationTransaction } from "./commands";
 import styles from "./MissingAnnotationsView.module.css";
-import type { MissingAnnotationsViewModel } from "./views";
+import type { EditorViewModel } from "../../views/schema";
 
 type MissingAnnotationsViewProps = {
-  readonly view: MissingAnnotationsViewModel;
+  readonly view: Pick<
+    Extract<EditorViewModel, { readonly status: "missingAnnotations" }>,
+    "missingClassIds" | "diagram"
+  >;
 };
 
 /**
@@ -38,7 +41,7 @@ export default function MissingAnnotationsView({
       <div className={styles.missingCanvas}>
         <p className={styles.missingLabel}>Classes without spatial annotations:</p>
         <ul className={styles.missingList}>
-          {view.missingIds.map((id) => (
+          {view.missingClassIds.map((id) => (
             <li key={id} className={styles.missingItem}>
               {id}
             </li>

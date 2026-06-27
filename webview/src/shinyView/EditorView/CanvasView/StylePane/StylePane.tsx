@@ -6,28 +6,27 @@
 import type { ReactElement } from "react";
 import ClassStylePane from "./ClassStylePane/ClassStylePane";
 import EmptyStylePane from "./EmptyStylePane/EmptyStylePane";
-import { toClassStylePaneView, toEmptyStylePaneView } from "./childViews";
-import type { StylePaneView } from "./views";
+import type { SelectionState } from "../../../state/editorStates";
+import type { DiagramView } from "../../../views/schema";
 import styles from "./StylePane.module.css";
 
 type StylePaneProps = {
-  readonly view: StylePaneView;
+  readonly view: Pick<DiagramView, "classes">;
+  readonly selectionState: SelectionState;
 };
 
 /**
  * Renders the selected class style inspector.
  */
-export default function StylePane({ view }: StylePaneProps): ReactElement {
+export default function StylePane({ view, selectionState }: StylePaneProps): ReactElement {
   // @job logic:child:view
-  const classStylePaneView = toClassStylePaneView(view);
+  const selectedClasses = view.classes.filter((classView) =>
+    selectionState.classIds.includes(classView.classId)
+  );
 
   // @job logic:child:route
   const scenario =
-    classStylePaneView.selectedClasses.length === 0 ? (
-      <EmptyStylePane view={toEmptyStylePaneView(view)} />
-    ) : (
-      <ClassStylePane view={classStylePaneView} />
-    );
+    selectedClasses.length === 0 ? <EmptyStylePane /> : <ClassStylePane view={selectedClasses} />;
 
   // @job render:structure
   return (

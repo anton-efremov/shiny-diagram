@@ -6,13 +6,13 @@
 import type { ReactElement } from "react";
 import ControlButton from "../../../ui/ControlButton/ControlButton";
 import { ClassIcon } from "../../../ui/icons/icons";
+import type { NodePlacementState } from "../../../state/editorStates";
 import { isClassOnlyPlacementActive } from "../state";
 import { useToolPaneInteractions } from "./useInteractions";
-import type { ToolPaneView } from "./views";
 import styles from "./ToolPane.module.css";
 
 type ToolPaneProps = {
-  readonly view: ToolPaneView;
+  readonly nodePlacementState: NodePlacementState;
 };
 
 type ToolPaneItem = { icon: string; name: string };
@@ -46,12 +46,12 @@ const relationshipTools: ToolPaneItem[] = [
 /**
  * Renders diagram creation tools.
  */
-export default function ToolPane({ view }: ToolPaneProps): ReactElement {
+export default function ToolPane({ nodePlacementState }: ToolPaneProps): ReactElement {
   // @job connect:state:wire
   const { onClassToolClick } = useToolPaneInteractions();
 
   // @job logic:child:view
-  const isClassPlacementActive = isClassOnlyPlacementActive(view.nodePlacementState);
+  const isClassPlacementActive = isClassOnlyPlacementActive(nodePlacementState);
 
   // @job render:structure
   return (

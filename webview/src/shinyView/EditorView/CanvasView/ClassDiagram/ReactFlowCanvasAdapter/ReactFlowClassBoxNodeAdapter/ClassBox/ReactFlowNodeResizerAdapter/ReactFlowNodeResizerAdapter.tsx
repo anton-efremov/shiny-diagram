@@ -6,15 +6,25 @@ import { useCallback } from "react";
 import type { OnResizeEnd } from "@xyflow/react";
 import { NodeResizer } from "@xyflow/react";
 import type { Rect } from "../../../../../../../../shared/geometry";
-import type { ReactFlowNodeResizerAdapterView } from "./views";
+import type { ClassId } from "../../../../../../../../shared/ids";
 
 type ReactFlowNodeResizerAdapterProps = {
-  readonly view: ReactFlowNodeResizerAdapterView;
+  readonly nodeId: ClassId;
+  readonly isVisible: boolean;
+  readonly minWidth: number;
+  readonly minHeight: number;
+  readonly handleClassName: string;
+  readonly lineClassName: string;
   readonly onResizeEnd: (rect: Rect) => void;
 };
 
 export default function ReactFlowNodeResizerAdapter({
-  view,
+  nodeId,
+  isVisible,
+  minWidth,
+  minHeight,
+  handleClassName,
+  lineClassName,
   onResizeEnd: onResizeEndCallback,
 }: ReactFlowNodeResizerAdapterProps) {
   // @job connect:event:normalize
@@ -28,12 +38,12 @@ export default function ReactFlowNodeResizerAdapter({
   // @job connect:framework:props
   return (
     <NodeResizer
-      nodeId={view.nodeId}
-      isVisible={view.isVisible}
-      minWidth={view.minWidth}
-      minHeight={view.minHeight}
-      handleClassName={view.handleClassName}
-      lineClassName={view.lineClassName}
+      nodeId={nodeId}
+      isVisible={isVisible}
+      minWidth={minWidth}
+      minHeight={minHeight}
+      handleClassName={handleClassName}
+      lineClassName={lineClassName}
       onResizeEnd={onResizeEnd}
     />
   );

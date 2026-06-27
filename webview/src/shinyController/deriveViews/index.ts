@@ -3,4 +3,4 @@
  * Implementation modules remain private to deriveViews.
  */
 
-export { deriveElementViews } from "./deriveElementViews";
+export { deriveDiagramView } from "./deriveDiagramView";

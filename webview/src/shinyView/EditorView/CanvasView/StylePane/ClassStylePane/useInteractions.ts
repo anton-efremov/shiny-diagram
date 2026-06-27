@@ -1,5 +1,13 @@
 /**
- * @fileoverview Class style pane interaction pipeline.
+ * @fileoverview Interaction handlers for ClassStylePane.
+ *
+ * Standard pattern:
+ * - File name: `useInteractions.ts`.
+ * - Exports `useXInteractions(...)`.
+ * - Returns semantic UI handlers named `onX`.
+ * - Handlers call `commands.ts` transaction helpers and dispatch the result.
+ * - No command payload construction beyond calling transaction helpers.
+ * - No JSX, no rendering decisions, no child prop derivation.
  */
 
 import { useCallback } from "react";
@@ -11,29 +19,25 @@ import {
   toFillColorSetTransaction,
   toTextColorSetTransaction,
 } from "./commands";
-import type { ClassStylePaneView } from "./views";
+import type { ClassView } from "../../../../views/schema";
 
 type UseClassStylePaneInteractionsResult = {
   readonly onFillColorChange: (fill: string) => void;
   readonly onBorderColorChange: (border: string) => void;
   readonly onTextColorChange: (color: string) => void;
   readonly onDuplicate: () => void;
-  readonly onDeleteClick: () => void;
+  readonly onDelete: () => void;
 };
 
 export function useClassStylePaneInteractions(
-  view: ClassStylePaneView
+  selectedClasses: readonly ClassView[]
 ): UseClassStylePaneInteractionsResult {
   const dispatchCommand = useDispatchCommand();
-  const { selectedClasses } = view;
 
   const onFillColorChange = useCallback(
     (fill: string) => {
-      // @job logic:command:derive
       const transaction = toFillColorSetTransaction(selectedClasses, fill);
       if (!transaction) return;
-
-      // @job connect:command:wire
       dispatchCommand(transaction);
     },
     [selectedClasses, dispatchCommand]
@@ -41,11 +45,8 @@ export function useClassStylePaneInteractions(
 
   const onBorderColorChange = useCallback(
     (border: string) => {
-      // @job logic:command:derive
       const transaction = toBorderColorSetTransaction(selectedClasses, border);
       if (!transaction) return;
-
-      // @job connect:command:wire
       dispatchCommand(transaction);
     },
     [selectedClasses, dispatchCommand]
@@ -53,33 +54,30 @@ export function useClassStylePaneInteractions(
 
   const onTextColorChange = useCallback(
     (color: string) => {
-      // @job logic:command:derive
       const transaction = toTextColorSetTransaction(selectedClasses, color);
       if (!transaction) return;
-
-      // @job connect:command:wire
       dispatchCommand(transaction);
     },
     [selectedClasses, dispatchCommand]
   );
 
-  const onDeleteClick = useCallback(() => {
-    // @job logic:command:derive
+  const onDelete = useCallback(() => {
     const transaction = toClassDeleteTransaction(selectedClasses);
     if (!transaction) return;
-
-    // @job connect:command:wire
     dispatchCommand(transaction);
   }, [selectedClasses, dispatchCommand]);
 
   const onDuplicate = useCallback(() => {
-    // @job logic:command:derive
     const transaction = toClassDuplicateTransaction(selectedClasses);
     if (!transaction) return;
-
-    // @job connect:command:wire
     dispatchCommand(transaction);
   }, [selectedClasses, dispatchCommand]);
 
-  return { onFillColorChange, onBorderColorChange, onTextColorChange, onDuplicate, onDeleteClick };
+  return {
+    onFillColorChange,
+    onBorderColorChange,
+    onTextColorChange,
+    onDuplicate,
+    onDelete: onDelete,
+  };
 }

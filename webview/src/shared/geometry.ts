@@ -1,5 +1,5 @@
 /**
- * @fileoverview Geometry primitives shared across Controller and View contracts.
+ * @fileoverview Spatial primitives (Rect, Point, Size) shared across Controller and View contracts.
  */
 
 export type Rect = {

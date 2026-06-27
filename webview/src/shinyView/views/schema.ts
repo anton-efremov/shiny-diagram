@@ -16,19 +16,10 @@
  *   this tree.
  */
 
-import type {
-  ClassStyleProperties,
-  MemberKind,
-  MemberPrefix,
-  RelationshipType,
-} from "../../shared/diagramVocabulary";
+import type { ClassStyleProperties } from "../../shared/style";
+import type { MemberKind, MemberPrefix, RelationshipType } from "../../shared/uml";
 import type { Rect } from "../../shared/geometry";
-import type {
-  ClassId,
-  MemberId,
-  NamespaceId,
-  RelationshipId,
-} from "../../shared/ids";
+import type { ClassId, MemberId, NamespaceId, RelationshipId } from "../../shared/ids";
 
 /* ── Leaf views ──────────────────────────────────────────────────────────── */
 

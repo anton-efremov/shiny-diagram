@@ -206,7 +206,7 @@ render:*                                               # [L]+[P] only
 
 **5.2 Views are data-only.** They contain no callbacks, setters, dispatch functions, services, React elements, raw events, or framework instances.
 
-**5.3 The receiving component owns its View contract.** Every file that names or constructs a View shape uses the View contract owned by the receiving component. It does not redeclare or structurally fake that type.
+**5.3 The receiving component owns its View contract.** Every file that names or constructs a View shape reuses an existing authoritative declaration of that shape rather than redeclaring or structurally faking it.
 
 **5.4 State has one owner.** Raw setters never leave the owner. Descendants and frameworks receive typed actions or named owner callbacks. Central state-ledger declarations do not own runtime storage or state lifecycle.
 
