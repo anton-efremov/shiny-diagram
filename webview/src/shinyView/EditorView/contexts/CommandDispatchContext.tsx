@@ -8,10 +8,10 @@ import type { EditorDispatch } from "../../commands/editorCommands";
 
 export const CommandDispatchContext = createContext<EditorDispatch | null>(null);
 
-export function useDispatchCommand(): EditorDispatch {
+export function useDispatchTransaction(): EditorDispatch {
   const dispatchCommand = useContext(CommandDispatchContext);
   if (!dispatchCommand) {
-    throw new Error("useDispatchCommand must be used within CommandDispatchProvider");
+    throw new Error("useDispatchTransaction must be used within CommandDispatchProvider");
   }
   return dispatchCommand;
 }

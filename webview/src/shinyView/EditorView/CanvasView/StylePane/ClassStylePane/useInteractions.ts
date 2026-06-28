@@ -11,14 +11,14 @@
  */
 
 import { useCallback } from "react";
-import { useDispatchCommand } from "../../../contexts";
+import { useDispatchTransaction } from "../../../contexts";
 import {
   toBorderColorSetTransaction,
   toClassDeleteTransaction,
   toClassDuplicateTransaction,
   toFillColorSetTransaction,
   toTextColorSetTransaction,
-} from "./commands";
+} from "./transactions";
 import type { ClassView } from "../../../../views/schema";
 
 type UseClassStylePaneInteractionsResult = {
@@ -32,7 +32,7 @@ type UseClassStylePaneInteractionsResult = {
 export function useClassStylePaneInteractions(
   selectedClasses: readonly ClassView[]
 ): UseClassStylePaneInteractionsResult {
-  const dispatchCommand = useDispatchCommand();
+  const dispatchCommand = useDispatchTransaction();
 
   const onFillColorChange = useCallback(
     (fill: string) => {

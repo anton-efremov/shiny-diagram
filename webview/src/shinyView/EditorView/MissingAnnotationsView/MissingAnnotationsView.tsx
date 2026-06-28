@@ -4,7 +4,7 @@
  */
 import { useCallback } from "react";
 import type { ReactElement } from "react";
-import { useDispatchCommand } from "../contexts";
+import { useDispatchTransaction } from "../contexts";
 import ControlButton from "../../ui/ControlButton/ControlButton";
 import { GenerateIcon } from "../../ui/icons/icons";
 import { toMissingAnnotationTransaction } from "./commands";
@@ -24,7 +24,7 @@ type MissingAnnotationsViewProps = {
 export default function MissingAnnotationsView({
   view,
 }: MissingAnnotationsViewProps): ReactElement {
-  const dispatchCommand = useDispatchCommand();
+  const dispatchCommand = useDispatchTransaction();
 
   // @job connect:command:wire
   const onGenerate = useCallback(() => {

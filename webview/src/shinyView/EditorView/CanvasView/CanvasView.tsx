@@ -8,7 +8,7 @@
 import { useEffect, useReducer } from "react";
 import type { ReactElement } from "react";
 import ClassDiagram from "./ClassDiagram/ClassDiagram";
-import { toClassDeleteTransaction } from "./commands";
+import { toClassDeleteTransaction } from "./transactions";
 import { CanvasViewStateDispatchContext } from "./contexts";
 import {
   canHandleClassSelectionShortcut,
@@ -17,7 +17,7 @@ import {
 } from "./state";
 import StylePane from "./StylePane/StylePane";
 import ToolPane from "./ToolPane/ToolPane";
-import { useDispatchCommand } from "../contexts";
+import { useDispatchTransaction } from "../contexts";
 import styles from "./CanvasView.module.css";
 import type { DiagramView } from "../../views/schema";
 
@@ -26,7 +26,7 @@ type CanvasViewProps = {
 };
 
 export default function CanvasView({ view }: CanvasViewProps): ReactElement {
-  const dispatchCommand = useDispatchCommand();
+  const dispatchCommand = useDispatchTransaction();
 
   // @job logic:state:initialize
   const [state, dispatchCanvasViewStateAction] = useReducer(

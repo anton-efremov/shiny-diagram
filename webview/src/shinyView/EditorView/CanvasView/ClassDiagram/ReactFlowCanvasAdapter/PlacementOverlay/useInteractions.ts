@@ -9,7 +9,7 @@ import type { PointerEvent } from "react";
 import { useReactFlow } from "@xyflow/react";
 import type { Point, Rect } from "../../../../../../shared/geometry";
 import { useDispatchCanvasViewStateAction } from "../../../contexts";
-import { useDispatchCommand } from "../../../../contexts";
+import { useDispatchTransaction } from "../../../../contexts";
 import { toClassCreateTransaction } from "./commands";
 
 const DRAG_THRESHOLD = 4;
@@ -32,7 +32,7 @@ export function usePlacementOverlayInteractions(
   setDraftRect: (rect: Rect | null) => void
 ): UsePlacementOverlayInteractionsResult {
   const { screenToFlowPosition } = useReactFlow();
-  const dispatchCommand = useDispatchCommand();
+  const dispatchCommand = useDispatchTransaction();
   const dispatchCanvasViewStateAction = useDispatchCanvasViewStateAction();
 
   // @job connect:event:wire

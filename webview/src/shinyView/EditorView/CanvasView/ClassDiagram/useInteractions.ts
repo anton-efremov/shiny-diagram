@@ -8,7 +8,7 @@ import type { ClassId } from "../../../../shared/ids";
 import type { ClassView } from "../../../views/schema";
 import type { ClassPositionChange } from "./state";
 import { toClassMoveTransaction } from "./commands";
-import { useDispatchCommand } from "../../contexts";
+import { useDispatchTransaction } from "../../contexts";
 import { useDispatchCanvasViewStateAction } from "../contexts";
 
 type UseClassDiagramInteractionsResult = {
@@ -20,7 +20,7 @@ type UseClassDiagramInteractionsResult = {
 export function useClassDiagramInteractions(
   classes: readonly ClassView[]
 ): UseClassDiagramInteractionsResult {
-  const dispatchCommand = useDispatchCommand();
+  const dispatchCommand = useDispatchTransaction();
   const dispatchCanvasViewStateAction = useDispatchCanvasViewStateAction();
 
   // @job logic:command:derive

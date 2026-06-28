@@ -6,7 +6,7 @@
 import { useCallback } from "react";
 import type { Rect } from "../../../../../../../shared/geometry";
 import type { ClassId } from "../../../../../../../shared/ids";
-import { useDispatchCommand } from "../../../../../contexts";
+import { useDispatchTransaction } from "../../../../../contexts";
 import { toClassResizeTransaction } from "./commands";
 
 type UseClassBoxInteractionsResult = {
@@ -14,7 +14,7 @@ type UseClassBoxInteractionsResult = {
 };
 
 export function useClassBoxInteractions(classId: ClassId): UseClassBoxInteractionsResult {
-  const dispatchCommand = useDispatchCommand();
+  const dispatchCommand = useDispatchTransaction();
 
   const onResizeEnd = useCallback(
     (rect: Rect) => {
