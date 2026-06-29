@@ -30,6 +30,7 @@ type ReactFlowCanvasAdapterProps = {
   readonly onDragComplete: (finalPositions: readonly ClassPositionChange[]) => void;
   readonly onSelectionChange: (classIds: readonly ClassId[]) => void;
   readonly onPaneClick: () => void;
+  readonly onPlacementComplete: () => void;
 };
 
 export default function ReactFlowCanvasAdapter({
@@ -41,6 +42,7 @@ export default function ReactFlowCanvasAdapter({
   onDragComplete,
   onSelectionChange: onSelectionChangeProp,
   onPaneClick: onPaneClickProp,
+  onPlacementComplete,
 }: ReactFlowCanvasAdapterProps): ReactElement {
   // @job connect:framework:props
   const rfNodes = useMemo(
@@ -89,7 +91,10 @@ export default function ReactFlowCanvasAdapter({
       >
         <Background />
         <Controls showInteractive={false} />
-        <PlacementOverlay nodePlacementState={nodePlacementState} />
+        <PlacementOverlay
+          nodePlacementState={nodePlacementState}
+          onPlacementComplete={onPlacementComplete}
+        />
       </ReactFlow>
     </ReactFlowProvider>
   );

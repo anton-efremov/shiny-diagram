@@ -1,21 +1,21 @@
 /**
- * @role [P] Presentational
+ * @role [P]
  * @presents Class style color controls.
  */
 
 import type { ReactElement } from "react";
 import ColorSelector from "../../../../../ui/ColorSelector/ColorSelector";
 import { BorderIcon, FillIcon, TextColorIcon } from "../../../../../ui/icons/icons";
-import styles from "../../StylePane.module.css";
+import styles from "./ClassStyleControls.module.css";
 
-export type StyleColorControlProps = {
+type StyleColorControlProps = {
   readonly displayValue: string;
   readonly pickerValue: string;
   readonly swatchColor?: string;
   readonly mixed: boolean;
 };
 
-export type ClassStyleControlsProps = {
+type ClassStyleControlsProps = {
   readonly fill: StyleColorControlProps;
   readonly border: StyleColorControlProps;
   readonly text: StyleColorControlProps;

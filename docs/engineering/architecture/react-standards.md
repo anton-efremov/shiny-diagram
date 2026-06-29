@@ -24,9 +24,9 @@
 	- [4.1 State creation](#41-state-creation)
 	- [4.2 State initialization](#42-state-initialization)
 	- [4.3 State reconciliation](#43-state-reconciliation)
-	- [4.4 View/state props derivation](#44-viewstate-props-derivation)
+	- [4.4 View and State slice props derivation](#44-view-and-state-slice-props-derivation)
 	- [4.5 UI props derivation](#45-ui-props-derivation)
-	- [4.6 Event-handlers derivation](#46-event-handlers-derivation)
+	- [4.6 Event handler props derivation](#46-event-handler-props-derivation)
 	- [4.7 Registering keystroke listener](#47-registering-keystroke-listener)
 	- [4.8 Implementing interaction through state update](#48-implementing-interaction-through-state-update)
 	- [4.9 Implementing interaction through command transaction](#49-implementing-interaction-through-command-transaction)
@@ -305,7 +305,7 @@ Providing a child the callback by which it requests a change. The child **must**
     - **naming:** handler is named `on<Event>`, e.g. `onPlacementCommit`, `onClassResize`, `onSelectionChange`; handler **must not** be named by its state effect, e.g. `setPlacementState`, `clearSelection`
     - **when:** the handler performs a small local argument adaptation or delegates to an owner callback without needing a separate interaction pipeline
 3. **derive all event handlers in `useInteractions()` hook**
-    - export a single `useInteractions(...)` hook that returns **all required** event handlers for the component's children with the **exception of** path-through handlers . **Location:** `useInteractions.ts`
+    - export a single `useInteractions(...)` hook that returns **all required** event handlers for the component's children with the **exception of** pass-through handlers . **Location:** `useInteractions.ts`
     - call the hook and assign the result to named handler bindings. **Location:** `<Component>.tsx`
     - pass the returned handlers to child props. **Location:** `<Component>.tsx`
     - Once a component uses `useInteractions()`, all non-pass-through handlers must live there
@@ -412,8 +412,9 @@ No fixed patterns yet
 6. state reconciliation area
 7. child props derivation area
 8. interactions area
-9. routing area
-10. render return area
+9. keystroke listener registration area
+10. routing area
+11. render return area
 
 **Structure:**
 ```ts
@@ -457,6 +458,11 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
 /** ── interactions area ──
  * Patterns: 4.6-2, 4.6-3, 4.8-1
  * Annotation: "Event handler derivation: <any non-obvious derrivation explained>"
+ */
+ 
+ /** ── keystroke listener registration area ──
+ * Patterns: 4.7-1
+ * Annotation: "Keystroke listenning: <name of a keystroke>"
  */
 
 /** ── routing area ──

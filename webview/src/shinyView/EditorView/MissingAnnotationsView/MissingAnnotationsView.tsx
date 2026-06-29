@@ -17,7 +17,6 @@ type MissingAnnotationsViewProps = {
 export default function MissingAnnotationsView({
   view,
 }: MissingAnnotationsViewProps): ReactElement {
-
   // Event handler derivation: generate missing spatial annotations.
   const { onGenerate } = useInteractions({ view });
 

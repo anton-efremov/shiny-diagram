@@ -1,92 +1,94 @@
 /**
- * @role [L]+[P] Logic and Presentational
- * @logic Ready editor selection and placement state lifecycle.
+ * @role [L]+[P]
+ * @logic Ready editor selection, placement state lifecycle, and child interaction routing.
  * @state selectionState: selected editor entities.
  * @state nodePlacementState: active node placement kind.
- * @presents Ready editor layout and context provision.
+ * @presents Ready editor layout.
  */
-import { useEffect, useReducer } from "react";
+
+import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
+import type { NodePlacementState, SelectionState } from "../../state/editorStates";
+import type { DiagramView } from "../../views/schema";
 import ClassDiagram from "./ClassDiagram/ClassDiagram";
-import { toClassDeleteTransaction } from "./transactions";
-import { CanvasViewStateDispatchContext } from "./contexts";
-import {
-  canHandleClassSelectionShortcut,
-  canvasViewReducer,
-  initialCanvasViewState,
-} from "./state";
 import StylePane from "./StylePane/StylePane";
 import ToolPane from "./ToolPane/ToolPane";
-import { useDispatchTransaction } from "../contexts";
+import { toInitialNodePlacementState, toInitialSelectionState } from "./state";
+import { useInteractions } from "./useInteractions";
+import { useStateReconciliation } from "./useStateReconciliation";
 import styles from "./CanvasView.module.css";
-import type { DiagramView } from "../../views/schema";
 
 type CanvasViewProps = {
   readonly view: DiagramView;
 };
 
 export default function CanvasView({ view }: CanvasViewProps): ReactElement {
-  const dispatchCommand = useDispatchTransaction();
-
-  // @job logic:state:initialize
-  const [state, dispatchCanvasViewStateAction] = useReducer(
-    canvasViewReducer,
-    initialCanvasViewState
+  /** State: selected editor entities and active node placement kind */
+  const [selectionState, setSelectionState] = useState<SelectionState>(() =>
+    toInitialSelectionState()
   );
-  const { selectionState, nodePlacementState } = state;
+  const [nodePlacementState, setNodePlacementState] = useState<NodePlacementState>(() =>
+    toInitialNodePlacementState()
+  );
 
-  // @job logic:state:reconcile
-  useEffect(() => {
-    dispatchCanvasViewStateAction({
-      type: "selection.reconcileClassIds",
-      diagram: view,
-    });
-  }, [view, dispatchCanvasViewStateAction]);
+  /** State reconciliation: selected class IDs are repaired against the canonical diagram view */
+  useStateReconciliation({ view, setSelectionState });
 
-  // @job connect:event:wire
+  /** Event handler derivation: state updates and class-delete shortcut transaction dispatch */
+  const {
+    onClassPlacementStart,
+    onSelectionChange,
+    onSelectionClear,
+    onPlacementComplete,
+    onClassDelete,
+  } = useInteractions({ selectionState, setSelectionState, setNodePlacementState });
+
+  /** Keystroke listenning: Delete selected classes */
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent): void {
-      // @job connect:event:normalize
-      if (
-        !canHandleClassSelectionShortcut(selectionState) ||
-        event.defaultPrevented ||
-        event.repeat ||
-        event.key !== "Delete" ||
-        event.altKey ||
-        event.ctrlKey ||
-        event.metaKey ||
-        event.shiftKey ||
-        isEditableTarget(event.target)
-      ) {
-        return;
+      if (shouldIgnoreClassDeleteEvent(event)) return;
+
+      const wasHandled = onClassDelete();
+      if (wasHandled) {
+        event.preventDefault();
       }
-
-      const transaction = toClassDeleteTransaction(selectionState.classIds);
-      if (!transaction) return;
-
-      event.preventDefault();
-      dispatchCommand(transaction);
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectionState, dispatchCommand]);
+  }, [onClassDelete]);
 
-  // @job connect:state:wire
   return (
-    <CanvasViewStateDispatchContext.Provider value={dispatchCanvasViewStateAction}>
-      <section className={styles.editorShell} aria-label="Class diagram editor">
-        <ToolPane nodePlacementState={nodePlacementState} />
-        <div className={styles.canvasRegion}>
-          <ClassDiagram
-            view={view}
-            selectionState={selectionState}
-            nodePlacementState={nodePlacementState}
-          />
-        </div>
-        <StylePane view={view} selectionState={selectionState} />
-      </section>
-    </CanvasViewStateDispatchContext.Provider>
+    <section className={styles.editorShell} aria-label="Class diagram editor">
+      <ToolPane
+        nodePlacementState={nodePlacementState}
+        onClassPlacementStart={onClassPlacementStart}
+      />
+      <div className={styles.canvasRegion}>
+        <ClassDiagram
+          view={view}
+          selectionState={selectionState}
+          nodePlacementState={nodePlacementState}
+          onSelectionChange={onSelectionChange}
+          onSelectionClear={onSelectionClear}
+          onPlacementComplete={onPlacementComplete}
+        />
+      </div>
+      <StylePane view={view} selectionState={selectionState} />
+    </section>
+  );
+}
+
+function shouldIgnoreClassDeleteEvent(event: KeyboardEvent): boolean {
+  return (
+    event.defaultPrevented ||
+    event.repeat ||
+    event.key !== "Delete" ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.metaKey ||
+    event.shiftKey ||
+    isEditableTarget(event.target)
   );
 }
 

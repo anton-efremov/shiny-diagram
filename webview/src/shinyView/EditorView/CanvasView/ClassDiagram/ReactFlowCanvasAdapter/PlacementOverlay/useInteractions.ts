@@ -1,6 +1,6 @@
 /**
  * @fileoverview PlacementOverlay interaction pipeline.
- * Translates pointer events into class.create transactions and placement.complete state actions.
+ * Translates pointer events into class.create transactions and placement-complete events.
  * Owns no state; state is provided by PlacementOverlay.
  */
 
@@ -8,7 +8,6 @@ import { useCallback } from "react";
 import type { PointerEvent } from "react";
 import { useReactFlow } from "@xyflow/react";
 import type { Point, Rect } from "../../../../../../shared/geometry";
-import { useDispatchCanvasViewStateAction } from "../../../contexts";
 import { useDispatchTransaction } from "../../../../contexts";
 import { toClassCreateTransaction } from "./commands";
 
@@ -29,11 +28,11 @@ type UsePlacementOverlayInteractionsResult = {
 export function usePlacementOverlayInteractions(
   origin: DrawOrigin | null,
   setOrigin: (origin: DrawOrigin | null) => void,
-  setDraftRect: (rect: Rect | null) => void
+  setDraftRect: (rect: Rect | null) => void,
+  onPlacementComplete: () => void
 ): UsePlacementOverlayInteractionsResult {
   const { screenToFlowPosition } = useReactFlow();
   const dispatchCommand = useDispatchTransaction();
-  const dispatchCanvasViewStateAction = useDispatchCanvasViewStateAction();
 
   // @job connect:event:wire
   const onPointerDown = useCallback(
@@ -94,16 +93,9 @@ export function usePlacementOverlayInteractions(
       dispatchCommand(transaction);
 
       // @job connect:state:wire
-      dispatchCanvasViewStateAction({ type: "placement.complete" });
+      onPlacementComplete();
     },
-    [
-      dispatchCanvasViewStateAction,
-      dispatchCommand,
-      origin,
-      screenToFlowPosition,
-      setDraftRect,
-      setOrigin,
-    ]
+    [dispatchCommand, onPlacementComplete, origin, screenToFlowPosition, setDraftRect, setOrigin]
   );
 
   return { onPointerDown, onPointerMove, onPointerUp };

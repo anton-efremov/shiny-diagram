@@ -1,13 +1,13 @@
 /**
- * @role [P] Presentational
+ * @role [P]
  * @presents Selected class style preview.
  */
 
 import type { CSSProperties, ReactElement } from "react";
 import type { ClassStyleProperties } from "../../../../../../shared/style";
-import styles from "../../StylePane.module.css";
+import styles from "./ClassStylePreview.module.css";
 
-export type ClassStylePreviewProps =
+type ClassStylePreviewProps =
   | {
       readonly kind: "visible";
       readonly label: string;

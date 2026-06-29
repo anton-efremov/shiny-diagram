@@ -1,12 +1,12 @@
 /**
- * @role [P] Presentational
+ * @role [P]
  * @presents Selected class summary.
  */
 
 import type { ReactElement } from "react";
-import styles from "../../StylePane.module.css";
+import styles from "./ClassSelectionSummary.module.css";
 
-export type ClassSelectionSummaryProps =
+type ClassSelectionSummaryProps =
   | {
       readonly kind: "single";
       readonly label: string;

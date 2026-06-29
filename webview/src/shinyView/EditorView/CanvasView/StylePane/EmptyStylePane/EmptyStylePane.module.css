@@ -1,0 +1,9 @@
+/**
+ * @fileoverview Styles for the empty style inspector scenario.
+ */
+
+.emptySelection {
+  flex: 1;
+  min-height: 120px;
+  background: var(--shiny-overlay-faint);
+}

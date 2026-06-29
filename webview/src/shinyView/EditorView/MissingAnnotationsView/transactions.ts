@@ -3,7 +3,11 @@
  */
 
 import type { EditorCommandTransaction } from "../../commands/editorCommands";
-import { GENERATE_CLASS_HEIGHT, GENERATE_CLASS_MARGIN, GENERATE_CLASS_WIDTH } from "../../config/editorUiConfig";
+import {
+  GENERATE_CLASS_HEIGHT,
+  GENERATE_CLASS_MARGIN,
+  GENERATE_CLASS_WIDTH,
+} from "../../config/editorUiConfig";
 import type { ClassView, EditorViewModel } from "../../views/schema";
 
 export function toMissingAnnotationTransaction({

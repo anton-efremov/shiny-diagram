@@ -1,0 +1,28 @@
+/**
+ * @fileoverview Styles for the selected class style preview.
+ */
+
+.previewCard {
+  overflow: hidden;
+  border: 1px solid var(--style-stroke, var(--shiny-border));
+  color: var(--style-color, var(--shiny-text));
+  background: var(--style-fill, var(--shiny-surface));
+}
+
+.previewHeader {
+  padding: 8px 10px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--style-stroke, var(--shiny-border));
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.previewBody {
+  min-height: 42px;
+  padding: 10px;
+  color: var(--style-color, var(--shiny-text));
+  font-size: 12px;
+}

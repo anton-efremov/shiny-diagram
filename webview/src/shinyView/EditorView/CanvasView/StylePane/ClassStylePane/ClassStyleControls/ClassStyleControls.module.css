@@ -1,0 +1,9 @@
+/**
+ * @fileoverview Styles for class style color controls.
+ */
+
+.styleList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

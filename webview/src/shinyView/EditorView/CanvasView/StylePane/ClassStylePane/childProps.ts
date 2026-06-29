@@ -1,25 +1,48 @@
 /**
- * @fileoverview Child prop derivation for pure UI children.
- *
- * Standard pattern:
- * - File name: `childProps.ts`.
- * - Exports `toXProps(...)` pure helpers for child render components.
- * - Input: canonical view slices from the parent product component.
- * - Output: display props for pure UI children.
- * - Imports child prop types from direct child components.
- * - May omit intent-handler props when handlers are wired in the parent component.
- * - No React imports, no context access, no command dispatch, no state ownership.
+ * @logic ClassStylePane child UI prop derivation from selected class views.
  */
 
-import type { ClassStyleProperty } from "../../../../../shared/style";
+import type { ClassStyleProperties, ClassStyleProperty } from "../../../../../shared/style";
 import type { ClassView } from "../../../../views/schema";
-import type { ClassSelectionSummaryProps } from "./ClassSelectionSummary/ClassSelectionSummary";
-import type { ClassStyleActionsProps } from "./ClassStyleActions/ClassStyleActions";
-import type {
-  ClassStyleControlsProps,
-  StyleColorControlProps,
-} from "./ClassStyleControls/ClassStyleControls";
-import type { ClassStylePreviewProps } from "./ClassStylePreview/ClassStylePreview";
+
+type ClassSelectionSummaryProps =
+  | {
+      readonly kind: "single";
+      readonly label: string;
+      readonly stereotype?: string;
+    }
+  | {
+      readonly kind: "multi";
+      readonly count: number;
+    };
+
+type ClassStylePreviewProps =
+  | {
+      readonly kind: "visible";
+      readonly label: string;
+      readonly style: ClassStyleProperties;
+    }
+  | {
+      readonly kind: "hidden";
+    };
+
+type StyleColorControlProps = {
+  readonly displayValue: string;
+  readonly pickerValue: string;
+  readonly swatchColor?: string;
+  readonly mixed: boolean;
+};
+
+type ClassStyleControlsProps = {
+  readonly fill: StyleColorControlProps;
+  readonly border: StyleColorControlProps;
+  readonly text: StyleColorControlProps;
+};
+
+type ClassStyleActionsProps = {
+  readonly duplicateLabel: string;
+  readonly deleteLabel: string;
+};
 
 type CommonStyleProperty =
   | {
@@ -32,6 +55,9 @@ type CommonStyleProperty =
       readonly pickerValue: string;
     };
 
+/** ── UI prop object area ──
+ * Patterns: 4.5-4
+ */
 export function toClassSelectionSummaryProps(
   selectedClasses: readonly ClassView[]
 ): ClassSelectionSummaryProps {
@@ -65,10 +91,7 @@ export function toClassStylePreviewProps(
 
 export function toClassStyleControlsProps(
   selectedClasses: readonly ClassView[]
-): Omit<
-  ClassStyleControlsProps,
-  "onFillColorChange" | "onBorderColorChange" | "onTextColorChange"
-> {
+): ClassStyleControlsProps {
   return {
     fill: toStyleColorControlProps(selectedClasses, "fill"),
     border: toStyleColorControlProps(selectedClasses, "stroke"),
@@ -78,7 +101,7 @@ export function toClassStyleControlsProps(
 
 export function toClassStyleActionsProps(
   selectedClasses: readonly ClassView[]
-): Omit<ClassStyleActionsProps, "onDuplicate" | "onDeleteClick"> {
+): ClassStyleActionsProps {
   return selectedClasses.length === 1
     ? {
         duplicateLabel: "Duplicate",
@@ -90,6 +113,9 @@ export function toClassStyleActionsProps(
       };
 }
 
+/** ── private helper area ──
+ * No annotation
+ */
 function toStyleColorControlProps(
   selectedClasses: readonly ClassView[],
   property: ClassStyleProperty

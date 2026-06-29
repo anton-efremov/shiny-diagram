@@ -1,0 +1,13 @@
+/**
+ * @fileoverview Styles for the selected class style inspector boundary.
+ */
+
+.selectionPanel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+  padding: 12px;
+  overflow: auto;
+}

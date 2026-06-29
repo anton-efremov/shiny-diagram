@@ -1,35 +1,30 @@
 /**
- * @role [P] Presentational
+ * @role [P]
  * @presents Class style action buttons.
  */
 
 import type { ReactElement } from "react";
 import ControlButton from "../../../../../ui/ControlButton/ControlButton";
 import { DeleteIcon, DuplicateIcon } from "../../../../../ui/icons/icons";
-import styles from "../../StylePane.module.css";
+import styles from "./ClassStyleActions.module.css";
 
-export type ClassStyleActionsProps = {
+type ClassStyleActionsProps = {
   readonly duplicateLabel: string;
   readonly deleteLabel: string;
   readonly onDuplicate: () => void;
-  readonly onDeleteClick: () => void;
+  readonly onDelete: () => void;
 };
 
 export default function ClassStyleActions({
   duplicateLabel,
   deleteLabel,
   onDuplicate,
-  onDeleteClick,
+  onDelete,
 }: ClassStyleActionsProps): ReactElement {
   return (
     <div className={styles.actionArea}>
       <ControlButton icon={<DuplicateIcon />} label={duplicateLabel} onClick={onDuplicate} />
-      <ControlButton
-        icon={<DeleteIcon />}
-        label={deleteLabel}
-        tone="danger"
-        onClick={onDeleteClick}
-      />
+      <ControlButton icon={<DeleteIcon />} label={deleteLabel} tone="danger" onClick={onDelete} />
     </div>
   );
 }

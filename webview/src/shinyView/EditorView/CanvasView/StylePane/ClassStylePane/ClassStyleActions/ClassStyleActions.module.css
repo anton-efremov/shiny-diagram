@@ -1,0 +1,11 @@
+/**
+ * @fileoverview Styles for class style action buttons.
+ */
+
+.actionArea {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--shiny-border);
+}

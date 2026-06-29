@@ -1,27 +1,22 @@
 /**
  * @fileoverview ClassDiagram interaction pipeline.
- * Translates drag, selection, and pane events into commands and state actions.
+ * Translates drag events into commands.
  */
 
 import { useCallback } from "react";
-import type { ClassId } from "../../../../shared/ids";
 import type { ClassView } from "../../../views/schema";
 import type { ClassPositionChange } from "./state";
 import { toClassMoveTransaction } from "./commands";
 import { useDispatchTransaction } from "../../contexts";
-import { useDispatchCanvasViewStateAction } from "../contexts";
 
 type UseClassDiagramInteractionsResult = {
   readonly onDragComplete: (finalPositions: readonly ClassPositionChange[]) => void;
-  readonly onSelectionChange: (classIds: readonly ClassId[]) => void;
-  readonly onPaneClick: () => void;
 };
 
 export function useClassDiagramInteractions(
   classes: readonly ClassView[]
 ): UseClassDiagramInteractionsResult {
   const dispatchCommand = useDispatchTransaction();
-  const dispatchCanvasViewStateAction = useDispatchCanvasViewStateAction();
 
   // @job logic:command:derive
   const onDragComplete = useCallback(
@@ -37,17 +32,5 @@ export function useClassDiagramInteractions(
     [classes, dispatchCommand]
   );
 
-  // @job connect:state:wire
-  const onSelectionChange = useCallback(
-    (classIds: readonly ClassId[]) => {
-      dispatchCanvasViewStateAction({ type: "selection.setClassIds", classIds });
-    },
-    [dispatchCanvasViewStateAction]
-  );
-
-  const onPaneClick = useCallback(() => {
-    dispatchCanvasViewStateAction({ type: "selection.clearClassIds" });
-  }, [dispatchCanvasViewStateAction]);
-
-  return { onDragComplete, onSelectionChange, onPaneClick };
+  return { onDragComplete };
 }

@@ -14,10 +14,12 @@ import styles from "./PlacementOverlay.module.css";
 
 type PlacementOverlayProps = {
   readonly nodePlacementState: NodePlacementState;
+  readonly onPlacementComplete: () => void;
 };
 
 export default function PlacementOverlay({
   nodePlacementState,
+  onPlacementComplete,
 }: PlacementOverlayProps): ReactElement | null {
   // @job logic:state:initialize
   const [origin, setOrigin] = useState<DrawOrigin | null>(null);
@@ -27,7 +29,8 @@ export default function PlacementOverlay({
   const { onPointerDown, onPointerMove, onPointerUp } = usePlacementOverlayInteractions(
     origin,
     setOrigin,
-    setDraftRect
+    setDraftRect,
+    onPlacementComplete
   );
 
   // @job logic:child:route

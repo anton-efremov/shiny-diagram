@@ -7,6 +7,7 @@
 
 import { useCallback, useState, useEffect } from "react";
 import type { ReactElement } from "react";
+import type { ClassId } from "../../../../shared/ids";
 import type { DiagramView } from "../../../views/schema";
 import type { NodePlacementState, SelectionState } from "../../../state/editorStates";
 import {
@@ -23,12 +24,18 @@ type ClassDiagramProps = {
   readonly view: DiagramView;
   readonly selectionState: SelectionState;
   readonly nodePlacementState: NodePlacementState;
+  readonly onSelectionChange: (classIds: readonly ClassId[]) => void;
+  readonly onSelectionClear: () => void;
+  readonly onPlacementComplete: () => void;
 };
 
 export default function ClassDiagram({
   view,
   selectionState,
   nodePlacementState,
+  onSelectionChange: onSelectionChangeProp,
+  onSelectionClear,
+  onPlacementComplete,
 }: ClassDiagramProps): ReactElement {
   // @job logic:state:initialize
   const [layoutState, setLayoutState] = useState(() =>
@@ -46,9 +53,7 @@ export default function ClassDiagram({
   }, []);
 
   // @job connect:event:wire
-  const { onDragComplete, onSelectionChange, onPaneClick } = useClassDiagramInteractions(
-    view.classes
-  );
+  const { onDragComplete } = useClassDiagramInteractions(view.classes);
 
   // @job render:structure
   return (
@@ -63,8 +68,9 @@ export default function ClassDiagram({
         classBoxLayoutState={layoutState}
         onLayoutChange={onLayoutChange}
         onDragComplete={onDragComplete}
-        onSelectionChange={onSelectionChange}
-        onPaneClick={onPaneClick}
+        onSelectionChange={onSelectionChangeProp}
+        onPaneClick={onSelectionClear}
+        onPlacementComplete={onPlacementComplete}
       />
     </section>
   );
