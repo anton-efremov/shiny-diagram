@@ -27,11 +27,12 @@
 	- [4.4 View/state props derivation](#44-viewstate-props-derivation)
 	- [4.5 UI props derivation](#45-ui-props-derivation)
 	- [4.6 Event-handlers derivation](#46-event-handlers-derivation)
-	- [4.7 Implementing interaction through state update](#47-implementing-interaction-through-state-update)
-	- [4.8 Implementing interaction through command transaction](#48-implementing-interaction-through-command-transaction)
-	- [4.9 Child component routing](#49-child-component-routing)
-	- [4.10 Rendering](#410-rendering)
-	- [4.11 Framework adaptation](#411-framework-adaptation)
+	- [4.7 Registering keystroke listener](#47-registering-keystroke-listener)
+	- [4.8 Implementing interaction through state update](#48-implementing-interaction-through-state-update)
+	- [4.9 Implementing interaction through command transaction](#49-implementing-interaction-through-command-transaction)
+	- [4.10 Child component routing](#410-child-component-routing)
+	- [4.11 Rendering](#411-rendering)
+	- [4.12 Framework adaptation](#412-framework-adaptation)
 - [5. Component composition](#5-component-composition)
 	- [5.1 General rules](#51-general-rules)
 	- [5.2 `<Component>.tsx`](#52-componenttsx)
@@ -49,7 +50,7 @@
 3. Domain vocabulary **must** be written by name, not by ID: Logic component `[L]`, Presentational component `[P]`, `view`, State slice, Event handler, UI prop.
 4. In prose, review comments, migration notes, and execution planning, a pattern **must** be referred to by ID plus name:
 	- `pattern 4.6-3 — derive all event handlers in useInteractions() hook`
-	- `pattern 4.8-1 — derive transaction in transactions.ts and dispatch through useInteractions.ts`
+	- `pattern 4.9-1 — derive transaction in transactions.ts and dispatch through useInteractions.ts`
 5. When item order changes, affected references **must** be updated in the same edit.
 
 # 1. React component types and roles
@@ -111,7 +112,7 @@ Owns component state and/or editor decisions, and composes its children.
 6. `webview/src/shinyView/config/editorUiConfig.ts` — static UI constants (fixed offsets, sizes, timings).
 	- UI constants **must** be defined here and read from here, **never** hard-coded at the use site.
 
-7. `webview/src/shinyView/EditorView/contexts` — exposes `CommandDispatchProvider`, the provider for the single `EditorDispatch` channel, and `useDispatchTransaction`, the consumer hook carrying command transactions to the Controller
+7. `webview/src/shinyView/EditorView/contexts` — exposes `useDispatchTransaction`, the consumer hook for the single `EditorDispatch` channel carrying command transactions to the Controller
 	- **the only** dispatch hook; **the only** non-prop transport in ShinyView
 
 8. **own children** — components it exclusively owns, each nested one level inside its folder as `ChildName/ChildName.tsx`
@@ -291,7 +292,6 @@ A UI prop is produced by **computing** a rendered value from the parent's view p
 ### 4.6 Event handler props derivation
 
 Providing a child the callback by which it requests a change. The child **must** invoke the handler with normalized data; the parent decides whether that request becomes a command, an owned-state change, or another request propagated upward.
-Keystrokes **must** be registered in the interaction layer of the component that owns the same semantic action.
 
 **Patterns allowed:**
 
@@ -315,7 +315,22 @@ Keystrokes **must** be registered in the interaction layer of the component that
 	    - returned handlers are named `on<Event>`, e.g. `onFillColorChange`, `onDuplicate`
     - **when:** a handler issues a Controller command or event-handler code is too large to keep the component body readable.
 
-### 4.7 Implementing interaction through state update
+### 4.7 Registering keystroke listener
+
+Registering a browser-level keyboard listener for a semantic action owned by the current component. Keystrokes **must** be registered in the interaction layer of the component that owns the same semantic action.
+
+**Pattern allowed:**
+
+1. **keystroke listener registered in component file**
+    - register and clean up the keystroke listener with `useEffect`. **Location:** `<Component>.tsx`
+    - implement the browser listener inside the effect and call the semantic `on<Event>` handler it triggers
+    - browser-event checks, e.g. key matching, modifier matching, ignored target checks, and `preventDefault()`, stay in the browser listener
+    - semantic action logic, state update, and command transaction dispatch stay in the semantic handler implemented by patterns in  4.6
+    - **naming:**
+	    - browser listener is named by the browser event, e.g. `handleKeyDown`
+	    - semantic handler keeps `on<Event>` naming, e.g. `onClassDelete`
+    - **when:** a keystroke triggers a semantic action owned by this React component
+### 4.8 Implementing interaction through state update
 
 Changing owned state after a semantic request from the component itself or one of its children.
 
@@ -333,7 +348,7 @@ State updates happen in the state owner. Children report events through semantic
     - **naming:** defined as a part of 4.6-3 pattern
     - **when:** state-update handler code is too large, too numerous, or shared with other interaction wiring
 
-### 4.8 Implementing interaction through command transaction
+### 4.9 Implementing interaction through command transaction
 
 Emitting a command transaction to a controller from semantic intent event handlers.
 
@@ -344,7 +359,7 @@ Emitting a command transaction to a controller from semantic intent event handle
     - call transaction builder from event handler implementation and dispatch the result through `useDispatchTransaction`. **Location:** `useInteractions.ts`. Event handlers, requiring dispatching transactions **must** be defined inside `useInteractions.ts` (pattern 4.6-3) and never in main components function; they may also update owned state there
     - **naming:** transaction builder is named `to<SemanticIntent>Transaction(...)`, e.g. `toClassDeleteTransaction(...)`, `toFillColorSetTransaction(...)`
 
-### 4.9 Child component routing
+### 4.10 Child component routing
 
 Choosing which child interface renders, from a discriminated view or a derived scenario.
 
@@ -358,11 +373,11 @@ Choosing which child interface renders, from a discriminated view or a derived s
 	- render the binding. **Location:** `<Component>.tsx`
 	- **when:** more than two branches, or a discriminated view (e.g. `view.status`)
 
-### 4.10 Rendering
+### 4.11 Rendering
 
 No fixed patterns yet
 
-### 4.11 Framework adaptation
+### 4.12 Framework adaptation
 
 No fixed patterns yet
 
@@ -440,12 +455,12 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
  */
 
 /** ── interactions area ──
- * Patterns: 4.6-2, 4.6-3, 4.7-1
+ * Patterns: 4.6-2, 4.6-3, 4.8-1
  * Annotation: "Event handler derivation: <any non-obvious derrivation explained>"
  */
 
 /** ── routing area ──
- * Patterns: 4.9-2
+ * Patterns: 4.10-2
  * Annotation: "Children routing decision"
  */
 
@@ -591,7 +606,7 @@ function <helperName>(input: <HelperInput>): ... {
 
 **Component types:** `[L]`, `[L]+[P]`; `[P]` only for owner-local view-state interaction wiring.
 
-**Patterns:** 4.6-3, 4.7-2, 4.8-1
+**Patterns:** 4.6-3, 4.8-2, 4.9-1
 
 **Areas**:
 1. file annotation block
@@ -626,7 +641,7 @@ type Interactions = {
 };
 
 /** ── interaction hook area ──
- * Patterns: 4.6-3, 4.7-2, 4.8-1
+ * Patterns: 4.6-3, 4.8-2, 4.9-1
  * No annotation.
  */
 export function useInteractions(...): Interactions {
@@ -649,7 +664,7 @@ function <helperName>(input: <HelperInput>): ... {
 
 **Component types:** `[L]`, `[L]+[P]`
 
-**Patterns:** 4.8-1
+**Patterns:** 4.9-1
 
 **Areas**:
 1. file annotation block
@@ -679,7 +694,7 @@ function <helperName>(input: <HelperInput>): ... {
  */
 
 /** ── transaction builder area ──
- * Patterns: 4.8-1
+ * Patterns: 4.9-1
  * No annotation
  */
 export function to<SemanticIntent>Transaction(...): EditorCommandTransaction {
@@ -755,10 +770,10 @@ function <helperName>(input: <HelperInput>): ... {
 
 **Component types:** `[P]`, `[L]+[P]`; `[A]` only for framework-mounting classes required by the adapter.
 
-**Patterns:** 4.10
+**Patterns:** 4.11
 
 ### 5.9 `frameworkProps.ts`
 
 **Component types:** `[A]` only
 
-**Patterns:** 4.11
+**Patterns:** 4.12
