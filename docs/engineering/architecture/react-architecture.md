@@ -1,6 +1,6 @@
 # Shiny View React Architecture
 
-> **Implementation state:** Aspirational   
+> **Implementation state:** Deprecated   
 > **Document state:** Maintained   
 > **Scope:** `webview/src/shinyView/**`  
 > **Runtime root:** `webview/src/shinyView/EditorView/`  

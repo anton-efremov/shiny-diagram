@@ -88,5 +88,5 @@ export default function ShinyController({
 
   commandExecutionInputsRef.current = commandExecutionInputs;
 
-  return <EditorView view={editorViewModel} dispatch={dispatch} />;
+  return <EditorView view={editorViewModel} onTransactionDispatch={dispatch} />;
 }
