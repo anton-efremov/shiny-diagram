@@ -1,15 +1,11 @@
 /**
- * @fileoverview Editor command transactions derived by the missing-annotations editor state.
+ * @logic Missing spatial annotation transaction derivation.
  */
 
 import type { EditorCommandTransaction } from "../../commands/editorCommands";
+import { GENERATE_CLASS_HEIGHT, GENERATE_CLASS_MARGIN, GENERATE_CLASS_WIDTH } from "../../config/editorUiConfig";
 import type { ClassView, EditorViewModel } from "../../views/schema";
 
-const DEFAULT_WIDTH = 200;
-const DEFAULT_HEIGHT = 150;
-const MARGIN = 40;
-
-// @job logic:command:derive
 export function toMissingAnnotationTransaction({
   missingClassIds,
   diagram,
@@ -20,7 +16,7 @@ export function toMissingAnnotationTransaction({
   const startY = computeStartY(diagram.classes);
 
   return missingClassIds.flatMap((classId, index) => {
-    const x = MARGIN + index * (DEFAULT_WIDTH + MARGIN);
+    const x = GENERATE_CLASS_MARGIN + index * (GENERATE_CLASS_WIDTH + GENERATE_CLASS_MARGIN);
     const y = startY;
 
     return [
@@ -32,7 +28,7 @@ export function toMissingAnnotationTransaction({
       {
         type: "class.size.set",
         classId,
-        size: { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT },
+        size: { width: GENERATE_CLASS_WIDTH, height: GENERATE_CLASS_HEIGHT },
       },
     ];
   });
@@ -44,5 +40,5 @@ function computeStartY(classes: readonly ClassView[]): number {
     const bottom = classView.bounds.y + classView.bounds.h;
     if (bottom > maxBottom) maxBottom = bottom;
   }
-  return maxBottom > 0 ? maxBottom + MARGIN : MARGIN;
+  return maxBottom > 0 ? maxBottom + GENERATE_CLASS_MARGIN : GENERATE_CLASS_MARGIN;
 }

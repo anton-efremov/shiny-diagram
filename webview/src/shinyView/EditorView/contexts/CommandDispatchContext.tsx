@@ -4,9 +4,26 @@
  */
 
 import { createContext, useContext } from "react";
+import type { ReactElement, ReactNode } from "react";
 import type { EditorDispatch } from "../../commands/editorCommands";
 
-export const CommandDispatchContext = createContext<EditorDispatch | null>(null);
+type CommandDispatchProviderProps = {
+  readonly children: ReactNode;
+  readonly onTransactionDispatch: EditorDispatch;
+};
+
+const CommandDispatchContext = createContext<EditorDispatch | null>(null);
+
+export function CommandDispatchProvider({
+  children,
+  onTransactionDispatch,
+}: CommandDispatchProviderProps): ReactElement {
+  return (
+    <CommandDispatchContext.Provider value={onTransactionDispatch}>
+      {children}
+    </CommandDispatchContext.Provider>
+  );
+}
 
 export function useDispatchTransaction(): EditorDispatch {
   const dispatchCommand = useContext(CommandDispatchContext);

@@ -5,7 +5,7 @@
 import type { ReactElement } from "react";
 import type { EditorDispatch } from "../commands/editorCommands";
 import CanvasView from "./CanvasView/CanvasView";
-import { CommandDispatchContext } from "./contexts";
+import { CommandDispatchProvider } from "./contexts";
 import ErrorView from "./ErrorView/ErrorView";
 import MissingAnnotationsView from "./MissingAnnotationsView/MissingAnnotationsView";
 import type { EditorViewModel } from "../views/schema";
@@ -16,9 +16,7 @@ type EditorViewProps = {
 };
 
 export default function EditorView({ view, onTransactionDispatch }: EditorViewProps): ReactElement {
-  /** ── routing area ──
-   * Children routing decision.
-   */
+  /** Children routing decision. */
   let editorInterface: ReactElement;
   switch (view.status) {
     case "ready": {
@@ -26,7 +24,7 @@ export default function EditorView({ view, onTransactionDispatch }: EditorViewPr
       break;
     }
     case "invalidSyntax": {
-      editorInterface = <ErrorView view={view} />;
+      editorInterface = <ErrorView message={view.message} />;
       break;
     }
     case "missingAnnotations": {
@@ -36,8 +34,8 @@ export default function EditorView({ view, onTransactionDispatch }: EditorViewPr
   }
 
   return (
-    <CommandDispatchContext.Provider value={onTransactionDispatch}>
+    <CommandDispatchProvider onTransactionDispatch={onTransactionDispatch}>
       {editorInterface}
-    </CommandDispatchContext.Provider>
+    </CommandDispatchProvider>
   );
 }

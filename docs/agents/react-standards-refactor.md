@@ -29,7 +29,7 @@ When you receive the component name:
 * inspect current working-tree status
 * do not overwrite, revert, reformat, or “fix” unrelated unstaged human edits
 * locate the component folder and `<Component>.tsx`
-* refactor the named component, its own support files, and direct call sites required to keep the code compiling
+* Treat the named component as the compliance target, not the patch boundary: refactor the named component, its support files, receiver-side contracts, owned descendants, callers, and any other affected ShinyView React components required to make the named component standards-compliant and keep the code compiling. Keep the expansion standards-driven and do not include unrelated cleanup.
 * create, delete, or rename only files allowed by the React standards for the component role and applied patterns
 * put code into the Chapter 5 file areas that correspond to the Chapter 4 patterns being used
 * preserve runtime behavior unless the standards require a structural change

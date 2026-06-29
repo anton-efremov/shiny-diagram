@@ -1,37 +1,26 @@
 /**
- * @role [P] Presentational
+ * @role [L]+[P]
+ * @logic Missing spatial annotation command dispatch.
  * @presents Missing-annotations editor-state interface.
  */
-import { useCallback } from "react";
 import type { ReactElement } from "react";
-import { useDispatchTransaction } from "../contexts";
 import ControlButton from "../../ui/ControlButton/ControlButton";
 import { GenerateIcon } from "../../ui/icons/icons";
-import { toMissingAnnotationTransaction } from "./commands";
+import { useInteractions } from "./useInteractions";
 import styles from "./MissingAnnotationsView.module.css";
 import type { EditorViewModel } from "../../views/schema";
 
 type MissingAnnotationsViewProps = {
-  readonly view: Pick<
-    Extract<EditorViewModel, { readonly status: "missingAnnotations" }>,
-    "missingClassIds" | "diagram"
-  >;
+  readonly view: Extract<EditorViewModel, { readonly status: "missingAnnotations" }>;
 };
 
-/**
- * Renders the missing annotations editor interface.
- */
 export default function MissingAnnotationsView({
   view,
 }: MissingAnnotationsViewProps): ReactElement {
-  const dispatchCommand = useDispatchTransaction();
 
-  // @job connect:command:wire
-  const onGenerate = useCallback(() => {
-    dispatchCommand(toMissingAnnotationTransaction(view));
-  }, [dispatchCommand, view]);
+  // Event handler derivation: generate missing spatial annotations.
+  const { onGenerate } = useInteractions({ view });
 
-  // @job render:structure
   return (
     <>
       <div className={styles.statusMessage}>

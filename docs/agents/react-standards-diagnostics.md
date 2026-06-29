@@ -59,7 +59,7 @@ Use these areas when applicable:
 
 Report only deviations.
 
-For each deviation, use this format:
+Start with `# <Component>` and then for each deviation in this component file, use this format:
 
 ```md
 ## <Area name>

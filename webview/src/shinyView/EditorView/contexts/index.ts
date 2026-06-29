@@ -1,4 +1,1 @@
-export {
-  CommandDispatchContext,
-  useDispatchTransaction as useDispatchTransaction,
-} from "./CommandDispatchContext";
+export { CommandDispatchProvider, useDispatchTransaction } from "./CommandDispatchContext";

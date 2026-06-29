@@ -111,7 +111,7 @@ Owns component state and/or editor decisions, and composes its children.
 6. `webview/src/shinyView/config/editorUiConfig.ts` — static UI constants (fixed offsets, sizes, timings).
 	- UI constants **must** be defined here and read from here, **never** hard-coded at the use site.
 
-7. `webview/src/shinyView/EditorView/contexts` — exposes `useDispatchTransaction`, the consumer hook for the single `EditorDispatch` channel carrying command transactions to the Controller
+7. `webview/src/shinyView/EditorView/contexts` — exposes `CommandDispatchProvider`, the provider for the single `EditorDispatch` channel, and `useDispatchTransaction`, the consumer hook carrying command transactions to the Controller
 	- **the only** dispatch hook; **the only** non-prop transport in ShinyView
 
 8. **own children** — components it exclusively owns, each nested one level inside its folder as `ChildName/ChildName.tsx`
@@ -372,7 +372,8 @@ No fixed patterns yet
 
 - A component folder **must** contain **only** files from the closed set detailed in this chapter, fixed by the component's role and the patterns it applies. 
 - Every file **must** open with one annotation block — following template given by this chapter for every file type. If specific annotation is not relevant for given type, it **must** be omitted.
-- A component body **must** be split into annotated blocks, one per job it executes, each opened by a comment following templates given by this chapter. There **must** be an empty line between new block annotation and previous block code
+- A component body **must** be split into annotated blocks, one per job it executes, each opened by a comment following templates given by this chapter. 
+- Templates for inline annotations are given inside quotation marks in a line starting with `Annotations:` (`── area ──` header is not part of the annotation and **must not** be included). There **must** be an empty line between new block annotation and previous block of code (including function signature)
 - Blocks **must** be written strictly in described order. Unused blocks are **omitted**.
 - Functions named in patterns (the component, a `to<X>` builder, a `use<X>` hook) **may** carve out **private helpers** (functions described in patterns, e.g. `useInteractions` **are not** private helpers and the following rules don't apply to them):
     - a helper is **pure**; the **only** stateful helpers are the hooks `useInteractions` and `useStateReconciliation`;
