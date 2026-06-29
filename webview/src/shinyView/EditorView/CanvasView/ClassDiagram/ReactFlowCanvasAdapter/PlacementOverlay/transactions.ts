@@ -1,12 +1,13 @@
 /**
- * @fileoverview PlacementOverlay editor command transactions.
- * Extracted because PlacementOverlay is an exclusively owned child component of ReactFlowCanvasAdapter.
+ * @logic PlacementOverlay command transaction derivation.
  */
 
 import type { Rect } from "../../../../../../shared/geometry";
 import type { EditorCommandTransaction } from "../../../../../commands/editorCommands";
 
-// @job logic:command:derive
+/** ── transaction builder area ──
+ * Patterns: 4.9-1
+ */
 export function toClassCreateTransaction(rect: Rect): EditorCommandTransaction {
   return [
     {

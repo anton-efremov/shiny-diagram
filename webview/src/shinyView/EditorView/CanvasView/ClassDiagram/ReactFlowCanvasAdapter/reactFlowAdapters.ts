@@ -6,7 +6,7 @@
 import type { Edge as ReactFlowEdge, Node as ReactFlowNode } from "@xyflow/react";
 import type { Rect } from "../../../../../shared/geometry";
 import type { ClassId } from "../../../../../shared/ids";
-import type { ClassBoxLayoutState } from "../../../../state/editorStates";
+import type { ClassBoxPlacementState } from "../../../../state/editorStates";
 import type { ClassView, DiagramView, RelationshipView } from "../../../../views/schema";
 
 export type ClassBoxNodeData = {
@@ -21,26 +21,26 @@ export type RelationshipEdgeDescriptor = ReactFlowEdge;
 export function toClassBoxNodeDescriptors(
   classes: readonly ClassView[],
   selectedClassIds: readonly ClassId[],
-  classBoxLayoutState: ClassBoxLayoutState
+  classBoxPlacementState: ClassBoxPlacementState
 ): ClassBoxNodeDescriptor[] {
   const selected = new Set<ClassId>(selectedClassIds);
   return classes.flatMap((classView) => {
-    const layout = classBoxLayoutState.rectByClassId.get(classView.classId);
-    if (!layout) return [];
+    const placement = classBoxPlacementState.rectByClassId.get(classView.classId);
+    if (!placement) return [];
 
     return [
       {
         id: classView.classId,
         type: "classBox" as const,
-        position: { x: layout.x, y: layout.y },
+        position: { x: placement.x, y: placement.y },
         data: {
           view: classView,
           isResizeVisible: selected.size === 1 && selected.has(classView.classId),
         },
         selected: selected.has(classView.classId),
-        width: layout.w,
-        height: layout.h,
-        style: { width: layout.w, height: layout.h },
+        width: placement.w,
+        height: placement.h,
+        style: { width: placement.w, height: placement.h },
       },
     ];
   });
@@ -49,13 +49,13 @@ export function toClassBoxNodeDescriptors(
 export function toRelationshipEdgeDescriptors(
   classes: readonly ClassView[],
   relationships: readonly RelationshipView[],
-  classBoxLayoutState: ClassBoxLayoutState
+  classBoxPlacementState: ClassBoxPlacementState
 ): RelationshipEdgeDescriptor[] {
   const classesById = new Map(
     classes.flatMap((classView) => {
-      const layout = classBoxLayoutState.rectByClassId.get(classView.classId);
-      if (!layout) return [];
-      return [[classView.classId, layout] as const];
+      const placement = classBoxPlacementState.rectByClassId.get(classView.classId);
+      if (!placement) return [];
+      return [[classView.classId, placement] as const];
     })
   );
 

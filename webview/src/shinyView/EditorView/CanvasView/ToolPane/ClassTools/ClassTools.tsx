@@ -31,7 +31,7 @@ const classTools: readonly ToolPaneItem[] = [
 
 export default function ClassTools({
   isClassPlacementActive,
-  onPlacementStart
+  onPlacementStart,
 }: ClassToolsProps): ReactElement {
   return (
     <div className={styles.toolGroup} aria-label="Class elements">

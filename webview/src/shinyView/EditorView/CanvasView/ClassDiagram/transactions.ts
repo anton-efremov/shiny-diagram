@@ -1,5 +1,5 @@
 /**
- * @fileoverview Editor command transactions derived by ClassDiagram interaction surfaces.
+ * @logic ClassDiagram command transaction derivation.
  */
 
 import type { Point } from "../../../../shared/geometry";
@@ -11,7 +11,9 @@ export type ClassMoveEntry = {
   readonly position: Point;
 };
 
-// @job logic:command:derive
+/** ── transaction builder area ──
+ * Patterns: 4.9-1
+ */
 export function toClassMoveTransaction(moves: readonly ClassMoveEntry[]): EditorCommandTransaction {
   return moves.map((move) => ({
     type: "class.position.set",

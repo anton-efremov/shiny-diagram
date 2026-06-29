@@ -36,10 +36,10 @@ export type NodePlacementState = PlaceableNodeKind | null;
 /*
  * Owned by: ClassDiagram.
  *
- * Framework-neutral transient class-box layout. It mirrors source-derived class
- * layout while React Flow interactions are in progress, before final editor
+ * Framework-neutral transient class-box placement. It mirrors source-derived class
+ * placement while React Flow interactions are in progress, before final editor
  * commands are dispatched and persisted by Controller.
  */
-export type ClassBoxLayoutState = {
+export type ClassBoxPlacementState = {
   readonly rectByClassId: ReadonlyMap<ClassId, Rect>;
 };

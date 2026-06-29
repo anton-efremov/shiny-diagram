@@ -1,46 +1,48 @@
 /**
- * @fileoverview PlacementOverlay interaction pipeline.
- * Translates pointer events into class.create transactions and placement-complete events.
- * Owns no state; state is provided by PlacementOverlay.
+ * @logic PlacementOverlay pointer gesture state updates and class creation command dispatch.
+ * @state origin and draftRect updates from pointer gestures.
  */
 
 import { useCallback } from "react";
-import type { PointerEvent } from "react";
+import type { Dispatch, PointerEvent, SetStateAction } from "react";
 import { useReactFlow } from "@xyflow/react";
 import type { Point, Rect } from "../../../../../../shared/geometry";
 import { useDispatchTransaction } from "../../../../contexts";
-import { toClassCreateTransaction } from "./commands";
+import type { DrawOrigin } from "./state";
+import { toClassCreateTransaction } from "./transactions";
 
 const DRAG_THRESHOLD = 4;
 
-export type DrawOrigin = {
-  readonly pointerId: number;
-  readonly client: Point;
-  readonly flow: Point;
-};
-
-type UsePlacementOverlayInteractionsResult = {
+type Interactions = {
   readonly onPointerDown: (event: PointerEvent<HTMLDivElement>) => void;
   readonly onPointerMove: (event: PointerEvent<HTMLDivElement>) => void;
   readonly onPointerUp: (event: PointerEvent<HTMLDivElement>) => void;
 };
 
-export function usePlacementOverlayInteractions(
-  origin: DrawOrigin | null,
-  setOrigin: (origin: DrawOrigin | null) => void,
-  setDraftRect: (rect: Rect | null) => void,
-  onPlacementComplete: () => void
-): UsePlacementOverlayInteractionsResult {
+type UseInteractionsInput = {
+  readonly origin: DrawOrigin | null;
+  readonly setOrigin: Dispatch<SetStateAction<DrawOrigin | null>>;
+  readonly setDraftRect: Dispatch<SetStateAction<Rect | null>>;
+  readonly onPlacementComplete: () => void;
+};
+
+/** ── interaction hook area ──
+ * Patterns: 4.6-3, 4.8-2, 4.9-1
+ */
+export function useInteractions({
+  origin,
+  setOrigin,
+  setDraftRect,
+  onPlacementComplete,
+}: UseInteractionsInput): Interactions {
   const { screenToFlowPosition } = useReactFlow();
   const dispatchCommand = useDispatchTransaction();
 
-  // @job connect:event:wire
   const onPointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
       event.preventDefault();
       event.stopPropagation();
       event.currentTarget.setPointerCapture(event.pointerId);
-      // @job connect:event:normalize
       setOrigin({
         pointerId: event.pointerId,
         client: { x: event.clientX, y: event.clientY },
@@ -56,7 +58,6 @@ export function usePlacementOverlayInteractions(
       if (!origin || event.pointerId !== origin.pointerId) return;
       event.preventDefault();
       event.stopPropagation();
-      // @job connect:event:normalize
       const bounds = event.currentTarget.getBoundingClientRect();
       setDraftRect(
         normalizeRect(
@@ -77,7 +78,6 @@ export function usePlacementOverlayInteractions(
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
       const endClient = { x: event.clientX, y: event.clientY };
-      // @job connect:event:normalize
       const endFlow = screenToFlowPosition(endClient);
       const isMeaningfulDrag =
         Math.abs(endClient.x - origin.client.x) >= DRAG_THRESHOLD ||
@@ -86,13 +86,8 @@ export function usePlacementOverlayInteractions(
       setDraftRect(null);
       if (!isMeaningfulDrag) return;
 
-      // @job logic:command:derive
       const transaction = toClassCreateTransaction(normalizeRect(origin.flow, endFlow));
-
-      // @job connect:command:wire
       dispatchCommand(transaction);
-
-      // @job connect:state:wire
       onPlacementComplete();
     },
     [dispatchCommand, onPlacementComplete, origin, screenToFlowPosition, setDraftRect, setOrigin]

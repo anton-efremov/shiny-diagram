@@ -1,15 +1,16 @@
 /**
- * @role [L]+[P] Logic and Presentational
+ * @role [L]+[P]
  * @logic Placement gesture state lifecycle.
  * @state origin: draw gesture anchor; draftRect: current placement outline.
  * @presents Placement interaction overlay and draft rectangle.
  */
+
 import { useState } from "react";
 import type { ReactElement, CSSProperties } from "react";
-import { usePlacementOverlayInteractions } from "./useInteractions";
-import type { DrawOrigin } from "./useInteractions";
-import type { Rect } from "../../../../../../shared/geometry";
 import type { NodePlacementState } from "../../../../../state/editorStates";
+import { toDraftStyle } from "./childProps";
+import { toInitialDraftRect, toInitialOrigin } from "./state";
+import { useInteractions } from "./useInteractions";
 import styles from "./PlacementOverlay.module.css";
 
 type PlacementOverlayProps = {
@@ -21,27 +22,25 @@ export default function PlacementOverlay({
   nodePlacementState,
   onPlacementComplete,
 }: PlacementOverlayProps): ReactElement | null {
-  // @job logic:state:initialize
-  const [origin, setOrigin] = useState<DrawOrigin | null>(null);
-  const [draftRect, setDraftRect] = useState<Rect | null>(null);
+  /** State: draw gesture anchor and current placement outline */
+  const [origin, setOrigin] = useState(() => toInitialOrigin());
+  const [draftRect, setDraftRect] = useState(() => toInitialDraftRect());
 
-  // @job connect:state:wire
-  const { onPointerDown, onPointerMove, onPointerUp } = usePlacementOverlayInteractions(
+  /** Child props derivation: draft rectangle becomes CSS positioning */
+  const draftStyle: CSSProperties | undefined = toDraftStyle(draftRect);
+
+  /** Event handler derivation: pointer gestures update draft state and dispatch class creation */
+  const { onPointerDown, onPointerMove, onPointerUp } = useInteractions({
     origin,
     setOrigin,
     setDraftRect,
-    onPlacementComplete
-  );
+    onPlacementComplete,
+  });
 
-  // @job logic:child:route
+  /** Children routing decision */
   if (nodePlacementState !== "class") return null;
 
-  // @job connect:child:view
-  const draftStyle: CSSProperties | undefined = draftRect
-    ? { left: draftRect.x, top: draftRect.y, width: draftRect.w, height: draftRect.h }
-    : undefined;
-
-  // @job render:structure
+  /** Render return */
   return (
     <div
       className={styles.overlay}

@@ -7,14 +7,19 @@ import { useCallback } from "react";
 import type { NodeChange, OnNodeDrag, OnSelectionChangeFunc } from "@xyflow/react";
 import type { ClassId } from "../../../../../shared/ids";
 import type { DiagramView } from "../../../../views/schema";
-import type { ClassPositionChange } from "../state";
 import type { ClassBoxNodeDescriptor, RelationshipEdgeDescriptor } from "./reactFlowAdapters";
 
+type ClassBoxPlacementChange = {
+  readonly classId: ClassId;
+  readonly x: number;
+  readonly y: number;
+};
+
 type ReactFlowCanvasAdapterCallbacks = {
-  readonly onLayoutChange: (changes: readonly ClassPositionChange[]) => void;
-  readonly onDragComplete: (finalPositions: readonly ClassPositionChange[]) => void;
+  readonly onClassBoxPlacementChange: (changes: readonly ClassBoxPlacementChange[]) => void;
+  readonly onDragComplete: (finalPositions: readonly ClassBoxPlacementChange[]) => void;
   readonly onSelectionChange: (classIds: readonly ClassId[]) => void;
-  readonly onPaneClick: () => void;
+  readonly onSelectionClear: () => void;
 };
 
 type UseReactFlowCanvasAdapterInteractionsResult = {
@@ -39,7 +44,7 @@ export function useReactFlowCanvasAdapterInteractions(
         return [{ classId: change.id as ClassId, x: change.position.x, y: change.position.y }];
       });
       if (positionChanges.length > 0) {
-        callbacks.onLayoutChange(positionChanges);
+        callbacks.onClassBoxPlacementChange(positionChanges);
       }
     },
     [callbacks]
@@ -73,7 +78,7 @@ export function useReactFlowCanvasAdapterInteractions(
 
   // @job connect:event:wire
   const onPaneClick = useCallback(() => {
-    callbacks.onPaneClick();
+    callbacks.onSelectionClear();
   }, [callbacks]);
 
   return { onNodesChange, onNodeDragStop, onSelectionChange, onPaneClick };

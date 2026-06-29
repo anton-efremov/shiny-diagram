@@ -1,22 +1,18 @@
 /**
- * @role [L]+[P] Logic and Presentational
- * @logic ClassBoxLayoutState lifecycle, child view projection.
- * @state layoutState: framework-neutral class box positions and dimensions.
+ * @role [L]+[P]
+ * @logic ClassBoxPlacementState lifecycle and class diagram interaction routing.
+ * @state classBoxPlacementState: framework-neutral class box positions and dimensions.
  * @presents Diagram shell and empty state.
  */
 
-import { useCallback, useState, useEffect } from "react";
+import { useState } from "react";
 import type { ReactElement } from "react";
 import type { ClassId } from "../../../../shared/ids";
 import type { DiagramView } from "../../../views/schema";
 import type { NodePlacementState, SelectionState } from "../../../state/editorStates";
-import {
-  applyPositionChanges,
-  createInitialClassBoxLayoutState,
-  reconcileLayoutWithClassViews,
-} from "./state";
-import type { ClassPositionChange } from "./state";
-import { useClassDiagramInteractions } from "./useInteractions";
+import { toInitialClassBoxPlacementState } from "./state";
+import { useInteractions } from "./useInteractions";
+import { useStateReconciliation } from "./useStateReconciliation";
 import ReactFlowCanvasAdapter from "./ReactFlowCanvasAdapter/ReactFlowCanvasAdapter";
 import styles from "./ClassDiagram.module.css";
 
@@ -37,25 +33,21 @@ export default function ClassDiagram({
   onSelectionClear,
   onPlacementComplete,
 }: ClassDiagramProps): ReactElement {
-  // @job logic:state:initialize
-  const [layoutState, setLayoutState] = useState(() =>
-    createInitialClassBoxLayoutState(view.classes)
+  /** State: framework-neutral class box positions and dimensions */
+  const [classBoxPlacementState, setClassBoxPlacementState] = useState(() =>
+    toInitialClassBoxPlacementState(view.classes)
   );
 
-  // @job logic:state:reconcile
-  useEffect(() => {
-    setLayoutState((state) => reconcileLayoutWithClassViews(state, view.classes));
-  }, [view.classes]);
+  /** State reconciliation: class box placement is repaired against canonical class views */
+  useStateReconciliation({ view: view.classes, setClassBoxPlacementState });
 
-  // @job logic:state:update
-  const onLayoutChange = useCallback((changes: readonly ClassPositionChange[]) => {
-    setLayoutState((state) => applyPositionChanges(state, changes));
-  }, []);
+  /** Event handler derivation: class box placement updates and class drag transactions */
+  const { onClassBoxPlacementChange, onDragComplete } = useInteractions({
+    view: view.classes,
+    setClassBoxPlacementState,
+  });
 
-  // @job connect:event:wire
-  const { onDragComplete } = useClassDiagramInteractions(view.classes);
-
-  // @job render:structure
+  /** Render return */
   return (
     <section className={styles.diagramShell} aria-label="Static editor boxes">
       {view.classes.length === 0 ? (
@@ -65,11 +57,11 @@ export default function ClassDiagram({
         view={view}
         selectionState={selectionState}
         nodePlacementState={nodePlacementState}
-        classBoxLayoutState={layoutState}
-        onLayoutChange={onLayoutChange}
+        classBoxPlacementState={classBoxPlacementState}
+        onClassBoxPlacementChange={onClassBoxPlacementChange}
         onDragComplete={onDragComplete}
         onSelectionChange={onSelectionChangeProp}
-        onPaneClick={onSelectionClear}
+        onSelectionClear={onSelectionClear}
         onPlacementComplete={onPlacementComplete}
       />
     </section>

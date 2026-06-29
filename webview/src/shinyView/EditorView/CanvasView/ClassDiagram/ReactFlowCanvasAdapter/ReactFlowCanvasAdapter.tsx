@@ -9,11 +9,10 @@ import { Background, Controls, ReactFlow, ReactFlowProvider } from "@xyflow/reac
 import type { ClassId } from "../../../../../shared/ids";
 import type { DiagramView } from "../../../../views/schema";
 import type {
-  ClassBoxLayoutState,
+  ClassBoxPlacementState,
   NodePlacementState,
   SelectionState,
 } from "../../../../state/editorStates";
-import type { ClassPositionChange } from "../state";
 import { toClassBoxNodeDescriptors, toRelationshipEdgeDescriptors } from "./reactFlowAdapters";
 import { useReactFlowCanvasAdapterInteractions } from "./useInteractions";
 import PlacementOverlay from "./PlacementOverlay/PlacementOverlay";
@@ -21,15 +20,21 @@ import ReactFlowClassBoxNodeAdapter from "./ReactFlowClassBoxNodeAdapter/ReactFl
 
 const NODE_TYPES = { classBox: ReactFlowClassBoxNodeAdapter };
 
+type ClassBoxPlacementChange = {
+  readonly classId: ClassId;
+  readonly x: number;
+  readonly y: number;
+};
+
 type ReactFlowCanvasAdapterProps = {
   readonly view: DiagramView;
   readonly selectionState: SelectionState;
   readonly nodePlacementState: NodePlacementState;
-  readonly classBoxLayoutState: ClassBoxLayoutState;
-  readonly onLayoutChange: (changes: readonly ClassPositionChange[]) => void;
-  readonly onDragComplete: (finalPositions: readonly ClassPositionChange[]) => void;
+  readonly classBoxPlacementState: ClassBoxPlacementState;
+  readonly onClassBoxPlacementChange: (changes: readonly ClassBoxPlacementChange[]) => void;
+  readonly onDragComplete: (finalPositions: readonly ClassBoxPlacementChange[]) => void;
   readonly onSelectionChange: (classIds: readonly ClassId[]) => void;
-  readonly onPaneClick: () => void;
+  readonly onSelectionClear: () => void;
   readonly onPlacementComplete: () => void;
 };
 
@@ -37,32 +42,32 @@ export default function ReactFlowCanvasAdapter({
   view,
   selectionState,
   nodePlacementState,
-  classBoxLayoutState,
-  onLayoutChange,
+  classBoxPlacementState,
+  onClassBoxPlacementChange,
   onDragComplete,
   onSelectionChange: onSelectionChangeProp,
-  onPaneClick: onPaneClickProp,
+  onSelectionClear,
   onPlacementComplete,
 }: ReactFlowCanvasAdapterProps): ReactElement {
   // @job connect:framework:props
   const rfNodes = useMemo(
-    () => toClassBoxNodeDescriptors(view.classes, selectionState.classIds, classBoxLayoutState),
-    [view.classes, selectionState.classIds, classBoxLayoutState]
+    () => toClassBoxNodeDescriptors(view.classes, selectionState.classIds, classBoxPlacementState),
+    [view.classes, selectionState.classIds, classBoxPlacementState]
   );
   const rfEdges = useMemo(
-    () => toRelationshipEdgeDescriptors(view.classes, view.relationships, classBoxLayoutState),
-    [view.classes, view.relationships, classBoxLayoutState]
+    () => toRelationshipEdgeDescriptors(view.classes, view.relationships, classBoxPlacementState),
+    [view.classes, view.relationships, classBoxPlacementState]
   );
 
   // @job connect:event:wire
   const callbacks = useMemo(
     () => ({
-      onLayoutChange,
+      onClassBoxPlacementChange,
       onDragComplete,
       onSelectionChange: onSelectionChangeProp,
-      onPaneClick: onPaneClickProp,
+      onSelectionClear,
     }),
-    [onLayoutChange, onDragComplete, onSelectionChangeProp, onPaneClickProp]
+    [onClassBoxPlacementChange, onDragComplete, onSelectionChangeProp, onSelectionClear]
   );
 
   const { onNodesChange, onNodeDragStop, onSelectionChange, onPaneClick } =
