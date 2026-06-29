@@ -2,7 +2,7 @@
 > **Document state:** Maintained
 > **Scope:** `webview/src/shinyView/**`  
 > **Audience:** Coding agents  
-> **Last reviewed:** 2026-06-28
+> **Last reviewed:** 2026-06-29
 > **Goal** Must-follow rules of organization of code, dependencies and implementation patterns of a React component in Shiny View React component tree
 
 # 0. About the file
@@ -11,8 +11,12 @@
 
 - [0. About the file](#0-about-the-file)
 	- [0.1 Navigation](#01-navigation)
-	- [0.2 Reference discipline](#02-reference-discipline)
-- [1. React component types and roles](#1-react-component-types-and-roles)
+	- [0.2 Key terms](#02-key-terms)
+	- [0.3 Reference discipline](#03-reference-discipline)
+- [1. React Component responsibilities and composition](#1-react-component-responsibilities-and-composition)
+	- [1.1 React Component responsibilities](#11-react-component-responsibilities)
+	- [1.2 Responsibilities composition in React Component](#12-responsibilities-composition-in-react-component)
+	- [1.3 Component naming based on composition](#13-component-naming-based-on-composition)
 - [2. Import rules](#2-import-rules)
 	- [2.1 Allowed import sources](#21-allowed-import-sources)
 	- [2.2 Forbidden import sources](#22-forbidden-import-sources)
@@ -20,7 +24,7 @@
 	- [3.1 General receive rules](#31-general-receive-rules)
 	- [3.2 Prop categories](#32-prop-categories)
 	- [3.3 Role prop contracts](#33-role-prop-contracts)
-- [4. Component implements](#4-component-implements)
+- [4. Behavior activities implementation patterns](#4-behavior-activities-implementation-patterns)
 	- [4.1 State creation](#41-state-creation)
 	- [4.2 State initialization](#42-state-initialization)
 	- [4.3 State reconciliation](#43-state-reconciliation)
@@ -31,19 +35,38 @@
 	- [4.8 Implementing interaction through state update](#48-implementing-interaction-through-state-update)
 	- [4.9 Implementing interaction through command transaction](#49-implementing-interaction-through-command-transaction)
 	- [4.10 Child component routing](#410-child-component-routing)
-	- [4.11 Rendering](#411-rendering)
-	- [4.12 Framework adaptation](#412-framework-adaptation)
-- [5. Component composition](#5-component-composition)
-	- [5.1 General rules](#51-general-rules)
-	- [5.2 `<Component>.tsx`](#52-componenttsx)
-	- [5.3 `state.ts`](#53-statets)
-	- [5.4 `childProps.ts`](#54-childpropsts)
-	- [5.5 `useInteractions.ts`](#55-useinteractionsts)
-	- [5.6 `transactions.ts`](#56-transactionsts)
-	- [5.7 `useStateReconciliation.ts`](#57-usestatereconciliationts)
-	- [5.8 `<Component>.module.css`](#58-componentmodulecss)
-	- [5.9 `frameworkProps.ts`](#59-frameworkpropsts)
-### 0.2 Reference discipline
+- [5. Framework activities implementation patterns](#5-framework-activities-implementation-patterns)
+	- [5.1 Framework prop and event adaptation](#51-framework-prop-and-event-adaptation)
+	- [5.2 Framework-domain command adaptation](#52-framework-domain-command-adaptation)
+- [6. Rendering activities implementation patterns](#6-rendering-activities-implementation-patterns)
+- [7. Component organization](#7-component-organization)
+	- [7.1 General rules](#71-general-rules)
+	- [7.2 `<Component>.tsx`](#72-componenttsx)
+	- [7.3 `state.ts`](#73-statets)
+	- [7.4 `childProps.ts`](#74-childpropsts)
+	- [7.5 `useInteractions.ts`](#75-useinteractionsts)
+	- [7.6 `transactions.ts`](#76-transactionsts)
+	- [7.7 `useStateReconciliation.ts`](#77-usestatereconciliationts)
+	- [7.8 `frameworkAdapters.ts`](#78-frameworkadaptersts)
+	- [7.9 `<Component>.module.css`](#79-componentmodulecss)
+- [8. Component annotations](#8-component-annotations)
+	- [8.1 File annotation](#81-file-annotation)
+	- [8.2 Inline annotations](#82-inline-annotations)
+
+### 0.2 Key terms
+
+- **Responsibility** — a broad kind of work a React Component performs in ShinyView. Responsibilities describe what piece of work the component owns conceptually.
+- **Activity** — a specific kind of work inside a responsibility. Activities are used to organize implementation rules.
+- **Implementation pattern** — an allowed way to implement an activity in code. Implementation patterns are numbered and referenced by ID.
+
+Hierarchy:
+
+```txt
+Responsibility
+  → Activity
+    → Implementation pattern
+```
+### 0.3 Reference discipline
 
 1. Referable numbered items use `<section-id>-<item-number>`, e.g. `4.6-3`, `5.2-7`.
 2. Pattern and area IDs **may** be used alone only as structural links, especially between Chapter 4 patterns and Chapter 5 file areas.
@@ -53,35 +76,44 @@
 	- `pattern 4.9-1 — derive transaction in transactions.ts and dispatch through useInteractions.ts`
 5. When item order changes, affected references **must** be updated in the same edit.
 
-# 1. React component types and roles
+# 1. React Component responsibilities and composition
 
-There are three base React component types in ShinyView and only one combined component — Logic with Pure Presentational — and only under the condition stated below. Thus, every React component in ShinyView is labeled as one of four legal role labels: `[L]`, `[P]`, `[A]`, `[L]+[P]`
-### Pure presentational `[P]`
+### 1.1 React Component responsibilities
 
-Owns a visual surface. Turns already-decided values into rendered output.
+Every React Component in ShinyView declares the responsibilities it performs. A component may perform one responsibility or a controlled composition of several responsibilities.
+#### Behavior responsibility
 
-- **May** render DOM and UI-library structure, apply styles, compose child React components and route them based on decisions passed through props.
-- **May** forward already-derived data, and invoke already-provided handlers.
-- **May** own local view state — a presentation-only state such as a controlled input's draft value, hover, or open/closed flags — that no other component reads and that has no editor consequence. 
-- **Must not** own ledger state — the semantic editor state declared in the state ledger (selection, placement, layout) that other components reconcile against.
-- **Must not** make any editor decision — deriving a view, a state action, a command transaction, or decide on a routing choice (routing based on decisions passed through props are allowed).
-### Framework adapter `[A]`
+A React Component has Behavior responsibility when it owns or derives runtime behavior: state, child inputs, semantic event handling, state changes, command transactions, or child routing. Behavior is about what the component decides and how it reacts.
+#### Rendering responsibility
 
-Binds one approved third-party framework component to ShinyView's standardized prop contract.
+A React Component has Rendering responsibility when it owns visual output: DOM structure, JSX composition, CSS application, icons, visual surfaces, or static UI catalogs. Rendering is about how already-decided values become visible interface. Simply combining child components is not counted as rendering responsibility.
+#### Framework adaptation responsibility
 
-- **Must** receive props in the standardized form a component receives, and derive from them the props the framework component requires, including its event-handler props.
-- **Must** import the framework component or utility only from an approved third-party library.
-- **May** compose children, including the framework component and child React components.
-- **May** forward already-derived data, and already-provided handlers.
-- **Must not** own ShinyView state, make editor decisions, or own a ShinyView visual surface.
-- **Must not** combine with the presentational or logic role; an adapter is **always** a pure adapter.
-### Logic component `[L]`
+A React Component has Framework adaptation responsibility when it absorbs a foreign component or framework interface into ShinyView standard boundaries pattern. Framework adaptation translates framework props, events, state, coordinate spaces, or vocabulary into ShinyView contracts and domain terms.
 
-Owns component state and/or editor decisions, and composes its children.
+### 1.2 Responsibilities composition in React Component
 
-- **Must** own at least one of: component state, or an editor decision — a derived child view, a state action, a command transaction, or a routing choice.
-- **Must** delegate any third-party framework binding to a Framework adapter child rather than binding it directly.
-- **May** also take the presentational role, but **only** when one of the two roles is minor. When both roles need substantial code, the presentational part **must** be factored out into its own Pure
+- A React Component **may** compose multiple responsibilities when the composition remains locally understandable.
+- A React Component **must** declare every responsibility it performs in the file annotation.
+- A React Component **must not** perform an undeclared responsibility.
+- When one responsibility becomes substantial enough to obscure another, the component **must** split the substantial responsibility into an owned child React Component or an approved support file.
+- Behavior and Rendering **may** coexist when one of them is minor or when their code remains naturally local to one UI area.
+- Framework adaptation **may** coexist with Behavior or Rendering only when the adapted boundary is local to the same UI area and the framework-to-Shiny transition is explicit.
+- Framework adaptation **must** name the source framework/domain and the target ShinyView domain.
+- Rendering **must not** hide Behavior decisions. Behavior decisions used by rendering **must** be expressed as named values before rendering when they are non-obvious.
+- Behavior **must not** hide Framework adaptation. Framework-shaped values **must** be translated before they are used as ShinyView state, props, or command payloads.
+- Responsibility composition **must** reduce local clarity cost. It **must not** be used to justify large mixed components.
+
+### 1.3 Component naming based on composition
+
+- A React Component name **must** describe the ShinyView UI layer or boundary it provides to its caller.
+- A React Component name **must not** be a dump of its internal responsibilities.
+- A React Component name **must not** include `Adapter` only because the component performs Framework adaptation responsibility.
+- Framework names **may** appear in a React Component name when the caller is explicitly composing a framework-backed boundary, e.g. `ReactFlow<Component>`.
+- Framework names **must not** appear in a React Component name when the framework is only an internal implementation detail.
+- Product/UI names are preferred at ordinary ShinyView call sites, e.g. `ClassDiagramCanvas`, `PlacementOverlay`, `ClassTools`.
+- Framework-boundary names are appropriate where the caller is intentionally entering a framework-backed boundary, e.g. `ReactFlowCanvas`, `ReactFlowClassNode`, `ReactFlowViewport`.
+- A component that mainly groups a UI area **should** be named after that area, not after the responsibilities it happens to compose.
 
 # 2. Import rules
 
@@ -123,7 +155,7 @@ Owns component state and/or editor decisions, and composes its children.
 
 10. **React and browser APIs** — rendering, lifecycle, focus, measurement, event registration.
 
-11. **own support files** — `state.ts`, `transactions.ts`, `useInteractions.ts`, `*.module.css`, `childProps.ts`, `useStateReconciliation.ts`, `frameworkProps.ts` sitting flat beside the component file
+11. **own support files** — `state.ts`, `transactions.ts`, `useInteractions.ts`, `*.module.css`, `childProps.ts`, `useStateReconciliation.ts`, `frameworkAdapters.ts` sitting flat beside the component file
 	- a component imports **only** its own support files, **never** another component's.
 
 ### 2.2 Forbidden import sources
@@ -188,7 +220,7 @@ Owns component state and/or editor decisions, and composes its children.
 	- **may** receive `view`, State slice, Event handler, and UI props.
 	- **must** use `view`, State slice, and Event handler props under the Logic role rules.
 	- **must** use UI props only as already-decided render input for its minor Presentational surface.
-# 4. Component implements
+# 4. Behavior activities implementation patterns
 
 ### 4.1 State creation
 
@@ -373,266 +405,232 @@ Choosing which child interface renders, from a discriminated view or a derived s
 	- render the binding. **Location:** `<Component>.tsx`
 	- **when:** more than two branches, or a discriminated view (e.g. `view.status`)
 
-### 4.11 Rendering
+# 5. Framework activities implementation patterns
+
+Framework adaptation absorbs a foreign framework interface into ShinyView. A framework-shaped value **must** be translated into ShinyView vocabulary before it is used as ShinyView props, state, or command payload.
+
+### 5.1 Framework prop and event adaptation
+
+Adapting props and event payloads across a framework boundary. Might be applied in one of two directions:
+- ShinyView props and Event handlers → framework props and callbacks. Before a value crosses from ShinyView to the framework, it **must** be converted to the framework shape.
+- Framework props and event payloads → ShinyView props and Event handlers. Before a value crosses from the framework to ShinyView, it **must** be converted to the ShinyView shape.
+
+This activity **must** be encapsulated in a React Component with only Framework adaptation responsibility, acting as a pure adapter between components with different boundary contracts.
+
+**Patterns allowed:**
+
+1. **inline framework prop and event adaptation**
+    - adapt values directly in the adapter component. **Location:** `<Component>.tsx`
+    - **naming:**
+	    - framework-bound values use framework vocabulary
+	    - ShinyView-bound values use ShinyView vocabulary
+    - **when:** adaptation is small and local to one framework component
+
+2. **framework prop builder in `frameworkAdapters.ts`**
+    - export pure prop builder functions. **Location:** `frameworkAdapters.ts`
+    - call prop builders from the adapter component. **Location:** `<Component>.tsx`
+    - **naming:**
+	    - ShinyView → framework builders are named `to<FrameworkPropsName>(...)`
+	    - framework → ShinyView builders are named `to<ShinyPropsName>(...)`
+    - **when:** adaptation is substantial, repeated, or needs isolated testing
+
+### 5.2 Framework-domain command adaptation
+
+Translating framework-domain interaction facts into ShinyView command facts before command transaction construction.
+
+A framework-domain command adaptation **must** make the domain transition explicit. The transaction builder receives ShinyView command facts, not framework-shaped facts.
+
+**Patterns allowed:**
+
+1. **framework-domain adapter function before transaction builder**
+    - export pure adapter functions that translate framework-domain values into ShinyView command facts. **Location:** `frameworkAdapters.ts`
+    - call adapter functions before calling a transaction builder. **Location:** `<Component>.tsx` or `useInteractions.ts`
+    - call the transaction builder only with ShinyView-domain values. **Location:** `transactions.ts`
+    - identity mappings **must** still go through an adapter function when the source value is framework-domain, e.g. React Flow canvas point to ShinyView diagram point
+    - **naming:**
+	    - adapter functions are named by the ShinyView value they produce, e.g. `toDiagramPoint(...)`, `toDiagramRect(...)`
+	    - when the source is not obvious from the file context, include the source domain, e.g. `toDiagramPointFromReactFlowPoint(...)`
+	    - transaction builders keep command naming, e.g. `toClassCreateTransaction(...)`
+    - **when:** a framework event, coordinate, state snapshot, or interaction fact contributes to a ShinyView command transaction
+
+# 6. Rendering activities implementation patterns
 
 No fixed patterns yet
 
-### 4.12 Framework adaptation
+# 7. Component organization
 
-No fixed patterns yet
+### 7.1 General rules
 
-## 5. Component composition
-
-### 5.1 General rules
-
-- A component folder **must** contain **only** files from the closed set detailed in this chapter, fixed by the component's role and the patterns it applies. 
-- Every file **must** open with one annotation block — following template given by this chapter for every file type. If specific annotation is not relevant for given type, it **must** be omitted.
-- A component body **must** be split into annotated blocks, one per job it executes, each opened by a comment following templates given by this chapter. 
-- Templates for inline annotations are given inside quotation marks in a line starting with `Annotations:` (`── area ──` header is not part of the annotation and **must not** be included). There **must** be an empty line between new block annotation and previous block of code (including function signature)
-- Blocks **must** be written strictly in described order. Unused blocks are **omitted**.
-- Functions named in patterns (the component, a `to<X>` builder, a `use<X>` hook) **may** carve out **private helpers** (functions described in patterns, e.g. `useInteractions` **are not** private helpers and the following rules don't apply to them):
-    - a helper is **pure**; the **only** stateful helpers are the hooks `useInteractions` and `useStateReconciliation`;
+- A component folder **must** contain **only** files from the closed set detailed in this chapter, fixed by the component's responsibilities and the patterns it applies.
+- Chapter 7 defines code order based on activity implemented by that code. File and inline annotations are defined by Chapter 8.
+- Areas **must** be written strictly in described order. Unused areas are **omitted**.
+- Functions named in patterns — the component, a `to<X>` builder, a `use<X>` hook — **may** carve out **private helpers**. Functions described in patterns, e.g. `useInteractions`, **are not** private helpers and the following rules do not apply to them:
+    - a private helper is **pure**;
     - carve out **only** when the expression branches, iterates, repeats, or merits isolated testing — otherwise keep it inline;
-    - a private helper stays in its caller's file in the dedicated annotation block;
+    - a private helper stays in its caller's file in the private helper area;
     - private helpers are **never** exported.
-- Helpers are layered **after** their caller — entry first, the helpers it calls next, deeper layers after — and a helper **must not** sit above its caller. This governs every file. Private helper-only types **must** be declared immediately above the helper or helper layer that uses them.
+- Private helpers are layered **after** their caller — entry first, the helpers it calls next, deeper layers after — and a helper **must not** sit above its caller. This governs every file.
+- Private helper-only types **must** be declared immediately above the helper or helper layer that uses them.
 
-### 5.2 `<Component>.tsx`
+### 7.2 `<Component>.tsx`
 
-**Component types:** all 
+**Responsibilities:** Behavior, Rendering, Framework adaptation
 
 **Patterns:** all
-
-**Areas**:
-1. file annotation block
-2. import area
-3. type area
-4. component declaration
-5. state creation area
-6. state reconciliation area
-7. child props derivation area
-8. interactions area
-9. keystroke listener registration area
-10. routing area
-11. render return area
 
 **Structure:**
 ```ts
 /**
- * @role     [L] | [P] | [A] | [L]+[P]
- * @logic    <decisions this component makes - [L] and [L]+[P] types only>
- * @state    <state this component owns - state owners only>
- * @presents <surface this component renders - [L], [P] and [L]+[P] types only>
- * @adapts   <framework binding this component performs - [A] type only>
+ * @behavior <behavior this component owns>
+ * @render <visual surface this component renders>
+ * @framework <framework/domain boundary this component adapts>
  */
 
 /**
  * ── import area ──
  * Sources fixed by Chapter 2.
- * No annotation
  */
 
 /** ── type area ──
  * This component's own `Props` type, named <Component>Props
  * Any local payload type (e.g. normalized event data).
- * No annotation
+ */
+
+/** ── constants area ──
+ * Patterns: 6
+ * Local static constants owned by this component.
  */
 
 export default function <Component>({ ... }: <Component>Props): ReactElement {
 
 /** ── state creation area ──
  * Patterns: 4.1-1
- * Annotation: "State: <data stored in the state>"
  */
 
 /** ── state reconciliation area ──
  * Patterns: 4.3-1
- * Annotation: "State reconciliation: <what kind of repair is implemented>"
  */
 
 /** ── child props derivation area ──
  * Patterns: 4.4-2, 4.4-3, 4.5-2, 4.5-3, 4.5-4
- * Annotation: "Child props derivation: <any non-obvious transformation explained>"
  */
 
 /** ── interactions area ──
- * Patterns: 4.6-2, 4.6-3, 4.8-1
- * Annotation: "Event handler derivation: <any non-obvious derrivation explained>"
+ * Patterns: 4.6-2, 4.6-3, 4.8-1, 4.9-1
  */
- 
- /** ── keystroke listener registration area ──
+
+/** ── keystroke listener registration area ──
  * Patterns: 4.7-1
- * Annotation: "Keystroke listenning: <name of a keystroke>"
  */
 
 /** ── routing area ──
  * Patterns: 4.10-2
- * Annotation: "Children routing decision"
  */
 
   return ( ... );
 }
+
+/** ── private helper area ──
+ */
 ```
 
+### 7.3 `state.ts`
 
-### 5.3 `state.ts`
-
-**Component types:** state owners only — `[L]`, `[L]+[P]`, and `[P]` only for owner-local view state. 
+**Responsibilities:** Behavior
 
 **Patterns:** 4.2-2
 
-**Areas**:
-1. file annotation block
-2. import area
-3. type area
-4. state initializer area
-5. private helper area
-
 **Structure:**
 ```ts
 /**
- * @state <state slot produced and inputs that shape it>
+ * <state initialized and inputs that shape it>
  */
 
 /**
  * ── import area ──
  * Sources fixed by Chapter 2.
- * No annotation
  */
 
-/** ── type area ──  
-* Boundary types owned by this file:  
-* - exported function return object types, when needed;  
-* - exported function input payload types, when the parameter list would otherwise become unreadable;  
-* - local state shapes owned by this component and not declared in the state ledger.   
-* No annotation.  
-*/
+/** ── type area ──
+ * Boundary types owned by this file:
+ * - exported function return object types, when needed;
+ * - exported function input payload types, when the parameter list would otherwise become unreadable;
+ * - local state shapes owned by this component and not declared in the state ledger.
+ */
 
 /** ── state initializer area ──
  * Patterns: 4.2-2
- * Annotation: "Initial state: <state slot produced and inputs that shape it>"
+ * Functions: toInitial<StateName>(...)
  */
-export function toInitial<StateName>(...): <StateName> {
-  ...
-}
 
-/** ── private helper area ──  
-* No annotation 
-*/  
-type <HelperInput> = {  
-...  
-};  
-  
-function <helperName>(input: <HelperInput>): ... {  
-...  
-}
+/** ── private helper area ──
+ */
 ```
 
-### 5.4 `childProps.ts`
+### 7.4 `childProps.ts`
 
-**Component types:** `[L]`, `[L]+[P]`; `[P]` only for owner-local view-state UI derivation.
+**Responsibilities:** Behavior
 
 **Patterns:** 4.4-3, 4.5-3, 4.5-4
 
-**Areas**:
-1. file annotation block
-2. import area
-3. type area
-4. view slice area
-5. state slice area
-6. single UI prop area
-7. UI prop object area
-8. private helper area
-
 **Structure:**
-
 ```ts
 /**
- * @logic <child prop derivation this file performs>
+ * <child props this file derives with derivation logic>
  */
 
 /**
  * ── import area ──
  * Sources fixed by Chapter 2.
- * No annotation
  */
 
 /** ── type area ──
  * Boundary types owned by this file:
  * - exported function return object types for UI prop bundles;
  * - exported function input payload types, when the parameter list would otherwise become unreadable.
- * No annotation.
  */
 
 /** ── view slice area ──
  * Patterns: 4.4-3
- * Annotation: "Child view props derivation"
+ * Functions: to<SliceName>(...)
  */
-export function to<SliceName>(...): <SchemaOrLedgerSlice> {
-  ...
-}
 
 /** ── state slice area ──
  * Patterns: 4.4-3
- * Annotation: "Child state props derivation"
+ * Functions: to<SliceName>(...)
  */
-export function to<SliceName>(...): <SchemaOrLedgerSlice> {
-  ...
-}
 
 /** ── single UI prop area ──
  * Patterns: 4.5-3
- * Annotation: "Child UI props derivation"
+ * Functions: to<UIPropName>(...)
  */
-export function to<UIPropName>(...): <UIPropType> {
-  ...
-}
 
 /** ── UI prop object area ──
  * Patterns: 4.5-4
- * Annotation: "Child UI props derivation"
+ * Functions: to<ChildName>UIProps(...)
  */
-export function to<ChildName>UIProps(...): <ChildName>UIProps {
-  ...
-}
 
 /** ── private helper area ──
- * No annotation
  */
-type <HelperInput> = {
-  ...
-};
-
-function <helperName>(input: <HelperInput>): ... {
-  ...
-}
 ```
 
-### 5.5 `useInteractions.ts`
+### 7.5 `useInteractions.ts`
 
-**Component types:** `[L]`, `[L]+[P]`; `[P]` only for owner-local view-state interaction wiring.
+**Responsibilities:** Behavior, Framework adaptation 
 
-**Patterns:** 4.6-3, 4.8-2, 4.9-1
-
-**Areas**:
-1. file annotation block
-2. import area
-3. type area
-4. interaction hook area
-5. private helper area
+**Patterns:** 4.6-3, 4.8-2, 5.2-1
 
 **Structure:**
-
 ```ts
 /**
- * @logic <semantic interaction decisions this file performs>
- * @state <owned state this file updates - state-update interactions only>
+ * @behavior <semantic interactions this file implements>
+ * @state <owned state this file updates - only when applicable>
+ * @framework <framework/domain boundary this file adapts - only when applicable>
  */
 
 /**
  * ── import area ──
  * Sources fixed by Chapter 2.
- * No annotation
  */
 
 /** ── type area ──
@@ -640,146 +638,448 @@ function <helperName>(input: <HelperInput>): ... {
  * - `Interactions`, the object returned by `useInteractions`;
  * - hook input object types, when the parameter list would otherwise become unreadable;
  * - normalized interaction payload types produced inside this file.
- * No annotation.
+ * type Interactions = {
+ *    on<Event>: (...args: ...) => void;
+ * };
  */
-type Interactions = {
-  on<Event>: (...args: ...) => void;
-};
 
 /** ── interaction hook area ──
  * Patterns: 4.6-3, 4.8-2, 4.9-1
- * No annotation.
+ * Function: useInteractions(...)
  */
-export function useInteractions(...): Interactions {
-  ...
-}
 
 /** ── private helper area ──
- * No annotation
  */
-type <HelperInput> = {
-  ...
-};
-
-function <helperName>(input: <HelperInput>): ... {
-  ...
-}
 ```
 
-### 5.6 `transactions.ts`
+### 7.6 `transactions.ts`
 
-**Component types:** `[L]`, `[L]+[P]`
+**Responsibilities:** Behavior
 
 **Patterns:** 4.9-1
 
-**Areas**:
-1. file annotation block
-2. import area
-3. type area
-4. transaction builder area
-5. private helper area
-
 **Structure:**
-
 ```ts
 /**
- * @logic <command transaction derivation this file performs>
+ * @behavior <command transactions this file derives>
  */
 
 /**
  * ── import area ──
  * Sources fixed by Chapter 2.
- * No annotation
  */
 
 /** ── type area ──
  * Boundary types owned by this file:
  * - exported function input payload types, when the parameter list would otherwise become unreadable;
  * - exported function return object types, when transaction construction needs a named local return shape.
- * No annotation.
  */
 
 /** ── transaction builder area ──
  * Patterns: 4.9-1
- * No annotation
+ * Function: to<SemanticIntent>Transaction(...)
  */
-export function to<SemanticIntent>Transaction(...): EditorCommandTransaction {
-  ...
-}
 
 /** ── private helper area ──
- * No annotation
  */
-type <HelperInput> = {
-  ...
-};
-
-function <helperName>(input: <HelperInput>): ... {
-  ...
-}
 ```
 
-### 5.7 `useStateReconciliation.ts`
+### 7.7 `useStateReconciliation.ts`
 
-**Component types:** state owners only — `[L]`, `[L]+[P]`, and `[P]` only for owner-local view state.
+**Responsibilities:** Behavior
 
 **Patterns:** 4.3-1
 
-**Areas**:
-1. file annotation block
-2. import area
-3. type area
-4. state reconciliation hook area
-5. private helper area
-
 **Structure:**
-
 ```ts
 /**
- * @state <owned state repaired and canonical input it reconciles against>
+ * @state <owned state reconciled and why reconciliation is needed>
  */
 
 /**
  * ── import area ──
  * Sources fixed by Chapter 2.
- * No annotation
  */
 
 /** ── type area ──
  * Boundary types owned by this file:
  * - hook input object types, when the parameter list would otherwise become unreadable;
  * - local repair result types, when reconciliation calculates an intermediate repair object.
- * No annotation
  */
 
 /** ── state reconciliation hook area ──
  * Patterns: 4.3-1
- * No annotation
+ * Function: useStateReconciliation(...)
  */
-export function useStateReconciliation(...): void {
-  ...
-}
 
 /** ── private helper area ──
- * No annotation
  */
-type <HelperInput> = {
-  ...
-};
-
-function <helperName>(input: <HelperInput>): ... {
-  ...
-}
 ```
 
-### 5.8 `<Component>.module.css`
+### 7.8 `frameworkAdapters.ts`
 
-**Component types:** `[P]`, `[L]+[P]`; `[A]` only for framework-mounting classes required by the adapter.
+**Responsibilities:** Framework adaptation
 
-**Patterns:** 4.11
+**Patterns:** 5.1-2, 5.2-1
 
-### 5.9 `frameworkProps.ts`
+**Structure:**
+```ts
+/**
+ * @framework <source framework/domain shape to target ShinyView/framework shape>
+ */
 
-**Component types:** `[A]` only
+/**
+ * ── import area ──
+ * Sources fixed by Chapter 2.
+ */
 
-**Patterns:** 4.12
+/** ── type area ──
+ * Boundary types owned by this file:
+ * - exported adapter function input payload types, when the parameter list would otherwise become unreadable;
+ * - exported adapter function return object types, when the adapted shape needs a named local return type.
+ */
+
+/** ── framework prop and event adaptation area ──
+ * Patterns: 5.1-2
+ * Functions: to<FrameworkPropsName>(...), to<ShinyPropsName>(...)
+ */
+
+/** ── framework command adaptation area ──
+ * Patterns: 5.2-1
+ * Functions: to<ShinyCommandInputName>(...)
+ */
+
+/** ── private helper area ──
+ */
+```
+
+### 7.9 `<Component>.module.css`
+
+**Responsibilities:** Rendering
+
+**Patterns:** 6
+
+**Structure:**
+```css
+/**
+ * @render <visual surface styled by this file>
+ */
+```
+
+# 8. Component annotations
+
+### 8.1 File annotation
+
+Every implementation file **must** open with exactly one file annotation block. The annotation **must** explain what this file does. It **must not** restate the file type or use `@responsibilities`.
+
+#### `<Component>.tsx`
+
+Use only lines that apply.
+
+```ts
+/**
+ * @behavior <behavior this component owns>
+ * @render <visual surface this component renders>
+ * @framework <framework/domain boundary this component adapts>
+ */
+```
+
+Good:
+
+```ts
+/**
+ * @behavior Active placement tool selection.
+ * @render Diagram creation tool palette.
+ */
+```
+
+Good:
+
+```ts
+/**
+ * @behavior Pointer lifecycle for class placement.
+ * @render Placement draft rectangle overlay.
+ * @framework React Flow canvas coordinates to ShinyView diagram placement.
+ */
+```
+
+Bad — restates categories without saying what the component does:
+
+```ts
+/**
+ * @behavior Component behavior.
+ * @render Component rendering.
+ */
+```
+
+#### `state.ts`
+
+```ts
+/**
+ * <state initialized and inputs that shape it>
+ */
+```
+
+Good:
+
+```ts
+/**
+ * Initial ClassBoxPlacementState from class view rectangles.
+ */
+```
+
+Bad — too generic:
+
+```ts
+/**
+ * Initial state helper.
+ */
+```
+
+#### `childProps.ts`
+
+```ts
+/**
+ * <child props this file derives with derivation logic>
+ */
+```
+
+Good:
+
+```ts
+/**
+ * Filters selected classes from the diagram view using SelectionState and derives render-ready style panel props.
+ */
+```
+
+Bad — restates bindings instead of explaining the derivation:
+
+```ts
+/**
+ * Selected class view and style panel UI prop derivation.
+ */
+```
+
+#### `useInteractions.ts`
+
+```ts
+/**
+ * @behavior <semantic interactions this file implements>
+ * @state <owned state this file updates - only when applicable>
+ * @framework <framework/domain boundary this file adapts - only when applicable>
+ */
+```
+
+Good:
+
+```ts
+/**
+ * @behavior Class placement and deletion semantic handlers.
+ * @state Active class placement state updates.
+ */
+```
+
+Good:
+
+```ts
+/**
+ * @behavior Placement drawing pointer lifecycle.
+ * @framework React Flow canvas coordinates to ShinyView diagram placement.
+ */
+```
+
+Bad — too generic:
+
+```ts
+/**
+ * @behavior Interactions.
+ */
+```
+
+Bad — hides state update:
+
+```ts
+/**
+ * @behavior Placement handlers.
+ */
+```
+
+#### `transactions.ts`
+
+```ts
+/**
+ * @behavior <command transactions this file derives>
+ */
+```
+
+Good:
+
+```ts
+/**
+ * @behavior Class creation and class deletion transaction derivation.
+ */
+```
+
+Bad — too generic:
+
+```ts
+/**
+ * @behavior Transactions.
+ */
+```
+
+#### `useStateReconciliation.ts`
+
+```ts
+/**
+ * @state <owned state reconciled and why reconciliation is needed>
+ */
+```
+
+Good:
+
+```ts
+/**
+ * @state SelectionState reconciliation when selected classes disappear from view.
+ */
+```
+
+Good:
+
+```ts
+/**
+ * @state Keeps ClassBoxPlacementState aligned with the current class views by adding new class
+ * placements and removing deleted class placements.
+ */
+```
+
+Bad — does not explain why reconciliation exists:
+
+```ts
+/**
+ * @state State reconciliation.
+ */
+```
+
+#### `frameworkAdapters.ts`
+
+```ts
+/**
+ * @framework <source framework/domain shape to target ShinyView/framework shape>
+ */
+```
+
+Good:
+
+```ts
+/**
+ * @framework ShinyView class boxes to React Flow nodes.
+ */
+```
+
+Good:
+
+```ts
+/**
+ * @framework React Flow canvas coordinates to ShinyView class creation rectangle.
+ */
+```
+
+Bad — too generic:
+
+```ts
+/**
+ * @framework React Flow adapter helpers.
+ */
+```
+
+#### `<Component>.module.css`
+
+```css
+/**
+ * @render <visual surface styled by this file>
+ */
+```
+
+Good:
+
+```css
+/**
+ * @render Diagram creation tool palette.
+ */
+```
+
+Bad — restates file type:
+
+```css
+/**
+ * @render Component styles.
+ */
+```
+
+### 8.2 Inline annotations
+
+Inline annotations mark source-code blocks that implement responsibility activities inside a file. Inline annotations are source comments, not Chapter 7 area names.
+
+**General rules:**
+
+- Every implemented activity area **must** have an inline annotation, except areas explicitly listed below as having no annotation.
+- Helper function area **must** have inline annotation
+- Import area, type area, component declaration area, render return area, UI constants definition area **must not** have inline annotations.
+- "State creation" area **must** include clarification whether it is local or ledger state
+- There always must be an empty line before the inline area annotation (including empty line after function signature)
+- Other ordinary code comments are allowed when they follow general coding rules.
+- Existing ordinary code comments **must not** be erased only because they are not standard Component annotations.
+
+**Short area annotation format:** `<area name from chapters 4-6>`
+
+- If area formally covers two responsibilities, e.g. state creation and state initialization - only the first in order **must** be written
+
+Good:
+
+```ts
+// State reconciliation
+```
+
+Bad - includes redundant word "area"
+
+```ts
+// State reconciliation area
+```
+
+Bad - no annotation of or inside return area is allowed 
+
+```ts
+// UI props derivation
+return (
+    <div
+      className={styles.previewCard}
+      style={dynamicVars}
+```
+
+**Long area annotation format:** `<area name from chapters 4-6>: <non-obvous implementation details`
+
+- If area formally covers two responsibilities, e.g. state creation and state initialization - only the first in order **must** be written
+
+Good:
+
+```ts
+  /** State creation: local states - draw gesture anchor and current placement outline */
+  const [origin, setOrigin] = useState(() => toInitialOrigin());
+  const [draftRect, setDraftRect] = useState(() => toInitialDraftRect());
+```
+
+Bad - mentions two actions for one area
+
+```ts
+  /** State creation: local states - draw gesture anchor and current placement outline 
+   *  State initialization
+   */
+  const [origin, setOrigin] = useState(() => toInitialOrigin());
+  const [draftRect, setDraftRect] = useState(() => toInitialDraftRect());
+```
+
+**Helper function are annotation**: `//Helper function area`
+
+- No other details for area to be provided
+- Individual clarifying comments **may** be provided as part of general coding practices
