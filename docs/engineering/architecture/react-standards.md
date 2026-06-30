@@ -1,9 +1,9 @@
 > **Implementation state:** Aspirational   
-> **Document state:** Maintained
+> **Document state:** Maintained  
 > **Scope:** `webview/src/View/**`  
 > **Audience:** Coding agents  
 > **Last reviewed:** 2026-06-29  
-> **Goal** Must-follow rules of organization of code, dependencies and implementation patterns of a React component in View React component tree
+> **Goal** Must-follow rules of organization of code, dependencies and implementation patterns of a React component in a component tree rooted at EditorRoot. Other React components in the repo (e.g. shared UI components) may not comply
 
 # 0. About the file
 
@@ -132,8 +132,9 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 5. `webview/src/View/ui` — shared View presentational primitives: reusable presentational components with no editor state or decisions.
 	- the **only** source of cross-component shared visual components
 
-6. `webview/src/View/config/editorUiConfig.ts` — static UI constants (fixed offsets, sizes, timings).
-	- UI constants **must** be defined here and read from here, **never** hard-coded at the use site.
+6. `webview/src/View/config/editorUiConfig.ts` — static scalar UI tuning constants (fixed offsets, sizes, gaps, durations, thresholds, z-indices). 
+	- these scalar constants **must** be defined here and read from here, **never** hard-coded at the use site. 
+	- component-owned static content catalogs (typed `readonly` domain literals) are **not** UI constants and stay in their component's static catalog area.
 
 7. `webview/src/View/utils/<utilityName>.ts` — centralized View utilities: pure, framework-independent functions used by multiple components, or algorithms that require separate testing and development cycle, e.g. a layout algorithm.
 	- new utilities **must not** be introduced as part of React Component development or refactor; they must be added separately
@@ -332,7 +333,7 @@ Providing a child the callback by which it requests a change. The child **must**
     - **naming:** handler is named `on<Event>`, e.g. `onPlacementCommit`, `onClassResize`, `onSelectionChange`; handler **must not** be named by its state effect, e.g. `setPlacementState`, `clearSelection`
     - **when:** the handler performs a small local argument adaptation or delegates to an owner callback without needing a separate interaction pipeline
 3. **derive all event handlers in `useInteractions()` hook**
-    - export a single `useInteractions(...)` hook that returns **all required** event handlers for the component's children with the **exception of** pass-through handlers . **Location:** `useInteractions.ts`
+    - export a single `useInteractions(...)` hook that returns **all required** event handlers for the component's children with the **exception of** pass-through handlers. **Location:** `useInteractions.ts`
     - call the hook and assign the result to named handler bindings. **Location:** `<Component>.tsx`
     - pass the returned handlers to child props. **Location:** `<Component>.tsx`
     - Once a component uses `useInteractions()`, all non-pass-through handlers must live there
@@ -352,7 +353,7 @@ Registering a browser-level keyboard listener for a semantic action owned by the
     - register and clean up the keystroke listener with `useEffect`. **Location:** `<Component>.tsx`
     - implement the browser listener inside the effect and call the semantic `on<Event>` handler it triggers
     - browser-event checks, e.g. key matching, modifier matching, ignored target checks, and `preventDefault()`, stay in the browser listener
-    - semantic action logic, state update, and command transaction dispatch stay in the semantic handler implemented by patterns in  4.6
+    - semantic action logic, state update, and command transaction dispatch stay in the semantic handler implemented by patterns in  4.6, 4.8, 4.9
     - **naming:**
 	    - browser listener is named by the browser event, e.g. `handleKeyDown`
 	    - semantic handler keeps `on<Event>` naming, e.g. `onClassDelete`
@@ -458,7 +459,7 @@ No fixed patterns yet
 
 ### 7.1 General rules
 
-- A component folder **must** contain **only** files from the closed set detailed in this chapter, fixed by the component's responsibilities and the patterns it applies.
+- A component folder **must** contain **only** files from the closed set detailed in this chapter, fixed by the component's responsibilities and the patterns it applies. It is applied to all React component folder in a tree rooted at EditorRoot, with one exception of `EditorRoot/index.ts` 
 - Chapter 7 defines code order based on activity implemented by that code. File and inline annotations are defined by Chapter 8.
 - Areas **must** be written strictly in described order. Unused areas are **omitted**.
 - Functions named in patterns — the component, a `to<X>` builder, a `use<X>` hook — **may** carve out **private helpers**. Functions described in patterns, e.g. `useInteractions`, **are not** private helpers and the following rules do not apply to them:
@@ -493,15 +494,16 @@ No fixed patterns yet
  * Any local payload type (e.g. normalized event data).
  */
 
-/** ── constants area ──
- * Patterns: none fixed yet
- * Local static constants owned by this component.
+/** ── static catalog area ──
+ * Component-owned static content catalogs: typed `readonly` domain literals this
+ * component renders. Single-use, no cross-component reuse.
+ * Scalar UI tuning values are NOT defined here — see 2.1-6 (editorUiConfig.ts). 
  */
 
 export default function <Component>({ ... }: <Component>Props): ReactElement {
 
 /** ── state creation area ──
- * Patterns: 4.1-1
+ * Patterns: 4.1-1, 4.2-1
  */
 
 /** ── state reconciliation area ──
@@ -513,7 +515,7 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
  */
 
 /** ── interactions area ──
- * Patterns: 4.6-2, 4.6-3, 4.8-1, 4.9-1
+ * Patterns: 4.6-2, 4.6-3, 4.8-1
  */
 
 /** ── keystroke listener registration area ──
@@ -540,7 +542,7 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
 **Structure:**
 ```ts
 /**
- * <state initialized and inputs that shape it>
+ * @behavior <state initialized and inputs that shape it>
  */
 
 /**
@@ -573,7 +575,7 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
 **Structure:**
 ```ts
 /**
- * <child props this file derives with derivation logic>
+ * @behavior <child props this file derives with derivation logic>
  */
 
 /**
@@ -604,7 +606,7 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
 
 /** ── UI prop object area ──
  * Patterns: 4.5-4
- * Functions: to<ChildName>UIProps(...)
+ * Functions: to<ChildName>UIProps(...), to<ChildName>Props(...)
  */
 
 /** ── private helper area ──
@@ -620,8 +622,7 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
 **Structure:**
 ```ts
 /**
- * @behavior <semantic interactions this file implements>
- * @state <owned state this file updates - only when applicable>
+ * @behavior <semantic interactions this file implements and owned state this file updates - only when applicable>
  * @framework <framework/domain boundary this file adapts - only when applicable>
  */
 
@@ -668,8 +669,9 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
 
 /** ── type area ──
  * Boundary types owned by this file:
- * - exported function input payload types, when the parameter list would otherwise become unreadable;
- * - exported function return object types, when transaction construction needs a named local return shape.
+ * - exported function input payload types, when the parameter list would otherwise become unreadable 
+ * (return types of exported functions **must not** be defined here and instead be imported from
+ * webview/src/View/commands/editorCommands.ts)
  */
 
 /** ── transaction builder area ──
@@ -690,7 +692,7 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
 **Structure:**
 ```ts
 /**
- * @state <owned state reconciled and why reconciliation is needed>
+ * @behavior <owned state reconciled and why reconciliation is needed>
  */
 
 /**
@@ -813,7 +815,7 @@ Bad — restates categories without saying what the component does:
 
 ```ts
 /**
- * <state initialized and inputs that shape it>
+ * @behavior <state initialized and inputs that shape it>
  */
 ```
 
@@ -821,7 +823,7 @@ Good:
 
 ```ts
 /**
- * Initial ClassBoxPlacementState from class view rectangles.
+ * @behavior Initial ClassBoxPlacementState from class view rectangles.
  */
 ```
 
@@ -829,7 +831,7 @@ Bad — too generic:
 
 ```ts
 /**
- * Initial state helper.
+ * @behavior Initial state helper.
  */
 ```
 
@@ -837,7 +839,7 @@ Bad — too generic:
 
 ```ts
 /**
- * <child props this file derives with derivation logic>
+ * @behavior <child props this file derives with derivation logic>
  */
 ```
 
@@ -845,7 +847,7 @@ Good:
 
 ```ts
 /**
- * Filters selected classes from the diagram view using SelectionState and derives render-ready style panel props.
+ * @behavior Filters selected classes from the diagram view using SelectionState and derives render-ready style panel props.
  */
 ```
 
@@ -853,7 +855,7 @@ Bad — restates bindings instead of explaining the derivation:
 
 ```ts
 /**
- * Selected class view and style panel UI prop derivation.
+ * @behavior Selected class view and style panel UI prop derivation.
  */
 ```
 
@@ -929,7 +931,7 @@ Bad — too generic:
 
 ```ts
 /**
- * @state <owned state reconciled and why reconciliation is needed>
+ * @behavior <owned state reconciled and why reconciliation is needed>
  */
 ```
 
@@ -937,7 +939,7 @@ Good:
 
 ```ts
 /**
- * @state SelectionState reconciliation when selected classes disappear from view.
+ * @behavior SelectionState reconciliation when selected classes disappear from view.
  */
 ```
 
@@ -945,7 +947,7 @@ Good:
 
 ```ts
 /**
- * @state Keeps ClassBoxPlacementState aligned with the current class views by adding new class
+ * @behavior Keeps ClassBoxPlacementState aligned with the current class views by adding new class
  * placements and removing deleted class placements.
  */
 ```
@@ -954,7 +956,7 @@ Bad — does not explain why reconciliation exists:
 
 ```ts
 /**
- * @state State reconciliation.
+ * @behavior State reconciliation.
  */
 ```
 
@@ -1022,7 +1024,7 @@ Inline annotations mark source-code blocks that implement responsibility activit
 
 - Every implemented activity area **must** have an inline annotation, except areas explicitly listed below as having no annotation.
 - Private helper area **must** have inline annotation
-- Import area, type area, component declaration area, render return area, UI constants definition area **must not** have inline annotations.
+- Import area, type area, component declaration area, render return area, static catalog area **must not** have inline annotations.
 - "State creation" area **must** include clarification whether it is local or ledger state
 - There **must** be an empty line before an inline area annotation, except when the annotation is the first statement inside a function body, because Prettier removes that leading blank line.
 - Other ordinary code comments are allowed when they follow general coding rules.
@@ -1030,7 +1032,7 @@ Inline annotations mark source-code blocks that implement responsibility activit
 
 **Short area annotation format:** `<area name from chapters 4-6>` 
 
-- If area formally covers two responsibilities, e.g. state creation and state initialization - only the first in order **must** be written
+- If area formally covers two activities, e.g. state creation and state initialization - only the first in order **must** be written
 
 Good:
 
@@ -1054,7 +1056,7 @@ return (
       style={dynamicVars}
 ```
 
-**Long area annotation format:** `<area name from chapters 4-6>: <non-obvous implementation details`
+**Long area annotation format:** `<area name from chapters 4-6>: <non-obvious implementation details>`
 
 - If area formally covers two responsibilities, e.g. state creation and state initialization - only the first in order **must** be written
 
@@ -1076,7 +1078,7 @@ Bad - mentions two actions for one area
   const [draftRect, setDraftRect] = useState(() => toInitialDraftRect());
 ```
 
-**Private helper area annotation**: `// Private helper area`
+**Private helper area annotation**: `// Private helpers`
 
 - No other details for area to be provided
 - Individual clarifying comments **may** be provided as part of general coding practices

@@ -247,7 +247,7 @@ View/
 
 - `EditorRoot/` owns the React Shiny editor tree. Its `index.ts` exports only the `EditorView` runtime entry point.
 - `ui/` owns shared presentation-only controls and icons used inside the View layer. It must not define editor state, commands, render contracts, or application behavior.
-- `commands/` exposes the canonical View-to-Controller command registry and dispatch contract. `views/` exposes stable render contracts to Controller.
+- `commands/` exposes the canonical View-to-Controller command registry and dispatch contract. `views/` exposes the centralized View render schema to Controller.
 - The View root must not contain `index.ts`.
 - Controller must not import the nested React component tree directly.
 
@@ -255,8 +255,8 @@ View/
 
 - `View/commands/editorCommands.ts` defines the complete canonical registry of `EditorCommand` variants, `EditorCommandTransaction`, and command helper types.
 - `View/commands/index.ts` re-exports the command registry contracts and `EditorDispatch`; it does not define commands.
-- Component-local `commands.ts` files may define command-derivation helpers, but must not define or export View-to-Controller command shapes.
-- `View/views/index.ts` re-exports selected component-owned render contracts.
+- Component-local `transactions.ts` files may define command-derivation helpers, but must not define or export View-to-Controller command shapes.
+- `View/views/index.ts` re-exports the centralized render schema declarations from `View/views/schema.ts`.
 - Facade `index.ts` files contain re-exports only.
 - A facade area may contain dedicated layer-wide contract modules, but no rendering, state coordination, or interaction implementation.
 - Controller must consume View APIs through `View/EditorRoot`, `View/commands`, and `View/views`.
@@ -278,11 +278,11 @@ A component folder may use the following roles:
 | --- | --- |
 | `Component.tsx` | Renders the component and wires handlers to the DOM or framework surface it owns. |
 | `Component.module.css` | Defines styles owned by the component. |
-| `commands.ts` | Derives `EditorCommandTransaction` values from component-owned interactions using command shapes from the canonical command registry. It must not define command shapes. |
-| `views.ts` | Defines read-only render data accepted by the component. |
-| `state.ts` | Defines transient state contracts and defaults owned by the component. |
-| `useComponentInteractions.ts` | Constructs handlers registered on the component's own interaction surface. |
-| `use<OwnedTarget><InteractionSurface>Interactions.ts` | Constructs handlers registered by the component for an owned child representation. |
+| `childProps.ts` | Defines pure builders for child view slices, state slices, and UI props derived by the owning component. |
+| `state.ts` | Defines component-local transient state contracts and defaults when the state is not part of the shared editor state ledger. |
+| `useInteractions.ts` | Constructs the component's event handlers, state updates, and transaction dispatches. |
+| `transactions.ts` | Derives `EditorCommandTransaction` values from component-owned interactions using command shapes from the canonical command registry. It must not define command shapes. |
+| `frameworkAdapters.ts` | Translates framework-shaped values at a framework boundary into View-owned vocabulary, or View-owned values into framework props. |
 | `OwnedChild/` | Contains a child component used exclusively by this component. |
 
 - Files are optional; their responsibilities are fixed.
@@ -306,13 +306,15 @@ Examples:
 
 #### 6.2.2 Render-contract ownership
 
-- `views.ts` defines the read-only data accepted by the component's render boundary.
-- A child component owns its render contract.
-- A parent might aggregate child render contracts by importing them directly from their defining modules. View internals must not import through `View/views`; that facade is reserved for external consumers.
+- `View/views/schema.ts` defines the authoritative read-only render tree for View model data and is the only declaration point for View shape contracts.
+- Component render boundaries consume slices of the centralized view schema rather than defining component-local view contracts.
+- A parent may derive child view slices in `childProps.ts` when it owns the composition decision.
+- View internals must not import through `View/views`; that facade is reserved for external consumers.
 
 #### 6.2.3 State ownership
 
-- `state.ts` defines transient state owned by the component.
+- `View/state/editorStates.ts` defines shared editor state shapes and documents their owning components.
+- `state.ts` defines only component-local transient state that is not shared through the editor state ledger.
 - State shared by descendants is lifted to their nearest common owner.
 - Context distributes state and handles; it does not determine semantic ownership.
 - Persisted source-derived data must not be duplicated as independent View state.
@@ -322,10 +324,9 @@ Examples:
 ##### Registration ownership
 
 - An interaction handler belongs to the component that owns the DOM or framework surface where the handler is registered.
-- `useComponentInteractions.ts` constructs handlers for the component’s own interaction surface.
-- A parent may own a child-targeted hook when the parent owns the registration surface, e.g. `ClassDiagram/useClassBoxNodeInteractions.ts` - `ClassDiagram` owns this hook because it registers React Flow node events, even though those events target class boxes.
-- Child-targeted hooks use: `use<Target><InteractionSurface>Interactions.ts`
-- Interaction hook names use the plural `Interactions` suffix.
+- `useInteractions.ts` constructs the handlers owned by that component, including handlers registered for owned children when the parent owns the event surface.
+- Event handlers that dispatch View-to-Controller transactions must be defined in `useInteractions.ts` and dispatch transactions built by `transactions.ts`.
+- Pure framework-value conversion used by interaction handlers belongs in `frameworkAdapters.ts`.
 ##### Architectural interaction loops
 
 - An interaction hook is required when an event enters either of data loops:
@@ -499,7 +500,7 @@ Avoid **controls** in architectural descriptions unless its exact meaning is sta
 |---|---|---|---|---|
 | `EditorCommand` | `View/commands/editorCommands.ts` | View command registry | View command-derivation helpers and interaction handlers | Controller Commands |
 | `EditorCommandTransaction` | `View/commands/editorCommands.ts` | View-to-Controller command boundary | View command-derivation helpers and interaction handlers | `ShinyController` and Controller Commands |
-| `ElementViews` and nested render contracts | Component-local `views.ts` files | View | Controller Derive Views | View components |
+| `ElementViews` and nested render contracts | `View/views/schema.ts` | View | Controller Derive Views | View components |
 | Selected class IDs | `EditorRoot/useSelectedClassIds.ts` | `EditorView` | `EditorView` state, reconciled against each View model | `ClassDiagram`, `ClassBox`, `StylePane` |
 | Class placement mode | `EditorRoot/placementMode.ts` | `EditorView` | `EditorView` state | `ToolPane`, `ClassDiagram`, `PlacementOverlay` |
 | `SourceEdit` | Controller Commands | Controller Commands | Command handlers | Extension Bridge |
