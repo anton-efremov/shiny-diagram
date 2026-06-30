@@ -1,11 +1,9 @@
 /**
- * @role [L]+[P] Logic and Presentational
- * @logic Duplicate color-change emission suppression.
- * @state lastEmittedValue: last color value sent through the owner callback.
- * @presents Shared Shiny View color selector control.
+ * @behavior Duplicate color-change emission suppression and color-change event normalization.
+ * @render Shared Shiny View color selector control.
  */
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { ChangeEvent, ReactElement, ReactNode } from "react";
 import styles from "./ColorSelector.module.css";
 
@@ -30,32 +28,29 @@ export default function ColorSelector({
   onChange,
   className,
 }: ColorSelectorProps): ReactElement {
-  // @job logic:state:initialize
+  // State creation: local state - last color value emitted to the owner
   const [lastEmittedValue, setLastEmittedValue] = useState<string | null>(null);
+  const inputId = useId();
 
-  // @job connect:event:normalize
+  // Event handler props derivation
   function handleChange(event: ChangeEvent<HTMLInputElement>): void {
     emitChange(event.currentTarget.value);
   }
 
-  // @job connect:event:wire
   function handleApplyClick(): void {
     emitChange(pickerValue);
   }
 
   function emitChange(value: string): void {
-    // @job logic:state:update
     if (lastEmittedValue === value) return;
     setLastEmittedValue(value);
 
-    // @job connect:event:wire
     onChange(value);
   }
 
-  // @job render:structure
   return (
     <div className={[styles.selector, className ?? ""].filter(Boolean).join(" ")}>
-      <label className={styles.pickerLabel}>
+      <label className={styles.pickerLabel} htmlFor={inputId}>
         <span className={styles.icon} aria-hidden="true">
           {icon}
         </span>
@@ -70,6 +65,7 @@ export default function ColorSelector({
         </span>
       </label>
       <input
+        id={inputId}
         className={styles.input}
         type="color"
         value={pickerValue}
