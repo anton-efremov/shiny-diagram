@@ -23,7 +23,7 @@
 - [3. Component receives](#3-component-receives)
 	- [3.1 General receive rules](#31-general-receive-rules)
 	- [3.2 Prop categories](#32-prop-categories)
-	- [3.3 Role prop contracts](#33-role-prop-contracts)
+	- [3.3 Responsibility prop contracts](#33-responsibility-prop-contracts)
 - [4. Behavior activities implementation patterns](#4-behavior-activities-implementation-patterns)
 	- [4.1 State creation](#41-state-creation)
 	- [4.2 State initialization](#42-state-initialization)
@@ -151,7 +151,7 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 	- **only** the child component export; **never** its types, support files, or any other folder internals
 
 9. **approved third-party framework libraries** — the framework component and its utilities
-	- **must only** be imported within a Framework adapter
+	- **must only** be imported by files that implement Framework adaptation responsibility
 
 10. **React and browser APIs** — rendering, lifecycle, focus, measurement, event registration.
 
@@ -163,7 +163,7 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 1. any layer above the `View` layer — `Controller`, `Shell`, `Bridge` — dependencies between layers point strictly inward
 2. another component's internal support files
 3. a sibling, parent, or any non-owned component — shared components are reached only through `webview/src/shinyView/ui`.
-4. a third-party framework library, when the component is not a Framework adapter `[A]`.
+4. a third-party framework library, when the file does not implement Framework adaptation responsibility.
 
 # 3. Component receives
 
@@ -171,7 +171,7 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 
 1. A React component **must** receive **only** the minimum props its function requires.
 2. Every prop **must** belong to one of the prop categories in 3.2. A React component **must not** receive any other prop shape.
-3. A React component **must** follow the role prop contract in 3.3 for its role.
+3. A React component **must** follow the responsibility prop contract in 3.3 for its declared responsibilities.
 
 ### 3.2 Prop categories
 
@@ -195,31 +195,32 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 
 4. **UI prop** — an already-decided render value that is not a schema slice or ledger slice.
 	- **must** be ready to render when received.
-	- **must** be computed by the parent that owns the decision; the receiving `[P]` surface renders it and **must not** compute it itself.
+	- **must** be computed by the parent that owns the decision; the receiving React Component with Rendering responsibility renders it and **must not** compute it itself.
 	- **must** be a primitive or shared-vocabulary shape.
 	- **must** be named for what it controls in the output, not the condition that set it, e.g. `isResizeVisible`, not `isSoleSelection`.
 	- **must not** contain editor state, although it **may** be derived from editor state. Anything referencing selection, placement, or session state is a State slice, not a UI prop.
 
-### 3.3 Role prop contracts
+### 3.3 Responsibility prop contracts
 
-1. **Logic component `[L]`**
-	- **may** receive only `view`, State slice, and Event handler props.
-	- **must not** receive UI props.
-
-2. **Presentational component `[P]`**
+1. **Behavior responsibility**
 	- **may** receive `view`, State slice, and Event handler props.
-	- **may** receive UI props.
-	- **must not** compute UI props from editor state; it receives render values already decided.
-
-3. **Framework adapter `[A]`**
-	- **may** receive `view`, State slice, Event handler, and UI props.
+	- **may** receive UI props only when composed with Rendering responsibility.
 	- **must not** receive framework-shaped props.
-	- **must** derive framework-shaped props internally from the standardized props it receives.
 
-4. **Mixed Logic and Presentational component `[L]+[P]`**
+2. **Rendering responsibility**
 	- **may** receive `view`, State slice, Event handler, and UI props.
-	- **must** use `view`, State slice, and Event handler props under the Logic role rules.
-	- **must** use UI props only as already-decided render input for its minor Presentational surface.
+	- **must** treat received UI props as already-decided render values.
+	- **must not** compute UI props from editor state unless composed with Behavior responsibility.
+
+3. **Framework adaptation responsibility**
+	- **may** receive `view`, State slice, Event handler, and UI props on its ShinyView-facing boundary.
+	- **must not** receive framework-shaped props on its ShinyView-facing boundary.
+	- **must** translate framework-shaped props internally or through `frameworkAdapters.ts`.
+
+4. **Multiple responsibilities**
+	- **may** receive the union of prop categories allowed by the responsibilities it declares.
+	- **must** use every received prop according to its prop category in 3.2.
+	- **must not** invent prop shapes to connect composed responsibilities.
 # 4. Behavior activities implementation patterns
 
 ### 4.1 State creation
