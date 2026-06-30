@@ -1,7 +1,6 @@
 /**
- * @role [L]+[P]
- * @logic StylePane scenario routing for selected class views.
- * @presents Style inspector pane.
+ * @behavior Selected class view slicing and style pane scenario routing.
+ * @render Style inspector pane.
  */
 
 import type { ReactElement } from "react";
@@ -17,19 +16,19 @@ type StylePaneProps = {
 };
 
 export default function StylePane({ view, selectionState }: StylePaneProps): ReactElement {
-  /** Child props derivation: selected class view slice filtered from selection state */
+  // View and State slice props derivation
   const selectedClasses = view.classes.filter((classView) =>
     selectionState.classIds.includes(classView.classId)
   );
 
+  // Child component routing
+  const stylePaneContent =
+    selectedClasses.length === 0 ? <EmptyStylePane /> : <ClassStylePane view={selectedClasses} />;
+
   return (
     <aside className={styles.stylePane} aria-label="Styles pane">
       <header className={styles.header}>Styles</header>
-      {selectedClasses.length === 0 ? (
-        <EmptyStylePane />
-      ) : (
-        <ClassStylePane view={selectedClasses} />
-      )}
+      {stylePaneContent}
     </aside>
   );
 }

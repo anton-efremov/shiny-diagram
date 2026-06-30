@@ -12,7 +12,7 @@ import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../shared/
 import type { Rect } from "../../shared/geometry";
 import type { PlaceableNodeKind } from "../../shared/nodeKinds";
 /*
- * Owned by: CanvasView.
+ * Owned by: DiagramCanvas.
  *
  * Canonical selected editor entities. Consumers interpret this state for their
  * own scenarios, such as style inspection, shortcuts, canvas affordances, or
@@ -26,7 +26,7 @@ export type SelectionState = {
 };
 
 /*
- * Owned by: CanvasView.
+ * Owned by: EditorSurface.
  *
  * Pending node-placement tool state. Null means no node placement is active;
  * a value means the next canvas placement creates that node kind.

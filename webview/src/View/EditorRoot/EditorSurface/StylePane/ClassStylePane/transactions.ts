@@ -1,53 +1,52 @@
 /**
- * @logic ClassStylePane command transaction derivation.
+ * @behavior Class style edit and class action transaction derivation.
  */
 
 import type { EditorCommandTransaction } from "../../../../commands/editorCommands";
 import type { ClassView } from "../../../../views/schema";
 import { DUPLICATE_OFFSET } from "../../../../config/editorUiConfig";
+import type { ClassId } from "../../../../../shared/ids";
 
-/** ── transaction builder area ──
- * Patterns: 4.9-1
- */
+// Implementing interaction through command transaction
 export function toFillColorSetTransaction(
-  selectedClasses: readonly ClassView[],
+  selectedClassIds: readonly ClassId[],
   fillColor: string
 ): EditorCommandTransaction {
-  return selectedClasses.map((selectedClass) => ({
+  return selectedClassIds.map((classId) => ({
     type: "class.style.fillColor.set",
-    classId: selectedClass.classId,
+    classId,
     fillColor,
   }));
 }
 
 export function toBorderColorSetTransaction(
-  selectedClasses: readonly ClassView[],
+  selectedClassIds: readonly ClassId[],
   borderColor: string
 ): EditorCommandTransaction {
-  return selectedClasses.map((selectedClass) => ({
+  return selectedClassIds.map((classId) => ({
     type: "class.style.borderColor.set",
-    classId: selectedClass.classId,
+    classId,
     borderColor,
   }));
 }
 
 export function toTextColorSetTransaction(
-  selectedClasses: readonly ClassView[],
+  selectedClassIds: readonly ClassId[],
   textColor: string
 ): EditorCommandTransaction {
-  return selectedClasses.map((selectedClass) => ({
+  return selectedClassIds.map((classId) => ({
     type: "class.style.textColor.set",
-    classId: selectedClass.classId,
+    classId,
     textColor,
   }));
 }
 
 export function toClassDeleteTransaction(
-  selectedClasses: readonly ClassView[]
+  selectedClassIds: readonly ClassId[]
 ): EditorCommandTransaction {
-  return selectedClasses.map((selectedClass) => ({
+  return selectedClassIds.map((classId) => ({
     type: "class.delete",
-    classId: selectedClass.classId,
+    classId,
   }));
 }
 

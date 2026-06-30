@@ -1,6 +1,5 @@
 /**
- * @role [P]
- * @presents Class element creation tools.
+ * @render Class element creation tools.
  */
 
 import type { ReactElement } from "react";

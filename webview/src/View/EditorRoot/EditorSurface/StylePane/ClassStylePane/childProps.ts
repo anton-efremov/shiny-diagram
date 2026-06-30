@@ -1,5 +1,5 @@
 /**
- * @logic ClassStylePane child UI prop derivation from selected class views.
+ * @behavior Selected class views to render-ready class style inspector props.
  */
 
 import type { ClassStyleProperties, ClassStyleProperty } from "../../../../../shared/style";
@@ -55,9 +55,7 @@ type CommonStyleProperty =
       readonly pickerValue: string;
     };
 
-/** ── UI prop object area ──
- * Patterns: 4.5-4
- */
+// UI props derivation
 export function toClassSelectionSummaryProps(
   selectedClasses: readonly ClassView[]
 ): ClassSelectionSummaryProps {
@@ -113,9 +111,7 @@ export function toClassStyleActionsProps(
       };
 }
 
-/** ── private helper area ──
- * No annotation
- */
+// Private helpers
 function toStyleColorControlProps(
   selectedClasses: readonly ClassView[],
   property: ClassStyleProperty

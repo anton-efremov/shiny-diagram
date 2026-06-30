@@ -1,5 +1,5 @@
 /**
- * @logic ClassStylePane style edit and class action command dispatch decisions.
+ * @behavior Class style edit and class action command dispatch handlers.
  */
 
 import { useCallback } from "react";
@@ -21,44 +21,45 @@ type Interactions = {
   readonly onDelete: () => void;
 };
 
-/** ── interaction hook area ──
- * Patterns: 4.6-3, 4.9-1
- */
 export function useInteractions(selectedClasses: readonly ClassView[]): Interactions {
   const dispatchCommand = useDispatchTransaction();
 
+  const selectedClassIds = selectedClasses.map((selectedClass) => selectedClass.classId);
+
+  // Event handler props derivation
+  // Implementing interaction through command transaction
   const onFillColorChange = useCallback(
     (fill: string) => {
-      if (selectedClasses.length > 0) {
-        dispatchCommand(toFillColorSetTransaction(selectedClasses, fill));
+      if (selectedClassIds.length > 0) {
+        dispatchCommand(toFillColorSetTransaction(selectedClassIds, fill));
       }
     },
-    [selectedClasses, dispatchCommand]
+    [selectedClassIds, dispatchCommand]
   );
 
   const onBorderColorChange = useCallback(
     (border: string) => {
-      if (selectedClasses.length > 0) {
-        dispatchCommand(toBorderColorSetTransaction(selectedClasses, border));
+      if (selectedClassIds.length > 0) {
+        dispatchCommand(toBorderColorSetTransaction(selectedClassIds, border));
       }
     },
-    [selectedClasses, dispatchCommand]
+    [selectedClassIds, dispatchCommand]
   );
 
   const onTextColorChange = useCallback(
     (color: string) => {
-      if (selectedClasses.length > 0) {
-        dispatchCommand(toTextColorSetTransaction(selectedClasses, color));
+      if (selectedClassIds.length > 0) {
+        dispatchCommand(toTextColorSetTransaction(selectedClassIds, color));
       }
     },
-    [selectedClasses, dispatchCommand]
+    [selectedClassIds, dispatchCommand]
   );
 
   const onDelete = useCallback(() => {
-    if (selectedClasses.length > 0) {
-      dispatchCommand(toClassDeleteTransaction(selectedClasses));
+    if (selectedClassIds.length > 0) {
+      dispatchCommand(toClassDeleteTransaction(selectedClassIds));
     }
-  }, [selectedClasses, dispatchCommand]);
+  }, [selectedClassIds, dispatchCommand]);
 
   const onDuplicate = useCallback(() => {
     if (selectedClasses.length > 0) {

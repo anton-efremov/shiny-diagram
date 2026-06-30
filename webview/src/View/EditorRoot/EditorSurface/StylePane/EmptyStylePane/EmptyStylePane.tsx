@@ -1,6 +1,5 @@
 /**
- * @role [P]
- * @presents Empty style inspector scenario.
+ * @render Empty style inspector scenario.
  */
 
 import type { ReactElement } from "react";

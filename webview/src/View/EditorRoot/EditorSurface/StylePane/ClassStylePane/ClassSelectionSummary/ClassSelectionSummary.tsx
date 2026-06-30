@@ -1,6 +1,5 @@
 /**
- * @role [P]
- * @presents Selected class summary.
+ * @render Selected class summary.
  */
 
 import type { ReactElement } from "react";

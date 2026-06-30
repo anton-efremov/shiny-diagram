@@ -1,9 +1,9 @@
 /**
- * @role [L]+[P]
- * @logic Selected class-box style child prop derivation and class-box action orchestration.
- * @presents Class-box style inspector boundary.
+ * @behavior Selected class-box style command dispatch and Delete shortcut handling.
+ * @render Class-box style inspector boundary.
  */
 
+import { useEffect } from "react";
 import type { ReactElement } from "react";
 import ClassSelectionSummary from "./ClassSelectionSummary/ClassSelectionSummary";
 import ClassStyleActions from "./ClassStyleActions/ClassStyleActions";
@@ -16,6 +16,7 @@ import {
   toClassStylePreviewProps,
 } from "./childProps";
 import { useInteractions } from "./useInteractions";
+import { shouldIgnoreKeyboardShortcutEvent } from "../../../../utils/keyboardEvents";
 import type { ClassView } from "../../../../views/schema";
 import styles from "./ClassStylePane.module.css";
 
@@ -24,15 +25,28 @@ type ClassStylePaneProps = {
 };
 
 export default function ClassStylePane({ view }: ClassStylePaneProps): ReactElement {
-  /** Child props derivation: selected class views become ready-to-render inspector values */
+  // UI props derivation
   const classSelectionSummaryProps = toClassSelectionSummaryProps(view);
   const classStylePreviewProps = toClassStylePreviewProps(view);
   const classStyleControlsProps = toClassStyleControlsProps(view);
   const classStyleActionsProps = toClassStyleActionsProps(view);
 
-  /** Event handler derivation: style edits and class actions dispatch command transactions */
+  // Event handler props derivation
   const { onFillColorChange, onBorderColorChange, onTextColorChange, onDuplicate, onDelete } =
     useInteractions(view);
+
+  // Registering keystroke listener: Delete selected classes
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent): void {
+      if (event.key !== "Delete" || shouldIgnoreKeyboardShortcutEvent(event)) return;
+
+      event.preventDefault();
+      onDelete();
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onDelete]);
 
   return (
     <section className={styles.selectionPanel} aria-label="Selected class styles">

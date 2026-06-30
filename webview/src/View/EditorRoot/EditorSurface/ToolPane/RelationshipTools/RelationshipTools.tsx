@@ -1,6 +1,5 @@
 /**
- * @role [P]
- * @presents Relationship creation tools.
+ * @render Relationship creation tools.
  */
 
 import type { ReactElement } from "react";

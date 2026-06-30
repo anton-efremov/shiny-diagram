@@ -1,6 +1,5 @@
 /**
- * @role [P]
- * @presents Class style color controls.
+ * @render Class style color controls.
  */
 
 import type { ReactElement } from "react";

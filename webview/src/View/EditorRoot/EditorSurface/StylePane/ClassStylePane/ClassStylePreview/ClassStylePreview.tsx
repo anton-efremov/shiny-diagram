@@ -1,6 +1,5 @@
 /**
- * @role [P]
- * @presents Selected class style preview.
+ * @render Selected class style preview.
  */
 
 import type { CSSProperties, ReactElement } from "react";

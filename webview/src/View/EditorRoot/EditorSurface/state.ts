@@ -1,10 +1,10 @@
 /**
- * @state selectionState and nodePlacementState initial values.
+ * @behavior Initial SelectionState and NodePlacementState values for the ready editor.
  */
 
 import type { NodePlacementState, SelectionState } from "../../state/editorStates";
 
-/** Initial state: selected editor entities */
+// State initialization
 export function toInitialSelectionState(): SelectionState {
   return {
     classIds: [],
@@ -14,7 +14,6 @@ export function toInitialSelectionState(): SelectionState {
   };
 }
 
-/** Initial state: active node placement kind */
 export function toInitialNodePlacementState(): NodePlacementState {
   return null;
 }

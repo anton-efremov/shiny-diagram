@@ -1,5 +1,5 @@
 /**
- * @state selectionState repaired against the canonical diagram view.
+ * @behavior SelectionState reconciliation when selected classes disappear from the diagram view.
  */
 
 import { useEffect } from "react";
@@ -13,9 +13,7 @@ type StateReconciliationInput = {
   readonly setSelectionState: Dispatch<SetStateAction<SelectionState>>;
 };
 
-/** ── state reconciliation hook area ──
- * Patterns: 4.3-1
- */
+// State reconciliation
 export function useStateReconciliation({
   view,
   setSelectionState,
@@ -25,6 +23,7 @@ export function useStateReconciliation({
   }, [view, setSelectionState]);
 }
 
+// Private helpers
 function reconcileSelectionStateWithElements(
   selectionState: SelectionState,
   diagram: DiagramView
@@ -33,15 +32,6 @@ function reconcileSelectionStateWithElements(
   return areClassIdCollectionsEqual(selectionState.classIds, classIds)
     ? selectionState
     : toClassOnlySelectionState(classIds);
-}
-
-function toClassOnlySelectionState(classIds: readonly ClassId[]): SelectionState {
-  return {
-    classIds,
-    relationshipIds: [],
-    namespaceIds: [],
-    noteIds: [],
-  };
 }
 
 function reconcileSelectedClassIds(
@@ -59,4 +49,13 @@ function reconcileSelectedClassIds(
 
 function areClassIdCollectionsEqual(left: readonly ClassId[], right: readonly ClassId[]): boolean {
   return left.length === right.length && left.every((id, index) => id === right[index]);
+}
+
+function toClassOnlySelectionState(classIds: readonly ClassId[]): SelectionState {
+  return {
+    classIds,
+    relationshipIds: [],
+    namespaceIds: [],
+    noteIds: [],
+  };
 }

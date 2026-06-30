@@ -1,36 +1,30 @@
 /**
- * @logic CanvasView semantic interaction decisions for selection, placement, and class deletion.
- * @state selectionState and nodePlacementState updates.
+ * @behavior Ready editor selection and placement semantic handlers.
+ * @state SelectionState and NodePlacementState updates.
  */
 
 import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { ClassId } from "../../../shared/ids";
 import type { NodePlacementState, SelectionState } from "../../state/editorStates";
-import { useDispatchTransaction } from "../../contexts";
-import { toClassDeleteTransaction } from "./transactions";
 
 type Interactions = {
   readonly onClassPlacementStart: () => void;
   readonly onSelectionChange: (classIds: readonly ClassId[]) => void;
   readonly onSelectionClear: () => void;
   readonly onPlacementComplete: () => void;
-  readonly onClassDelete: () => boolean;
 };
 
 type UseInteractionsInput = {
-  readonly selectionState: SelectionState;
   readonly setSelectionState: Dispatch<SetStateAction<SelectionState>>;
   readonly setNodePlacementState: Dispatch<SetStateAction<NodePlacementState>>;
 };
 
 export function useInteractions({
-  selectionState,
   setSelectionState,
   setNodePlacementState,
 }: UseInteractionsInput): Interactions {
-  const dispatchCommand = useDispatchTransaction();
-
+  // Event handler props derivation
   const onClassPlacementStart = useCallback(() => {
     setNodePlacementState((state) => updateNodePlacementState(state, "class"));
   }, [setNodePlacementState]);
@@ -50,22 +44,15 @@ export function useInteractions({
     setNodePlacementState((state) => updateNodePlacementState(state, null));
   }, [setNodePlacementState]);
 
-  const onClassDelete = useCallback(() => {
-    if (!canDeleteSelectedClasses(selectionState)) return false;
-
-    dispatchCommand(toClassDeleteTransaction(selectionState.classIds));
-    return true;
-  }, [selectionState, dispatchCommand]);
-
   return {
     onClassPlacementStart,
     onSelectionChange,
     onSelectionClear,
     onPlacementComplete,
-    onClassDelete,
   };
 }
 
+// Private helpers
 function updateSelectedClassIds(
   selectionState: SelectionState,
   classIds: readonly ClassId[]
@@ -80,15 +67,6 @@ function updateNodePlacementState(
   nodePlacementState: NodePlacementState
 ): NodePlacementState {
   return state === nodePlacementState ? state : nodePlacementState;
-}
-
-function canDeleteSelectedClasses(selectionState: SelectionState): boolean {
-  return (
-    selectionState.classIds.length > 0 &&
-    selectionState.relationshipIds.length === 0 &&
-    selectionState.namespaceIds.length === 0 &&
-    selectionState.noteIds.length === 0
-  );
 }
 
 function toClassOnlySelectionState(classIds: readonly ClassId[]): SelectionState {

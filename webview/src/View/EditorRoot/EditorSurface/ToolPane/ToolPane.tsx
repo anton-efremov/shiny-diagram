@@ -1,7 +1,6 @@
 /**
- * @role [L]+[P]
- * @logic Active class placement tool UI prop derivation.
- * @presents Diagram creation tool palette.
+ * @behavior Active class placement tool UI prop derivation.
+ * @render Diagram creation tool palette.
  */
 
 import type { ReactElement } from "react";
@@ -17,16 +16,16 @@ type ToolPaneProps = {
 
 export default function ToolPane({
   nodePlacementState,
-  onClassPlacementStart: onPlacementStart,
+  onClassPlacementStart,
 }: ToolPaneProps): ReactElement {
-  /** Child props derivation: class placement state controls the active class tool */
+  // UI props derivation
   const isClassPlacementActive = nodePlacementState === "class";
 
   return (
     <aside className={styles.toolPane} aria-label="Diagram tools">
       <ClassTools
         isClassPlacementActive={isClassPlacementActive}
-        onPlacementStart={onPlacementStart}
+        onPlacementStart={onClassPlacementStart}
       />
       <RelationshipTools />
     </aside>

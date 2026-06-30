@@ -1,12 +1,9 @@
 /**
- * @role [L]+[P]
- * @logic Ready editor selection, placement state lifecycle, and child interaction routing.
- * @state selectionState: selected editor entities.
- * @state nodePlacementState: active node placement kind.
- * @presents Ready editor layout.
+ * @behavior Ready editor selection, placement state lifecycle, and child interaction routing.
+ * @render Ready editor layout.
  */
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ReactElement } from "react";
 import type { NodePlacementState, SelectionState } from "../../state/editorStates";
 import type { DiagramView } from "../../views/schema";
@@ -18,12 +15,12 @@ import { useInteractions } from "./useInteractions";
 import { useStateReconciliation } from "./useStateReconciliation";
 import styles from "./EditorSurface.module.css";
 
-type CanvasViewProps = {
+type EditorSurfaceProps = {
   readonly view: DiagramView;
 };
 
-export default function CanvasView({ view }: CanvasViewProps): ReactElement {
-  /** State: selected editor entities and active node placement kind */
+export default function EditorSurface({ view }: EditorSurfaceProps): ReactElement {
+  // State creation: ledger states - selected editor entities and active node placement kind
   const [selectionState, setSelectionState] = useState<SelectionState>(() =>
     toInitialSelectionState()
   );
@@ -31,32 +28,12 @@ export default function CanvasView({ view }: CanvasViewProps): ReactElement {
     toInitialNodePlacementState()
   );
 
-  /** State reconciliation: selected class IDs are repaired against the canonical diagram view */
+  // State reconciliation
   useStateReconciliation({ view, setSelectionState });
 
-  /** Event handler derivation: state updates and class-delete shortcut transaction dispatch */
-  const {
-    onClassPlacementStart,
-    onSelectionChange,
-    onSelectionClear,
-    onPlacementComplete,
-    onClassDelete,
-  } = useInteractions({ selectionState, setSelectionState, setNodePlacementState });
-
-  /** Keystroke listenning: Delete selected classes */
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent): void {
-      if (shouldIgnoreClassDeleteEvent(event)) return;
-
-      const wasHandled = onClassDelete();
-      if (wasHandled) {
-        event.preventDefault();
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClassDelete]);
+  // Event handler props derivation
+  const { onClassPlacementStart, onSelectionChange, onSelectionClear, onPlacementComplete } =
+    useInteractions({ setSelectionState, setNodePlacementState });
 
   return (
     <section className={styles.editorShell} aria-label="Class diagram editor">
@@ -74,32 +51,7 @@ export default function CanvasView({ view }: CanvasViewProps): ReactElement {
           onPlacementComplete={onPlacementComplete}
         />
       </div>
-      <StylePane view={view} selectionState={selectionState} />
+      <StylePane view={{ classes: view.classes }} selectionState={selectionState} />
     </section>
-  );
-}
-
-function shouldIgnoreClassDeleteEvent(event: KeyboardEvent): boolean {
-  return (
-    event.defaultPrevented ||
-    event.repeat ||
-    event.key !== "Delete" ||
-    event.altKey ||
-    event.ctrlKey ||
-    event.metaKey ||
-    event.shiftKey ||
-    isEditableTarget(event.target)
-  );
-}
-
-function isEditableTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof Element)) return false;
-
-  const tagName = target.tagName.toLowerCase();
-  if (tagName === "input" || tagName === "textarea" || tagName === "select") return true;
-
-  return (
-    (target instanceof HTMLElement && target.isContentEditable) ||
-    target.closest("[contenteditable]:not([contenteditable='false'])") !== null
   );
 }

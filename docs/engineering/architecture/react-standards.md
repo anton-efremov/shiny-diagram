@@ -352,7 +352,7 @@ Registering a browser-level keyboard listener for a semantic action owned by the
 1. **keystroke listener registered in component file**
     - register and clean up the keystroke listener with `useEffect`. **Location:** `<Component>.tsx`
     - implement the browser listener inside the effect and call the semantic `on<Event>` handler it triggers
-    - browser-event checks, e.g. key matching, modifier matching, ignored target checks, and `preventDefault()`, stay in the browser listener
+    - browser-event handling stays at the browser listener boundary: key matching, modifier matching, ignored-target checks, `preventDefault()`, and other DOM-event mechanics must be performed before calling the semantic interaction handler. The listener may use shared View utilities for reusable browser-event predicates.
     - semantic action logic, state update, and command transaction dispatch stay in the semantic handler implemented by patterns in  4.6, 4.8, 4.9
     - **naming:**
 	    - browser listener is named by the browser event, e.g. `handleKeyDown`

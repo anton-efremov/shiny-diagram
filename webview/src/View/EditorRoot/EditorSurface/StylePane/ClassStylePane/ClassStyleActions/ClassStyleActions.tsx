@@ -1,6 +1,5 @@
 /**
- * @role [P]
- * @presents Class style action buttons.
+ * @render Class style action buttons.
  */
 
 import type { ReactElement } from "react";
