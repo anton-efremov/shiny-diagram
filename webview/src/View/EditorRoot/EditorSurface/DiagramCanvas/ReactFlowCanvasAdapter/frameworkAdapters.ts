@@ -10,7 +10,9 @@ import type { ClassView, DiagramView, RelationshipView } from "../../../../views
 
 export type ClassBoxNodeData = {
   readonly view: ClassView;
+  readonly isSelected: boolean;
   readonly isResizeVisible: boolean;
+  readonly onClassSelect: (classIds: readonly ClassId[]) => void;
 };
 
 export type ClassBoxNodeDescriptor = ReactFlowNode<ClassBoxNodeData, "classBox">;
@@ -20,7 +22,8 @@ export type RelationshipEdgeDescriptor = ReactFlowEdge;
 export function toClassBoxNodeDescriptors(
   classes: readonly ClassView[],
   selectedClassIds: readonly ClassId[],
-  classBoxPlacementState: ClassBoxPlacementState
+  classBoxPlacementState: ClassBoxPlacementState,
+  onClassSelect: (classIds: readonly ClassId[]) => void
 ): ClassBoxNodeDescriptor[] {
   const selected = new Set<ClassId>(selectedClassIds);
   return classes.flatMap((classView) => {
@@ -34,9 +37,12 @@ export function toClassBoxNodeDescriptors(
         position: { x: placement.x, y: placement.y },
         data: {
           view: classView,
+          isSelected: selected.has(classView.classId),
           isResizeVisible: selected.size === 1 && selected.has(classView.classId),
+          onClassSelect,
         },
-        selected: selected.has(classView.classId),
+        selectable: false,
+        focusable: false,
         width: placement.w,
         height: placement.h,
         style: { width: placement.w, height: placement.h },

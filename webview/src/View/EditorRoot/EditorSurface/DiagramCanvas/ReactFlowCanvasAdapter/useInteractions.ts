@@ -3,10 +3,9 @@
  */
 
 import { useCallback } from "react";
-import type { NodeChange, OnNodeDrag, OnSelectionChangeFunc } from "@xyflow/react";
+import type { NodeChange, OnNodeDrag } from "@xyflow/react";
 import type { ClassId } from "../../../../../shared/ids";
-import type { DiagramView } from "../../../../views/schema";
-import type { ClassBoxNodeDescriptor, RelationshipEdgeDescriptor } from "./frameworkAdapters";
+import type { ClassBoxNodeDescriptor } from "./frameworkAdapters";
 
 type ClassBoxPlacementChange = {
   readonly classId: ClassId;
@@ -17,24 +16,16 @@ type ClassBoxPlacementChange = {
 type ReactFlowCanvasAdapterCallbacks = {
   readonly onClassBoxPlacementChange: (changes: readonly ClassBoxPlacementChange[]) => void;
   readonly onDragComplete: (finalPositions: readonly ClassBoxPlacementChange[]) => void;
-  readonly onSelectionChange: (classIds: readonly ClassId[]) => void;
   readonly onSelectionClear: () => void;
 };
 
 type Interactions = {
   readonly onNodesChange: (changes: NodeChange<ClassBoxNodeDescriptor>[]) => void;
   readonly onNodeDragStop: OnNodeDrag<ClassBoxNodeDescriptor>;
-  readonly onSelectionChange: OnSelectionChangeFunc<
-    ClassBoxNodeDescriptor,
-    RelationshipEdgeDescriptor
-  >;
   readonly onPaneClick: () => void;
 };
 
-export function useInteractions(
-  view: Pick<DiagramView, "classes">,
-  callbacks: ReactFlowCanvasAdapterCallbacks
-): Interactions {
+export function useInteractions(callbacks: ReactFlowCanvasAdapterCallbacks): Interactions {
   // Framework prop and event adaptation
   const onNodesChange = useCallback(
     (changes: NodeChange<ClassBoxNodeDescriptor>[]) => {
@@ -62,25 +53,9 @@ export function useInteractions(
   );
 
   // Framework prop and event adaptation
-  const onSelectionChange = useCallback<
-    OnSelectionChangeFunc<ClassBoxNodeDescriptor, RelationshipEdgeDescriptor>
-  >(
-    ({ nodes }) => {
-      const selectedIds = new Set(
-        nodes.flatMap((n) => (n.type === "classBox" ? [n.data.view.classId] : []))
-      );
-      const orderedSelection = view.classes
-        .map((c) => c.classId)
-        .filter((id) => selectedIds.has(id));
-      callbacks.onSelectionChange(orderedSelection);
-    },
-    [callbacks, view.classes]
-  );
-
-  // Framework prop and event adaptation
   const onPaneClick = useCallback(() => {
     callbacks.onSelectionClear();
   }, [callbacks]);
 
-  return { onNodesChange, onNodeDragStop, onSelectionChange, onPaneClick };
+  return { onNodesChange, onNodeDragStop, onPaneClick };
 }

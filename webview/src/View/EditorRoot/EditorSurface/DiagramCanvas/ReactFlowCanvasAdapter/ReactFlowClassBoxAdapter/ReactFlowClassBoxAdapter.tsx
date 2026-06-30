@@ -3,12 +3,15 @@
  */
 
 import type { Node, NodeProps } from "@xyflow/react";
+import type { ClassId } from "../../../../../../shared/ids";
 import type { ClassView } from "../../../../../views/schema";
 import ClassBox from "./ClassBox/ClassBox";
 
 type ClassBoxNodeData = {
   readonly view: ClassView;
+  readonly isSelected: boolean;
   readonly isResizeVisible: boolean;
+  readonly onClassSelect: (classIds: readonly ClassId[]) => void;
 };
 
 type ClassBoxNode = Node<ClassBoxNodeData, "classBox">;
@@ -18,9 +21,10 @@ export default function ReactFlowClassBoxNodeAdapter(props: NodeProps<ClassBoxNo
   return (
     <ClassBox
       view={props.data.view}
-      isSelected={props.selected ?? false}
+      isSelected={props.data.isSelected}
       isDragging={props.dragging ?? false}
-      isResizeVisible={(props.selected ?? false) && props.data.isResizeVisible}
+      isResizeVisible={props.data.isResizeVisible}
+      onClassSelect={props.data.onClassSelect}
     />
   );
 }

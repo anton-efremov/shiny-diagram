@@ -44,14 +44,20 @@ export default function ReactFlowCanvasAdapter({
   classBoxPlacementState,
   onClassBoxPlacementChange,
   onDragComplete,
-  onSelectionChange: onSelectionChangeProp,
+  onSelectionChange,
   onSelectionClear,
   onPlacementComplete,
 }: ReactFlowCanvasAdapterProps): ReactElement {
   // Framework prop and event adaptation
   const rfNodes = useMemo(
-    () => toClassBoxNodeDescriptors(view.classes, selectionState.classIds, classBoxPlacementState),
-    [view.classes, selectionState.classIds, classBoxPlacementState]
+    () =>
+      toClassBoxNodeDescriptors(
+        view.classes,
+        selectionState.classIds,
+        classBoxPlacementState,
+        onSelectionChange
+      ),
+    [view.classes, selectionState.classIds, classBoxPlacementState, onSelectionChange]
   );
   const rfEdges = useMemo(
     () => toRelationshipEdgeDescriptors(view.classes, view.relationships, classBoxPlacementState),
@@ -62,17 +68,13 @@ export default function ReactFlowCanvasAdapter({
     () => ({
       onClassBoxPlacementChange,
       onDragComplete,
-      onSelectionChange: onSelectionChangeProp,
       onSelectionClear,
     }),
-    [onClassBoxPlacementChange, onDragComplete, onSelectionChangeProp, onSelectionClear]
+    [onClassBoxPlacementChange, onDragComplete, onSelectionClear]
   );
 
   // Event handler props derivation
-  const { onNodesChange, onNodeDragStop, onSelectionChange, onPaneClick } = useInteractions(
-    view,
-    callbacks
-  );
+  const { onNodesChange, onNodeDragStop, onPaneClick } = useInteractions(callbacks);
 
   return (
     <ReactFlowProvider>
@@ -82,13 +84,12 @@ export default function ReactFlowCanvasAdapter({
         nodeTypes={NODE_TYPES}
         onNodesChange={onNodesChange}
         onNodeDragStop={onNodeDragStop}
-        onSelectionChange={onSelectionChange}
         onPaneClick={onPaneClick}
         fitView
         nodesDraggable={nodePlacementState === null}
         nodesConnectable={false}
-        elementsSelectable={nodePlacementState === null}
-        nodesFocusable={nodePlacementState === null}
+        elementsSelectable={false}
+        nodesFocusable={false}
         edgesFocusable={false}
         panOnDrag={nodePlacementState === null}
         disableKeyboardA11y

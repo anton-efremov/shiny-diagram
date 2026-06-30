@@ -9,6 +9,7 @@ import ReactFlowConnectionHandlesAdapter from "./ReactFlowConnectionHandlesAdapt
 import ReactFlowNodeResizerAdapter from "./ReactFlowNodeResizerAdapter/ReactFlowNodeResizerAdapter";
 import MemberTable from "./MemberTable/MemberTable";
 import { useInteractions } from "./useInteractions";
+import type { ClassId } from "../../../../../../../shared/ids";
 import type { ClassView } from "../../../../../../views/schema";
 import styles from "./ClassBox.module.css";
 
@@ -17,6 +18,7 @@ type ClassBoxProps = {
   readonly isSelected: boolean;
   readonly isDragging: boolean;
   readonly isResizeVisible: boolean;
+  readonly onClassSelect: (classIds: readonly ClassId[]) => void;
 };
 
 type ConnectionHandleDescriptor = {
@@ -41,9 +43,10 @@ export default function ClassBox({
   isSelected,
   isDragging,
   isResizeVisible,
+  onClassSelect,
 }: ClassBoxProps): ReactElement {
   // Event handler props derivation
-  const { onResizeEnd } = useInteractions(view.classId);
+  const { onClassBoxClick, onResizeEnd } = useInteractions(view.classId, onClassSelect);
 
   // UI props derivation
   const className = [
@@ -63,7 +66,7 @@ export default function ClassBox({
     : undefined;
 
   return (
-    <div className={className} style={dynamicVars} title={view.classId}>
+    <div className={className} style={dynamicVars} title={view.classId} onClick={onClassBoxClick}>
       <ReactFlowNodeResizerAdapter
         nodeId={view.classId}
         isVisible={isResizeVisible}
