@@ -33,7 +33,7 @@ Normative terms:
 | Scope | Pattern | Project interpretation |
 | --- | --- | --- |
 | Extension | **Message-Based Integration across Isolated Runtimes** | Extension Host and Webview communicate only through an explicit, validated protocol. |
-| Webview | **Strict Layered Architecture** | All dependencies, including type imports and re-exports, follow `extensionBridge → webviewShell`, then either `mermaidRenderer` or `shinyController → shinyView`; `shared` is a dependency-free foundation. |
+| Webview | **Strict Layered Architecture** | All dependencies, including type imports and re-exports, follow `Bridge → Shell`, then either `mermaidRenderer` or `Controller → View`; `shared` is a dependency-free foundation. |
 | Controller | **Application Controller with a Functional Core** | `ShinyController` orchestrates independent functional components; Controller Commands translate editor command transactions into `SourceEdit[]` and own source identities and source-edit semantics. |
 | View | **Component-Based UI with Ownership-Based Composition** | React structure follows ownership; View owns editor interaction and layout decisions, emits editor command transactions, and exposes semantic View facades. |
 
@@ -52,7 +52,7 @@ Normative terms:
 The protocol is the complete wire vocabulary exchanged between the isolated runtimes. It is declared independently at both sides of the boundary:
 
 ```text
-webview/src/extensionBridge/protocol.ts
+webview/src/Bridge/protocol.ts
 extension-host/protocol.ts
 ```
 
@@ -85,13 +85,13 @@ The source-edit payload is one canonical range replacement:
 ### 4.1 Dependency order
 
 ```text
-extensionBridge
+Bridge
       ↓
-webviewShell
+Shell
       ├── mermaidRenderer
-      └── shinyController
+      └── Controller
               ↓
-          shinyView
+          View
 
 shared  ← dependency-free foundation used by Webview layers
 ```
@@ -128,19 +128,19 @@ The table governs imports between Webview-owned modules. Platform APIs and third
 
 | Consumer                              | Permitted dependencies                                                                                 |
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `extensionBridge/protocol.ts`         | None; the protocol module defines its complete wire contract locally                                   |
-| Other `extensionBridge` modules       | Own modules; `webviewShell`; type-only Controller edit contracts; `shared/`                            |
-| `webviewShell` modules                | Own modules; `mermaidRenderer`; `shinyController/ShinyController`; type-only Controller edit contracts; `shared/` |
+| `Bridge/protocol.ts`         | None; the protocol module defines its complete wire contract locally                                   |
+| Other `Bridge` modules       | Own modules; `Shell`; type-only Controller edit contracts; `shared/`                            |
+| `Shell` modules                | Own modules; `mermaidRenderer`; `Controller/ShinyController`; type-only Controller edit contracts; `shared/` |
 | `mermaidRenderer` modules             | Own modules; `shared/`                                                                                |
-| `shinyController/ShinyController`            | Controller components and model; `shinyView/EditorView`; `shinyView/commands`; `shinyView/views`; `shared/` |
-| Controller components                 | Own component internals; `shinyController/model`; relevant View contract facade; `shared/`                  |
-| `shinyView`                           | Shiny View modules; `shared/`                                                                          |
-| `shinyController/model`                    | Sibling files within `shinyController/model/`; `shared/`                                                    |
+| `Controller/ShinyController`            | Controller components and model; `View/EditorRoot`; `View/commands`; `View/views`; `shared/` |
+| Controller components                 | Own component internals; `Controller/model`; relevant View contract facade; `shared/`                  |
+| `View`                           | View modules; `shared/`                                                                          |
+| `Controller/model`                    | Sibling files within `Controller/model/`; `shared/`                                                    |
 | `shared`                              | Other dependency-free shared modules only                                                              |
 
 Additional constraints:
 
-- `extensionBridge/protocol.ts` must contain no imports or re-exports of any kind.
+- `Bridge/protocol.ts` must contain no imports or re-exports of any kind.
 - The Webview and Extension Host protocol declarations must remain structurally synchronized.
 - Controller must not deep-import the View component tree.
 - Controller workers must not import React, React Flow, DOM, VS Code, or protocol modules.
@@ -150,11 +150,11 @@ Additional constraints:
 ### 4.4 Shared vocabulary areas
 
 - `shared/` contains stable vocabulary whose semantics cross Webview layers, such as canonical identities and generic geometry.
-- `shinyController/model/` contains source-derived vocabulary shared by Controller components.
+- `Controller/model/` contains source-derived vocabulary shared by Controller components.
 - A shared area might be divided into submodules for namespace convenience 
 - A narrower shared area may depend only on itself (e.g. own submodules) or more foundational shared areas.  
 - A shared area must not depend on any layer or component that consumes it.
-- `shared/` and `shinyController/model/` must not have root barrels.
+- `shared/` and `Controller/model/` must not have root barrels.
 
 ## 5. Controller component architecture
 
@@ -213,7 +213,7 @@ The names are roles, not mandatory filenames.
 
 ### 5.5 Shared Controller model
 
-- Source-derived contracts consumed by multiple Controller components belong to `shinyController/model/`.
+- Source-derived contracts consumed by multiple Controller components belong to `Controller/model/`.
 - The model is shared Controller vocabulary, not a component, and has no facade.
 - Consumers import model declarations from their defining files.
 - The model must not depend on Parse, Derive Views, Commands, View, or Extension Bridge.
@@ -231,8 +231,8 @@ The names are roles, not mandatory filenames.
 #### 6.1.1 View root organization
 
 ```text
-shinyView/
-├── EditorView/
+View/
+├── EditorRoot/
 │   └── index.ts
 ├── ui/
 │   ├── ControlButton/
@@ -245,28 +245,28 @@ shinyView/
 │   └── index.ts
 ```
 
-- `EditorView/` owns the React Shiny editor tree. Its `index.ts` exports only the `EditorView` runtime entry point.
-- `ui/` owns shared presentation-only controls and icons used inside the Shiny View layer. It must not define editor state, commands, render contracts, or application behavior.
+- `EditorRoot/` owns the React Shiny editor tree. Its `index.ts` exports only the `EditorView` runtime entry point.
+- `ui/` owns shared presentation-only controls and icons used inside the View layer. It must not define editor state, commands, render contracts, or application behavior.
 - `commands/` exposes the canonical View-to-Controller command registry and dispatch contract. `views/` exposes stable render contracts to Controller.
 - The View root must not contain `index.ts`.
 - Controller must not import the nested React component tree directly.
 
 #### 6.1.2 Semantic facade areas
 
-- `shinyView/commands/editorCommands.ts` defines the complete canonical registry of `EditorCommand` variants, `EditorCommandTransaction`, and command helper types.
-- `shinyView/commands/index.ts` re-exports the command registry contracts and `EditorDispatch`; it does not define commands.
+- `View/commands/editorCommands.ts` defines the complete canonical registry of `EditorCommand` variants, `EditorCommandTransaction`, and command helper types.
+- `View/commands/index.ts` re-exports the command registry contracts and `EditorDispatch`; it does not define commands.
 - Component-local `commands.ts` files may define command-derivation helpers, but must not define or export View-to-Controller command shapes.
-- `shinyView/views/index.ts` re-exports selected component-owned render contracts.
+- `View/views/index.ts` re-exports selected component-owned render contracts.
 - Facade `index.ts` files contain re-exports only.
 - A facade area may contain dedicated layer-wide contract modules, but no rendering, state coordination, or interaction implementation.
-- Controller must consume View APIs through `shinyView/EditorView`, `shinyView/commands`, and `shinyView/views`.
-- Controller command handlers may narrow `EditorCommand` through helper types exported by `shinyView/commands`; they must not import component-local command helpers.
+- Controller must consume View APIs through `View/EditorRoot`, `View/commands`, and `View/views`.
+- Controller command handlers may narrow `EditorCommand` through helper types exported by `View/commands`; they must not import component-local command helpers.
 - View internals use direct imports from the defining modules and must not import their own public facades.
-- `shinyView/ui` is an internal View-layer UI package for reusable presentation-only components. It is not a facade, must not contain a root `index.ts`, and must not be imported by Shell, Controller, Extension Bridge, or Mermaid Renderer modules.
+- `View/ui` is an internal View-layer UI package for reusable presentation-only components. It is not a facade, must not contain a root `index.ts`, and must not be imported by Shell, Controller, Extension Bridge, or Mermaid Renderer modules.
 
 #### 6.1.3 Permitted deviations
 
-- A new View-root area requires a View-wide semantic responsibility not owned by `EditorView/`.
+- A new View-root area requires a View-wide semantic responsibility not owned by `EditorRoot/`.
 - A new root area must expose a purpose-specific API and must not become a miscellaneous shared folder.
 - Convenience and anticipated growth are not sufficient reasons to add a root area.
 
@@ -291,7 +291,7 @@ A component folder may use the following roles:
 
 #### 6.2.1 Command origination
 
-- View-to-Controller command shapes are defined only in `shinyView/commands/editorCommands.ts`.
+- View-to-Controller command shapes are defined only in `View/commands/editorCommands.ts`.
 - Command derivation ownership follows the event handler and the View context required to construct a fully specified editor intent, not the entity targeted by the command.
 - A parent-owned framework handler may emit a command transaction concerning an owned child representation.
 - `EditorCommandTransaction` groups primitive editor commands that belong to one user/editor action. Repeating the same primitive operation is represented by several commands in the transaction, not by a nested collection inside one command.
@@ -308,7 +308,7 @@ Examples:
 
 - `views.ts` defines the read-only data accepted by the component's render boundary.
 - A child component owns its render contract.
-- A parent might aggregate child render contracts by importing them directly from their defining modules. View internals must not import through `shinyView/views`; that facade is reserved for external consumers.
+- A parent might aggregate child render contracts by importing them directly from their defining modules. View internals must not import through `View/views`; that facade is reserved for external consumers.
 
 #### 6.2.3 State ownership
 
@@ -368,7 +368,7 @@ The checker analyzes:
 - side-effect imports
 - `export ... from` and `export type ... from` declarations
 - relative imports and configured aliases that resolve inside `webview/src/`
-- all dependency syntax in `webview/src/extensionBridge/protocol.ts` and `extension-host/protocol.ts`, including package and platform imports
+- all dependency syntax in `webview/src/Bridge/protocol.ts` and `extension-host/protocol.ts`, including package and platform imports
 - exported protocol declarations in both protocol modules
 
 All analyzed imports and re-exports are dependencies. Package and platform imports are outside the normal Webview dependency matrix, but they are prohibited in protocol modules.
@@ -378,23 +378,23 @@ All analyzed imports and re-exports are dependencies. Package and platform impor
 | Importer                              | Permitted targets                                                                                                            |
 | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | `main.tsx`                            | Extension Bridge runtime entry                                                                                               |
-| `extensionBridge/protocol.ts`         | None                                                                                                                         |
-| Other `extensionBridge/**` modules    | Own modules; `webviewShell`; type-only exports from `shinyController/commands`; `shared/**`                                      |
-| `webviewShell/**`                            | Own modules; `mermaidRenderer/**`; `shinyController/ShinyController`; type-only exports from `shinyController/commands`; `shared/**` |
+| `Bridge/protocol.ts`         | None                                                                                                                         |
+| Other `Bridge/**` modules    | Own modules; `Shell`; type-only exports from `Controller/commands`; `shared/**`                                      |
+| `Shell/**`                            | Own modules; `mermaidRenderer/**`; `Controller/ShinyController`; type-only exports from `Controller/commands`; `shared/**` |
 | `mermaidRenderer/**`                  | Own modules; `shared/**`                                                                                                    |
-| `shinyController/ShinyController.tsx`        | Controller component facades; `shinyController/model/**`; `shinyView/EditorView`; `shinyView/commands`; `shinyView/views`; `shared/**` |
-| `shinyController/parse/**`                 | Own component modules; `shinyController/model/**`; `shared/**`                                                                    |
-| `shinyController/deriveViews/**`           | Own component modules; `shinyController/model/**`; `shinyView/views`; `shared/**`                                                      |
-| `shinyController/commands/**`              | Own component modules; `shinyController/model/**`; `shinyView/commands`; `shared/**`                                                   |
-| `shinyController/model/**`                 | Other `shinyController/model/**` modules; `shared/**`                                                                             |
-| `shinyView/**`                        | Other Shiny View modules; `shared/**`                                                                  |
+| `Controller/ShinyController.tsx`        | Controller component facades; `Controller/model/**`; `View/EditorRoot`; `View/commands`; `View/views`; `shared/**` |
+| `Controller/parse/**`                 | Own component modules; `Controller/model/**`; `shared/**`                                                                    |
+| `Controller/deriveViews/**`           | Own component modules; `Controller/model/**`; `View/views`; `shared/**`                                                      |
+| `Controller/commands/**`              | Own component modules; `Controller/model/**`; `View/commands`; `shared/**`                                                   |
+| `Controller/model/**`                 | Other `Controller/model/**` modules; `shared/**`                                                                             |
+| `View/**`                        | Other View modules; `shared/**`                                                                  |
 | `shared/**`                           | Other `shared/**` modules                                                                                                    |
 
-Controller components may not import one another. Data shared between them passes through `ShinyController`, `shinyController/model/`, or `shared/` according to semantic ownership.
+Controller components may not import one another. Data shared between them passes through `ShinyController`, `Controller/model/`, or `shared/` according to semantic ownership.
 
 Protocol enforcement:
 
-- `webview/src/extensionBridge/protocol.ts` and `extension-host/protocol.ts` must contain no imports, re-exports, dynamic imports, `require` calls, or import-type expressions.
+- `webview/src/Bridge/protocol.ts` and `extension-host/protocol.ts` must contain no imports, re-exports, dynamic imports, `require` calls, or import-type expressions.
 - Their exported protocol declarations must remain structurally synchronized. Comments and formatting need not match; the wire contract must.
 
 ### 7.3 Facade configuration
@@ -402,26 +402,26 @@ Protocol enforcement:
 The boundary checker recognizes these facade files:
 
 ```text
-webviewShell/index.ts
-shinyController/parse/index.ts
-shinyController/deriveViews/index.ts
-shinyController/commands/index.ts
-shinyView/EditorView/index.ts
-shinyView/commands/index.ts
-shinyView/views/index.ts
+Shell/index.ts
+Controller/parse/index.ts
+Controller/deriveViews/index.ts
+Controller/commands/index.ts
+View/EditorRoot/index.ts
+View/commands/index.ts
+View/views/index.ts
 ```
 
 Facade rules:
 - Imports from outside a Controller component must target that component's root facade.
 - View implementation modules use direct local imports and must not import through View facades.
 - Facade files may contain only comments and re-export declarations.
-- `webviewShell/index.ts` may expose only the `WebViewShell` runtime entry.
-- `shinyView/EditorView/index.ts` may expose only the `EditorView` runtime entry.
-- `shinyController/ShinyController.tsx` may not directly call React `useState` or `useReducer`; the checker recognizes named, aliased, namespace, and default React imports for those calls.
+- `Shell/index.ts` may expose only the `WebViewShell` runtime entry.
+- `View/EditorRoot/index.ts` may expose only the `EditorView` runtime entry.
+- `Controller/ShinyController.tsx` may not directly call React `useState` or `useReducer`; the checker recognizes named, aliased, namespace, and default React imports for those calls.
 - These root barrels are prohibited:
-  - `webviewShell/WebViewShell/index.ts`
-  - `shinyView/index.ts`
-  - `shinyController/model/index.ts`
+  - `Shell/WebViewShell/index.ts`
+  - `View/index.ts`
+  - `Controller/model/index.ts`
   - `shared/index.ts`
 
 ### 7.4 Execution
@@ -445,7 +445,7 @@ The checker verifies module structure, protocol self-containment, synchronizatio
 | **Layer** | An ordered group of modules governed by one dependency direction. |
 | **Component** | A cohesive group of modules with one public boundary and private implementation. |
 | **React component subtree** | A React component and the child components, state, contracts, styles, and interactions it semantically owns. |
-| **Shared contract area** | A non-layer component that defines vocabulary used by several consumers, such as `shared/` or `shinyController/model/`. |
+| **Shared contract area** | A non-layer component that defines vocabulary used by several consumers, such as `shared/` or `Controller/model/`. |
 | **Boundary** | The public interaction point through which one runtime, layer, or component uses another. |
 | **Contract** | The types and callable signatures that define a boundary. |
 | **Protocol contract** | A self-contained JSON-compatible wire declaration defined independently and kept synchronized at both isolated runtimes. |
@@ -497,10 +497,10 @@ Avoid **controls** in architectural descriptions unless its exact meaning is sta
 
 | Artifact | Defined by | Owned by | Constructed or hosted by | Consumed by |
 |---|---|---|---|---|
-| `EditorCommand` | `shinyView/commands/editorCommands.ts` | View command registry | View command-derivation helpers and interaction handlers | Controller Commands |
-| `EditorCommandTransaction` | `shinyView/commands/editorCommands.ts` | View-to-Controller command boundary | View command-derivation helpers and interaction handlers | `ShinyController` and Controller Commands |
+| `EditorCommand` | `View/commands/editorCommands.ts` | View command registry | View command-derivation helpers and interaction handlers | Controller Commands |
+| `EditorCommandTransaction` | `View/commands/editorCommands.ts` | View-to-Controller command boundary | View command-derivation helpers and interaction handlers | `ShinyController` and Controller Commands |
 | `ElementViews` and nested render contracts | Component-local `views.ts` files | View | Controller Derive Views | View components |
-| Selected class IDs | `EditorView/useSelectedClassIds.ts` | `EditorView` | `EditorView` state, reconciled against each View model | `ClassDiagram`, `ClassBox`, `StylePane` |
-| Class placement mode | `EditorView/placementMode.ts` | `EditorView` | `EditorView` state | `ToolPane`, `ClassDiagram`, `PlacementOverlay` |
+| Selected class IDs | `EditorRoot/useSelectedClassIds.ts` | `EditorView` | `EditorView` state, reconciled against each View model | `ClassDiagram`, `ClassBox`, `StylePane` |
+| Class placement mode | `EditorRoot/placementMode.ts` | `EditorView` | `EditorView` state | `ToolPane`, `ClassDiagram`, `PlacementOverlay` |
 | `SourceEdit` | Controller Commands | Controller Commands | Command handlers | Extension Bridge |
-| Protocol message contracts | Independently in `webview/src/extensionBridge/protocol.ts` and `extension-host/protocol.ts` | Extension runtime boundary | Boundary adapters construct and validate protocol values | Opposite runtime boundary adapter |
+| Protocol message contracts | Independently in `webview/src/Bridge/protocol.ts` and `extension-host/protocol.ts` | Extension runtime boundary | Boundary adapters construct and validate protocol values | Opposite runtime boundary adapter |

@@ -1,9 +1,9 @@
 > **Implementation state:** Aspirational   
 > **Document state:** Maintained
-> **Scope:** `webview/src/shinyView/**`  
+> **Scope:** `webview/src/View/**`  
 > **Audience:** Coding agents  
 > **Last reviewed:** 2026-06-29  
-> **Goal** Must-follow rules of organization of code, dependencies and implementation patterns of a React component in Shiny View React component tree
+> **Goal** Must-follow rules of organization of code, dependencies and implementation patterns of a React component in View React component tree
 
 # 0. About the file
 
@@ -55,7 +55,7 @@
 
 ### 0.2 Key terms
 
-- **Responsibility** — a broad kind of work a React Component performs in ShinyView. Responsibilities describe what piece of work the component owns conceptually.
+- **Responsibility** — a broad kind of work a React Component performs in View. Responsibilities describe what piece of work the component owns conceptually.
 - **Activity** — a specific kind of work inside a responsibility. Activities are used to organize implementation rules.
 - **Implementation pattern** — an allowed way to implement an activity in code. Implementation patterns are numbered and referenced by ID.
 
@@ -80,7 +80,7 @@ Responsibility
 
 ### 1.1 React Component responsibilities
 
-Every React Component in ShinyView declares the responsibilities it performs. A component may perform one responsibility or a controlled composition of several responsibilities.
+Every React Component in View declares the responsibilities it performs. A component may perform one responsibility or a controlled composition of several responsibilities.
 #### Behavior responsibility
 
 A React Component has Behavior responsibility when it owns or derives runtime behavior: state, child inputs, semantic event handling, state changes, command transactions, or child routing. Behavior is about what the component decides and how it reacts.
@@ -89,7 +89,7 @@ A React Component has Behavior responsibility when it owns or derives runtime be
 A React Component has Rendering responsibility when it owns visual output: DOM structure, JSX composition, CSS application, icons, visual surfaces, or static UI catalogs. Rendering is about how already-decided values become visible interface. Simply combining child components is not counted as rendering responsibility.
 #### Framework adaptation responsibility
 
-A React Component has Framework adaptation responsibility when it absorbs a foreign component or framework interface into ShinyView standard boundaries pattern. Framework adaptation translates framework props, events, state, coordinate spaces, or vocabulary into ShinyView contracts and domain terms.
+A React Component has Framework adaptation responsibility when it absorbs a foreign component or framework interface into View standard boundaries pattern. Framework adaptation translates framework props, events, state, coordinate spaces, or vocabulary into View contracts and domain terms.
 
 ### 1.2 Responsibilities composition in React Component
 
@@ -114,32 +114,32 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 	- these primitives **must not** be redefined anywhere in code
 	- a new primitive **may** be added if it has potential reuse and fits the definition of a shared primitive
 
-2. `webview/src/shinyView/views/schema.ts` — the authoritative view render tree: one nested tree of immutable view types, carrying facts about the diagram itself — its elements and their position, size, and style — never facts about the editing session, such as selection, placement, or current drag position.
+2. `webview/src/View/views/schema.ts` — the authoritative view render tree: one nested tree of immutable view types, carrying facts about the diagram itself — its elements and their position, size, and style — never facts about the editing session, such as selection, placement, or current drag position.
 	- the **only** declaration of view shapes
 	- used for constructing a `view` prop type by a component by slicing corresponding source view type
 
-3. `webview/src/shinyView/state/editorStates.ts` — the state ledger: a flat list of editor state shapes (selection, placement, transient element position), each annotated with its owning component
+3. `webview/src/View/state/editorStates.ts` — the state ledger: a flat list of editor state shapes (selection, placement, transient element position), each annotated with its owning component
 	- the **only** declaration of editor state shapes
 	- used to construct a component's State slice prop type by slicing the corresponding source state type
 	- type-**only**: contains state shapes, never runtime state
 	- **must not** include local view state — state no other component reads and with no editor consequence; that type is declared in its owner component, not here
 
-4. `webview/src/shinyView/commands/editorCommands.ts` — the canonical command registry defining (a) primitive editor-domain command shapes, each encapsulating an atom of user intent, and (b) the `EditorCommandTransaction` type combining those primitives to communicate a complex user intent to the Controller.
+4. `webview/src/View/commands/editorCommands.ts` — the canonical command registry defining (a) primitive editor-domain command shapes, each encapsulating an atom of user intent, and (b) the `EditorCommandTransaction` type combining those primitives to communicate a complex user intent to the Controller.
 	- **the only** source of command shapes
 	- command and transaction types are **never** defined locally
 	- a primitive command **may** be added **only** if it cannot be expressed as a combination of existing primitives
 
-5. `webview/src/shinyView/ui` — shared ShinyView presentational primitives: reusable presentational components with no editor state or decisions.
+5. `webview/src/View/ui` — shared View presentational primitives: reusable presentational components with no editor state or decisions.
 	- the **only** source of cross-component shared visual components
 
-6. `webview/src/shinyView/config/editorUiConfig.ts` — static UI constants (fixed offsets, sizes, timings).
+6. `webview/src/View/config/editorUiConfig.ts` — static UI constants (fixed offsets, sizes, timings).
 	- UI constants **must** be defined here and read from here, **never** hard-coded at the use site.
 
-7. `webview/src/shinyView/utils/<utilityName>.ts` — centralized ShinyView utilities: pure, framework-independent functions used by multiple components, or algorithms that require separate testing and development cycle, e.g. a layout algorithm.
+7. `webview/src/View/utils/<utilityName>.ts` — centralized View utilities: pure, framework-independent functions used by multiple components, or algorithms that require separate testing and development cycle, e.g. a layout algorithm.
 	- new utilities **must not** be introduced as part of React Component development or refactor; they must be added separately
 
-8. `webview/src/shinyView/EditorView/contexts` — exposes `useDispatchTransaction`, the consumer hook for the single `EditorDispatch` channel carrying command transactions to the Controller
-	- **the only** dispatch hook; **the only** non-prop transport in ShinyView
+8. `webview/src/View/contexts` — exposes `useDispatchTransaction`, the consumer hook for the single `EditorDispatch` channel carrying command transactions to the Controller
+	- **the only** dispatch hook; **the only** non-prop transport in View
 
 9. **own children** — components it exclusively owns, each nested one level inside its folder as `ChildName/ChildName.tsx`
 	- **only** the child component export; **never** its types, support files, or any other folder internals
@@ -156,7 +156,7 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 
 1. any layer above the `View` layer — `Controller`, `Shell`, `Bridge` — dependencies between layers point strictly inward
 2. another component's internal support files
-3. a sibling, parent, or any non-owned component — shared components are reached only through `webview/src/shinyView/ui`.
+3. a sibling, parent, or any non-owned component — shared components are reached only through `webview/src/View/ui`.
 4. a third-party framework library, when the file does not implement Framework adaptation responsibility.
 
 # 3. Component receives
@@ -207,9 +207,9 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 	- **must not** compute UI props from editor state unless composed with Behavior responsibility.
 
 3. **Component implementing Framework adaptation responsibility**
-	- **may** receive `view`, State slice, Event handler, and UI props on its ShinyView-facing boundary.
+	- **may** receive `view`, State slice, Event handler, and UI props on its View-facing boundary.
 	- **may** receive framework-shaped props on its framework-facing boundary.
-	- **must not** receive framework-shaped props on its ShinyView-facing boundary.
+	- **must not** receive framework-shaped props on its View-facing boundary.
 	- **must** translate framework-shaped props internally or through `frameworkAdapters.ts`.
 
 4. **Component implementing multiple responsibilities**
@@ -404,13 +404,13 @@ Choosing which child interface renders, from a discriminated view or a derived s
 
 # 5. Framework activities implementation patterns
 
-Framework adaptation absorbs a foreign framework interface into ShinyView. A framework-shaped value **must** be translated into ShinyView vocabulary before it is used as ShinyView props, state, or command payload.
+Framework adaptation absorbs a foreign framework interface into View. A framework-shaped value **must** be translated into View vocabulary before it is used as View props, state, or command payload.
 
 ### 5.1 Framework prop and event adaptation
 
 Adapting props and event payloads across a framework boundary. Might be applied in one of two directions:
-- ShinyView props and Event handlers → framework props and callbacks. Before a value crosses from ShinyView to the framework, it **must** be converted to the framework shape.
-- Framework props and event payloads → ShinyView props and Event handlers. Before a value crosses from the framework to ShinyView, it **must** be converted to the ShinyView shape.
+- View props and Event handlers → framework props and callbacks. Before a value crosses from View to the framework, it **must** be converted to the framework shape.
+- Framework props and event payloads → View props and Event handlers. Before a value crosses from the framework to View, it **must** be converted to the View shape.
 
 This activity **must** be encapsulated in a React Component with only Framework adaptation responsibility, acting as a pure adapter between components with different boundary contracts.
 
@@ -420,35 +420,35 @@ This activity **must** be encapsulated in a React Component with only Framework 
     - adapt values directly in the adapter component. **Location:** `<Component>.tsx`
     - **naming:**
 	    - framework-bound values use framework vocabulary
-	    - ShinyView-bound values use ShinyView vocabulary
+	    - View-bound values use View vocabulary
     - **when:** adaptation is small and local to one framework component
 
 2. **framework prop builder in `frameworkAdapters.ts`**
     - export pure prop builder functions. **Location:** `frameworkAdapters.ts`
     - call prop builders from the adapter component. **Location:** `<Component>.tsx`
     - **naming:**
-	    - ShinyView → framework builders are named `to<FrameworkPropsName>(...)`
-	    - framework → ShinyView builders are named `to<ShinyPropsName>(...)`
+	    - View → framework builders are named `to<FrameworkPropsName>(...)`
+	    - framework → View builders are named `to<ShinyPropsName>(...)`
     - **when:** adaptation is substantial, repeated, or needs isolated testing
 
 ### 5.2 Framework-domain command adaptation
 
-Translating framework-domain interaction facts into ShinyView command facts before command transaction construction.
+Translating framework-domain interaction facts into View command facts before command transaction construction.
 
-A framework-domain command adaptation **must** make the domain transition explicit. The transaction builder receives ShinyView command facts, not framework-shaped facts.
+A framework-domain command adaptation **must** make the domain transition explicit. The transaction builder receives View command facts, not framework-shaped facts.
 
 **Patterns allowed:**
 
 1. **framework-domain adapter function before transaction builder**
-    - export pure adapter functions that translate framework-domain values into ShinyView command facts. **Location:** `frameworkAdapters.ts`
+    - export pure adapter functions that translate framework-domain values into View command facts. **Location:** `frameworkAdapters.ts`
     - call adapter functions before calling a transaction builder. **Location:** `<Component>.tsx` or `useInteractions.ts`
-    - call the transaction builder only with ShinyView-domain values. **Location:** `transactions.ts`
-    - identity mappings **must** still go through an adapter function when the source value is framework-domain, e.g. React Flow canvas point to ShinyView diagram point
+    - call the transaction builder only with View-domain values. **Location:** `transactions.ts`
+    - identity mappings **must** still go through an adapter function when the source value is framework-domain, e.g. React Flow canvas point to View diagram point
     - **naming:**
-	    - adapter functions are named by the ShinyView value they produce, e.g. `toDiagramPoint(...)`, `toDiagramRect(...)`
+	    - adapter functions are named by the View value they produce, e.g. `toDiagramPoint(...)`, `toDiagramRect(...)`
 	    - when the source is not obvious from the file context, include the source domain, e.g. `toDiagramPointFromReactFlowPoint(...)`
 	    - transaction builders keep command naming, e.g. `toClassCreateTransaction(...)`
-    - **when:** a framework event, coordinate, state snapshot, or interaction fact contributes to a ShinyView command transaction
+    - **when:** a framework event, coordinate, state snapshot, or interaction fact contributes to a View command transaction
 
 # 6. Rendering activities implementation patterns
 
@@ -722,7 +722,7 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
 **Structure:**
 ```ts
 /**
- * @framework <source framework/domain shape to target ShinyView/framework shape>
+ * @framework <source framework/domain shape to target View/framework shape>
  */
 
 /**
@@ -796,7 +796,7 @@ Good:
 /**
  * @behavior Pointer lifecycle for class placement.
  * @render Placement draft rectangle overlay.
- * @framework React Flow canvas coordinates to ShinyView diagram placement.
+ * @framework React Flow canvas coordinates to View diagram placement.
  */
 ```
 
@@ -881,7 +881,7 @@ Good:
 ```ts
 /**
  * @behavior Placement drawing pointer lifecycle.
- * @framework React Flow canvas coordinates to ShinyView diagram placement.
+ * @framework React Flow canvas coordinates to View diagram placement.
  */
 ```
 
@@ -962,7 +962,7 @@ Bad — does not explain why reconciliation exists:
 
 ```ts
 /**
- * @framework <source framework/domain shape to target ShinyView/framework shape>
+ * @framework <source framework/domain shape to target View/framework shape>
  */
 ```
 
@@ -970,7 +970,7 @@ Good:
 
 ```ts
 /**
- * @framework ShinyView class boxes to React Flow nodes.
+ * @framework View class boxes to React Flow nodes.
  */
 ```
 
@@ -978,7 +978,7 @@ Good:
 
 ```ts
 /**
- * @framework React Flow canvas coordinates to ShinyView class creation rectangle.
+ * @framework React Flow canvas coordinates to View class creation rectangle.
  */
 ```
 

@@ -16,7 +16,7 @@ import ToolPane from "./ToolPane/ToolPane";
 import { toInitialNodePlacementState, toInitialSelectionState } from "./state";
 import { useInteractions } from "./useInteractions";
 import { useStateReconciliation } from "./useStateReconciliation";
-import styles from "./CanvasView.module.css";
+import styles from "./EditorSurface.module.css";
 
 type CanvasViewProps = {
   readonly view: DiagramView;

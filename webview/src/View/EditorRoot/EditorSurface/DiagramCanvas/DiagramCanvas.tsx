@@ -14,7 +14,7 @@ import { toInitialClassBoxPlacementState } from "./state";
 import { useInteractions } from "./useInteractions";
 import { useStateReconciliation } from "./useStateReconciliation";
 import ReactFlowCanvasAdapter from "./ReactFlowCanvasAdapter/ReactFlowCanvasAdapter";
-import styles from "./ClassDiagram.module.css";
+import styles from "./DiagramCanvas.module.css";
 
 type ClassDiagramProps = {
   readonly view: DiagramView;

@@ -7,7 +7,7 @@ import type { ReactElement } from "react";
 import ControlButton from "../../ui/ControlButton/ControlButton";
 import { GenerateIcon } from "../../ui/icons/icons";
 import { useInteractions } from "./useInteractions";
-import styles from "./MissingAnnotationsView.module.css";
+import styles from "./MissingAnnotationsSurface.module.css";
 import type { EditorViewModel } from "../../views/schema";
 
 type MissingAnnotationsViewProps = {

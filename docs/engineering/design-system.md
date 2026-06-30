@@ -7,7 +7,7 @@
 
 ## Target vision
 
-A central library of parametrized UI components (`webview/src/shinyView/ui/`) — `Button`,
+A central library of parametrized UI components (`webview/src/View/ui/`) — `Button`,
 `Panel`, etc. — each owning its own structure, style, variants, and interaction
 states (hover/focus/disabled). Feature components compose these instead of
 writing ad-hoc markup/CSS for recurring UI elements.
@@ -19,7 +19,7 @@ This library is built gradually, not upfront (see Rule 2).
 - **Rule 1: Colocated CSS Modules (static components)** — every component owns a
   sibling `.module.css`; no inline style declarations, no shared style fragments.
 - **Rule 2: Promote on repetition** — stay local until a UI element genuinely
-  repeats, then extract a parametrized component to `webview/src/shinyView/ui/`.
+  repeats, then extract a parametrized component to `webview/src/View/ui/`.
 - **Rule 3: Two-tier design tokens, palette-first** — `--vscode-*` tokens map to
   a small `--shiny-*` palette (named by color character, not application) in
   `styles.css`; components pick palette entries directly.
@@ -60,7 +60,7 @@ self-contained.
 Stay local until a UI element — not just a style pattern — genuinely repeats: same
 structure, same behavior, a second real instance. Then extract a component (`.tsx`
 
-- `.module.css`) into `webview/src/shinyView/ui/`. The shared thing is always a component,
+- `.module.css`) into `webview/src/View/ui/`. The shared thing is always a component,
   never a bare CSS class or fragment — a component bundles structure, style, and
   behavior, which a CSS-only primitive can't capture without duplicating the
   behavioral part anyway.
