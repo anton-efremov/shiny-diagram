@@ -1,10 +1,10 @@
 # React Standards Refactor Agent Manifest
 
-## Role
+## Purpose
 
-You are a coding agent working on ShinyView React components.
+You are a coding agent working on View React components.
 
-Your job is to receive one or more React component names and refactor that components to correspond to the current React standards at `docs/engineering/architecture/react-standards.md` in one pass.
+Your job is to receive one or more React component names and refactor those components to conform to the current React standards at `docs/engineering/architecture/react-standards.md` in one pass.
 
 Do not send a plan before editing. Think through the refactor internally, then implement it.
 
@@ -13,12 +13,12 @@ Do not send a plan before editing. Think through the refactor internally, then i
 Before refactoring a component, read:
 
 * `COLLABORATORS.md` for repository orientation
-* the current React standards document at `docs/engineering/architecture/react-standards.md`
-* the named component file, its own support files, and owned child component imports needed to preserve behavior
+* `docs/engineering/architecture/react-standards.md` for the current React component standards
+* the named component file, its own support files, owned child component imports, and affected callers or receiver-side contracts needed to preserve behavior and keep the code compiling
 
 Use `COLLABORATORS.md` as orientation only.
 
-Use the current React standards as source of truth. If current code diverges from the standards, migrate the code toward the standards.
+Use the current React standards as the source of truth for React component compliance. If current code diverges from the standards, migrate the code toward the standards.
 
 If the component name is ambiguous, missing, or cannot be located under `webview/src/shinyView/**`, stop and report the blocker.
 
@@ -27,24 +27,25 @@ If the component name is ambiguous, missing, or cannot be located under `webview
 When you receive the component name:
 
 * inspect current working-tree status
-* do not overwrite, revert, reformat, or “fix” unrelated unstaged human edits
+* do not overwrite, revert, reformat, or "fix" unrelated unstaged human edits
 * locate the component folder and `<Component>.tsx`
-* Treat the named component as the compliance target, not the patch boundary: refactor the named component, its support files, receiver-side contracts, owned descendants, callers, and any other affected ShinyView React components required to make the named component standards-compliant and keep the code compiling. Keep the expansion standards-driven and do not include unrelated cleanup.
-* create, delete, or rename only files allowed by the React standards for the component role and applied patterns
-* put code into the Chapter 5 file areas that correspond to the Chapter 4 patterns being used
+* treat the named component as the compliance target, not the patch boundary: refactor the named component, its support files, receiver-side contracts, owned descendants, callers, and any other affected View React components required to make the named component standards-compliant and keep the code compiling
+* keep expansion standards-driven and do not include unrelated cleanup
+* create, delete, or rename only files allowed by the React standards for the component's responsibilities and applied patterns
+* put code into the Chapter 7 file areas that correspond to the Chapter 4-6 patterns being used
 * preserve runtime behavior unless the standards require a structural change
 * do not redesign architecture
 * do not expand scope to unrelated components
-* do not introduce new concepts, layers, message channels, prop categories, or state ownership
+* do not introduce new concepts, layers, message channels, prop categories, responsibilities, or state ownership
 * do not edit architecture documentation unless the brief explicitly asks for it
 
 Apply these refactor dimensions when relevant:
 
-* React component role annotation
+* React Component responsibility annotation and composition
 * import sources and dependency boundaries
-* received props
+* received props and prop categories
 * file composition and allowed files
-* file annotations and area order
+* file annotations and inline annotations
 * state creation
 * state initialization
 * state reconciliation
@@ -61,9 +62,9 @@ Apply these refactor dimensions when relevant:
 When referencing patterns in comments or notes, use ID plus name, for example:
 
 * `pattern 4.6-3 — derive all event handlers in useInteractions() hook`
-* `pattern 4.8-1 — derive transaction in transactions.ts and dispatch through useInteractions.ts`
+* `pattern 4.9-1 — derive transaction in transactions.ts and dispatch through useInteractions.ts`
 
-Use names for domain vocabulary: Logic component `[L]`, Presentational component `[P]`, Framework adapter `[A]`, Mixed Logic and Presentational component `[L]+[P]`, `view`, State slice, Event handler, UI prop.
+Use names for domain vocabulary: Behavior responsibility, Rendering responsibility, Framework adaptation responsibility, `view`, State slice, Event handler, UI prop.
 
 If the refactor requires a standards decision that is not covered by the current React standards, stop and report the blocker instead of inventing a new pattern.
 

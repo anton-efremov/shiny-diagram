@@ -1,34 +1,33 @@
 /**
- * @role  [L]
- * @logic Status interface routing and command dispatch context provision.
+ * @behavior Editor status interface routing and command dispatch context provision.
  */
 import type { ReactElement } from "react";
-import type { EditorDispatch } from "../commands/editorCommands";
-import CanvasView from "./EditorSurface/EditorSurface";
-import { CommandDispatchProvider } from "../contexts";
-import ErrorView from "./ErrorSurface/ErrorSurface";
-import MissingAnnotationsView from "./MissingAnnotationsSurface/MissingAnnotationsSurface";
 import type { EditorViewModel } from "../views/schema";
+import type { EditorDispatch } from "../commands/editorCommands";
+import { CommandDispatchProvider } from "../contexts";
+import EditorSurface from "./EditorSurface/EditorSurface";
+import ErrorSurface from "./ErrorSurface/ErrorSurface";
+import MissingAnnotationsSurface from "./MissingAnnotationsSurface/MissingAnnotationsSurface";
 
-type EditorViewProps = {
+type EditorRootProps = {
   readonly view: EditorViewModel;
   readonly onTransactionDispatch: EditorDispatch;
 };
 
-export default function EditorView({ view, onTransactionDispatch }: EditorViewProps): ReactElement {
-  /** Children routing decision. */
+export default function EditorRoot({ view, onTransactionDispatch }: EditorRootProps): ReactElement {
+  /** Routing: editor status interface selection. */
   let editorInterface: ReactElement;
   switch (view.status) {
     case "ready": {
-      editorInterface = <CanvasView view={view.diagram} />;
+      editorInterface = <EditorSurface view={view.diagram} />;
       break;
     }
     case "invalidSyntax": {
-      editorInterface = <ErrorView message={view.message} />;
+      editorInterface = <ErrorSurface message={view.message} />;
       break;
     }
     case "missingAnnotations": {
-      editorInterface = <MissingAnnotationsView view={view} />;
+      editorInterface = <MissingAnnotationsSurface view={view} />;
       break;
     }
   }
