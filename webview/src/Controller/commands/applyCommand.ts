@@ -2,11 +2,7 @@
  * @fileoverview Applies View editor command transactions to source edits.
  */
 
-import type {
-  EditorCommand,
-  EditorCommandOf,
-  EditorCommandTransaction,
-} from "../../View/commands";
+import type { EditorCommand, EditorCommandOf, EditorCommandTransaction } from "../../View/commands";
 import type { ClassId } from "../../shared/ids";
 import type { CommandContext, CommandResult } from "./commandExecution";
 import type { SourceEdit } from "./sourceEdit";

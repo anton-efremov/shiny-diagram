@@ -2,7 +2,7 @@
 > **Document state:** Maintained
 > **Scope:** `webview/src/shinyView/**`  
 > **Audience:** Coding agents  
-> **Last reviewed:** 2026-06-29
+> **Last reviewed:** 2026-06-29  
 > **Goal** Must-follow rules of organization of code, dependencies and implementation patterns of a React component in Shiny View React component tree
 
 # 0. About the file
@@ -95,25 +95,16 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 
 - A React Component **may** compose multiple responsibilities when the composition remains locally understandable.
 - A React Component **must** declare every responsibility it performs in the file annotation.
-- A React Component **must not** perform an undeclared responsibility.
+- Responsibility composition **must** be guided by readability and maintainability, and **must** avoid both failure modes:
+	- **God component** — too many loosely related activities accumulated in one component.
+	- **Indirection stack** — too many thin components created for narrow activities that are easier to understand locally.
+- Preferred responsibility compositions:
+	- **Isolated responsibility** — one clear responsibility large enough to justify its own component.
+		- Example: framework prop and event adaptation encapsulated in one component isolates the framework contract and keeps the React tree readable.
+	- **Tightly coupled responsibilities** — several responsibilities aimed at one local UI goal and easier to understand together than split apart.
+		- Example: rendering a button with unique local behavior.
 - When one responsibility becomes substantial enough to obscure another, the component **must** split the substantial responsibility into an owned child React Component or an approved support file.
-- Behavior and Rendering **may** coexist when one of them is minor or when their code remains naturally local to one UI area.
-- Framework adaptation **may** coexist with Behavior or Rendering only when the adapted boundary is local to the same UI area and the framework-to-Shiny transition is explicit.
-- Framework adaptation **must** name the source framework/domain and the target ShinyView domain.
-- Rendering **must not** hide Behavior decisions. Behavior decisions used by rendering **must** be expressed as named values before rendering when they are non-obvious.
-- Behavior **must not** hide Framework adaptation. Framework-shaped values **must** be translated before they are used as ShinyView state, props, or command payloads.
 - Responsibility composition **must** reduce local clarity cost. It **must not** be used to justify large mixed components.
-
-### 1.3 Component naming based on composition
-
-- A React Component name **must** describe the ShinyView UI layer or boundary it provides to its caller.
-- A React Component name **must not** be a dump of its internal responsibilities.
-- A React Component name **must not** include `Adapter` only because the component performs Framework adaptation responsibility.
-- Framework names **may** appear in a React Component name when the caller is explicitly composing a framework-backed boundary, e.g. `ReactFlow<Component>`.
-- Framework names **must not** appear in a React Component name when the framework is only an internal implementation detail.
-- Product/UI names are preferred at ordinary ShinyView call sites, e.g. `ClassDiagramCanvas`, `PlacementOverlay`, `ClassTools`.
-- Framework-boundary names are appropriate where the caller is intentionally entering a framework-backed boundary, e.g. `ReactFlowCanvas`, `ReactFlowClassNode`, `ReactFlowViewport`.
-- A component that mainly groups a UI area **should** be named after that area, not after the responsibilities it happens to compose.
 
 # 2. Import rules
 
@@ -144,18 +135,21 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 6. `webview/src/shinyView/config/editorUiConfig.ts` — static UI constants (fixed offsets, sizes, timings).
 	- UI constants **must** be defined here and read from here, **never** hard-coded at the use site.
 
-7. `webview/src/shinyView/EditorView/contexts` — exposes `useDispatchTransaction`, the consumer hook for the single `EditorDispatch` channel carrying command transactions to the Controller
+7. `webview/src/shinyView/utils/<utilityName>.ts` — centralized ShinyView utilities: pure, framework-independent functions used by multiple components, or algorithms that require separate testing and development cycle, e.g. a layout algorithm.
+	- new utilities **must not** be introduced as part of React Component development or refactor; they must be added separately
+
+8. `webview/src/shinyView/EditorView/contexts` — exposes `useDispatchTransaction`, the consumer hook for the single `EditorDispatch` channel carrying command transactions to the Controller
 	- **the only** dispatch hook; **the only** non-prop transport in ShinyView
 
-8. **own children** — components it exclusively owns, each nested one level inside its folder as `ChildName/ChildName.tsx`
+9. **own children** — components it exclusively owns, each nested one level inside its folder as `ChildName/ChildName.tsx`
 	- **only** the child component export; **never** its types, support files, or any other folder internals
 
-9. **approved third-party framework libraries** — the framework component and its utilities
+10. **approved third-party framework libraries** — the framework component and its utilities
 	- **must only** be imported by files that implement Framework adaptation responsibility
 
-10. **React and browser APIs** — rendering, lifecycle, focus, measurement, event registration.
+11. **React and browser APIs** — rendering, lifecycle, focus, measurement, event registration.
 
-11. **own support files** — `state.ts`, `transactions.ts`, `useInteractions.ts`, `*.module.css`, `childProps.ts`, `useStateReconciliation.ts`, `frameworkAdapters.ts` sitting flat beside the component file
+12. **own support files** — `state.ts`, `transactions.ts`, `useInteractions.ts`, `*.module.css`, `childProps.ts`, `useStateReconciliation.ts`, `frameworkAdapters.ts` sitting flat beside the component file
 	- a component imports **only** its own support files, **never** another component's.
 
 ### 2.2 Forbidden import sources
@@ -202,25 +196,25 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 
 ### 3.3 Responsibility prop contracts
 
-1. **Behavior responsibility**
+1. **Component implementing Behavior responsibility**
 	- **may** receive `view`, State slice, and Event handler props.
 	- **may** receive UI props only when composed with Rendering responsibility.
 	- **must not** receive framework-shaped props.
 
-2. **Rendering responsibility**
+2. **Component implementing Rendering responsibility**
 	- **may** receive `view`, State slice, Event handler, and UI props.
 	- **must** treat received UI props as already-decided render values.
 	- **must not** compute UI props from editor state unless composed with Behavior responsibility.
 
-3. **Framework adaptation responsibility**
+3. **Component implementing Framework adaptation responsibility**
 	- **may** receive `view`, State slice, Event handler, and UI props on its ShinyView-facing boundary.
+	- **may** receive framework-shaped props on its framework-facing boundary.
 	- **must not** receive framework-shaped props on its ShinyView-facing boundary.
 	- **must** translate framework-shaped props internally or through `frameworkAdapters.ts`.
 
-4. **Multiple responsibilities**
+4. **Component implementing multiple responsibilities**
 	- **may** receive the union of prop categories allowed by the responsibilities it declares.
-	- **must** use every received prop according to its prop category in 3.2.
-	- **must not** invent prop shapes to connect composed responsibilities.
+
 # 4. Behavior activities implementation patterns
 
 ### 4.1 State creation
@@ -398,8 +392,10 @@ Choosing which child interface renders, from a discriminated view or a derived s
 
 **Patterns allowed:**
 
-1. **inline binary select**
-	- select the child interface inline with a ternary over a derived condition. **Location:** `<Component>.tsx`
+1. **inline binary select**	
+	- select the child interface inline with a ternary over a derived condition. **Location:** `<Component>.tsx`	
+	- the routing condition **may** be assigned to a named binding before `return` when it is non-obvious or reused. **Location:** `<Component>.tsx`	
+	- **naming:** routing condition binding is named by the interface decision, e.g. `shouldRenderStylePane`, `shouldRenderPlacementOverlay`	
 	- **when:** exactly two branches
 2. **exhaustive switch + named binding**
 	- assign the selected interface to a binding via an exhaustive `switch` over the view discriminant. **Location:** `<Component>.tsx`
@@ -525,7 +521,7 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
  */
 
 /** ── routing area ──
- * Patterns: 4.10-2
+ * Patterns: 4.10-1, 4.10-2
  */
 
   return ( ... );
@@ -1028,7 +1024,7 @@ Inline annotations mark source-code blocks that implement responsibility activit
 - Helper function area **must** have inline annotation
 - Import area, type area, component declaration area, render return area, UI constants definition area **must not** have inline annotations.
 - "State creation" area **must** include clarification whether it is local or ledger state
-- There always must be an empty line before the inline area annotation (including empty line after function signature)
+- There **must** be an empty line before an inline area annotation, except when the annotation is the first statement inside a function body, because Prettier removes that leading blank line.
 - Other ordinary code comments are allowed when they follow general coding rules.
 - Existing ordinary code comments **must not** be erased only because they are not standard Component annotations.
 
