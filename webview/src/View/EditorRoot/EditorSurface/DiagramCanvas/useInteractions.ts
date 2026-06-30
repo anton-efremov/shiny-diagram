@@ -1,6 +1,6 @@
 /**
- * @logic ClassDiagram class box placement state updates and class move command dispatch decisions.
- * @state classBoxPlacementState updates from framework-neutral position changes.
+ * @behavior Class box placement state updates and class move command dispatch handlers.
+ * @state ClassBoxPlacementState updates from framework-neutral position changes.
  */
 
 import { useCallback } from "react";
@@ -26,15 +26,13 @@ type UseInteractionsInput = {
   readonly setClassBoxPlacementState: Dispatch<SetStateAction<ClassBoxPlacementState>>;
 };
 
-/** ── interaction hook area ──
- * Patterns: 4.6-3, 4.8-2, 4.9-1
- */
 export function useInteractions({
   view,
   setClassBoxPlacementState,
 }: UseInteractionsInput): Interactions {
   const dispatchCommand = useDispatchTransaction();
 
+  // Event handler props derivation
   const onClassBoxPlacementChange = useCallback(
     (changes: readonly ClassBoxPlacementChange[]) => {
       setClassBoxPlacementState((state) => applyClassBoxPlacementChanges(state, changes));
@@ -49,6 +47,7 @@ export function useInteractions({
         return [{ classId: pos.classId, position: { x: pos.x, y: pos.y } }];
       });
       if (moves.length > 0) {
+        // Implementing interaction through command transaction
         dispatchCommand(toClassMoveTransaction(moves));
       }
     },
@@ -58,6 +57,7 @@ export function useInteractions({
   return { onClassBoxPlacementChange, onDragComplete };
 }
 
+// Private helpers
 function applyClassBoxPlacementChanges(
   state: ClassBoxPlacementState,
   changes: readonly ClassBoxPlacementChange[]

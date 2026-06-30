@@ -1,6 +1,5 @@
 /**
- * @role [A] Framework adapter
- * @adapts React Flow canvas, controlled node descriptors, and event callbacks.
+ * @framework View diagram canvas props to React Flow canvas props and events.
  */
 
 import { useMemo } from "react";
@@ -13,8 +12,8 @@ import type {
   NodePlacementState,
   SelectionState,
 } from "../../../../state/editorStates";
-import { toClassBoxNodeDescriptors, toRelationshipEdgeDescriptors } from "./reactFlowAdapters";
-import { useReactFlowCanvasAdapterInteractions } from "./useInteractions";
+import { toClassBoxNodeDescriptors, toRelationshipEdgeDescriptors } from "./frameworkAdapters";
+import { useInteractions } from "./useInteractions";
 import PlacementOverlay from "./PlacementOverlay/PlacementOverlay";
 import ReactFlowClassBoxNodeAdapter from "./ReactFlowClassBoxAdapter/ReactFlowClassBoxAdapter";
 
@@ -49,7 +48,7 @@ export default function ReactFlowCanvasAdapter({
   onSelectionClear,
   onPlacementComplete,
 }: ReactFlowCanvasAdapterProps): ReactElement {
-  // @job connect:framework:props
+  // Framework prop and event adaptation
   const rfNodes = useMemo(
     () => toClassBoxNodeDescriptors(view.classes, selectionState.classIds, classBoxPlacementState),
     [view.classes, selectionState.classIds, classBoxPlacementState]
@@ -59,7 +58,6 @@ export default function ReactFlowCanvasAdapter({
     [view.classes, view.relationships, classBoxPlacementState]
   );
 
-  // @job connect:event:wire
   const callbacks = useMemo(
     () => ({
       onClassBoxPlacementChange,
@@ -70,8 +68,11 @@ export default function ReactFlowCanvasAdapter({
     [onClassBoxPlacementChange, onDragComplete, onSelectionChangeProp, onSelectionClear]
   );
 
-  const { onNodesChange, onNodeDragStop, onSelectionChange, onPaneClick } =
-    useReactFlowCanvasAdapterInteractions(view, callbacks);
+  // Event handler props derivation
+  const { onNodesChange, onNodeDragStop, onSelectionChange, onPaneClick } = useInteractions(
+    view,
+    callbacks
+  );
 
   return (
     <ReactFlowProvider>

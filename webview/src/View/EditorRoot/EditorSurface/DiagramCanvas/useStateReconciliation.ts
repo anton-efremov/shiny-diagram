@@ -1,5 +1,5 @@
 /**
- * @state classBoxPlacementState repaired against canonical class views.
+ * @behavior ClassBoxPlacementState reconciliation when class views change.
  */
 
 import { useEffect } from "react";
@@ -13,9 +13,7 @@ type StateReconciliationInput = {
   readonly setClassBoxPlacementState: Dispatch<SetStateAction<ClassBoxPlacementState>>;
 };
 
-/** ── state reconciliation hook area ──
- * Patterns: 4.3-1
- */
+// State reconciliation
 export function useStateReconciliation({
   view,
   setClassBoxPlacementState,
@@ -25,6 +23,7 @@ export function useStateReconciliation({
   }, [view, setClassBoxPlacementState]);
 }
 
+// Private helpers
 function reconcileClassBoxPlacementWithClassViews(
   state: ClassBoxPlacementState,
   classes: readonly ClassView[]

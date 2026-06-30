@@ -12,7 +12,7 @@ import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../shared/
 import type { Rect } from "../../shared/geometry";
 import type { PlaceableNodeKind } from "../../shared/nodeKinds";
 /*
- * Owned by: DiagramCanvas.
+ * Owned by: EditorSurface.
  *
  * Canonical selected editor entities. Consumers interpret this state for their
  * own scenarios, such as style inspection, shortcuts, canvas affordances, or
@@ -34,7 +34,7 @@ export type SelectionState = {
 export type NodePlacementState = PlaceableNodeKind | null;
 
 /*
- * Owned by: ClassDiagram.
+ * Owned by: DiagramCanvas.
  *
  * Framework-neutral transient class-box placement. It mirrors source-derived class
  * placement while React Flow interactions are in progress, before final editor

@@ -1,27 +1,25 @@
 /**
- * @fileoverview ClassBox interaction pipeline.
- * Translates framework-neutral resize data into class position and size transactions.
+ * @behavior Class resize command dispatch handler.
  */
 
 import { useCallback } from "react";
 import type { Rect } from "../../../../../../../shared/geometry";
 import type { ClassId } from "../../../../../../../shared/ids";
 import { useDispatchTransaction } from "../../../../../../contexts";
-import { toClassResizeTransaction } from "./commands";
+import { toClassResizeTransaction } from "./transactions";
 
-type UseClassBoxInteractionsResult = {
+type Interactions = {
   readonly onResizeEnd: (rect: Rect) => void;
 };
 
-export function useClassBoxInteractions(classId: ClassId): UseClassBoxInteractionsResult {
+export function useInteractions(classId: ClassId): Interactions {
   const dispatchCommand = useDispatchTransaction();
 
+  // Event handler props derivation
   const onResizeEnd = useCallback(
     (rect: Rect) => {
-      // @job logic:command:derive
+      // Implementing interaction through command transaction
       const transaction = toClassResizeTransaction(classId, rect);
-
-      // @job connect:command:wire
       dispatchCommand(transaction);
     },
     [classId, dispatchCommand]

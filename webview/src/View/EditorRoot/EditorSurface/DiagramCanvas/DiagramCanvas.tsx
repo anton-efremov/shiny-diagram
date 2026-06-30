@@ -1,8 +1,6 @@
 /**
- * @role [L]+[P]
- * @logic ClassBoxPlacementState lifecycle and class diagram interaction routing.
- * @state classBoxPlacementState: framework-neutral class box positions and dimensions.
- * @presents Diagram shell and empty state.
+ * @behavior ClassBoxPlacementState lifecycle and class diagram interaction routing.
+ * @render Diagram shell and empty state.
  */
 
 import { useState } from "react";
@@ -16,7 +14,7 @@ import { useStateReconciliation } from "./useStateReconciliation";
 import ReactFlowCanvasAdapter from "./ReactFlowCanvasAdapter/ReactFlowCanvasAdapter";
 import styles from "./DiagramCanvas.module.css";
 
-type ClassDiagramProps = {
+type DiagramCanvasProps = {
   readonly view: DiagramView;
   readonly selectionState: SelectionState;
   readonly nodePlacementState: NodePlacementState;
@@ -25,29 +23,28 @@ type ClassDiagramProps = {
   readonly onPlacementComplete: () => void;
 };
 
-export default function ClassDiagram({
+export default function DiagramCanvas({
   view,
   selectionState,
   nodePlacementState,
-  onSelectionChange: onSelectionChangeProp,
+  onSelectionChange,
   onSelectionClear,
   onPlacementComplete,
-}: ClassDiagramProps): ReactElement {
-  /** State: framework-neutral class box positions and dimensions */
+}: DiagramCanvasProps): ReactElement {
+  // State creation: ledger state - framework-neutral class box positions and dimensions
   const [classBoxPlacementState, setClassBoxPlacementState] = useState(() =>
     toInitialClassBoxPlacementState(view.classes)
   );
 
-  /** State reconciliation: class box placement is repaired against canonical class views */
+  // State reconciliation
   useStateReconciliation({ view: view.classes, setClassBoxPlacementState });
 
-  /** Event handler derivation: class box placement updates and class drag transactions */
+  // Event handler props derivation
   const { onClassBoxPlacementChange, onDragComplete } = useInteractions({
     view: view.classes,
     setClassBoxPlacementState,
   });
 
-  /** Render return */
   return (
     <section className={styles.diagramShell} aria-label="Static editor boxes">
       {view.classes.length === 0 ? (
@@ -60,7 +57,7 @@ export default function ClassDiagram({
         classBoxPlacementState={classBoxPlacementState}
         onClassBoxPlacementChange={onClassBoxPlacementChange}
         onDragComplete={onDragComplete}
-        onSelectionChange={onSelectionChangeProp}
+        onSelectionChange={onSelectionChange}
         onSelectionClear={onSelectionClear}
         onPlacementComplete={onPlacementComplete}
       />

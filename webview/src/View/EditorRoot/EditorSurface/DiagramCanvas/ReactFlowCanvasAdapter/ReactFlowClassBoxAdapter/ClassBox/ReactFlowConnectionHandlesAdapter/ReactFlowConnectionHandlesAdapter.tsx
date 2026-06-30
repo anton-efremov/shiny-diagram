@@ -1,7 +1,7 @@
 /**
- * @role [A] Framework adapter
- * @adapts Handle: translates editor-facing connection handle descriptors to React Flow Handle props.
+ * @framework View connection handle descriptors to React Flow Handle props.
  */
+
 import { Handle, Position } from "@xyflow/react";
 
 const SIDE_TO_POSITION: Record<string, Position> = {
@@ -11,7 +11,7 @@ const SIDE_TO_POSITION: Record<string, Position> = {
   left: Position.Left,
 };
 
-export type ConnectionHandleDescriptor = {
+type ConnectionHandleDescriptor = {
   readonly id: string;
   readonly direction: "source" | "target";
   readonly side: "top" | "right" | "bottom" | "left";
@@ -26,7 +26,7 @@ export default function ReactFlowConnectionHandlesAdapter({
   handles,
   className,
 }: ReactFlowConnectionHandlesAdapterProps) {
-  // @job connect:framework:props
+  // Framework prop and event adaptation
   return (
     <>
       {handles.map(({ id, direction, side }) => (

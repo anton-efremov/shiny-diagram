@@ -1,13 +1,12 @@
 /**
- * @fileoverview ReactFlowCanvasAdapter interaction pipeline.
- * Normalizes React Flow canvas events into framework-neutral callbacks for ClassDiagram.
+ * @framework React Flow canvas events to View class selection and placement callbacks.
  */
 
 import { useCallback } from "react";
 import type { NodeChange, OnNodeDrag, OnSelectionChangeFunc } from "@xyflow/react";
 import type { ClassId } from "../../../../../shared/ids";
 import type { DiagramView } from "../../../../views/schema";
-import type { ClassBoxNodeDescriptor, RelationshipEdgeDescriptor } from "./reactFlowAdapters";
+import type { ClassBoxNodeDescriptor, RelationshipEdgeDescriptor } from "./frameworkAdapters";
 
 type ClassBoxPlacementChange = {
   readonly classId: ClassId;
@@ -22,7 +21,7 @@ type ReactFlowCanvasAdapterCallbacks = {
   readonly onSelectionClear: () => void;
 };
 
-type UseReactFlowCanvasAdapterInteractionsResult = {
+type Interactions = {
   readonly onNodesChange: (changes: NodeChange<ClassBoxNodeDescriptor>[]) => void;
   readonly onNodeDragStop: OnNodeDrag<ClassBoxNodeDescriptor>;
   readonly onSelectionChange: OnSelectionChangeFunc<
@@ -32,11 +31,11 @@ type UseReactFlowCanvasAdapterInteractionsResult = {
   readonly onPaneClick: () => void;
 };
 
-export function useReactFlowCanvasAdapterInteractions(
+export function useInteractions(
   view: Pick<DiagramView, "classes">,
   callbacks: ReactFlowCanvasAdapterCallbacks
-): UseReactFlowCanvasAdapterInteractionsResult {
-  // @job connect:event:normalize
+): Interactions {
+  // Framework prop and event adaptation
   const onNodesChange = useCallback(
     (changes: NodeChange<ClassBoxNodeDescriptor>[]) => {
       const positionChanges = changes.flatMap((change) => {
@@ -50,6 +49,7 @@ export function useReactFlowCanvasAdapterInteractions(
     [callbacks]
   );
 
+  // Framework prop and event adaptation
   const onNodeDragStop = useCallback<OnNodeDrag<ClassBoxNodeDescriptor>>(
     (_event, _node, rfNodes) => {
       const finalPositions = rfNodes.flatMap((rfNode) => {
@@ -61,6 +61,7 @@ export function useReactFlowCanvasAdapterInteractions(
     [callbacks]
   );
 
+  // Framework prop and event adaptation
   const onSelectionChange = useCallback<
     OnSelectionChangeFunc<ClassBoxNodeDescriptor, RelationshipEdgeDescriptor>
   >(
@@ -76,7 +77,7 @@ export function useReactFlowCanvasAdapterInteractions(
     [callbacks, view.classes]
   );
 
-  // @job connect:event:wire
+  // Framework prop and event adaptation
   const onPaneClick = useCallback(() => {
     callbacks.onSelectionClear();
   }, [callbacks]);

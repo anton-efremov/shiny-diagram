@@ -1,6 +1,5 @@
 /**
- * @fileoverview ReactFlowCanvasAdapter framework projection helpers.
- * Translates editor-facing class and relationship views into React Flow node and edge descriptors.
+ * @framework View diagram canvas props and React Flow event payloads to adapter boundary values.
  */
 
 import type { Edge as ReactFlowEdge, Node as ReactFlowNode } from "@xyflow/react";
@@ -17,7 +16,7 @@ export type ClassBoxNodeData = {
 export type ClassBoxNodeDescriptor = ReactFlowNode<ClassBoxNodeData, "classBox">;
 export type RelationshipEdgeDescriptor = ReactFlowEdge;
 
-// @job connect:framework:props
+// Framework prop and event adaptation
 export function toClassBoxNodeDescriptors(
   classes: readonly ClassView[],
   selectedClassIds: readonly ClassId[],
@@ -46,6 +45,7 @@ export function toClassBoxNodeDescriptors(
   });
 }
 
+// Framework prop and event adaptation
 export function toRelationshipEdgeDescriptors(
   classes: readonly ClassView[],
   relationships: readonly RelationshipView[],
@@ -83,6 +83,19 @@ export function toRelationshipEdgeDescriptors(
   });
 }
 
+// Framework prop and event adaptation
+export function normalizePositionChanges(
+  view: Pick<DiagramView, "classes">,
+  rfNodes: ClassBoxNodeDescriptor[]
+): ReadonlyArray<{ readonly classId: ClassId; readonly x: number; readonly y: number }> {
+  const classIds = new Set(view.classes.map((c) => c.classId));
+  return rfNodes.flatMap((node) => {
+    if (node.type !== "classBox" || !classIds.has(node.data.view.classId)) return [];
+    return [{ classId: node.data.view.classId, x: node.position.x, y: node.position.y }];
+  });
+}
+
+// Private helpers
 type BoxSide = "top" | "right" | "bottom" | "left";
 
 function chooseSourceSide(source: Rect, target: Rect): BoxSide {
@@ -110,16 +123,4 @@ function oppositeSide(side: BoxSide): BoxSide {
     case "left":
       return "right";
   }
-}
-
-// @job connect:event:normalize
-export function normalizePositionChanges(
-  view: Pick<DiagramView, "classes">,
-  rfNodes: ClassBoxNodeDescriptor[]
-): ReadonlyArray<{ readonly classId: ClassId; readonly x: number; readonly y: number }> {
-  const classIds = new Set(view.classes.map((c) => c.classId));
-  return rfNodes.flatMap((node) => {
-    if (node.type !== "classBox" || !classIds.has(node.data.view.classId)) return [];
-    return [{ classId: node.data.view.classId, x: node.position.x, y: node.position.y }];
-  });
 }

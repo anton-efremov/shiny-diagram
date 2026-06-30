@@ -1,15 +1,14 @@
 /**
- * @role [L]+[P] Logic and Presentational
- * @logic class position and size command derivation.
- * @presents Class-box node.
+ * @behavior Class resize command dispatch.
+ * @render Class-box node.
  */
+
 import type { ReactElement } from "react";
 import type { CSSProperties } from "react";
 import ReactFlowConnectionHandlesAdapter from "./ReactFlowConnectionHandlesAdapter/ReactFlowConnectionHandlesAdapter";
-import type { ConnectionHandleDescriptor } from "./ReactFlowConnectionHandlesAdapter/ReactFlowConnectionHandlesAdapter";
 import ReactFlowNodeResizerAdapter from "./ReactFlowNodeResizerAdapter/ReactFlowNodeResizerAdapter";
 import MemberTable from "./MemberTable/MemberTable";
-import { useClassBoxInteractions } from "./useInteractions";
+import { useInteractions } from "./useInteractions";
 import type { ClassView } from "../../../../../../views/schema";
 import styles from "./ClassBox.module.css";
 
@@ -18,6 +17,12 @@ type ClassBoxProps = {
   readonly isSelected: boolean;
   readonly isDragging: boolean;
   readonly isResizeVisible: boolean;
+};
+
+type ConnectionHandleDescriptor = {
+  readonly id: string;
+  readonly direction: "source" | "target";
+  readonly side: "top" | "right" | "bottom" | "left";
 };
 
 const CONNECTION_HANDLES: readonly ConnectionHandleDescriptor[] = [
@@ -37,10 +42,10 @@ export default function ClassBox({
   isDragging,
   isResizeVisible,
 }: ClassBoxProps): ReactElement {
-  // @job connect:event:wire
-  const { onResizeEnd } = useClassBoxInteractions(view.classId);
+  // Event handler props derivation
+  const { onResizeEnd } = useInteractions(view.classId);
 
-  // @job render:style
+  // UI props derivation
   const className = [
     styles.classBox,
     isSelected ? styles.selected : "",
@@ -57,7 +62,6 @@ export default function ClassBox({
       } as CSSProperties)
     : undefined;
 
-  // @job render:structure
   return (
     <div className={className} style={dynamicVars} title={view.classId}>
       <ReactFlowNodeResizerAdapter
@@ -83,7 +87,7 @@ export default function ClassBox({
           {view.header.label}
         </div>
       </header>
-      <MemberTable view={view} isSelected={isSelected} />
+      <MemberTable view={{ members: view.members }} isSelected={isSelected} />
     </div>
   );
 }

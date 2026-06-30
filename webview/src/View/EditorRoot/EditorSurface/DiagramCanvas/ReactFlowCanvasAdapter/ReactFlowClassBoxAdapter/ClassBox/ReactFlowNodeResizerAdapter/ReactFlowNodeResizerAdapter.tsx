@@ -1,7 +1,7 @@
 /**
- * @role [A] Framework adapter
- * @adapts NodeResizer: translates a resize-control view and a framework-neutral callback to NodeResizer props.
+ * @framework View resize-control props and callback to React Flow NodeResizer props.
  */
+
 import { useCallback } from "react";
 import type { OnResizeEnd } from "@xyflow/react";
 import { NodeResizer } from "@xyflow/react";
@@ -27,7 +27,7 @@ export default function ReactFlowNodeResizerAdapter({
   lineClassName,
   onResizeEnd: onResizeEndCallback,
 }: ReactFlowNodeResizerAdapterProps) {
-  // @job connect:event:normalize
+  // Framework prop and event adaptation
   const onResizeEnd = useCallback<OnResizeEnd>(
     (_event, params) => {
       onResizeEndCallback({ x: params.x, y: params.y, w: params.width, h: params.height });
@@ -35,7 +35,6 @@ export default function ReactFlowNodeResizerAdapter({
     [onResizeEndCallback]
   );
 
-  // @job connect:framework:props
   return (
     <NodeResizer
       nodeId={nodeId}

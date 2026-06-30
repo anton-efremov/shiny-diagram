@@ -14,6 +14,7 @@ Before implementing a brief, read:
 
 * `COLLABORATORS.md` for repository orientation
 * `docs/engineering/architecture/architectural-standards.md` for architecture rules
+* `docs/engineering/architecture/react-standards.md`
 * any additional documents named in the brief
 * the files and functions named in the brief
 

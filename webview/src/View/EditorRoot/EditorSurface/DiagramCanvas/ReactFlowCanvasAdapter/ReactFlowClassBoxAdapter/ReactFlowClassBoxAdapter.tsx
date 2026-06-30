@@ -1,15 +1,20 @@
 /**
- * @role [A] Framework adapter
- * @adapts NodeProps: translates React Flow class-box NodeProps into a framework-neutral ClassBox view.
+ * @framework React Flow class-box NodeProps to View ClassBox props.
  */
+
 import type { Node, NodeProps } from "@xyflow/react";
+import type { ClassView } from "../../../../../views/schema";
 import ClassBox from "./ClassBox/ClassBox";
-import type { ClassBoxNodeData } from "../reactFlowAdapters";
+
+type ClassBoxNodeData = {
+  readonly view: ClassView;
+  readonly isResizeVisible: boolean;
+};
 
 type ClassBoxNode = Node<ClassBoxNodeData, "classBox">;
 
 export default function ReactFlowClassBoxNodeAdapter(props: NodeProps<ClassBoxNode>) {
-  // @job connect:child:compose
+  // Framework prop and event adaptation
   return (
     <ClassBox
       view={props.data.view}
