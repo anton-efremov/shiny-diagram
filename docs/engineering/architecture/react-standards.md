@@ -132,9 +132,9 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 5. `webview/src/View/ui` — shared View presentational primitives: reusable presentational components with no editor state or decisions.
 	- the **only** source of cross-component shared visual components
 
-6. `webview/src/View/config/editorUiConfig.ts` — static scalar UI tuning constants (fixed offsets, sizes, gaps, durations, thresholds, z-indices). 
-	- these scalar constants **must** be defined here and read from here, **never** hard-coded at the use site. 
-	- component-owned static content catalogs (typed `readonly` domain literals) are **not** UI constants and stay in their component's static catalog area.
+6. `webview/src/View/config` — static View configuration read by components and support files.
+	- `editorUiConfig.ts` defines static scalar UI tuning constants: e.g. fixed offsets, sizes. These scalar constants **must** be defined here and read from here, **never** hard-coded at the use site. Component-owned static content catalogs — typed `readonly` domain literals — are **not** UI constants and stay in their component's static catalog area.
+	- `reactFlowConfig.ts` defines the application-level React Flow boundary policy: static React Flow prop objects that disable framework-owned editor behavior not delegated to React Flow.
 
 7. `webview/src/View/utils/<utilityName>.ts` — centralized View utilities: pure, framework-independent functions used by multiple components, or algorithms that require separate testing and development cycle, e.g. a layout algorithm.
 	- new utilities **must not** be introduced as part of React Component development or refactor; they must be added separately

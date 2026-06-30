@@ -12,12 +12,13 @@ import type {
   NodePlacementState,
   SelectionState,
 } from "../../../../state/editorStates";
+import { reactFlowCanvasBoundaryProps } from "../../../../config/reactFlowConfig";
 import { toClassBoxNodeDescriptors, toRelationshipEdgeDescriptors } from "./frameworkAdapters";
 import { useInteractions } from "./useInteractions";
 import PlacementOverlay from "./PlacementOverlay/PlacementOverlay";
 import ReactFlowClassBoxNodeAdapter from "./ReactFlowClassBoxAdapter/ReactFlowClassBoxAdapter";
 
-const NODE_TYPES = { classBox: ReactFlowClassBoxNodeAdapter };
+const nodeTypes = { classBox: ReactFlowClassBoxNodeAdapter };
 
 type ClassBoxPlacementChange = {
   readonly classId: ClassId;
@@ -49,6 +50,8 @@ export default function ReactFlowCanvasAdapter({
   onPlacementComplete,
 }: ReactFlowCanvasAdapterProps): ReactElement {
   // Framework prop and event adaptation
+  const isPlacementActive = nodePlacementState !== null;
+
   const rfNodes = useMemo(
     () =>
       toClassBoxNodeDescriptors(
@@ -79,22 +82,19 @@ export default function ReactFlowCanvasAdapter({
   return (
     <ReactFlowProvider>
       <ReactFlow
+        // Editable React Flow canvas boundary.
         nodes={rfNodes}
         edges={rfEdges}
-        nodeTypes={NODE_TYPES}
+        nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onNodeDragStop={onNodeDragStop}
         onPaneClick={onPaneClick}
         fitView
-        nodesDraggable={nodePlacementState === null}
-        nodesConnectable={false}
-        elementsSelectable={false}
-        nodesFocusable={false}
-        edgesFocusable={false}
-        panOnDrag={nodePlacementState === null}
-        disableKeyboardA11y
-        deleteKeyCode={null}
+        nodesDraggable={!isPlacementActive}
+        panOnDrag={!isPlacementActive}
         zoomOnScroll
+        // Keep last. This enforces Shiny's React Flow boundary policy.
+        {...reactFlowCanvasBoundaryProps}
       >
         <Background />
         <Controls showInteractive={false} />
