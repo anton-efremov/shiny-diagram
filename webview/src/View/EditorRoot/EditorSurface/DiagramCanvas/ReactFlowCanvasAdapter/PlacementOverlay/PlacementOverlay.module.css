@@ -1,11 +1,10 @@
 /**
- * @fileoverview Styles for the diagram placement overlay.
+ * @render Placement interaction overlay and draft rectangle styling.
  */
 
 .overlay {
   position: absolute;
   inset: 0;
-  z-index: 20;
   background: transparent;
   cursor: crosshair;
   user-select: none;

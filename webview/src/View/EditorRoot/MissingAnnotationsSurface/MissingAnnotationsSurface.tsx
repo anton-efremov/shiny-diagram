@@ -1,8 +1,8 @@
 /**
- * @role [L]+[P]
- * @logic Missing spatial annotation command dispatch.
- * @presents Missing-annotations editor-state interface.
+ * @behavior Missing spatial annotation command dispatch.
+ * @render Missing-annotations editor-state interface.
  */
+
 import type { ReactElement } from "react";
 import ControlButton from "../../ui/ControlButton/ControlButton";
 import { GenerateIcon } from "../../ui/icons/icons";
@@ -10,14 +10,19 @@ import { useInteractions } from "./useInteractions";
 import styles from "./MissingAnnotationsSurface.module.css";
 import type { EditorViewModel } from "../../views/schema";
 
-type MissingAnnotationsViewProps = {
-  readonly view: Extract<EditorViewModel, { readonly status: "missingAnnotations" }>;
+type MissingAnnotationsView = Pick<
+  Extract<EditorViewModel, { readonly status: "missingAnnotations" }>,
+  "missingClassIds" | "diagram"
+>;
+
+type MissingAnnotationsSurfaceProps = {
+  readonly view: MissingAnnotationsView;
 };
 
-export default function MissingAnnotationsView({
+export default function MissingAnnotationsSurface({
   view,
-}: MissingAnnotationsViewProps): ReactElement {
-  // Event handler derivation: generate missing spatial annotations.
+}: MissingAnnotationsSurfaceProps): ReactElement {
+  // Event handler props derivation
   const { onGenerate } = useInteractions({ view });
 
   return (

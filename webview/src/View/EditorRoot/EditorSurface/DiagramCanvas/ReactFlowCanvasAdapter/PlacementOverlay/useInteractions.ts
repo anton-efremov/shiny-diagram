@@ -1,18 +1,18 @@
 /**
- * @logic PlacementOverlay pointer gesture state updates and class creation command dispatch.
- * @state origin and draftRect updates from pointer gestures.
+ * @behavior Placement drawing pointer lifecycle and class creation dispatch.
+ * @state Draw origin and draft rectangle updates from pointer gestures.
+ * @framework React Flow canvas coordinates to View diagram placement.
  */
 
 import { useCallback } from "react";
 import type { Dispatch, PointerEvent, SetStateAction } from "react";
 import { useReactFlow } from "@xyflow/react";
 import type { Point, Rect } from "../../../../../../shared/geometry";
+import { PLACEMENT_OVERLAY_DRAG_THRESHOLD } from "../../../../../config/editorUiConfig";
 import { useDispatchTransaction } from "../../../../../contexts";
 import type { DrawOrigin } from "./state";
 import { toClassCreateTransaction } from "./transactions";
 import { toDiagramPoint } from "./frameworkAdapters";
-
-const DRAG_THRESHOLD = 4;
 
 type Interactions = {
   readonly onPointerDown: (event: PointerEvent<HTMLDivElement>) => void;
@@ -27,9 +27,6 @@ type UseInteractionsInput = {
   readonly onPlacementComplete: () => void;
 };
 
-/** ── interaction hook area ──
- * Patterns: 4.6-3, 4.8-2, 4.9-1
- */
 export function useInteractions({
   origin,
   setOrigin,
@@ -39,15 +36,18 @@ export function useInteractions({
   const { screenToFlowPosition } = useReactFlow();
   const dispatchCommand = useDispatchTransaction();
 
+  // Event handler props derivation
   const onPointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
       event.preventDefault();
       event.stopPropagation();
       event.currentTarget.setPointerCapture(event.pointerId);
+
+      // Framework-domain command adaptation
       setOrigin({
         pointerId: event.pointerId,
         client: { x: event.clientX, y: event.clientY },
-        flow: screenToFlowPosition({ x: event.clientX, y: event.clientY }),
+        diagram: toDiagramPoint(screenToFlowPosition({ x: event.clientX, y: event.clientY })),
       });
       setDraftRect(null);
     },
@@ -79,19 +79,18 @@ export function useInteractions({
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
       const endClient = { x: event.clientX, y: event.clientY };
-      const endFlow = screenToFlowPosition(endClient);
+
+      // Framework-domain command adaptation
+      const endDiagramPoint = toDiagramPoint(screenToFlowPosition(endClient));
       const isMeaningfulDrag =
-        Math.abs(endClient.x - origin.client.x) >= DRAG_THRESHOLD ||
-        Math.abs(endClient.y - origin.client.y) >= DRAG_THRESHOLD;
+        Math.abs(endClient.x - origin.client.x) >= PLACEMENT_OVERLAY_DRAG_THRESHOLD ||
+        Math.abs(endClient.y - origin.client.y) >= PLACEMENT_OVERLAY_DRAG_THRESHOLD;
       setOrigin(null);
       setDraftRect(null);
       if (!isMeaningfulDrag) return;
 
-      const startDiagramPoint = toDiagramPoint(origin.flow);
-      const endDiagramPoint = toDiagramPoint(endFlow);
-      const transaction = toClassCreateTransaction(
-        normalizeRect(startDiagramPoint, endDiagramPoint)
-      );
+      // Implementing interaction through command transaction
+      const transaction = toClassCreateTransaction(normalizeRect(origin.diagram, endDiagramPoint));
       dispatchCommand(transaction);
       onPlacementComplete();
     },
@@ -101,6 +100,7 @@ export function useInteractions({
   return { onPointerDown, onPointerMove, onPointerUp };
 }
 
+// Private helpers
 function normalizeRect(first: Point, second: Point): Rect {
   const x = Math.min(first.x, second.x);
   const y = Math.min(first.y, second.y);

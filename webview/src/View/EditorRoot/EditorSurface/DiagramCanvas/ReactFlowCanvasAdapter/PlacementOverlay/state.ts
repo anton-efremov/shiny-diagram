@@ -1,5 +1,5 @@
 /**
- * @state origin and draftRect initial values for placement gestures.
+ * @behavior Initial draw origin and draft rectangle state for placement gestures.
  */
 
 import type { Point, Rect } from "../../../../../../shared/geometry";
@@ -7,15 +7,14 @@ import type { Point, Rect } from "../../../../../../shared/geometry";
 export type DrawOrigin = {
   readonly pointerId: number;
   readonly client: Point;
-  readonly flow: Point;
+  readonly diagram: Point;
 };
 
-/** Initial state: draw gesture anchor */
+// State initialization
 export function toInitialOrigin(): DrawOrigin | null {
   return null;
 }
 
-/** Initial state: current placement outline */
 export function toInitialDraftRect(): Rect | null {
   return null;
 }

@@ -27,7 +27,11 @@ export default function EditorRoot({ view, onTransactionDispatch }: EditorRootPr
       break;
     }
     case "missingAnnotations": {
-      editorInterface = <MissingAnnotationsSurface view={view} />;
+      editorInterface = (
+        <MissingAnnotationsSurface
+          view={{ missingClassIds: view.missingClassIds, diagram: view.diagram }}
+        />
+      );
       break;
     }
   }

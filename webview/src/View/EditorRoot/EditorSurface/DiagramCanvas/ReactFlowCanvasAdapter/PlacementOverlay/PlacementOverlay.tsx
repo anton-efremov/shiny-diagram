@@ -1,13 +1,13 @@
 /**
- * @role [L]+[P]
- * @logic Placement gesture state lifecycle.
- * @state origin: draw gesture anchor; draftRect: current placement outline.
- * @presents Placement interaction overlay and draft rectangle.
+ * @behavior Placement gesture state lifecycle and active placement routing.
+ * @render Placement interaction overlay and draft rectangle.
+ * @framework Translates internal React Flow coordinates into diagram coordinates.
  */
 
 import { useState } from "react";
 import type { ReactElement, CSSProperties } from "react";
 import type { NodePlacementState } from "../../../../../state/editorStates";
+import { PLACEMENT_OVERLAY_Z_INDEX } from "../../../../../config/editorUiConfig";
 import { toDraftStyle } from "./childProps";
 import { toInitialDraftRect, toInitialOrigin } from "./state";
 import { useInteractions } from "./useInteractions";
@@ -22,14 +22,15 @@ export default function PlacementOverlay({
   nodePlacementState,
   onPlacementComplete,
 }: PlacementOverlayProps): ReactElement | null {
-  /** State: draw gesture anchor and current placement outline */
+  // State creation: local states - draw gesture anchor and current placement outline
   const [origin, setOrigin] = useState(() => toInitialOrigin());
   const [draftRect, setDraftRect] = useState(() => toInitialDraftRect());
 
-  /** Child props derivation: draft rectangle becomes CSS positioning */
+  // UI props derivation
+  const overlayStyle: CSSProperties = { zIndex: PLACEMENT_OVERLAY_Z_INDEX };
   const draftStyle: CSSProperties | undefined = toDraftStyle(draftRect);
 
-  /** Event handler derivation: pointer gestures update draft state and dispatch class creation */
+  // Event handler props derivation
   const { onPointerDown, onPointerMove, onPointerUp } = useInteractions({
     origin,
     setOrigin,
@@ -37,13 +38,13 @@ export default function PlacementOverlay({
     onPlacementComplete,
   });
 
-  /** Children routing decision */
+  // Child component routing
   if (nodePlacementState !== "class") return null;
 
-  /** Render return */
   return (
     <div
       className={styles.overlay}
+      style={overlayStyle}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}

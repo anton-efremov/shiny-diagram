@@ -1,13 +1,11 @@
 /**
- * @logic PlacementOverlay command transaction derivation.
+ * @behavior Class creation transaction derivation from placement rectangle.
  */
 
 import type { Rect } from "../../../../../../shared/geometry";
 import type { EditorCommandTransaction } from "../../../../../commands/editorCommands";
 
-/** ── transaction builder area ──
- * Patterns: 4.9-1
- */
+// Implementing interaction through command transaction
 export function toClassCreateTransaction(rect: Rect): EditorCommandTransaction {
   return [
     {
