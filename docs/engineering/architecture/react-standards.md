@@ -16,7 +16,6 @@
 - [1. React Component responsibilities and composition](#1-react-component-responsibilities-and-composition)
 	- [1.1 React Component responsibilities](#11-react-component-responsibilities)
 	- [1.2 Responsibilities composition in React Component](#12-responsibilities-composition-in-react-component)
-	- [1.3 Component naming based on composition](#13-component-naming-based-on-composition)
 - [2. Import rules](#2-import-rules)
 	- [2.1 Allowed import sources](#21-allowed-import-sources)
 	- [2.2 Forbidden import sources](#22-forbidden-import-sources)
@@ -68,13 +67,14 @@ Responsibility
 ```
 ### 0.3 Reference discipline
 
-1. Referable numbered items use `<section-id>-<item-number>`, e.g. `4.6-3`, `5.2-7`.
-2. Pattern and area IDs **may** be used alone only as structural links, especially between Chapter 4 patterns and Chapter 5 file areas.
-3. Domain vocabulary **must** be written by name, not by ID: Logic component `[L]`, Presentational component `[P]`, `view`, State slice, Event handler, UI prop.
-4. In prose, review comments, migration notes, and execution planning, a pattern **must** be referred to by ID plus name:
+1. Referable numbered implementation patterns use `<section-id>-<item-number>`, e.g. `4.6-3`, `5.2-1`.
+2. Pattern IDs **may** be used alone as structural links, especially between Chapter 4-6 patterns and Chapter 7 file areas.
+3. Chapter 7 areas **should** be referred to by file name and area name, e.g. `PlacementOverlay.tsx interactions area`.
+4. Domain vocabulary **must** be written by name, not by ID: Behavior responsibility, Rendering responsibility, Framework adaptation responsibility, `view`, State slice, Event handler, UI prop.
+5. In prose, review comments, migration notes, and execution planning, a pattern reference **should** include ID plus name when the name is needed for clarity:
 	- `pattern 4.6-3 — derive all event handlers in useInteractions() hook`
 	- `pattern 4.9-1 — derive transaction in transactions.ts and dispatch through useInteractions.ts`
-5. When item order changes, affected references **must** be updated in the same edit.
+6. When item order changes, affected references **must** be updated in the same edit.
 
 # 1. React Component responsibilities and composition
 
@@ -93,7 +93,7 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 
 ### 1.2 Responsibilities composition in React Component
 
-- A React Component **may** compose multiple responsibilities when the composition remains locally understandable.
+- A React Component **may** compose multiple responsibilities when the composition remains locally understandable, except for Framework adaptation activity 5.1 Framework prop and event adaptation, which **must not** be composed with any other responsibility
 - A React Component **must** declare every responsibility it performs in the file annotation.
 - Responsibility composition **must** be guided by readability and maintainability, and **must** avoid both failure modes:
 	- **God component** — too many loosely related activities accumulated in one component.
@@ -164,7 +164,7 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 ### 3.1 General receive rules
 
 1. A React component **must** receive **only** the minimum props its function requires.
-2. Every prop **must** belong to one of the prop categories in 3.2. A React component **must not** receive any other prop shape.
+2. Every prop except for framework-shaped props **must** belong to one of the prop categories in 3.2. A React component **must not** receive any other prop shape.
 3. A React component **must** follow the responsibility prop contract in 3.3 for its declared responsibilities.
 
 ### 3.2 Prop categories
@@ -285,9 +285,9 @@ A child's `view` or state prop is produced by **slicing** what the parent holds.
 
 ### 4.5 UI props derivation
 
-Deriving an already-decided render value for a Presentational \[P] child.
+Deriving an already-decided render value for a React Component with Rendering responsibility.
 
-A UI prop is produced by **computing** a rendered value from the parent's view props, internal state props, or owned state. It **must** be ready to render when received by the \[P] child; the child renders it and does not modify it further
+A UI prop is produced by **computing** a rendered value from the parent's view props, internal state props, or owned state. It **must** be ready to render when received by the React Component with Rendering responsibility; the child renders it and does not modify it further
 
 **Patterns allowed:**
 
@@ -423,12 +423,12 @@ This activity **must** be encapsulated in a React Component with only Framework 
 	    - View-bound values use View vocabulary
     - **when:** adaptation is small and local to one framework component
 
-2. **framework prop builder in `frameworkAdapters.ts`**
-    - export pure prop builder functions. **Location:** `frameworkAdapters.ts`
-    - call prop builders from the adapter component. **Location:** `<Component>.tsx`
+2. **framework prop and event builders in `frameworkAdapters.ts`**
+    - export pure prop and event payload builder functions. **Location:** `frameworkAdapters.ts`
+    - call builders from the adapter component. **Location:** `<Component>.tsx`
     - **naming:**
 	    - View → framework builders are named `to<FrameworkPropsName>(...)`
-	    - framework → View builders are named `to<ShinyPropsName>(...)`
+	    - framework → View builders are named `to<ViewPropsName>(...)`
     - **when:** adaptation is substantial, repeated, or needs isolated testing
 
 ### 5.2 Framework-domain command adaptation
@@ -441,7 +441,7 @@ A framework-domain command adaptation **must** make the domain transition explic
 
 1. **framework-domain adapter function before transaction builder**
     - export pure adapter functions that translate framework-domain values into View command facts. **Location:** `frameworkAdapters.ts`
-    - call adapter functions before calling a transaction builder. **Location:** `<Component>.tsx` or `useInteractions.ts`
+    - call adapter functions before calling a transaction builder. **Location:** `useInteractions.ts`
     - call the transaction builder only with View-domain values. **Location:** `transactions.ts`
     - identity mappings **must** still go through an adapter function when the source value is framework-domain, e.g. React Flow canvas point to View diagram point
     - **naming:**
@@ -494,7 +494,7 @@ No fixed patterns yet
  */
 
 /** ── constants area ──
- * Patterns: 6
+ * Patterns: none fixed yet
  * Local static constants owned by this component.
  */
 
@@ -615,7 +615,7 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
 
 **Responsibilities:** Behavior, Framework adaptation 
 
-**Patterns:** 4.6-3, 4.8-2, 5.2-1
+**Patterns:** 4.6-3, 4.8-2, 4.9-1, 5.2-1
 
 **Structure:**
 ```ts
@@ -641,7 +641,7 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
  */
 
 /** ── interaction hook area ──
- * Patterns: 4.6-3, 4.8-2, 4.9-1
+ * Patterns: 4.6-3, 4.8-2, 4.9-1, 5.2-1
  * Function: useInteractions(...)
  */
 
@@ -738,12 +738,12 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
 
 /** ── framework prop and event adaptation area ──
  * Patterns: 5.1-2
- * Functions: to<FrameworkPropsName>(...), to<ShinyPropsName>(...)
+ * Functions: to<FrameworkPropsName>(...), to<ViewPropsName>(...)
  */
 
 /** ── framework command adaptation area ──
  * Patterns: 5.2-1
- * Functions: to<ShinyCommandInputName>(...)
+ * Functions: to<ViewCommandInputName>(...)
  */
 
 /** ── private helper area ──
@@ -754,7 +754,7 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
 
 **Responsibilities:** Rendering
 
-**Patterns:** 6
+**Patterns:** none fixed yet
 
 **Structure:**
 ```css
@@ -1021,14 +1021,14 @@ Inline annotations mark source-code blocks that implement responsibility activit
 **General rules:**
 
 - Every implemented activity area **must** have an inline annotation, except areas explicitly listed below as having no annotation.
-- Helper function area **must** have inline annotation
+- Private helper area **must** have inline annotation
 - Import area, type area, component declaration area, render return area, UI constants definition area **must not** have inline annotations.
 - "State creation" area **must** include clarification whether it is local or ledger state
 - There **must** be an empty line before an inline area annotation, except when the annotation is the first statement inside a function body, because Prettier removes that leading blank line.
 - Other ordinary code comments are allowed when they follow general coding rules.
 - Existing ordinary code comments **must not** be erased only because they are not standard Component annotations.
 
-**Short area annotation format:** `<area name from chapters 4-6>`
+**Short area annotation format:** `<area name from chapters 4-6>` 
 
 - If area formally covers two responsibilities, e.g. state creation and state initialization - only the first in order **must** be written
 
@@ -1076,7 +1076,7 @@ Bad - mentions two actions for one area
   const [draftRect, setDraftRect] = useState(() => toInitialDraftRect());
 ```
 
-**Helper function are annotation**: `//Helper function area`
+**Private helper area annotation**: `// Private helper area`
 
 - No other details for area to be provided
 - Individual clarifying comments **may** be provided as part of general coding practices
