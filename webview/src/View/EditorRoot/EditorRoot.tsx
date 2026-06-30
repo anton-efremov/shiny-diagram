@@ -15,7 +15,7 @@ type EditorRootProps = {
 };
 
 export default function EditorRoot({ view, onTransactionDispatch }: EditorRootProps): ReactElement {
-  /** Routing: editor status interface selection. */
+  /** Child component routing: editor status interface selection. */
   let editorInterface: ReactElement;
   switch (view.status) {
     case "ready": {

@@ -10,6 +10,7 @@ import type { Point, Rect } from "../../../../../../shared/geometry";
 import { useDispatchTransaction } from "../../../../../contexts";
 import type { DrawOrigin } from "./state";
 import { toClassCreateTransaction } from "./transactions";
+import { toDiagramPoint } from "./frameworkAdapters";
 
 const DRAG_THRESHOLD = 4;
 
@@ -86,7 +87,11 @@ export function useInteractions({
       setDraftRect(null);
       if (!isMeaningfulDrag) return;
 
-      const transaction = toClassCreateTransaction(normalizeRect(origin.flow, endFlow));
+      const startDiagramPoint = toDiagramPoint(origin.flow);
+      const endDiagramPoint = toDiagramPoint(endFlow);
+      const transaction = toClassCreateTransaction(
+        normalizeRect(startDiagramPoint, endDiagramPoint)
+      );
       dispatchCommand(transaction);
       onPlacementComplete();
     },
