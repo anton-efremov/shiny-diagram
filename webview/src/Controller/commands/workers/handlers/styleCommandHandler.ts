@@ -32,10 +32,6 @@ export function handleStyleCommand(
         context
       );
     case "class.style.textColor.set":
-      return planClassStyleMutation(
-        { classIds: [command.classId], property: "color", value: command.textColor },
-        context
-      );
     case "class.style.borderWidth.set":
     case "class.style.borderDashPattern.set":
       return { ok: false, problem: `Command ${command.type} is not yet implemented` };

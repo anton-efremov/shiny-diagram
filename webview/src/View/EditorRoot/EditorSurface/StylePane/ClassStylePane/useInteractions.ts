@@ -9,14 +9,12 @@ import {
   toClassDeleteTransaction,
   toClassDuplicateTransaction,
   toFillColorSetTransaction,
-  toTextColorSetTransaction,
 } from "./transactions";
 import type { ClassView } from "../../../../views/schema";
 
 type Interactions = {
   readonly onFillColorChange: (fill: string) => void;
   readonly onBorderColorChange: (border: string) => void;
-  readonly onTextColorChange: (color: string) => void;
   readonly onDuplicate: () => void;
   readonly onDelete: () => void;
 };
@@ -46,15 +44,6 @@ export function useInteractions(selectedClasses: readonly ClassView[]): Interact
     [selectedClassIds, dispatchCommand]
   );
 
-  const onTextColorChange = useCallback(
-    (color: string) => {
-      if (selectedClassIds.length > 0) {
-        dispatchCommand(toTextColorSetTransaction(selectedClassIds, color));
-      }
-    },
-    [selectedClassIds, dispatchCommand]
-  );
-
   const onDelete = useCallback(() => {
     if (selectedClassIds.length > 0) {
       dispatchCommand(toClassDeleteTransaction(selectedClassIds));
@@ -70,7 +59,6 @@ export function useInteractions(selectedClasses: readonly ClassView[]): Interact
   return {
     onFillColorChange,
     onBorderColorChange,
-    onTextColorChange,
     onDuplicate,
     onDelete,
   };

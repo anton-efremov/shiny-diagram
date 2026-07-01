@@ -16,7 +16,7 @@
  *   this tree.
  */
 
-import type { ClassStyleProperties } from "../../shared/style";
+import type { StyleProperties } from "../../shared/style";
 import type { MemberKind, MemberPrefix, RelationshipType } from "../../shared/uml";
 import type { Rect } from "../../shared/geometry";
 import type { ClassId, MemberId, NamespaceId, RelationshipId } from "../../shared/ids";
@@ -42,14 +42,14 @@ export type ClassView = {
   readonly bounds: Rect;
   readonly header: ClassHeaderView;
   readonly members: readonly ClassMemberView[];
-  readonly style?: ClassStyleProperties;
+  readonly style?: StyleProperties;
 };
 
 export type NamespaceView = {
   readonly namespaceId: NamespaceId;
   readonly bounds: Rect;
   readonly label: string;
-  readonly style?: ClassStyleProperties;
+  readonly style?: StyleProperties;
 };
 
 export type RelationshipView = {

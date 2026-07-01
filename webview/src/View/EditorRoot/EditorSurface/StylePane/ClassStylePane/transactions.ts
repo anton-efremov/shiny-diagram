@@ -30,17 +30,6 @@ export function toBorderColorSetTransaction(
   }));
 }
 
-export function toTextColorSetTransaction(
-  selectedClassIds: readonly ClassId[],
-  textColor: string
-): EditorCommandTransaction {
-  return selectedClassIds.map((classId) => ({
-    type: "class.style.textColor.set",
-    classId,
-    textColor,
-  }));
-}
-
 export function toClassDeleteTransaction(
   selectedClassIds: readonly ClassId[]
 ): EditorCommandTransaction {

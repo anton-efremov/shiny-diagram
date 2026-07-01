@@ -7,13 +7,13 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border: 1px solid var(--class-stroke, var(--shiny-border));
+  border: var(--class-stroke-width, 1px) solid var(--class-stroke, var(--shiny-border));
   background: var(--class-fill, var(--shiny-surface));
-  color: var(--class-color, var(--shiny-text));
+  color: var(--shiny-text);
   display: flex;
   flex-direction: column;
   font-family: var(--shiny-font-family);
-  font-size: 13px;
+  font-size: var(--class-font-size, 13px);
   position: relative;
   cursor: grab;
 }

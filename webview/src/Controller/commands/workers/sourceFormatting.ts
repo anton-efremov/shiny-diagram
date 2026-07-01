@@ -4,6 +4,7 @@
 
 import type { StyleDefNode } from "../../model/diagramTree";
 import type { ClassId, StyleDefId } from "../../../shared/ids";
+import { STYLE_PROPERTIES } from "../../../shared/style";
 import type { StylePropertyName } from "../../../shared/style";
 
 /**
@@ -38,10 +39,10 @@ export function formatClassStyleApplication(classId: ClassId, styleDefId: StyleD
  */
 export function formatMinimalStyleDef(
   styleDefId: StyleDefId,
-  property: "fill" | "stroke" | "color",
+  property: StylePropertyName,
   value: string
 ): string {
-  return `classDef ${styleDefId} ${property}:${value}`;
+  return `classDef ${styleDefId} ${toSourcePropertyName(property)}:${value}`;
 }
 
 /**
@@ -78,12 +79,13 @@ export function formatStyleProperty(
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
 
-  const index = properties.findIndex((p) => p.split(":", 1)[0].trim() === property);
+  const sourceProperty = toSourcePropertyName(property);
+  const index = properties.findIndex((p) => toSemanticPropertyName(p) === property);
 
   if (index === -1) {
-    properties.push(`${property}:${value}`);
+    properties.push(`${sourceProperty}:${value}`);
   } else {
-    properties[index] = `${property}:${value}`;
+    properties[index] = `${sourceProperty}:${value}`;
   }
 
   return `${prefix}${properties.join(",")}`;
@@ -95,7 +97,7 @@ export function formatStyleProperty(
 export function formatClonedStyleDefProperty(
   style: StyleDefNode,
   styleDefId: StyleDefId,
-  property: "fill" | "stroke" | "color",
+  property: StylePropertyName,
   value: string
 ): string {
   const match = /^(\s*classDef\s+)(\w+)(\s+)(.*)$/.exec(style.location.raw);
@@ -121,7 +123,7 @@ export function formatRetargetedClassStyleApplication(
 
 function formatProperties(
   rawProperties: string,
-  property: "fill" | "stroke" | "color",
+  property: StylePropertyName,
   value: string
 ): string {
   const properties = rawProperties
@@ -129,12 +131,13 @@ function formatProperties(
     .map((p) => p.trim())
     .filter((p) => p.length > 0);
 
+  const sourceProperty = toSourcePropertyName(property);
   const index = properties.findIndex((p) => toSemanticPropertyName(p) === property);
 
   if (index === -1) {
-    properties.push(`${property}:${value}`);
+    properties.push(`${sourceProperty}:${value}`);
   } else {
-    properties[index] = `${property}:${value}`;
+    properties[index] = `${sourceProperty}:${value}`;
   }
 
   return properties.join(",");
@@ -142,12 +145,15 @@ function formatProperties(
 
 function toSemanticPropertyName(propertyText: string): string {
   const key = propertyText.split(":", 1)[0]?.trim();
-  switch (key) {
-    case "stroke-width":
-      return "strokeWidth";
-    case "stroke-dasharray":
-      return "strokeDasharray";
-    default:
-      return key;
-  }
+  return (
+    STYLE_PROPERTIES.find(
+      (styleProperty) => styleProperty.name === key || styleProperty.source === key
+    )?.name ?? key
+  );
+}
+
+function toSourcePropertyName(property: StylePropertyName): string {
+  return (
+    STYLE_PROPERTIES.find((styleProperty) => styleProperty.name === property)?.source ?? property
+  );
 }

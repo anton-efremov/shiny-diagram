@@ -2,7 +2,7 @@
  * @behavior Selected class views to render-ready class style inspector props.
  */
 
-import type { ClassStyleProperties, ClassStyleProperty } from "../../../../../shared/style";
+import type { StyleProperties, StylePropertyName } from "../../../../../shared/style";
 import type { ClassView } from "../../../../views/schema";
 
 type ClassSelectionSummaryProps =
@@ -20,7 +20,7 @@ type ClassStylePreviewProps =
   | {
       readonly kind: "visible";
       readonly label: string;
-      readonly style: ClassStyleProperties;
+      readonly style: StyleProperties;
     }
   | {
       readonly kind: "hidden";
@@ -36,7 +36,6 @@ type StyleColorControlProps = {
 type ClassStyleControlsProps = {
   readonly fill: StyleColorControlProps;
   readonly border: StyleColorControlProps;
-  readonly text: StyleColorControlProps;
 };
 
 type ClassStyleActionsProps = {
@@ -93,7 +92,6 @@ export function toClassStyleControlsProps(
   return {
     fill: toStyleColorControlProps(selectedClasses, "fill"),
     border: toStyleColorControlProps(selectedClasses, "stroke"),
-    text: toStyleColorControlProps(selectedClasses, "color"),
   };
 }
 
@@ -114,7 +112,7 @@ export function toClassStyleActionsProps(
 // Private helpers
 function toStyleColorControlProps(
   selectedClasses: readonly ClassView[],
-  property: ClassStyleProperty
+  property: StylePropertyName
 ): StyleColorControlProps {
   const commonStyleProperty = toCommonStyleProperty(selectedClasses, property);
   if (commonStyleProperty.kind === "multiple") {
@@ -135,7 +133,7 @@ function toStyleColorControlProps(
 
 function toCommonStyleProperty(
   selectedClasses: readonly ClassView[],
-  property: ClassStyleProperty
+  property: StylePropertyName
 ): CommonStyleProperty {
   const values = selectedClasses.map((selectedClass) => selectedClass.style?.[property]);
   const first = values[0];

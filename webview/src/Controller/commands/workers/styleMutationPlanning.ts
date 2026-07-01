@@ -4,6 +4,7 @@
 
 import type { ClassId, StyleDefId } from "../../../shared/ids";
 import { toStyleDefId } from "../../../shared/ids";
+import type { StylePropertyName } from "../../../shared/style";
 import type { AppliesStyleEdge, DiagramTree } from "../../model/diagramTree";
 import type { SourceLocation } from "../../model/sourceLocation";
 import type { CommandContext, CommandResult } from "../commandExecution";
@@ -18,7 +19,7 @@ import {
 
 export type StyleMutationRequest = {
   readonly classIds: readonly ClassId[];
-  readonly property: "fill" | "stroke" | "color";
+  readonly property: StylePropertyName;
   readonly value: string;
 };
 

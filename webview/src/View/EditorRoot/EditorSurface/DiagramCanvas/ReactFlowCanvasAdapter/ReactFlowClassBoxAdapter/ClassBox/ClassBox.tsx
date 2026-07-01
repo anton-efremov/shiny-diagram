@@ -61,7 +61,8 @@ export default function ClassBox({
     ? ({
         "--class-fill": view.style.fill,
         "--class-stroke": view.style.stroke,
-        "--class-color": view.style.color,
+        "--class-stroke-width": view.style.strokeWidth,
+        "--class-font-size": view.style.fontSize,
       } as CSSProperties)
     : undefined;
 

@@ -4,6 +4,7 @@
 
 import type { EditorCommand, EditorCommandOf, EditorCommandTransaction } from "../../View/commands";
 import type { ClassId } from "../../shared/ids";
+import type { StylePropertyName } from "../../shared/style";
 import type { CommandContext, CommandResult } from "./commandExecution";
 import type { SourceEdit } from "./sourceEdit";
 import { handleClassAddCommand } from "./workers/handlers/classAddCommandHandler";
@@ -22,8 +23,7 @@ import { planClassStyleMutation } from "./workers/styleMutationPlanning";
 
 type ImplementedClassStyleCommand =
   | EditorCommandOf<"class.style.fillColor.set">
-  | EditorCommandOf<"class.style.borderColor.set">
-  | EditorCommandOf<"class.style.textColor.set">;
+  | EditorCommandOf<"class.style.borderColor.set">;
 
 type DeferredCommands = {
   readonly spatialMutations: Map<ClassId, ClassSpatialMutation>;
@@ -33,7 +33,7 @@ type DeferredCommands = {
     string,
     {
       readonly classIds: ClassId[];
-      readonly property: "fill" | "stroke" | "color";
+      readonly property: StylePropertyName;
       readonly value: string;
     }
   >;
@@ -96,10 +96,10 @@ function applyEditorCommand(
 
     case "class.style.fillColor.set":
     case "class.style.borderColor.set":
-    case "class.style.textColor.set":
       deferClassStyleCommand(deferred, command);
       return { ok: true, edits: [] };
 
+    case "class.style.textColor.set":
     case "class.style.borderWidth.set":
     case "class.style.borderDashPattern.set":
       return handleStyleCommand(command, context);
@@ -187,7 +187,7 @@ function deferClassStyleCommand(
 }
 
 function toClassStyleRequest(command: ImplementedClassStyleCommand): {
-  readonly property: "fill" | "stroke" | "color";
+  readonly property: StylePropertyName;
   readonly value: string;
 } {
   switch (command.type) {
@@ -195,7 +195,5 @@ function toClassStyleRequest(command: ImplementedClassStyleCommand): {
       return { property: "fill", value: command.fillColor };
     case "class.style.borderColor.set":
       return { property: "stroke", value: command.borderColor };
-    case "class.style.textColor.set":
-      return { property: "color", value: command.textColor };
   }
 }

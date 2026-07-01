@@ -4,8 +4,8 @@
 
 .previewCard {
   overflow: hidden;
-  border: 1px solid var(--style-stroke, var(--shiny-border));
-  color: var(--style-color, var(--shiny-text));
+  border: var(--style-stroke-width, 1px) solid var(--style-stroke, var(--shiny-border));
+  font-size: var(--style-font-size, 12px);
   background: var(--style-fill, var(--shiny-surface));
 }
 
@@ -23,6 +23,6 @@
 .previewBody {
   min-height: 42px;
   padding: 10px;
-  color: var(--style-color, var(--shiny-text));
+  font-size: var(--style-font-size, 12px);
   font-size: 12px;
 }

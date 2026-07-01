@@ -3,6 +3,7 @@
  */
 
 import { toStyleDefId } from "../../../../shared/ids";
+import { STYLE_PROPERTIES } from "../../../../shared/style";
 import type { StyleDefNode, StyleProperty } from "../../../model/diagramTree";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
@@ -34,25 +35,10 @@ function parseStyleProperties(propertiesStr: string): StyleProperty[] {
     const key = part.slice(0, colonIdx).trim();
     const value = part.slice(colonIdx + 1).trim();
 
-    switch (key) {
-      case "fill":
-        properties.push({ property: "fill", value });
-        break;
-      case "stroke":
-        properties.push({ property: "stroke", value });
-        break;
-      case "color":
-        properties.push({ property: "color", value });
-        break;
-      case "stroke-width":
-      case "strokeWidth":
-        properties.push({ property: "strokeWidth", value });
-        break;
-      case "stroke-dasharray":
-      case "strokeDasharray":
-        properties.push({ property: "strokeDasharray", value });
-        break;
-    }
+    const property = STYLE_PROPERTIES.find(
+      (styleProperty) => styleProperty.name === key || styleProperty.source === key
+    );
+    if (property) properties.push({ property: property.name, value });
   }
 
   return properties;

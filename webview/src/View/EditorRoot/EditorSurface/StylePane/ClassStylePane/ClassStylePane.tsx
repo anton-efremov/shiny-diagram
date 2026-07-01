@@ -32,8 +32,7 @@ export default function ClassStylePane({ view }: ClassStylePaneProps): ReactElem
   const classStyleActionsProps = toClassStyleActionsProps(view);
 
   // Event handler props derivation
-  const { onFillColorChange, onBorderColorChange, onTextColorChange, onDuplicate, onDelete } =
-    useInteractions(view);
+  const { onFillColorChange, onBorderColorChange, onDuplicate, onDelete } = useInteractions(view);
 
   // Registering keystroke listener: Delete selected classes
   useEffect(() => {
@@ -56,7 +55,6 @@ export default function ClassStylePane({ view }: ClassStylePaneProps): ReactElem
         {...classStyleControlsProps}
         onFillColorChange={onFillColorChange}
         onBorderColorChange={onBorderColorChange}
-        onTextColorChange={onTextColorChange}
       />
       <ClassStyleActions
         {...classStyleActionsProps}

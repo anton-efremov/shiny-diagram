@@ -4,7 +4,7 @@
 
 import type { ReactElement } from "react";
 import ColorSelector from "../../../../../ui/ColorSelector/ColorSelector";
-import { BorderIcon, FillIcon, TextColorIcon } from "../../../../../ui/icons/icons";
+import { BorderIcon, FillIcon } from "../../../../../ui/icons/icons";
 import styles from "./ClassStyleControls.module.css";
 
 type StyleColorControlProps = {
@@ -17,19 +17,15 @@ type StyleColorControlProps = {
 type ClassStyleControlsProps = {
   readonly fill: StyleColorControlProps;
   readonly border: StyleColorControlProps;
-  readonly text: StyleColorControlProps;
   readonly onFillColorChange: (fill: string) => void;
   readonly onBorderColorChange: (border: string) => void;
-  readonly onTextColorChange: (color: string) => void;
 };
 
 export default function ClassStyleControls({
   fill,
   border,
-  text,
   onFillColorChange,
   onBorderColorChange,
-  onTextColorChange,
 }: ClassStyleControlsProps): ReactElement {
   return (
     <div className={styles.styleList}>
@@ -40,7 +36,6 @@ export default function ClassStyleControls({
         {...border}
         onChange={onBorderColorChange}
       />
-      <ColorSelector label="Text" icon={<TextColorIcon />} {...text} onChange={onTextColorChange} />
     </div>
   );
 }

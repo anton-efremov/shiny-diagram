@@ -3,14 +3,14 @@
  */
 
 import type { CSSProperties, ReactElement } from "react";
-import type { ClassStyleProperties } from "../../../../../../shared/style";
+import type { StyleProperties } from "../../../../../../shared/style";
 import styles from "./ClassStylePreview.module.css";
 
 type ClassStylePreviewProps =
   | {
       readonly kind: "visible";
       readonly label: string;
-      readonly style: ClassStyleProperties;
+      readonly style: StyleProperties;
     }
   | {
       readonly kind: "hidden";
@@ -22,7 +22,8 @@ export default function ClassStylePreview(props: ClassStylePreviewProps): ReactE
   const dynamicVars = {
     "--style-fill": props.style.fill,
     "--style-stroke": props.style.stroke,
-    "--style-color": props.style.color,
+    "--style-stroke-width": props.style.strokeWidth,
+    "--style-font-size": props.style.fontSize,
   } as CSSProperties;
 
   return (
