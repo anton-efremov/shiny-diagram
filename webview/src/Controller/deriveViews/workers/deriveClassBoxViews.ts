@@ -19,10 +19,10 @@ export function deriveClassBoxViews(model: DiagramTree): ClassView[] {
 
     const style = styleDef
       ? {
-          fill: styleDef.properties.find((p) => p.property === "fill")?.value,
-          stroke: styleDef.properties.find((p) => p.property === "stroke")?.value,
-          strokeWidth: styleDef.properties.find((p) => p.property === "strokeWidth")?.value,
-          fontSize: styleDef.properties.find((p) => p.property === "fontSize")?.value,
+          fill: styleDef.properties.find((p) => p.property === "fill")?.value ?? null,
+          stroke: styleDef.properties.find((p) => p.property === "stroke")?.value ?? null,
+          strokeWidth: styleDef.properties.find((p) => p.property === "strokeWidth")?.value ?? null,
+          fontSize: styleDef.properties.find((p) => p.property === "fontSize")?.value ?? null,
         }
       : undefined;
 

@@ -6,11 +6,12 @@ import type { EditorCommandOf } from "../../../../View/commands";
 import type { CommandContext, CommandResult } from "../../commandExecution";
 
 type NamespaceCommand =
-  | EditorCommandOf<"namespace.style.fillColor.set">
-  | EditorCommandOf<"namespace.style.borderColor.set">
-  | EditorCommandOf<"namespace.style.textColor.set">
-  | EditorCommandOf<"namespace.style.borderWidth.set">
-  | EditorCommandOf<"namespace.style.borderDashPattern.set">;
+  | EditorCommandOf<"namespace.create">
+  | EditorCommandOf<"namespace.delete">
+  | EditorCommandOf<"namespace.name.set">
+  | EditorCommandOf<"namespace.label.set">
+  | EditorCommandOf<"namespace.parentNamespace.set">
+  | EditorCommandOf<"namespace.spatial.set">;
 
 /**
  * Handles namespace commands that are not implemented yet.

@@ -5,6 +5,13 @@
 import type { StyleProperties, StylePropertyName } from "../../../../../shared/style";
 import type { ClassView } from "../../../../views/schema";
 
+const EMPTY_STYLE_PROPERTIES: StyleProperties = {
+  fill: null,
+  stroke: null,
+  strokeWidth: null,
+  fontSize: null,
+};
+
 type ClassSelectionSummaryProps =
   | {
       readonly kind: "single";
@@ -46,7 +53,7 @@ type ClassStyleActionsProps = {
 type CommonStyleProperty =
   | {
       readonly kind: "common";
-      readonly value: string | undefined;
+      readonly value: string | null | undefined;
       readonly pickerValue: string;
     }
   | {
@@ -82,7 +89,7 @@ export function toClassStylePreviewProps(
   return {
     kind: "visible",
     label: selectedClass.header.label,
-    style: selectedClass.style ?? {},
+    style: selectedClass.style ?? EMPTY_STYLE_PROPERTIES,
   };
 }
 
@@ -126,7 +133,7 @@ function toStyleColorControlProps(
   return {
     displayValue: commonStyleProperty.value ?? "Default",
     pickerValue: commonStyleProperty.pickerValue,
-    swatchColor: commonStyleProperty.value,
+    swatchColor: commonStyleProperty.value ?? undefined,
     mixed: false,
   };
 }
@@ -151,7 +158,7 @@ function toCommonStyleProperty(
   return { kind: "multiple", pickerValue };
 }
 
-function findPickerValue(values: readonly (string | undefined)[]): string {
+function findPickerValue(values: readonly (string | null | undefined)[]): string {
   const common = values[0];
   if (isSixDigitHex(common)) return toSixDigitHex(common);
 
@@ -162,14 +169,14 @@ function findPickerValue(values: readonly (string | undefined)[]): string {
   return "#ffffff";
 }
 
-function normalizeColor(value: string | undefined): string | undefined {
+function normalizeColor(value: string | null | undefined): string | undefined {
   return value?.trim().toLowerCase();
 }
 
-function isSixDigitHex(value: string | undefined): boolean {
+function isSixDigitHex(value: string | null | undefined): boolean {
   return /^#[0-9a-fA-F]{6}$/.test(value?.trim() ?? "");
 }
 
-function toSixDigitHex(value: string | undefined): string {
+function toSixDigitHex(value: string | null | undefined): string {
   return value?.trim().toLowerCase() ?? "#ffffff";
 }

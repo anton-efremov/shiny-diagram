@@ -11,17 +11,18 @@ const BASE_CLASS_ID = "NewClass";
 /**
  * Generates the first available default class identifier.
  */
-export function generateClassId(model: DiagramTree): ClassId {
-  if (!model.classes.has(toClassId(BASE_CLASS_ID))) {
-    return toClassId(BASE_CLASS_ID);
+export function generateClassId(model: DiagramTree, preferredBase = BASE_CLASS_ID): ClassId {
+  const base = sanitizeClassId(preferredBase) || BASE_CLASS_ID;
+  if (!model.classes.has(toClassId(base))) {
+    return toClassId(base);
   }
 
   let suffix = 1;
-  while (model.classes.has(toClassId(`${BASE_CLASS_ID}${suffix}`))) {
+  while (model.classes.has(toClassId(`${base}${suffix}`))) {
     suffix++;
   }
 
-  return toClassId(`${BASE_CLASS_ID}${suffix}`);
+  return toClassId(`${base}${suffix}`);
 }
 
 /**
@@ -49,4 +50,9 @@ function isClassIdUnavailable(
   classId: ClassId
 ): boolean {
   return model.classes.has(classId) || reservedClassIds.has(classId);
+}
+
+function sanitizeClassId(value: string): string {
+  const sanitized = value.replace(/\W/g, "_").replace(/^_+/, "");
+  return /^\d/.test(sanitized) ? `Class${sanitized}` : sanitized;
 }

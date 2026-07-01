@@ -12,16 +12,12 @@ export function toMissingAnnotationsGenerateTransaction(
   missingClassIds: readonly ClassId[],
   classes: readonly ClassView[]
 ): EditorCommandTransaction {
-  return calculateClassBoxLayouts(missingClassIds, classes).flatMap(({ classId, bounds }) => [
-    {
-      type: "class.position.set",
-      classId,
+  return calculateClassBoxLayouts(missingClassIds, classes).map(({ classId, bounds }) => ({
+    type: "class.spatial.set",
+    classId,
+    spatial: {
       position: { x: bounds.x, y: bounds.y },
-    },
-    {
-      type: "class.size.set",
-      classId,
       size: { width: bounds.w, height: bounds.h },
     },
-  ]);
+  }));
 }

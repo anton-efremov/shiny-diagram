@@ -6,9 +6,10 @@ import type { EditorCommandOf } from "../../../../View/commands";
 import type { CommandContext, CommandResult } from "../../commandExecution";
 
 type NoteCommand =
-  | EditorCommandOf<"note.position.set">
-  | EditorCommandOf<"note.size.set">
-  | EditorCommandOf<"note.text.set">;
+  | EditorCommandOf<"note.create">
+  | EditorCommandOf<"note.delete">
+  | EditorCommandOf<"note.text.set">
+  | EditorCommandOf<"note.spatial.set">;
 
 /**
  * Handles note commands that are not implemented yet.

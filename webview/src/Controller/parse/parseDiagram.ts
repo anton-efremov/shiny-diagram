@@ -3,6 +3,7 @@
  */
 
 import type { ParseResult } from "./parseResult";
+import { adaptDiagramTreeToGraph } from "../model/diagramGraphAdapter";
 import {
   buildSpatiallyUnawareDiagramTree,
   synthesizeImplicitClassNodes,
@@ -27,6 +28,7 @@ export function parseDiagram(source: string): ParseResult {
     const treeWithImplicitClasses = synthesizeImplicitClassNodes(spatiallyUnawareTree);
     const { valid, malformed } = parseSpatialAnnotations(tokens);
     const model = attachSpatial(treeWithImplicitClasses, valid);
+    const { graph, provenance } = adaptDiagramTreeToGraph(model);
 
     const missingIds = [...model.classes.values()]
       .filter((node) => !node.spatial)
@@ -39,13 +41,15 @@ export function parseDiagram(source: string): ParseResult {
       return {
         status: "missingAnnotations",
         model,
+        graph,
+        provenance,
         diagnostics: [],
         missingIds,
         malformedAnnotations,
       };
     }
 
-    return { status: "ready", model, diagnostics: [] };
+    return { status: "ready", model, graph, provenance, diagnostics: [] };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown parse error";
     return { status: "invalidSyntax", diagnostics: [{ kind: "syntaxError", message }] };

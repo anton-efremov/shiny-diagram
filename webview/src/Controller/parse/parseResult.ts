@@ -3,6 +3,8 @@
  */
 
 import type { DiagramTree } from "../model/diagramTree";
+import type { DiagramGraph } from "../model/diagramGraph";
+import type { ProvenanceIndex } from "../model/provenanceIndex";
 import type { SourceLocation } from "../model/sourceLocation";
 import type { ClassId } from "../../shared/ids";
 
@@ -25,11 +27,15 @@ export type ParseResult =
   | {
       readonly status: "ready";
       readonly model: DiagramTree;
+      readonly graph: DiagramGraph;
+      readonly provenance: ProvenanceIndex;
       readonly diagnostics: readonly EditorDiagnostic[];
     }
   | {
       readonly status: "missingAnnotations";
       readonly model: DiagramTree;
+      readonly graph: DiagramGraph;
+      readonly provenance: ProvenanceIndex;
       readonly diagnostics: readonly EditorDiagnostic[];
       readonly missingIds: readonly ClassId[];
       readonly malformedAnnotations: ReadonlyMap<ClassId, SourceLocation>;

@@ -10,14 +10,12 @@ import type { EditorCommandTransaction } from "../../../../../../commands/editor
 export function toClassResizeTransaction(classId: ClassId, rect: Rect): EditorCommandTransaction {
   return [
     {
-      type: "class.position.set",
+      type: "class.spatial.set",
       classId,
-      position: { x: rect.x, y: rect.y },
-    },
-    {
-      type: "class.size.set",
-      classId,
-      size: { width: rect.w, height: rect.h },
+      spatial: {
+        position: { x: rect.x, y: rect.y },
+        size: { width: rect.w, height: rect.h },
+      },
     },
   ];
 }

@@ -95,6 +95,7 @@ export default function ReactFlowCanvasAdapter({
         <Controls showInteractive={false} />
         <PlacementOverlay
           nodePlacementState={nodePlacementState}
+          classes={view.classes}
           onPlacementComplete={onPlacementComplete}
         />
       </ReactFlow>

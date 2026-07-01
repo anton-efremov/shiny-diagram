@@ -16,7 +16,7 @@
  *   3. `view` is rendered.
  *
  * Data flow — View → Source:
- *   1. User actions emit **command** transactions. 
+ *   1. User actions emit **command** transactions.
  *   2. Each command is converted into source edits by reading the affected
  *      graph nodes and using their ids to look up source/provenance facts in
  *      `ProvenanceIndex`. IMPORTANT: each command MUST preserve a consistent
@@ -35,7 +35,7 @@
  *   - **fields / attachments** — editable state belonging to exactly one node,
  *     never retargeted as an independent relationship: parent namespace, direct
  *     style, spatial placement, note placement/attachment, interaction.
- * 
+ *
  * **identity** — is derived from Mermaid identifiers.
  *   - ClassId is the current Mermaid class name.
  *   - NamespaceId is the current Mermaid namespace identity/name path.
@@ -47,14 +47,28 @@
  */
 
 import type {
+  AttributeId,
   ClassId,
+  DiagramId,
+  LollipopInterfaceId,
+  MethodId,
   NamespaceId,
   NoteId,
   RelationshipId,
+  StyleApplicationId,
   StyleDefId,
 } from "../../shared/ids";
-import type { Point, Size } from "../../shared/geometry";
+import type { AttachmentSide, SpatialAttachment } from "../../shared/geometry";
+import type { InteractionAttachment } from "../../shared/interaction";
+import type { NoteSpatial } from "../../shared/notes";
 import type { StyleProperties } from "../../shared/style";
+import type {
+  ClassAnnotation,
+  DiagramDirection,
+  RelationshipEndpoint,
+  RelationshipLineKind,
+  Visibility,
+} from "../../shared/uml";
 
 // ============================================================================
 // Graph root
@@ -143,13 +157,6 @@ export type LollipopInterface = {
   readonly side: AttachmentSide; // Shiny: attachment side; Mermaid only defines class + interface label
 };
 
-// Attachment of `ClassNode`.
-export type InteractionAttachment = {
-  readonly action: "link" | "callback";
-  readonly reference: string;
-  readonly tooltip: string | null;
-};
-
 // Mermaid: `namespace Domain { ... }` OR `namespace Domain["Domain Layer"] { ... }`
 export type NamespaceNode = {
   readonly kind: "namespace";
@@ -168,23 +175,6 @@ export type NoteNode = {
   readonly id: NoteId;
   readonly text: string; // Mermaid: note body text
   readonly spatial: NoteSpatial | null;
-};
-
-export type NoteSpatial = FreeNoteSpatial | AttachedNoteSpatial;
-
-export type FreeNoteSpatial = {
-  readonly kind: "free"; // Mermaid: `note "Standalone note"`
-  readonly position: Point; // Shiny: absolute note position
-  readonly size: Size; // Shiny: note box size
-};
-
-export type AttachedNoteSpatial = {
-  readonly kind: "attached"; // Mermaid: `note for User "Attached note"`
-  readonly classId: ClassId; // Mermaid: `User` in `note for User "..."`
-  readonly side: AttachmentSide; // Shiny: side of attached class box
-  readonly offset: number; // Shiny: offset along selected side
-  readonly distance: number; // Shiny: distance from class box
-  readonly size: Size; // Shiny: note box size
 };
 
 // Mermaid: `classDef Important fill:#f9f,stroke:#333,stroke-width:4px,font-size:12pt`
@@ -213,12 +203,6 @@ export type RelationshipEdge = {
   readonly label: string | null; // Mermaid: `: owns` in `User --> Session : owns`
 };
 
-export type RelationshipEndpoint = {
-  readonly classId: ClassId; // Mermaid: endpoint class in `User "1" --> "*" Session`
-  readonly multiplicity: string | null; // Mermaid: `"1"` / `"*"` in `User "1" --> "*" Session`
-  readonly endpointKind: RelationshipEndpointKind; // Mermaid: side marker in `A <|-- B` or `A <|--|> B`
-};
-
 // Mermaid: `class User:::Important` OR `cssClass "User" Important`
 export type StyleApplicationEdge = {
   readonly kind: "styleApplication";
@@ -229,49 +213,3 @@ export type StyleApplicationEdge = {
 
 /** Union of the addressable, retargetable edge kinds. */
 export type GraphEdge = RelationshipEdge | StyleApplicationEdge;
-
-// ============================================================================
-// Shared primitives & vocabulary
-// ============================================================================
-
-// Shiny spatial placement of a class box or namespace box.
-export type SpatialAttachment = {
-  readonly position: Point;
-  readonly size: Size;
-};
-
-export type AttachmentSide = "top" | "right" | "bottom" | "left";
-export type DiagramDirection = "TB" | "BT" | "RL" | "LR";
-export type Visibility = "+" | "-" | "#" | "~";
-export type ClassAnnotation = string; // Mermaid: text inside `<<...>>`
-
-// Per-endpoint marker glyph. Solid/dashed lives on the relationship as `lineKind`;
-// the semantic name (inheritance vs realization, association vs dependency) is
-// derived from (endpointKind, lineKind) in the ViewModel, not stored here.
-export type RelationshipEndpointKind =
-  | "none" // Mermaid: no endpoint marker
-  | "arrow" // Mermaid: `>` or `<`
-  | "triangle" // Mermaid: `|>` or `<|`
-  | "composition" // Mermaid: `*`
-  | "aggregation"; // Mermaid: `o`
-
-export type RelationshipLineKind =
-  | "solid" // Mermaid: `--`
-  | "dashed"; // Mermaid: `..`
-
-// ---------------------------------------------------------------------------
-// Semantic ids.
-//
-// `ClassId`, `NamespaceId`, `RelationshipId`, `NoteId`, `StyleDefId` are imported
-// from `shared/ids` (branded). The ids below do not exist there yet.
-//
-// TODO(refactor): migrate these to `shared/ids.ts` as branded ids with matching
-// `to*` constructors. `AttributeId` + `MethodId` supersede today's single
-// `MemberId`; `SpatialTargetId` = `ClassId | NamespaceId` if you later unify
-// spatial into one map.
-// ---------------------------------------------------------------------------
-export type DiagramId = string & { readonly __brand: "DiagramId" };
-export type AttributeId = string & { readonly __brand: "AttributeId" };
-export type MethodId = string & { readonly __brand: "MethodId" };
-export type LollipopInterfaceId = string & { readonly __brand: "LollipopInterfaceId" };
-export type StyleApplicationId = string & { readonly __brand: "StyleApplicationId" };

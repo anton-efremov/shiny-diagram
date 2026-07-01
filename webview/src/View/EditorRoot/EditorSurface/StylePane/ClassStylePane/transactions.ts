@@ -13,9 +13,10 @@ export function toFillColorSetTransaction(
   fillColor: string
 ): EditorCommandTransaction {
   return selectedClassIds.map((classId) => ({
-    type: "class.style.fillColor.set",
+    type: "class.directStyle.property.set",
     classId,
-    fillColor,
+    property: "fill",
+    value: fillColor,
   }));
 }
 
@@ -24,9 +25,10 @@ export function toBorderColorSetTransaction(
   borderColor: string
 ): EditorCommandTransaction {
   return selectedClassIds.map((classId) => ({
-    type: "class.style.borderColor.set",
+    type: "class.directStyle.property.set",
     classId,
-    borderColor,
+    property: "stroke",
+    value: borderColor,
   }));
 }
 

@@ -7,11 +7,8 @@ import type { CommandContext, CommandResult } from "../../commandExecution";
 import { planClassStyleMutation } from "../styleMutationPlanning";
 
 type ClassStyleCommand =
-  | EditorCommandOf<"class.style.fillColor.set">
-  | EditorCommandOf<"class.style.borderColor.set">
-  | EditorCommandOf<"class.style.textColor.set">
-  | EditorCommandOf<"class.style.borderWidth.set">
-  | EditorCommandOf<"class.style.borderDashPattern.set">;
+  | EditorCommandOf<"class.directStyle.property.set">
+  | EditorCommandOf<"class.directStyle.clear">;
 
 /**
  * Handles class style property source edits.
@@ -21,19 +18,17 @@ export function handleStyleCommand(
   context: CommandContext
 ): CommandResult {
   switch (command.type) {
-    case "class.style.fillColor.set":
+    case "class.directStyle.property.set":
+      if (command.value === null || command.property === "fontSize") {
+        // TODO(writeback-step): no old direct-style clear/font-size handler exists yet.
+        return { ok: true, edits: [] };
+      }
       return planClassStyleMutation(
-        { classIds: [command.classId], property: "fill", value: command.fillColor },
+        { classIds: [command.classId], property: command.property, value: command.value },
         context
       );
-    case "class.style.borderColor.set":
-      return planClassStyleMutation(
-        { classIds: [command.classId], property: "stroke", value: command.borderColor },
-        context
-      );
-    case "class.style.textColor.set":
-    case "class.style.borderWidth.set":
-    case "class.style.borderDashPattern.set":
-      return { ok: false, problem: `Command ${command.type} is not yet implemented` };
+    case "class.directStyle.clear":
+      // TODO(writeback-step): no old direct-style clear handler exists yet.
+      return { ok: true, edits: [] };
   }
 }

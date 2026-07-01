@@ -4,7 +4,6 @@
 
 import type { Point, Size } from "../../../../shared/geometry";
 import type { ClassId } from "../../../../shared/ids";
-import type { EditorCommandOf } from "../../../../View/commands";
 import type { SourceLocation } from "../../../model/sourceLocation";
 import type { CommandContext, CommandResult } from "../../commandExecution";
 import type { SourceEdit } from "../../sourceEdit";
@@ -15,29 +14,6 @@ export type ClassSpatialMutation = {
   readonly position?: Point;
   readonly size?: Size;
 };
-
-/**
- * Handles a class position command as a complete source edit when possible.
- */
-export function handleClassPositionSetCommand(
-  command: EditorCommandOf<"class.position.set">,
-  context: CommandContext
-): CommandResult {
-  return handleClassSpatialMutation(
-    { classId: command.classId, position: command.position },
-    context
-  );
-}
-
-/**
- * Handles a class size command as a complete source edit when possible.
- */
-export function handleClassSizeSetCommand(
-  command: EditorCommandOf<"class.size.set">,
-  context: CommandContext
-): CommandResult {
-  return handleClassSpatialMutation({ classId: command.classId, size: command.size }, context);
-}
 
 /**
  * Persists one class spatial annotation using command facts plus existing source facts.

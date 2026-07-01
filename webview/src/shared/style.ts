@@ -12,6 +12,5 @@ export const STYLE_PROPERTIES = [
 ] as const;
 
 export type StylePropertyName = (typeof STYLE_PROPERTIES)[number]["name"];
-// = "fill" | "stroke" | "strokeWidth" | "fontSize"
 
-export type StyleProperties = Partial<Record<StylePropertyName, string>>;
+export type StyleProperties = Readonly<Record<StylePropertyName, string | null>>;

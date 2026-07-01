@@ -10,3 +10,10 @@ export type Rect = {
 };
 export type Point = { readonly x: number; readonly y: number };
 export type Size = { readonly width: number; readonly height: number };
+
+export type SpatialAttachment = {
+  readonly position: Point;
+  readonly size: Size;
+};
+
+export type AttachmentSide = "top" | "right" | "bottom" | "left";

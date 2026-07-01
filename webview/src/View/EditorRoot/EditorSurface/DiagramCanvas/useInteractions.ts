@@ -46,9 +46,16 @@ export function useInteractions({
   const onDragComplete = useCallback(
     (finalPositions: readonly ClassBoxPlacementChange[]) => {
       const moves = finalPositions.flatMap((pos) => {
-        if (!view.some((classView) => classView.classId === pos.classId)) return [];
+        const classView = view.find((candidate) => candidate.classId === pos.classId);
+        if (!classView) return [];
         if (pos.x === undefined || pos.y === undefined) return [];
-        return [{ classId: pos.classId, position: { x: pos.x, y: pos.y } }];
+        return [
+          {
+            classId: pos.classId,
+            position: { x: pos.x, y: pos.y },
+            size: { width: classView.bounds.w, height: classView.bounds.h },
+          },
+        ];
       });
       if (moves.length > 0) {
         // Implementing interaction through command transaction

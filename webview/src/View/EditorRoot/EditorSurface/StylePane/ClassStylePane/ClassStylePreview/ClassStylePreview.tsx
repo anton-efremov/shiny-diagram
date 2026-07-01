@@ -20,10 +20,10 @@ export default function ClassStylePreview(props: ClassStylePreviewProps): ReactE
   if (props.kind === "hidden") return null;
 
   const dynamicVars = {
-    "--style-fill": props.style.fill,
-    "--style-stroke": props.style.stroke,
-    "--style-stroke-width": props.style.strokeWidth,
-    "--style-font-size": props.style.fontSize,
+    "--style-fill": props.style.fill ?? undefined,
+    "--style-stroke": props.style.stroke ?? undefined,
+    "--style-stroke-width": props.style.strokeWidth ?? undefined,
+    "--style-font-size": props.style.fontSize ?? undefined,
   } as CSSProperties;
 
   return (

@@ -21,9 +21,7 @@ import { handleRelationshipCommand } from "./workers/handlers/relationshipComman
 import { handleStyleCommand } from "./workers/handlers/styleCommandHandler";
 import { planClassStyleMutation } from "./workers/styleMutationPlanning";
 
-type ImplementedClassStyleCommand =
-  | EditorCommandOf<"class.style.fillColor.set">
-  | EditorCommandOf<"class.style.borderColor.set">;
+type ImplementedClassStyleCommand = EditorCommandOf<"class.directStyle.property.set">;
 
 type DeferredCommands = {
   readonly spatialMutations: Map<ClassId, ClassSpatialMutation>;
@@ -75,15 +73,14 @@ function applyEditorCommand(
     case "class.create":
       return handleClassAddCommand(command, context);
 
-    case "class.position.set":
-      deferClassSpatialMutation(deferred, {
-        classId: command.classId,
-        position: command.position,
-      });
-      return { ok: true, edits: [] };
-
-    case "class.size.set":
-      deferClassSpatialMutation(deferred, { classId: command.classId, size: command.size });
+    case "class.spatial.set":
+      if (command.spatial) {
+        deferClassSpatialMutation(deferred, {
+          classId: command.classId,
+          position: command.spatial.position,
+          size: command.spatial.size,
+        });
+      }
       return { ok: true, edits: [] };
 
     case "class.duplicate":
@@ -94,38 +91,86 @@ function applyEditorCommand(
       deferred.deleteClassIds.push(command.classId);
       return { ok: true, edits: [] };
 
-    case "class.style.fillColor.set":
-    case "class.style.borderColor.set":
+    case "class.directStyle.property.set":
+      if (command.value === null || command.property === "fontSize") {
+        // TODO(writeback-step): no old direct-style clear/font-size handler exists yet.
+        return { ok: true, edits: [] };
+      }
       deferClassStyleCommand(deferred, command);
       return { ok: true, edits: [] };
 
-    case "class.style.textColor.set":
-    case "class.style.borderWidth.set":
-    case "class.style.borderDashPattern.set":
+    case "class.directStyle.clear":
       return handleStyleCommand(command, context);
 
     case "class.label.set":
-    case "class.member.text.set":
-    case "class.member.prefix.set":
+    case "class.name.set":
+    case "class.genericType.set":
+    case "class.annotation.set":
+    case "class.parentNamespace.set":
+    case "class.interaction.set":
+    case "class.attribute.create":
+    case "class.attribute.delete":
+    case "class.attribute.move":
+    case "class.attribute.name.set":
+    case "class.attribute.visibility.set":
+    case "class.attribute.type.set":
+    case "class.attribute.static.set":
+    case "class.method.create":
+    case "class.method.delete":
+    case "class.method.move":
+    case "class.method.name.set":
+    case "class.method.visibility.set":
+    case "class.method.parameters.set":
+    case "class.method.returnType.set":
+    case "class.method.static.set":
+    case "class.method.abstract.set":
+    case "class.lollipopInterface.create":
+    case "class.lollipopInterface.delete":
+    case "class.lollipopInterface.move":
+    case "class.lollipopInterface.label.set":
+    case "class.lollipopInterface.side.set":
       return handleClassContentCommand(command, context);
 
-    case "namespace.style.fillColor.set":
-    case "namespace.style.borderColor.set":
-    case "namespace.style.textColor.set":
-    case "namespace.style.borderWidth.set":
-    case "namespace.style.borderDashPattern.set":
+    case "namespace.create":
+    case "namespace.delete":
+    case "namespace.name.set":
+    case "namespace.label.set":
+    case "namespace.parentNamespace.set":
+    case "namespace.spatial.set":
       return handleNamespaceCommand(command, context);
 
     case "relationship.create":
-    case "relationship.type.set":
-    case "relationship.multiplicity.set":
+    case "relationship.delete":
+    case "relationship.source.class.set":
+    case "relationship.target.class.set":
+    case "relationship.source.multiplicity.set":
+    case "relationship.target.multiplicity.set":
+    case "relationship.source.endpointKind.set":
+    case "relationship.target.endpointKind.set":
+    case "relationship.lineKind.set":
     case "relationship.label.set":
       return handleRelationshipCommand(command, context);
 
-    case "note.position.set":
-    case "note.size.set":
+    case "note.create":
+    case "note.delete":
     case "note.text.set":
+    case "note.spatial.set":
       return handleNoteCommand(command, context);
+
+    case "diagram.direction.set":
+    case "diagram.config.hideEmptyMembersBox.set":
+    case "diagram.config.hierarchicalNamespaces.set":
+    case "style.definition.create":
+    case "style.definition.delete":
+    case "style.definition.name.set":
+    case "style.definition.sourceKind.set":
+    case "style.definition.property.set":
+    case "style.definition.clear":
+    case "style.application.create":
+    case "style.application.delete":
+    case "style.application.target.set":
+    case "style.application.styleDefinition.set":
+      return { ok: false, problem: `Command ${command.type} is not yet implemented` };
   }
 }
 
@@ -190,10 +235,5 @@ function toClassStyleRequest(command: ImplementedClassStyleCommand): {
   readonly property: StylePropertyName;
   readonly value: string;
 } {
-  switch (command.type) {
-    case "class.style.fillColor.set":
-      return { property: "fill", value: command.fillColor };
-    case "class.style.borderColor.set":
-      return { property: "stroke", value: command.borderColor };
-  }
+  return { property: command.property, value: command.value ?? "" };
 }

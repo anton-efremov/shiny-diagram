@@ -7,8 +7,14 @@ import type { CommandContext, CommandResult } from "../../commandExecution";
 
 type RelationshipCommand =
   | EditorCommandOf<"relationship.create">
-  | EditorCommandOf<"relationship.type.set">
-  | EditorCommandOf<"relationship.multiplicity.set">
+  | EditorCommandOf<"relationship.delete">
+  | EditorCommandOf<"relationship.source.class.set">
+  | EditorCommandOf<"relationship.target.class.set">
+  | EditorCommandOf<"relationship.source.multiplicity.set">
+  | EditorCommandOf<"relationship.target.multiplicity.set">
+  | EditorCommandOf<"relationship.source.endpointKind.set">
+  | EditorCommandOf<"relationship.target.endpointKind.set">
+  | EditorCommandOf<"relationship.lineKind.set">
   | EditorCommandOf<"relationship.label.set">;
 
 /**
