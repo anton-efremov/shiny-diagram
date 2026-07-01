@@ -1,5 +1,5 @@
 /**
- * @fileoverview Source-location index for addressable DiagramTree facts.
+ * @fileoverview Source-location index for addressable DiagramGraph facts.
  *
  * The current parser produces locations for classes, members, namespaces,
  * style definitions, relationships, style applications, namespace membership,
@@ -9,8 +9,9 @@
  */
 
 import type {
+  AttributeId,
   ClassId,
-  MemberId,
+  MethodId,
   NamespaceId,
   RelationshipId,
   StyleApplicationId,
@@ -20,7 +21,7 @@ import type { SourceLocation } from "./sourceLocation";
 
 export type ProvenanceIndex = {
   readonly classes: ReadonlyMap<ClassId, SourceLocation>;
-  readonly members: ReadonlyMap<MemberId, SourceLocation>;
+  readonly members: ReadonlyMap<AttributeId | MethodId, SourceLocation>;
   readonly namespaces: ReadonlyMap<NamespaceId, SourceLocation>;
   readonly styleDefinitions: ReadonlyMap<StyleDefId, SourceLocation>;
   readonly relationships: ReadonlyMap<RelationshipId, SourceLocation>;

@@ -2,7 +2,7 @@
  * @fileoverview Generates unique class identifiers for source edits.
  */
 
-import type { DiagramTree } from "../../model/diagramTree";
+import type { DiagramGraph } from "../../model/diagramGraph";
 import type { ClassId } from "../../../shared/ids";
 import { toClassId } from "../../../shared/ids";
 
@@ -11,7 +11,7 @@ const BASE_CLASS_ID = "NewClass";
 /**
  * Generates the first available default class identifier.
  */
-export function generateClassId(model: DiagramTree, preferredBase = BASE_CLASS_ID): ClassId {
+export function generateClassId(model: DiagramGraph, preferredBase = BASE_CLASS_ID): ClassId {
   const base = sanitizeClassId(preferredBase) || BASE_CLASS_ID;
   if (!model.classes.has(toClassId(base))) {
     return toClassId(base);
@@ -29,7 +29,7 @@ export function generateClassId(model: DiagramTree, preferredBase = BASE_CLASS_I
  * Generates the first available duplicate identifier for a source class.
  */
 export function generateDuplicateClassId(
-  model: DiagramTree,
+  model: DiagramGraph,
   sourceClassId: ClassId,
   reservedClassIds: ReadonlySet<ClassId> = new Set()
 ): ClassId {
@@ -45,7 +45,7 @@ export function generateDuplicateClassId(
 }
 
 function isClassIdUnavailable(
-  model: DiagramTree,
+  model: DiagramGraph,
   reservedClassIds: ReadonlySet<ClassId>,
   classId: ClassId
 ): boolean {

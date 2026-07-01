@@ -3,12 +3,22 @@
  */
 
 import { toClassId, toRelationshipId } from "../../../../shared/ids";
-import type { RelationshipEdge } from "../../../model/diagramTree";
-import type { RelationshipType } from "../../../../shared/uml";
+import type { RelationshipEdge } from "../../../model/diagramGraph";
+import type {
+  RelationshipEndpointKind,
+  RelationshipLineKind,
+  RelationshipType,
+} from "../../../../shared/uml";
+import type { SourceLocation } from "../../../model/sourceLocation";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
 
 type RelationshipOperator = { readonly syntax: string; readonly type: RelationshipType };
+
+export type ParsedRelationshipEdge = {
+  readonly edge: RelationshipEdge;
+  readonly location: SourceLocation;
+};
 
 const RELATIONSHIP_OPERATORS: readonly RelationshipOperator[] = [
   { syntax: "<|--|>", type: "twoWay" },
@@ -30,7 +40,7 @@ const RELATIONSHIP_OPERATORS: readonly RelationshipOperator[] = [
 export function buildRelationshipEdge(
   token: ParseToken,
   relationshipIndex: number
-): RelationshipEdge | null {
+): ParsedRelationshipEdge | null {
   if (token.type !== "relationship") return null;
 
   const raw = token.raw.trim();
@@ -45,16 +55,52 @@ export function buildRelationshipEdge(
   if (!source.name || !target.name) return null;
 
   return {
-    kind: "relationship",
-    source: toClassId(source.name),
-    target: toClassId(target.name),
-    id: toRelationshipId(`${source.name}--${target.name}--${relationshipIndex}`),
-    type: operator.type,
-    label,
-    sourceMultiplicity: source.multiplicity,
-    targetMultiplicity: target.multiplicity,
     location: toSourceLocation(token),
+    edge: {
+      kind: "relationship",
+      id: toRelationshipId(`${source.name}--${target.name}--${relationshipIndex}`),
+      source: {
+        classId: toClassId(source.name),
+        multiplicity: source.multiplicity ?? null,
+        endpointKind: toRelationshipShape(operator.type).sourceKind,
+      },
+      target: {
+        classId: toClassId(target.name),
+        multiplicity: target.multiplicity ?? null,
+        endpointKind: toRelationshipShape(operator.type).targetKind,
+      },
+      lineKind: toRelationshipShape(operator.type).lineKind,
+      label: label ?? null,
+    },
   };
+}
+
+function toRelationshipShape(type: RelationshipType): {
+  readonly sourceKind: RelationshipEndpointKind;
+  readonly targetKind: RelationshipEndpointKind;
+  readonly lineKind: RelationshipLineKind;
+} {
+  switch (type) {
+    case "association":
+      return { sourceKind: "none", targetKind: "arrow", lineKind: "solid" };
+    case "dependency":
+      return { sourceKind: "none", targetKind: "arrow", lineKind: "dashed" };
+    case "inheritance":
+      return { sourceKind: "triangle", targetKind: "none", lineKind: "solid" };
+    case "realization":
+      return { sourceKind: "none", targetKind: "triangle", lineKind: "dashed" };
+    case "composition":
+      return { sourceKind: "composition", targetKind: "none", lineKind: "solid" };
+    case "aggregation":
+      return { sourceKind: "aggregation", targetKind: "none", lineKind: "solid" };
+    case "twoWay":
+      return { sourceKind: "triangle", targetKind: "triangle", lineKind: "solid" };
+    case "dashedLink":
+      return { sourceKind: "none", targetKind: "none", lineKind: "dashed" };
+    case "solidLink":
+    case "lollipop":
+      return { sourceKind: "none", targetKind: "none", lineKind: "solid" };
+  }
 }
 
 function splitLabel(raw: string): { declaration: string; label?: string } {

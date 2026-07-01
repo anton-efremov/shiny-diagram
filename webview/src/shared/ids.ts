@@ -6,7 +6,6 @@ export type ClassId = string & { readonly __brand: "ClassId" };
 export type StyleDefId = string & { readonly __brand: "StyleDefId" };
 export type NamespaceId = string & { readonly __brand: "NamespaceId" };
 export type NoteId = string & { readonly __brand: "NoteId" };
-export type MemberId = string & { readonly __brand: "MemberId" };
 export type AttributeId = string & { readonly __brand: "AttributeId" };
 export type MethodId = string & { readonly __brand: "MethodId" };
 export type LollipopInterfaceId = string & { readonly __brand: "LollipopInterfaceId" };
@@ -40,13 +39,6 @@ export function toNamespaceId(value: string): NamespaceId {
  */
 export function toNoteId(value: string): NoteId {
   return value as NoteId;
-}
-
-/**
- * Brands a parsed class member identifier.
- */
-export function toMemberId(value: string): MemberId {
-  return value as MemberId;
 }
 
 /**

@@ -2,38 +2,54 @@
  * @fileoverview Builds class nodes and members from class-declaration tokens.
  */
 
-import type {
-  ClassAnnotation,
-  ClassField,
-  ClassMember,
-  ClassMethod,
-  ClassNode,
-  Visibility,
-} from "../../../model/diagramTree";
-import { toClassId, toMemberId, type ClassId } from "../../../../shared/ids";
+import type { ClassAttribute, ClassMethod, ClassNode } from "../../../model/diagramGraph";
+import type { SourceLocation } from "../../../model/sourceLocation";
+import { toAttributeId, toClassId, toMethodId, type ClassId } from "../../../../shared/ids";
+import type { Visibility } from "../../../../shared/uml";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
 
 const VISIBILITY_PREFIXES = new Set<string>(["+", "-", "#", "~"]);
 
+export type ParsedClassNode = {
+  readonly node: ClassNode;
+  readonly location: SourceLocation;
+  readonly memberLocations: ReadonlyMap<ClassAttribute["id"] | ClassMethod["id"], SourceLocation>;
+};
+
 /**
  * Builds a class node from a class-declaration token.
  */
-export function buildClassNode(token: ParseToken): ClassNode | null {
+export function buildClassNode(token: ParseToken): ParsedClassNode | null {
   if (token.type !== "classDeclaration") return null;
 
   const match = /^\s*class\s+(\w+)/.exec(token.raw);
   if (!match) return null;
 
   const id = toClassId(match[1]);
-  const { members, annotation } = parseClassBody(id, token.blockTokens ?? []);
+  const { attributes, methods, annotation, memberLocations } = parseClassBody(
+    id,
+    token.blockTokens ?? []
+  );
 
   return {
-    kind: "class",
-    id,
-    annotation,
-    members,
     location: toSourceLocation(token),
+    memberLocations,
+    node: {
+      kind: "class",
+      id,
+      name: id,
+      label: id,
+      genericType: null,
+      annotation,
+      parentNamespaceId: null,
+      spatial: null,
+      attributes,
+      methods,
+      lollipopInterfaces: [],
+      directStyle: null,
+      interaction: null,
+    },
   };
 }
 
@@ -41,11 +57,15 @@ function parseClassBody(
   classId: ClassId,
   blockTokens: readonly ParseToken[]
 ): {
-  members: ClassMember[];
-  annotation?: ClassAnnotation;
+  attributes: ClassAttribute[];
+  methods: ClassMethod[];
+  annotation: string | null;
+  memberLocations: Map<ClassAttribute["id"] | ClassMethod["id"], SourceLocation>;
 } {
-  const members: ClassMember[] = [];
-  let annotation: ClassAnnotation | undefined;
+  const attributes: ClassAttribute[] = [];
+  const methods: ClassMethod[] = [];
+  const memberLocations = new Map<ClassAttribute["id"] | ClassMethod["id"], SourceLocation>();
+  let annotation: string | null = null;
 
   for (const token of blockTokens) {
     const trimmed = token.raw.trim();
@@ -53,23 +73,36 @@ function parseClassBody(
 
     const stereotypeMatch = /^<<(.+)>>$/.exec(trimmed);
     if (stereotypeMatch) {
-      annotation = {
-        value: stereotypeMatch[1].trim(),
-        location: toSourceLocation(token),
-      };
+      annotation = stereotypeMatch[1].trim();
       continue;
     }
 
     const member = parseClassMember(classId, token);
     if (member) {
-      members.push(member);
+      if (member.kind === "attribute") {
+        attributes.push(member.attribute);
+        memberLocations.set(member.attribute.id, member.location);
+      } else {
+        methods.push(member.method);
+        memberLocations.set(member.method.id, member.location);
+      }
     }
   }
 
-  return { members, annotation };
+  return { attributes, methods, annotation, memberLocations };
 }
 
-function parseClassMember(classId: ClassId, token: ParseToken): ClassMember | null {
+function parseClassMember(
+  classId: ClassId,
+  token: ParseToken
+):
+  | {
+      readonly kind: "attribute";
+      readonly attribute: ClassAttribute;
+      readonly location: SourceLocation;
+    }
+  | { readonly kind: "method"; readonly method: ClassMethod; readonly location: SourceLocation }
+  | null {
   const trimmed = token.raw.trim();
   const firstCharacter = trimmed.charAt(0);
   const hasExplicitVisibility = VISIBILITY_PREFIXES.has(firstCharacter);
@@ -90,18 +123,25 @@ function parseFieldMember(
   token: ParseToken,
   visibility: Visibility,
   declaration: string
-): ClassField {
+): {
+  readonly kind: "attribute";
+  readonly attribute: ClassAttribute;
+  readonly location: SourceLocation;
+} {
   const parts = declaration.split(/\s+/);
   const name = parts.length > 1 ? parts[parts.length - 1] : parts[0];
   const fieldType = parts.length > 1 ? parts.slice(0, -1).join(" ") : undefined;
 
   return {
-    kind: "field",
-    id: toMemberId(`${classId}:${token.lineNumber}`),
-    visibility,
-    name,
-    fieldType,
+    kind: "attribute",
     location: toSourceLocation(token),
+    attribute: {
+      id: toAttributeId(`${classId}:${token.lineNumber}`),
+      visibility,
+      name,
+      attributeType: fieldType ?? null,
+      isStatic: false,
+    },
   };
 }
 
@@ -110,17 +150,22 @@ function parseMethodMember(
   token: ParseToken,
   visibility: Visibility,
   declaration: string
-): ClassMethod {
+): { readonly kind: "method"; readonly method: ClassMethod; readonly location: SourceLocation } {
   const methodMatch = /^([^\s(]+)\s*\(([^)]*)\)\s*(.*)$/.exec(declaration);
 
   if (!methodMatch) {
     return {
       kind: "method",
-      id: toMemberId(`${classId}:${token.lineNumber}`),
-      visibility,
-      name: declaration,
-      params: "",
       location: toSourceLocation(token),
+      method: {
+        id: toMethodId(`${classId}:${token.lineNumber}`),
+        visibility,
+        name: declaration,
+        parameters: "",
+        returnType: null,
+        isStatic: false,
+        isAbstract: false,
+      },
     };
   }
 
@@ -128,11 +173,15 @@ function parseMethodMember(
 
   return {
     kind: "method",
-    id: toMemberId(`${classId}:${token.lineNumber}`),
-    visibility,
-    name: methodMatch[1],
-    returnType: returnType.length > 0 ? returnType : undefined,
-    params: methodMatch[2],
     location: toSourceLocation(token),
+    method: {
+      id: toMethodId(`${classId}:${token.lineNumber}`),
+      visibility,
+      name: methodMatch[1],
+      returnType: returnType.length > 0 ? returnType : null,
+      parameters: methodMatch[2],
+      isStatic: false,
+      isAbstract: false,
+    },
   };
 }

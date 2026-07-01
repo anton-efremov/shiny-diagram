@@ -4,29 +4,46 @@
 
 import { toStyleDefId } from "../../../../shared/ids";
 import { STYLE_PROPERTIES } from "../../../../shared/style";
-import type { StyleDefNode, StyleProperty } from "../../../model/diagramTree";
+import type { StyleProperties } from "../../../../shared/style";
+import type { StyleDefNode } from "../../../model/diagramGraph";
+import type { SourceLocation } from "../../../model/sourceLocation";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
+
+export type ParsedStyleDefNode = {
+  readonly node: StyleDefNode;
+  readonly location: SourceLocation;
+};
 
 /**
  * Builds a style definition node from a classDef token.
  */
-export function buildStyleDefNode(token: ParseToken): StyleDefNode | null {
+export function buildStyleDefNode(token: ParseToken): ParsedStyleDefNode | null {
   if (token.type !== "styleDef") return null;
 
   const match = /^\s*classDef\s+(\w+)\s+(.+)$/.exec(token.raw);
   if (!match) return null;
 
+  const id = toStyleDefId(match[1]);
   return {
-    kind: "styleDef",
-    id: toStyleDefId(match[1]),
-    properties: parseStyleProperties(match[2]),
     location: toSourceLocation(token),
+    node: {
+      kind: "styleDef",
+      id,
+      name: id,
+      sourceKind: "classDef",
+      properties: parseStyleProperties(match[2]),
+    },
   };
 }
 
-function parseStyleProperties(propertiesStr: string): StyleProperty[] {
-  const properties: StyleProperty[] = [];
+function parseStyleProperties(propertiesStr: string): StyleProperties {
+  const properties: Record<keyof StyleProperties, string | null> = {
+    fill: null,
+    stroke: null,
+    strokeWidth: null,
+    fontSize: null,
+  };
 
   for (const part of propertiesStr.split(",")) {
     const colonIdx = part.indexOf(":");
@@ -38,7 +55,7 @@ function parseStyleProperties(propertiesStr: string): StyleProperty[] {
     const property = STYLE_PROPERTIES.find(
       (styleProperty) => styleProperty.name === key || styleProperty.source === key
     );
-    if (property) properties.push({ property: property.name, value });
+    if (property) properties[property.name] = value;
   }
 
   return properties;

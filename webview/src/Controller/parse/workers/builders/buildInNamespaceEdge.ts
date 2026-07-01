@@ -3,9 +3,16 @@
  */
 
 import { toClassId, toNamespaceId } from "../../../../shared/ids";
-import type { InNamespaceEdge } from "../../../model/diagramTree";
+import type { ClassId, NamespaceId } from "../../../../shared/ids";
+import type { SourceLocation } from "../../../model/sourceLocation";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
+
+export type InNamespaceEdge = {
+  readonly source: ClassId;
+  readonly target: NamespaceId;
+  readonly location: SourceLocation;
+};
 
 /**
  * Builds namespace membership edges for class declarations inside a namespace.
@@ -26,7 +33,6 @@ export function buildInNamespaceEdges(token: ParseToken): InNamespaceEdge[] {
     if (!classMatch) continue;
 
     edges.push({
-      kind: "inNamespace",
       source: toClassId(classMatch[1]),
       target: namespaceId,
       location: toSourceLocation(child),

@@ -2,14 +2,16 @@
  * @fileoverview Internal context and result contracts shared by command handlers.
  */
 
-import type { DiagramTree } from "../model/diagramTree";
+import type { DiagramGraph } from "../model/diagramGraph";
+import type { ProvenanceIndex } from "../model/provenanceIndex";
 import type { SourceLocation } from "../model/sourceLocation";
 import type { ClassId } from "../../shared/ids";
 import type { SourceEdit } from "./sourceEdit";
 
 export type CommandContext = {
   readonly sourceText: string;
-  readonly model: DiagramTree;
+  readonly graph: DiagramGraph;
+  readonly provenance: ProvenanceIndex;
   readonly malformedAnnotations?: ReadonlyMap<ClassId, SourceLocation>;
 };
 

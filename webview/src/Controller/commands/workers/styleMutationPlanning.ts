@@ -5,7 +5,7 @@
 import type { ClassId, StyleDefId } from "../../../shared/ids";
 import { toStyleDefId } from "../../../shared/ids";
 import type { StylePropertyName } from "../../../shared/style";
-import type { AppliesStyleEdge, DiagramTree } from "../../model/diagramTree";
+import type { DiagramGraph, StyleApplicationEdge, StyleDefNode } from "../../model/diagramGraph";
 import type { SourceLocation } from "../../model/sourceLocation";
 import type { CommandContext, CommandResult } from "../commandExecution";
 import type { SourceEdit } from "../sourceEdit";
@@ -23,6 +23,9 @@ export type StyleMutationRequest = {
   readonly value: string;
 };
 
+type StyleDefWithLocation = StyleDefNode & { readonly location: SourceLocation };
+type StyleApplicationWithLocation = StyleApplicationEdge & { readonly location: SourceLocation };
+
 /**
  * Plans one complete box-level style property mutation.
  */
@@ -30,19 +33,19 @@ export function planClassStyleMutation(
   command: StyleMutationRequest,
   context: CommandContext
 ): CommandResult {
-  const validation = validateRequestedClasses(command.classIds, context.model);
+  const validation = validateRequestedClasses(command.classIds, context.graph);
   if (!validation.ok) return validation;
 
   const eol = getLineEnding(context.sourceText);
   const selectedClassIds = new Set(command.classIds);
-  const currentStyleByClassId = getCurrentStyleByClassId(context.model);
-  const consumersByStyleId = getConsumersByStyleId(context.model);
+  const currentStyleByClassId = getCurrentStyleByClassId(context);
+  const consumersByStyleId = getConsumersByStyleId(context.graph);
   const grouped = groupSelectedClasses(command.classIds, currentStyleByClassId);
-  const reservedStyleIds = getReservedStyleIds(context.model);
+  const reservedStyleIds = getReservedStyleIds(context.graph);
   const edits: SourceEdit[] = [];
 
   for (const group of grouped.styledGroups.values()) {
-    const styleDef = context.model.styleDefs.get(group.styleDefId);
+    const styleDef = getStyleDefWithLocation(context, group.styleDefId);
     if (!styleDef) {
       return { ok: false, problem: `StyleDef ${group.styleDefId} not found` };
     }
@@ -80,7 +83,7 @@ export function planClassStyleMutation(
         isolatedStyleId
       );
       if (!replacementText) {
-        return { ok: false, problem: `Unsafe style application for class ${edge.source}` };
+        return { ok: false, problem: `Unsafe style application for class ${edge.targetId}` };
       }
       edits.push(toReplacementEdit(edge.location, replacementText));
     }
@@ -122,7 +125,7 @@ export function planClassStyleMutation(
 
 function validateRequestedClasses(
   classIds: readonly ClassId[],
-  model: DiagramTree
+  model: DiagramGraph
 ): CommandResult | { readonly ok: true } {
   if (classIds.length === 0) {
     return { ok: false, problem: "No classes to style" };
@@ -143,49 +146,53 @@ function validateRequestedClasses(
   return { ok: true };
 }
 
-function getCurrentStyleByClassId(model: DiagramTree): Map<ClassId, AppliesStyleEdge> {
-  const styles = new Map<ClassId, AppliesStyleEdge>();
-  for (const edge of model.appliesStyleEdges) {
-    if (!styles.has(edge.source)) {
-      styles.set(edge.source, edge);
+function getCurrentStyleByClassId(
+  context: CommandContext
+): Map<ClassId, StyleApplicationWithLocation> {
+  const styles = new Map<ClassId, StyleApplicationWithLocation>();
+  for (const edge of context.graph.styleApplications.values()) {
+    const location = context.provenance.styleApplications.get(edge.id);
+    if (!location) continue;
+    if (!styles.has(edge.targetId)) {
+      styles.set(edge.targetId, { ...edge, location });
     }
   }
   return styles;
 }
 
-function getConsumersByStyleId(model: DiagramTree): Map<StyleDefId, Set<ClassId>> {
+function getConsumersByStyleId(model: DiagramGraph): Map<StyleDefId, Set<ClassId>> {
   const consumers = new Map<StyleDefId, Set<ClassId>>();
-  for (const edge of model.appliesStyleEdges) {
-    const existing = consumers.get(edge.target);
+  for (const edge of model.styleApplications.values()) {
+    const existing = consumers.get(edge.styleDefId);
     if (existing) {
-      existing.add(edge.source);
+      existing.add(edge.targetId);
     } else {
-      consumers.set(edge.target, new Set([edge.source]));
+      consumers.set(edge.styleDefId, new Set([edge.targetId]));
     }
   }
   return consumers;
 }
 
-function getReservedStyleIds(model: DiagramTree): Set<StyleDefId> {
+function getReservedStyleIds(model: DiagramGraph): Set<StyleDefId> {
   return new Set([
-    ...model.styleDefs.keys(),
-    ...model.appliesStyleEdges.map((edge) => edge.target),
+    ...model.styleDefinitions.keys(),
+    ...[...model.styleApplications.values()].map((edge) => edge.styleDefId),
   ]);
 }
 
 function groupSelectedClasses(
   classIds: readonly ClassId[],
-  currentStyleByClassId: ReadonlyMap<ClassId, AppliesStyleEdge>
+  currentStyleByClassId: ReadonlyMap<ClassId, StyleApplicationWithLocation>
 ): {
   readonly styledGroups: Map<
     StyleDefId,
-    { readonly styleDefId: StyleDefId; readonly edges: AppliesStyleEdge[] }
+    { readonly styleDefId: StyleDefId; readonly edges: StyleApplicationWithLocation[] }
   >;
   readonly unstyledClassIds: ClassId[];
 } {
   const styledGroups = new Map<
     StyleDefId,
-    { readonly styleDefId: StyleDefId; readonly edges: AppliesStyleEdge[] }
+    { readonly styleDefId: StyleDefId; readonly edges: StyleApplicationWithLocation[] }
   >();
   const unstyledClassIds: ClassId[] = [];
 
@@ -196,11 +203,11 @@ function groupSelectedClasses(
       continue;
     }
 
-    const existing = styledGroups.get(edge.target);
+    const existing = styledGroups.get(edge.styleDefId);
     if (existing) {
       existing.edges.push(edge);
     } else {
-      styledGroups.set(edge.target, { styleDefId: edge.target, edges: [edge] });
+      styledGroups.set(edge.styleDefId, { styleDefId: edge.styleDefId, edges: [edge] });
     }
   }
 
@@ -227,8 +234,22 @@ function sanitizeStyleDefId(value: string): string {
   return /^\d/.test(sanitized) ? `Style_${sanitized}` : sanitized;
 }
 
+function getStyleDefWithLocation(
+  context: CommandContext,
+  styleDefId: StyleDefId
+): StyleDefWithLocation | null {
+  const styleDef = context.graph.styleDefinitions.get(styleDefId);
+  const location = context.provenance.styleDefinitions.get(styleDefId);
+  return styleDef && location ? { ...styleDef, location } : null;
+}
+
 function toStyleDefInsertion(text: string, context: CommandContext, eol: string): SourceEdit {
-  const styleDefs = [...context.model.styleDefs.values()].sort(compareByLocation);
+  const styleDefs = [...context.graph.styleDefinitions.keys()]
+    .flatMap((styleDefId) => {
+      const styleDef = getStyleDefWithLocation(context, styleDefId);
+      return styleDef ? [styleDef] : [];
+    })
+    .sort(compareByLocation);
   const lastStyleDef = styleDefs[styleDefs.length - 1];
   if (lastStyleDef) {
     return insertAfterLocation(lastStyleDef.location, text, eol);
@@ -242,13 +263,23 @@ function toStyleApplicationInsertion(
   context: CommandContext,
   eol: string
 ): SourceEdit {
-  const styleApplications = [...context.model.appliesStyleEdges].sort(compareByLocation);
+  const styleApplications = [...context.graph.styleApplications.values()]
+    .flatMap((styleApplication) => {
+      const location = context.provenance.styleApplications.get(styleApplication.id);
+      return location ? [{ ...styleApplication, location }] : [];
+    })
+    .sort(compareByLocation);
   const lastStyleApplication = styleApplications[styleApplications.length - 1];
   if (lastStyleApplication) {
     return insertAfterLocation(lastStyleApplication.location, text, eol);
   }
 
-  const styleDefs = [...context.model.styleDefs.values()].sort(compareByLocation);
+  const styleDefs = [...context.graph.styleDefinitions.keys()]
+    .flatMap((styleDefId) => {
+      const styleDef = getStyleDefWithLocation(context, styleDefId);
+      return styleDef ? [styleDef] : [];
+    })
+    .sort(compareByLocation);
   const lastStyleDef = styleDefs[styleDefs.length - 1];
   if (lastStyleDef) {
     return insertAfterLocation(lastStyleDef.location, text, eol);

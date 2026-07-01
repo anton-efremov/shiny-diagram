@@ -19,7 +19,7 @@
 import type { StyleProperties } from "../../shared/style";
 import type { MemberKind, MemberPrefix, RelationshipType } from "../../shared/uml";
 import type { Rect } from "../../shared/geometry";
-import type { ClassId, MemberId, NamespaceId, RelationshipId } from "../../shared/ids";
+import type { AttributeId, ClassId, MethodId, NamespaceId, RelationshipId } from "../../shared/ids";
 
 /* ── Leaf views ──────────────────────────────────────────────────────────── */
 
@@ -29,7 +29,7 @@ export type ClassHeaderView = {
 };
 
 export type ClassMemberView = {
-  readonly memberId: MemberId;
+  readonly memberId: AttributeId | MethodId;
   readonly kind: MemberKind;
   readonly prefix: MemberPrefix | null;
   readonly text: string;

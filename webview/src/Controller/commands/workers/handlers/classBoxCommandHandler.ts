@@ -22,15 +22,14 @@ export function handleClassSpatialMutation(
   mutation: ClassSpatialMutation,
   context: CommandContext
 ): CommandResult {
-  const node = context.model.classes.get(mutation.classId);
+  const node = context.graph.classes.get(mutation.classId);
   if (!node) {
     return { ok: false, problem: `Class ${mutation.classId} not found` };
   }
 
   const existing = node.spatial;
-  const position = mutation.position ?? (existing ? { x: existing.x, y: existing.y } : null);
-  const size =
-    mutation.size ?? (existing ? { width: existing.width, height: existing.height } : null);
+  const position = mutation.position ?? existing?.position ?? null;
+  const size = mutation.size ?? existing?.size ?? null;
 
   if (!position || !size) {
     return {
@@ -47,10 +46,11 @@ export function handleClassSpatialMutation(
     size.height
   );
 
-  if (existing) {
+  const location = context.provenance.classSpatial.get(mutation.classId);
+  if (location) {
     return {
       ok: true,
-      edits: [toReplacementEdit(existing.location, replacementText)],
+      edits: [toReplacementEdit(location, replacementText)],
     };
   }
 
@@ -77,14 +77,12 @@ function toReplacementEdit(location: SourceLocation, replacementText: string): S
 }
 
 function toSpatialAnnotationInsertion(context: CommandContext, spatialLine: string): SourceEdit {
-  const existingSpatial = [...context.model.classes.values()].flatMap((node) =>
-    node.spatial ? [node.spatial] : []
-  );
+  const existingSpatialLocations = [...context.provenance.classSpatial.values()];
   const sourceLines = context.sourceText.split(/\r?\n/);
   let anchorLine: number;
 
-  if (existingSpatial.length > 0) {
-    anchorLine = Math.max(...existingSpatial.map((spatial) => spatial.location.startLine));
+  if (existingSpatialLocations.length > 0) {
+    anchorLine = Math.max(...existingSpatialLocations.map((location) => location.startLine));
   } else {
     anchorLine = sourceLines.length - 1;
     while (anchorLine > 0 && sourceLines[anchorLine].trim() === "") {

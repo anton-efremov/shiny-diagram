@@ -2,7 +2,8 @@
  * @fileoverview Parses spatial annotations and attaches valid geometry to diagram classes.
  */
 
-import type { DiagramTree } from "../../model/diagramTree";
+import type { DiagramGraph } from "../../model/diagramGraph";
+import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import {
   buildSpatialData,
   type MalformedAnnotation,
@@ -30,16 +31,27 @@ export function parseSpatialAnnotations(tokens: ParseToken[]): SpatialAnnotation
 /**
  * Attaches parsed spatial data to matching classes.
  */
-export function attachSpatial(tree: DiagramTree, valid: readonly SpatialEntry[]): DiagramTree {
-  const spatialByClassId = new Map(valid.map((entry) => [entry.classId, entry.spatial]));
-  const classes = new Map(tree.classes);
+export function attachSpatial(
+  graph: DiagramGraph,
+  provenance: ProvenanceIndex,
+  valid: readonly SpatialEntry[]
+): { readonly graph: DiagramGraph; readonly provenance: ProvenanceIndex } {
+  const spatialByClassId = new Map(valid.map((entry) => [entry.classId, entry]));
+  const classes = new Map(graph.classes);
+  const classSpatial = new Map(provenance.classSpatial);
 
   for (const [id, node] of classes) {
-    const spatial = spatialByClassId.get(node.id);
-    if (spatial) classes.set(id, { ...node, spatial });
+    const entry = spatialByClassId.get(node.id);
+    if (entry) {
+      classes.set(id, { ...node, spatial: entry.spatial });
+      classSpatial.set(id, entry.location);
+    }
   }
 
-  return { ...tree, classes };
+  return {
+    graph: { ...graph, classes },
+    provenance: { ...provenance, classSpatial },
+  };
 }
 
 function traverseSpatialTokens(

@@ -14,8 +14,6 @@ export type ClassAnnotation = string;
 
 export type DiagramDirection = "TB" | "BT" | "RL" | "LR";
 
-export type RelationshipEndpointSide = "source" | "target";
-
 export type RelationshipEndpointKind =
   | "none"
   | "arrow"

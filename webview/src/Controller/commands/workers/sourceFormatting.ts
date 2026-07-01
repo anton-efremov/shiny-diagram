@@ -2,7 +2,8 @@
  * @fileoverview Formats complete Mermaid source lines emitted by command handlers.
  */
 
-import type { StyleDefNode } from "../../model/diagramTree";
+import type { StyleDefNode } from "../../model/diagramGraph";
+import type { SourceLocation } from "../../model/sourceLocation";
 import type { ClassId, StyleDefId } from "../../../shared/ids";
 import { STYLE_PROPERTIES } from "../../../shared/style";
 import type { StylePropertyName } from "../../../shared/style";
@@ -64,7 +65,7 @@ export function formatSpatialAnnotation(
  * Formats a complete classDef line with one property updated.
  */
 export function formatStyleProperty(
-  style: StyleDefNode,
+  style: StyleDefNode & { readonly location: SourceLocation },
   property: StylePropertyName,
   value: string
 ): string {
@@ -95,7 +96,7 @@ export function formatStyleProperty(
  * Clones a Mermaid classDef line under a new style ID and changes one property.
  */
 export function formatClonedStyleDefProperty(
-  style: StyleDefNode,
+  style: StyleDefNode & { readonly location: SourceLocation },
   styleDefId: StyleDefId,
   property: StylePropertyName,
   value: string

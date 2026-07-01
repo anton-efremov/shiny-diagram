@@ -2,7 +2,6 @@
  * @fileoverview Result and diagnostic contracts returned by the parse component.
  */
 
-import type { DiagramTree } from "../model/diagramTree";
 import type { DiagramGraph } from "../model/diagramGraph";
 import type { ProvenanceIndex } from "../model/provenanceIndex";
 import type { SourceLocation } from "../model/sourceLocation";
@@ -26,14 +25,12 @@ export type EditorDiagnostic = {
 export type ParseResult =
   | {
       readonly status: "ready";
-      readonly model: DiagramTree;
       readonly graph: DiagramGraph;
       readonly provenance: ProvenanceIndex;
       readonly diagnostics: readonly EditorDiagnostic[];
     }
   | {
       readonly status: "missingAnnotations";
-      readonly model: DiagramTree;
       readonly graph: DiagramGraph;
       readonly provenance: ProvenanceIndex;
       readonly diagnostics: readonly EditorDiagnostic[];

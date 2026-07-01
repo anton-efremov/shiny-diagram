@@ -4,7 +4,6 @@
 
 import type { EditorCommandOf } from "../../../../View/commands";
 import type { ClassId } from "../../../../shared/ids";
-import type { ClassNode, SpatialData } from "../../../model/diagramTree";
 import type { SourceLocation } from "../../../model/sourceLocation";
 import type { CommandContext, CommandResult } from "../../commandExecution";
 import type { SourceEdit } from "../../sourceEdit";
@@ -55,19 +54,20 @@ export function handleClassDuplicateCommands(
     }
     sourceClassIds.add(sourceClassId);
 
-    const sourceClass = context.model.classes.get(sourceClassId);
+    const sourceClass = context.graph.classes.get(sourceClassId);
     if (!sourceClass) {
       return { ok: false, problem: `Class ${sourceClassId} cannot be duplicated` };
     }
 
-    const classId = generateDuplicateClassId(context.model, sourceClassId, reservedClassIds);
+    const classId = generateDuplicateClassId(context.graph, sourceClassId, reservedClassIds);
     reservedClassIds.add(classId);
 
     const styleLine = formatDuplicateStyleLine(sourceClassId, classId, context);
     const spatialLine = formatDuplicateSpatialLine(classId, command);
-    const edits = sourceClass.location
+    const sourceClassLocation = context.provenance.classes.get(sourceClassId);
+    const edits = sourceClassLocation
       ? buildExplicitDeclarationEdit(
-          sourceClass.location,
+          sourceClassLocation,
           classId,
           styleLine,
           spatialLine,
@@ -185,10 +185,10 @@ function formatDuplicateStyleLine(
   duplicateClassId: ClassId,
   context: CommandContext
 ): string | null {
-  const edge = context.model.appliesStyleEdges.find(
-    (candidate) => candidate.source === sourceClassId
+  const edge = [...context.graph.styleApplications.values()].find(
+    (candidate) => candidate.targetId === sourceClassId
   );
-  return edge ? formatClassStyleApplication(duplicateClassId, edge.target) : null;
+  return edge ? formatClassStyleApplication(duplicateClassId, edge.styleDefId) : null;
 }
 
 function formatDuplicateSpatialLine(
@@ -233,10 +233,21 @@ function getRangeText(range: LineRange, sourceText: string, eol: string): string
 }
 
 function getExistingSpatialAnnotations(context: CommandContext): SpatialData[] {
-  return [...context.model.classes.values()]
-    .flatMap((node: ClassNode) => (node.spatial ? [node.spatial] : []))
+  return [...context.provenance.classSpatial.entries()]
+    .flatMap(([classId, location]) => {
+      const spatial = context.graph.classes.get(classId)?.spatial;
+      return spatial ? [{ spatial, location }] : [];
+    })
     .sort((a, b) => a.location.startLine - b.location.startLine);
 }
+
+type SpatialData = {
+  readonly spatial: {
+    readonly position: { readonly x: number; readonly y: number };
+    readonly size: { readonly width: number; readonly height: number };
+  };
+  readonly location: SourceLocation;
+};
 
 function appendAfterDiagramContent(sourceText: string, text: string, eol: string): SourceEdit {
   const sourceLines = getSourceLines(sourceText);

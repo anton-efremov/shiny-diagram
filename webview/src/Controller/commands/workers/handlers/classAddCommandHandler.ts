@@ -3,7 +3,6 @@
  */
 
 import type { EditorCommandOf } from "../../../../View/commands";
-import type { SpatialData } from "../../../model/diagramTree";
 import type { CommandContext, CommandResult } from "../../commandExecution";
 import type { SourceEdit } from "../../sourceEdit";
 import { generateClassId } from "../classIdGeneration";
@@ -16,7 +15,7 @@ export function handleClassAddCommand(
   command: EditorCommandOf<"class.create">,
   context: CommandContext
 ): CommandResult {
-  const classId = generateClassId(context.model, command.name);
+  const classId = generateClassId(context.graph, command.name);
   const { position, size } = command.spatial;
   const classLine = formatClassDeclaration(classId);
   const spatialLine = formatSpatialAnnotation(
@@ -65,10 +64,26 @@ export function handleClassAddCommand(
 }
 
 function getExistingSpatialAnnotations(context: CommandContext): SpatialData[] {
-  return [...context.model.classes.values()]
-    .flatMap((node) => (node.spatial ? [node.spatial] : []))
+  return [...context.provenance.classSpatial.entries()]
+    .flatMap(([classId, location]) => {
+      const spatial = context.graph.classes.get(classId)?.spatial;
+      return spatial ? [{ spatial, location }] : [];
+    })
     .sort((a, b) => a.location.startLine - b.location.startLine);
 }
+
+type SpatialData = {
+  readonly spatial: {
+    readonly position: { readonly x: number; readonly y: number };
+    readonly size: { readonly width: number; readonly height: number };
+  };
+  readonly location: {
+    readonly startLine: number;
+    readonly startChar: number;
+    readonly endLine: number;
+    readonly endChar: number;
+  };
+};
 
 function appendAfterDiagramContent(sourceText: string, text: string, eol: string): SourceEdit {
   const sourceLines = sourceText.split(/\r?\n/);

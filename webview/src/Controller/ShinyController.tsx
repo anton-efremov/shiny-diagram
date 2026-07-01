@@ -31,12 +31,13 @@ export default function ShinyController({
 }: ShinyControllerProps): ReactElement {
   const parseResult = useMemo(() => parseDiagram(sourceText), [sourceText]);
 
-  const model = parseResult.status !== "invalidSyntax" ? parseResult.model : null;
+  const graph = parseResult.status !== "invalidSyntax" ? parseResult.graph : null;
+  const provenance = parseResult.status !== "invalidSyntax" ? parseResult.provenance : null;
 
   const diagramView: DiagramView | null = useMemo(() => {
-    if (!model) return null;
-    return deriveDiagramView(model);
-  }, [model]);
+    if (!graph) return null;
+    return deriveDiagramView(graph);
+  }, [graph]);
 
   const editorViewModel: EditorViewModel = useMemo(() => {
     if (parseResult.status === "invalidSyntax") {
@@ -58,16 +59,18 @@ export default function ShinyController({
   }, [parseResult, diagramView]);
 
   const commandExecutionInputs: CommandExecutionInputs = {
-    context: model
-      ? {
-          sourceText,
-          model,
-          malformedAnnotations:
-            parseResult.status === "missingAnnotations"
-              ? parseResult.malformedAnnotations
-              : undefined,
-        }
-      : null,
+    context:
+      graph && provenance
+        ? {
+            sourceText,
+            graph,
+            provenance,
+            malformedAnnotations:
+              parseResult.status === "missingAnnotations"
+                ? parseResult.malformedAnnotations
+                : undefined,
+          }
+        : null,
     onApplyEdits,
   };
   const commandExecutionInputsRef = useRef<CommandExecutionInputs>(commandExecutionInputs);

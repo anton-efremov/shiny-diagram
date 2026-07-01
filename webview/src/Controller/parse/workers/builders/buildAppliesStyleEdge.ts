@@ -2,24 +2,38 @@
  * @fileoverview Builds applied-style edges from style-application tokens.
  */
 
-import { toClassId, toStyleDefId } from "../../../../shared/ids";
-import type { AppliesStyleEdge } from "../../../model/diagramTree";
+import { toClassId, toStyleApplicationId, toStyleDefId } from "../../../../shared/ids";
+import type { StyleApplicationEdge } from "../../../model/diagramGraph";
+import type { SourceLocation } from "../../../model/sourceLocation";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
+
+export type ParsedStyleApplicationEdge = {
+  readonly edge: StyleApplicationEdge;
+  readonly location: SourceLocation;
+};
 
 /**
  * Builds an applied-style edge from a style-application token.
  */
-export function buildAppliesStyleEdge(token: ParseToken): AppliesStyleEdge | null {
+export function buildAppliesStyleEdge(
+  token: ParseToken,
+  index: number
+): ParsedStyleApplicationEdge | null {
   if (token.type !== "styleApplication") return null;
 
   const match = /^\s*class\s+(\w+):::(\w+)/.exec(token.raw);
   if (!match) return null;
 
+  const targetId = toClassId(match[1]);
+  const styleDefId = toStyleDefId(match[2]);
   return {
-    kind: "appliesStyle",
-    source: toClassId(match[1]),
-    target: toStyleDefId(match[2]),
     location: toSourceLocation(token),
+    edge: {
+      kind: "styleApplication",
+      id: toStyleApplicationId(`${targetId}:::${styleDefId}:${index}`),
+      targetId,
+      styleDefId,
+    },
   };
 }

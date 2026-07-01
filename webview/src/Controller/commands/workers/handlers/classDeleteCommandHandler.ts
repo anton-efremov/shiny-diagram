@@ -42,13 +42,14 @@ export function handleClassDeleteCommands(
   const ranges: LineRange[] = [];
 
   for (const classId of requestedClassIds) {
-    const node = context.model.classes.get(classId);
+    const node = context.graph.classes.get(classId);
     if (!node) {
       return { ok: false, problem: `Class ${classId} not found` };
     }
 
-    if (node.location) {
-      const declarationRange = findClassDeclarationRange(node.location, context.sourceText);
+    const location = context.provenance.classes.get(classId);
+    if (location) {
+      const declarationRange = findClassDeclarationRange(location, context.sourceText);
       if (!declarationRange) {
         return { ok: false, problem: `No safe deletion range for class ${classId}` };
       }
@@ -58,14 +59,21 @@ export function handleClassDeleteCommands(
 
   ranges.push(
     ...findSpatialAnnotationRanges(classIds, context.sourceText),
-    ...context.model.appliesStyleEdges
-      .filter((edge) => classIds.has(edge.source))
-      .map((edge) => toLineRange(edge.location)),
-    ...context.model.relationships
+    ...[...context.graph.styleApplications.values()]
+      .filter((edge) => classIds.has(edge.targetId))
+      .flatMap((edge) => {
+        const location = context.provenance.styleApplications.get(edge.id);
+        return location ? [toLineRange(location)] : [];
+      }),
+    ...[...context.graph.relationships.values()]
       .filter(
-        (relationship) => classIds.has(relationship.source) || classIds.has(relationship.target)
+        (relationship) =>
+          classIds.has(relationship.source.classId) || classIds.has(relationship.target.classId)
       )
-      .map((relationship) => toLineRange(relationship.location))
+      .flatMap((relationship) => {
+        const location = context.provenance.relationships.get(relationship.id);
+        return location ? [toLineRange(location)] : [];
+      })
   );
 
   const edits = mergeLineRanges(ranges).map((range) => toDeleteEdit(range, context.sourceText));

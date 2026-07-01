@@ -3,11 +3,7 @@
  */
 
 import type { ParseResult } from "./parseResult";
-import { adaptDiagramTreeToGraph } from "../model/diagramGraphAdapter";
-import {
-  buildSpatiallyUnawareDiagramTree,
-  synthesizeImplicitClassNodes,
-} from "./workers/buildDiagramTree";
+import { buildSpatiallyUnawareDiagramGraph } from "./workers/buildDiagramGraph";
 import { attachSpatial, parseSpatialAnnotations } from "./workers/spatialAnnotations";
 import { tokenize } from "./workers/tokenizer";
 
@@ -24,13 +20,15 @@ export function parseDiagram(source: string): ParseResult {
     }
 
     const tokens = tokenize(source);
-    const spatiallyUnawareTree = buildSpatiallyUnawareDiagramTree(tokens);
-    const treeWithImplicitClasses = synthesizeImplicitClassNodes(spatiallyUnawareTree);
+    const spatiallyUnaware = buildSpatiallyUnawareDiagramGraph(tokens);
     const { valid, malformed } = parseSpatialAnnotations(tokens);
-    const model = attachSpatial(treeWithImplicitClasses, valid);
-    const { graph, provenance } = adaptDiagramTreeToGraph(model);
+    const { graph, provenance } = attachSpatial(
+      spatiallyUnaware.graph,
+      spatiallyUnaware.provenance,
+      valid
+    );
 
-    const missingIds = [...model.classes.values()]
+    const missingIds = [...graph.classes.values()]
       .filter((node) => !node.spatial)
       .map((node) => node.id);
 
@@ -40,7 +38,6 @@ export function parseDiagram(source: string): ParseResult {
       );
       return {
         status: "missingAnnotations",
-        model,
         graph,
         provenance,
         diagnostics: [],
@@ -49,7 +46,7 @@ export function parseDiagram(source: string): ParseResult {
       };
     }
 
-    return { status: "ready", model, graph, provenance, diagnostics: [] };
+    return { status: "ready", graph, provenance, diagnostics: [] };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown parse error";
     return { status: "invalidSyntax", diagnostics: [{ kind: "syntaxError", message }] };

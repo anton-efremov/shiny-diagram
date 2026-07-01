@@ -2,62 +2,54 @@
  * @fileoverview Derives View-owned class-box render models from Controller classes and styles.
  */
 
-import type { DiagramTree } from "../../model/diagramTree";
+import type { DiagramGraph } from "../../model/diagramGraph";
 import type { ClassView } from "../../../View/views";
 
 /**
  * Derives class-box views for classes with spatial data.
  */
-export function deriveClassBoxViews(model: DiagramTree): ClassView[] {
+export function deriveClassBoxViews(model: DiagramGraph): ClassView[] {
   const views: ClassView[] = [];
 
   for (const node of model.classes.values()) {
     if (!node.spatial) continue;
 
-    const styleEdge = model.appliesStyleEdges.find((e) => e.source === node.id);
-    const styleDef = styleEdge ? model.styleDefs.get(styleEdge.target) : undefined;
-
-    const style = styleDef
-      ? {
-          fill: styleDef.properties.find((p) => p.property === "fill")?.value ?? null,
-          stroke: styleDef.properties.find((p) => p.property === "stroke")?.value ?? null,
-          strokeWidth: styleDef.properties.find((p) => p.property === "strokeWidth")?.value ?? null,
-          fontSize: styleDef.properties.find((p) => p.property === "fontSize")?.value ?? null,
-        }
-      : undefined;
+    const styleEdge = [...model.styleApplications.values()].find((e) => e.targetId === node.id);
+    const styleDef = styleEdge ? model.styleDefinitions.get(styleEdge.styleDefId) : undefined;
 
     views.push({
       classId: node.id,
       bounds: {
-        x: node.spatial.x,
-        y: node.spatial.y,
-        w: node.spatial.width,
-        h: node.spatial.height,
+        x: node.spatial.position.x,
+        y: node.spatial.position.y,
+        w: node.spatial.size.width,
+        h: node.spatial.size.height,
       },
       header: {
-        label: node.id as string,
-        stereotype: node.annotation?.value,
+        label: node.label,
+        stereotype: node.annotation ?? undefined,
       },
-      members: node.members.map((member) => {
-        if (member.kind === "method") {
-          const params = member.params ?? "";
-          const typeSuffix = member.returnType ? `: ${member.returnType}` : "";
+      members: [
+        ...node.attributes.map((attribute) => {
+          const typeSuffix = attribute.attributeType ? `: ${attribute.attributeType}` : "";
           return {
-            memberId: member.id,
-            prefix: member.visibility ?? null,
-            text: `${member.name}(${params})${typeSuffix}`,
+            memberId: attribute.id,
+            prefix: attribute.visibility,
+            text: `${attribute.name}${typeSuffix}`,
+            kind: "field" as const,
+          };
+        }),
+        ...node.methods.map((method) => {
+          const typeSuffix = method.returnType ? `: ${method.returnType}` : "";
+          return {
+            memberId: method.id,
+            prefix: method.visibility,
+            text: `${method.name}(${method.parameters})${typeSuffix}`,
             kind: "method" as const,
           };
-        }
-        const typeSuffix = member.fieldType ? `: ${member.fieldType}` : "";
-        return {
-          memberId: member.id,
-          prefix: member.visibility ?? null,
-          text: `${member.name}${typeSuffix}`,
-          kind: "field" as const,
-        };
-      }),
-      style,
+        }),
+      ],
+      style: styleDef?.properties,
     });
   }
 

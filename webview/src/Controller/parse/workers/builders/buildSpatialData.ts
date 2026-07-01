@@ -3,12 +3,16 @@
  */
 
 import { toClassId, type ClassId } from "../../../../shared/ids";
-import type { SpatialData } from "../../../model/diagramTree";
+import type { SpatialAttachment } from "../../../../shared/geometry";
 import type { SourceLocation } from "../../../model/sourceLocation";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
 
-export type SpatialEntry = { readonly classId: ClassId; readonly spatial: SpatialData };
+export type SpatialEntry = {
+  readonly classId: ClassId;
+  readonly spatial: SpatialAttachment;
+  readonly location: SourceLocation;
+};
 export type MalformedAnnotation = { readonly classId: ClassId; readonly location: SourceLocation };
 
 /**
@@ -27,7 +31,11 @@ export function buildSpatialData(token: ParseToken): SpatialEntry | MalformedAnn
 
   return {
     classId,
-    spatial: { x: values.x, y: values.y, width: values.width, height: values.height, location },
+    location,
+    spatial: {
+      position: { x: values.x, y: values.y },
+      size: { width: values.width, height: values.height },
+    },
   };
 }
 
