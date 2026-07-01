@@ -13,18 +13,13 @@ import type {
   SelectionState,
 } from "../../../../state/editorStates";
 import { reactFlowCanvasBoundaryProps } from "../../../../config/reactFlowConfig";
+import type { ClassBoxPlacementChange } from "./frameworkAdapters";
 import { toClassBoxNodeDescriptors, toRelationshipEdgeDescriptors } from "./frameworkAdapters";
 import { useInteractions } from "./useInteractions";
 import PlacementOverlay from "./PlacementOverlay/PlacementOverlay";
 import ReactFlowClassBoxNodeAdapter from "./ReactFlowClassBoxAdapter/ReactFlowClassBoxAdapter";
 
 const nodeTypes = { classBox: ReactFlowClassBoxNodeAdapter };
-
-type ClassBoxPlacementChange = {
-  readonly classId: ClassId;
-  readonly x: number;
-  readonly y: number;
-};
 
 type ReactFlowCanvasAdapterProps = {
   readonly view: DiagramView;

@@ -2,7 +2,11 @@
  * @framework View diagram canvas props and React Flow event payloads to adapter boundary values.
  */
 
-import type { Edge as ReactFlowEdge, Node as ReactFlowNode } from "@xyflow/react";
+import type {
+  Edge as ReactFlowEdge,
+  Node as ReactFlowNode,
+  NodeChange as ReactFlowNodeChange,
+} from "@xyflow/react";
 import type { Rect } from "../../../../../shared/geometry";
 import type { ClassId } from "../../../../../shared/ids";
 import type { ClassBoxPlacementState } from "../../../../state/editorStates";
@@ -17,6 +21,14 @@ export type ClassBoxNodeData = {
 
 export type ClassBoxNodeDescriptor = ReactFlowNode<ClassBoxNodeData, "classBox">;
 export type RelationshipEdgeDescriptor = ReactFlowEdge;
+
+export type ClassBoxPlacementChange = {
+  readonly classId: ClassId;
+  readonly x?: number;
+  readonly y?: number;
+  readonly w?: number;
+  readonly h?: number;
+};
 
 // Framework prop and event adaptation
 export function toClassBoxNodeDescriptors(
@@ -98,6 +110,32 @@ export function normalizePositionChanges(
   return rfNodes.flatMap((node) => {
     if (node.type !== "classBox" || !classIds.has(node.data.view.classId)) return [];
     return [{ classId: node.data.view.classId, x: node.position.x, y: node.position.y }];
+  });
+}
+
+// Framework prop and event adaptation
+export function toClassBoxPlacementChanges(
+  changes: readonly ReactFlowNodeChange<ClassBoxNodeDescriptor>[]
+): ClassBoxPlacementChange[] {
+  return changes.flatMap((change): ClassBoxPlacementChange[] => {
+    switch (change.type) {
+      case "position":
+        return change.position === undefined
+          ? []
+          : [{ classId: change.id as ClassId, x: change.position.x, y: change.position.y }];
+      case "dimensions":
+        return change.dimensions === undefined
+          ? []
+          : [
+              {
+                classId: change.id as ClassId,
+                w: change.dimensions.width,
+                h: change.dimensions.height,
+              },
+            ];
+      default:
+        return [];
+    }
   });
 }
 

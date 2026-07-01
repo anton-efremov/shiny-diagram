@@ -4,14 +4,8 @@
 
 import { useCallback } from "react";
 import type { NodeChange, OnNodeDrag } from "@xyflow/react";
-import type { ClassId } from "../../../../../shared/ids";
-import type { ClassBoxNodeDescriptor } from "./frameworkAdapters";
-
-type ClassBoxPlacementChange = {
-  readonly classId: ClassId;
-  readonly x: number;
-  readonly y: number;
-};
+import type { ClassBoxNodeDescriptor, ClassBoxPlacementChange } from "./frameworkAdapters";
+import { toClassBoxPlacementChanges } from "./frameworkAdapters";
 
 type ReactFlowCanvasAdapterCallbacks = {
   readonly onClassBoxPlacementChange: (changes: readonly ClassBoxPlacementChange[]) => void;
@@ -29,12 +23,9 @@ export function useInteractions(callbacks: ReactFlowCanvasAdapterCallbacks): Int
   // Framework prop and event adaptation
   const onNodesChange = useCallback(
     (changes: NodeChange<ClassBoxNodeDescriptor>[]) => {
-      const positionChanges = changes.flatMap((change) => {
-        if (change.type !== "position" || change.position === undefined) return [];
-        return [{ classId: change.id as ClassId, x: change.position.x, y: change.position.y }];
-      });
-      if (positionChanges.length > 0) {
-        callbacks.onClassBoxPlacementChange(positionChanges);
+      const placementChanges = toClassBoxPlacementChanges(changes);
+      if (placementChanges.length > 0) {
+        callbacks.onClassBoxPlacementChange(placementChanges);
       }
     },
     [callbacks]

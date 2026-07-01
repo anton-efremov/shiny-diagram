@@ -1,10 +1,11 @@
 /**
  * @behavior Class box placement state updates and class move command dispatch handlers.
- * @state ClassBoxPlacementState updates from framework-neutral position changes.
+ * @state ClassBoxPlacementState updates from framework-neutral rect patches.
  */
 
 import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import type { Rect } from "../../../../shared/geometry";
 import type { ClassBoxPlacementState } from "../../../state/editorStates";
 import type { ClassView } from "../../../views/schema";
 import { toClassMoveTransaction } from "./transactions";
@@ -12,8 +13,10 @@ import { useDispatchTransaction } from "../../../contexts";
 
 type ClassBoxPlacementChange = {
   readonly classId: ClassView["classId"];
-  readonly x: number;
-  readonly y: number;
+  readonly x?: number;
+  readonly y?: number;
+  readonly w?: number;
+  readonly h?: number;
 };
 
 type Interactions = {
@@ -44,6 +47,7 @@ export function useInteractions({
     (finalPositions: readonly ClassBoxPlacementChange[]) => {
       const moves = finalPositions.flatMap((pos) => {
         if (!view.some((classView) => classView.classId === pos.classId)) return [];
+        if (pos.x === undefined || pos.y === undefined) return [];
         return [{ classId: pos.classId, position: { x: pos.x, y: pos.y } }];
       });
       if (moves.length > 0) {
@@ -62,13 +66,30 @@ function applyClassBoxPlacementChanges(
   state: ClassBoxPlacementState,
   changes: readonly ClassBoxPlacementChange[]
 ): ClassBoxPlacementState {
-  let changed = false;
-  const next = new Map(state.rectByClassId);
+  let next: Map<ClassView["classId"], Rect> | null = null;
+
   for (const change of changes) {
-    const existing = next.get(change.classId);
-    if (!existing || (existing.x === change.x && existing.y === change.y)) continue;
-    next.set(change.classId, { ...existing, x: change.x, y: change.y });
-    changed = true;
+    const existing = (next ?? state.rectByClassId).get(change.classId);
+    if (!existing) continue;
+
+    const changedRect = {
+      ...existing,
+      x: change.x ?? existing.x,
+      y: change.y ?? existing.y,
+      w: change.w ?? existing.w,
+      h: change.h ?? existing.h,
+    };
+    if (
+      existing.x === changedRect.x &&
+      existing.y === changedRect.y &&
+      existing.w === changedRect.w &&
+      existing.h === changedRect.h
+    ) {
+      continue;
+    }
+
+    next ??= new Map(state.rectByClassId);
+    next.set(change.classId, changedRect);
   }
-  return changed ? { rectByClassId: next } : state;
+  return next ? { rectByClassId: next } : state;
 }
