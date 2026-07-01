@@ -150,14 +150,6 @@ export type InteractionAttachment = {
   readonly tooltip: string | null;
 };
 
-// Property bag shared by `style ...` (direct) and `classDef ...` (definition).
-export type StyleProperties = {
-  readonly fill: string | null;
-  readonly stroke: string | null;
-  readonly strokeWidth: string | null;
-  readonly fontSize: string | null;
-};
-
 // Mermaid: `namespace Domain { ... }` OR `namespace Domain["Domain Layer"] { ... }`
 export type NamespaceNode = {
   readonly kind: "namespace";
