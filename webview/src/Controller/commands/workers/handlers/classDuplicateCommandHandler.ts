@@ -58,12 +58,15 @@ export function handleClassDuplicateCommands(
     if (!sourceClass) {
       return { ok: false, problem: `Class ${sourceClassId} cannot be duplicated` };
     }
+    if (!sourceClass.spatial) {
+      return { ok: false, problem: `Class ${sourceClassId} has no spatial data` };
+    }
 
     const classId = generateDuplicateClassId(context.graph, sourceClassId, reservedClassIds);
     reservedClassIds.add(classId);
 
     const styleLine = formatDuplicateStyleLine(sourceClassId, classId, context);
-    const spatialLine = formatDuplicateSpatialLine(classId, command);
+    const spatialLine = formatDuplicateSpatialLine(classId, command, sourceClass.spatial.size);
     const sourceClassLocation = context.provenance.classes.get(sourceClassId);
     const edits = sourceClassLocation
       ? buildExplicitDeclarationEdit(
@@ -193,14 +196,15 @@ function formatDuplicateStyleLine(
 
 function formatDuplicateSpatialLine(
   classId: ClassId,
-  command: EditorCommandOf<"class.duplicate">
+  command: EditorCommandOf<"class.duplicate">,
+  size: { readonly width: number; readonly height: number }
 ): string {
   return formatSpatialAnnotation(
     classId,
     command.position.x,
     command.position.y,
-    command.size.width,
-    command.size.height
+    size.width,
+    size.height
   );
 }
 

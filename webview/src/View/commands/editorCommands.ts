@@ -33,7 +33,7 @@ import type {
   StyleApplicationId,
   StyleDefId,
 } from "../../shared/ids";
-import type { AttachmentSide, Point, Size, SpatialAttachment } from "../../shared/geometry";
+import type { AttachmentSide, Point, SpatialAttachment } from "../../shared/geometry";
 import type { InteractionAttachment } from "../../shared/interaction";
 import type { NoteSpatial } from "../../shared/notes";
 import type { StyleProperties, StylePropertyName } from "../../shared/style";
@@ -73,7 +73,6 @@ export type EditorCommand =
   // ==========================================================================
   | {
       readonly type: "class.create";
-      readonly name: string;
       readonly parentNamespaceId: NamespaceId | null;
       readonly spatial: SpatialAttachment;
     }
@@ -115,7 +114,6 @@ export type EditorCommand =
       readonly type: "class.duplicate";
       readonly sourceClassId: ClassId;
       readonly position: Point;
-      readonly size: Size;
     }
   | {
       readonly type: "class.directStyle.property.set";

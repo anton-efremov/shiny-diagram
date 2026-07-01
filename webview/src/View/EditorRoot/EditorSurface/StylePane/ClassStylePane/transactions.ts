@@ -51,6 +51,5 @@ export function toClassDuplicateTransaction(
       x: selectedClass.bounds.x + DUPLICATE_OFFSET,
       y: selectedClass.bounds.y + DUPLICATE_OFFSET,
     },
-    size: { width: selectedClass.bounds.w, height: selectedClass.bounds.h },
   }));
 }

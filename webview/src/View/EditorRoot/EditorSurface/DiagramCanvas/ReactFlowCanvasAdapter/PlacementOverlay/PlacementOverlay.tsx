@@ -7,7 +7,6 @@
 import { useState } from "react";
 import type { ReactElement, CSSProperties } from "react";
 import type { NodePlacementState } from "../../../../../state/editorStates";
-import type { ClassView } from "../../../../../views/schema";
 import { PLACEMENT_OVERLAY_Z_INDEX } from "../../../../../config/editorUiConfig";
 import { toDraftStyle } from "./childProps";
 import { toInitialDraftRect, toInitialOrigin } from "./state";
@@ -16,13 +15,11 @@ import styles from "./PlacementOverlay.module.css";
 
 type PlacementOverlayProps = {
   readonly nodePlacementState: NodePlacementState;
-  readonly classes: readonly Pick<ClassView, "classId">[];
   readonly onPlacementComplete: () => void;
 };
 
 export default function PlacementOverlay({
   nodePlacementState,
-  classes,
   onPlacementComplete,
 }: PlacementOverlayProps): ReactElement | null {
   // State creation: local states - draw gesture anchor and current placement outline
@@ -38,7 +35,6 @@ export default function PlacementOverlay({
     origin,
     setOrigin,
     setDraftRect,
-    classes,
     onPlacementComplete,
   });
 

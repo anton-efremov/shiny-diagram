@@ -15,7 +15,7 @@ export function handleClassAddCommand(
   command: EditorCommandOf<"class.create">,
   context: CommandContext
 ): CommandResult {
-  const classId = generateClassId(context.graph, command.name);
+  const classId = generateClassId(context.graph);
   const { position, size } = command.spatial;
   const classLine = formatClassDeclaration(classId);
   const spatialLine = formatSpatialAnnotation(

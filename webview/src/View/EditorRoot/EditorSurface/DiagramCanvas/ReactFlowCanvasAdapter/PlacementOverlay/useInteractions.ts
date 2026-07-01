@@ -8,7 +8,6 @@ import { useCallback } from "react";
 import type { Dispatch, PointerEvent, SetStateAction } from "react";
 import { useReactFlow } from "@xyflow/react";
 import type { Point, Rect } from "../../../../../../shared/geometry";
-import type { ClassView } from "../../../../../views/schema";
 import { PLACEMENT_OVERLAY_DRAG_THRESHOLD } from "../../../../../config/editorUiConfig";
 import { useDispatchTransaction } from "../../../../../contexts";
 import type { DrawOrigin } from "./state";
@@ -25,7 +24,6 @@ type UseInteractionsInput = {
   readonly origin: DrawOrigin | null;
   readonly setOrigin: Dispatch<SetStateAction<DrawOrigin | null>>;
   readonly setDraftRect: Dispatch<SetStateAction<Rect | null>>;
-  readonly classes: readonly Pick<ClassView, "classId">[];
   readonly onPlacementComplete: () => void;
 };
 
@@ -33,7 +31,6 @@ export function useInteractions({
   origin,
   setOrigin,
   setDraftRect,
-  classes,
   onPlacementComplete,
 }: UseInteractionsInput): Interactions {
   const { screenToFlowPosition } = useReactFlow();
@@ -93,22 +90,11 @@ export function useInteractions({
       if (!isMeaningfulDrag) return;
 
       // Implementing interaction through command transaction
-      const transaction = toClassCreateTransaction(
-        normalizeRect(origin.diagram, endDiagramPoint),
-        classes
-      );
+      const transaction = toClassCreateTransaction(normalizeRect(origin.diagram, endDiagramPoint));
       dispatchCommand(transaction);
       onPlacementComplete();
     },
-    [
-      classes,
-      dispatchCommand,
-      onPlacementComplete,
-      origin,
-      screenToFlowPosition,
-      setDraftRect,
-      setOrigin,
-    ]
+    [dispatchCommand, onPlacementComplete, origin, screenToFlowPosition, setDraftRect, setOrigin]
   );
 
   return { onPointerDown, onPointerMove, onPointerUp };
