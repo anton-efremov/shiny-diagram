@@ -6,6 +6,7 @@ export type ParseTokenType =
   | "classDeclaration"
   | "relationship"
   | "styleDef"
+  | "classDirectStyle"
   | "styleApplication"
   | "spatialAnnotation"
   | "namespace"
@@ -15,7 +16,9 @@ export type ParseTokenType =
 
 export type ParseToken = {
   readonly lineNumber: number;
+  readonly endLine: number;
   readonly raw: string;
+  readonly fullRaw: string;
   readonly type: ParseTokenType;
   readonly blockTokens?: readonly ParseToken[];
 };
@@ -49,15 +52,22 @@ function tokenizeLines(
     if ((type === "classDeclaration" || type === "namespace") && raw.includes("{")) {
       const closesOnSameLine = /\{[^}]*\}/.test(raw);
       if (closesOnSameLine) {
-        nodes.push({ lineNumber, raw, type, blockTokens: [] });
+        nodes.push({ lineNumber, endLine: lineNumber, raw, fullRaw: raw, type, blockTokens: [] });
         i++;
       } else {
         const { nodes: blockTokens, nextIndex } = tokenizeLines(rawLines, i + 1, end);
-        nodes.push({ lineNumber, raw, type, blockTokens });
+        nodes.push({
+          lineNumber,
+          endLine: nextIndex,
+          raw,
+          fullRaw: rawLines.slice(lineNumber, nextIndex + 1).join("\n"),
+          type,
+          blockTokens,
+        });
         i = nextIndex + 1;
       }
     } else {
-      nodes.push({ lineNumber, raw, type });
+      nodes.push({ lineNumber, endLine: lineNumber, raw, fullRaw: raw, type });
       i++;
     }
   }
@@ -70,6 +80,7 @@ function detectLineType(raw: string): ParseTokenType {
   if (/^\s*%%\s+@spatial:/.test(raw)) return "spatialAnnotation";
   if (/^\s*%%/.test(raw)) return "directive";
   if (/^\s*classDef\s+/.test(raw)) return "styleDef";
+  if (/^\s*style\s+\w+\s+/.test(raw)) return "classDirectStyle";
   if (/^\s*class\s+\w+:::/.test(raw)) return "styleApplication";
   if (/^\s*class\s+\w/.test(raw)) return "classDeclaration";
   if (/^\s*namespace\s+\w/.test(raw)) return "namespace";

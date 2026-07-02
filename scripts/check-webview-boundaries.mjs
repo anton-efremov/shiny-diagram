@@ -26,7 +26,7 @@ const PROTOCOL_FILES = [
   },
 ];
 
-const CONTROLLER_COMPONENTS = ["parse", "deriveViews", "commands"];
+const CONTROLLER_COMPONENTS = ["parse", "deriveViews", "commands", "translate", "resolve"];
 const CONTROLLER_COMPONENT_SET = new Set(CONTROLLER_COMPONENTS);
 
 const REQUIRED_FACADES = new Set([
@@ -34,6 +34,8 @@ const REQUIRED_FACADES = new Set([
   "Controller/parse/index.ts",
   "Controller/deriveViews/index.ts",
   "Controller/commands/index.ts",
+  "Controller/translate/index.ts",
+  "Controller/resolve/index.ts",
   "View/EditorRoot/index.ts",
   "View/commands/index.ts",
   "View/views/index.ts",
@@ -491,6 +493,31 @@ function permittedDependencyRule(file, dependency, target) {
       return true;
     }
     return "Controller/commands may depend only on its own component, Controller/model, View/commands, or shared";
+  }
+
+  if (sourceComponent === "translate") {
+    if (
+      isUnder(target, "Controller/translate") ||
+      isUnder(target, "Controller/model") ||
+      target === "View/commands/index.ts" ||
+      isUnder(target, "shared")
+    ) {
+      return true;
+    }
+    return "Controller/translate may depend only on its own component, Controller/model, View/commands, or shared";
+  }
+
+  if (sourceComponent === "resolve") {
+    if (
+      isUnder(target, "Controller/resolve") ||
+      isUnder(target, "Controller/model") ||
+      target === "Controller/commands/index.ts" ||
+      target === "Controller/translate/index.ts" ||
+      isUnder(target, "shared")
+    ) {
+      return true;
+    }
+    return "Controller/resolve may depend only on its own component, Controller/model, Controller/commands, Controller/translate, or shared";
   }
 
   if (isUnder(file, "Controller/model")) {

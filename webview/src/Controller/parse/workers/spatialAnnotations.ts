@@ -3,7 +3,7 @@
  */
 
 import type { DiagramGraph } from "../../model/diagramGraph";
-import type { ProvenanceIndex } from "../../model/provenanceIndexOld";
+import type { ProvenanceIndex, SourceLocation, SpatialRecord } from "../../model/provenanceIndex";
 import {
   buildSpatialData,
   type MalformedAnnotation,
@@ -44,13 +44,68 @@ export function attachSpatial(
     const entry = spatialByClassId.get(node.id);
     if (entry) {
       classes.set(id, { ...node, spatial: entry.spatial });
-      classSpatial.set(id, entry.location);
+      classSpatial.set(id, toSpatialRecord(entry.location));
     }
   }
 
   return {
     graph: { ...graph, classes },
     provenance: { ...provenance, classSpatial },
+  };
+}
+
+function toSpatialRecord(location: SourceLocation): SpatialRecord {
+  const targetMatch = /@spatial:([A-Za-z_]\w*)/.exec(location.raw);
+  return {
+    self: location,
+    fields: {
+      target: toFieldLocation(
+        location,
+        targetMatch?.index ?? 0,
+        targetMatch?.[0].length ?? 0,
+        "@spatial:".length
+      ),
+      x: toSpatialValueLocation(location, "x"),
+      y: toSpatialValueLocation(location, "y"),
+      w: toSpatialValueLocation(location, "w"),
+      h: toSpatialValueLocation(location, "h"),
+    },
+  };
+}
+
+function toSpatialValueLocation(
+  location: SourceLocation,
+  key: "x" | "y" | "w" | "h"
+): SourceLocation {
+  const match = new RegExp(`(?:^|\\s)${key}=([^\\s]+)`).exec(location.raw);
+  if (!match || match.index === undefined) {
+    throw new Error(`Missing spatial coordinate ${key}`);
+  }
+  const keyStart = location.raw.indexOf(`${key}=`, match.index);
+  const start = keyStart + 2;
+  return {
+    startLine: location.startLine,
+    startChar: start,
+    endLine: location.startLine,
+    endChar: start + match[1].length,
+    raw: match[1],
+  };
+}
+
+function toFieldLocation(
+  location: SourceLocation,
+  matchStart: number,
+  matchLength: number,
+  prefixLength: number
+): SourceLocation {
+  const start = matchStart + prefixLength;
+  const end = matchStart + matchLength;
+  return {
+    startLine: location.startLine,
+    startChar: start,
+    endLine: location.startLine,
+    endChar: end,
+    raw: location.raw.slice(start, end),
   };
 }
 

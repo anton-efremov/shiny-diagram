@@ -8,8 +8,14 @@ import { parseDiagram } from "./parse";
 import { deriveDiagramView } from "./deriveViews";
 import { applyCommand } from "./commands";
 import type { SourceEdit } from "./commands";
+import { resolveIntents } from "./resolve";
+import { translateCommands } from "./translate";
+import type { DiagramGraph } from "./model/diagramGraph";
+import type { ProvenanceIndex, SourceLocation } from "./model/provenanceIndex";
+import type { ProvenanceIndex as OldProvenanceIndex } from "./model/provenanceIndexOld";
+import type { ClassId } from "../shared/ids";
 import { EditorView } from "../View/EditorRoot";
-import type { EditorDispatch } from "../View/commands";
+import type { EditorCommandTransaction, EditorDispatch } from "../View/commands";
 import type { DiagramView, EditorViewModel } from "../View/views";
 
 type ShinyControllerProps = {
@@ -18,8 +24,15 @@ type ShinyControllerProps = {
 };
 
 type CommandExecutionInputs = {
-  readonly context: Parameters<typeof applyCommand>[1] | null;
+  readonly context: NewCommandContext | null;
   readonly onApplyEdits: (edits: SourceEdit[]) => void;
+};
+
+type NewCommandContext = {
+  readonly sourceText: string;
+  readonly graph: DiagramGraph;
+  readonly provenance: ProvenanceIndex;
+  readonly malformedAnnotations?: ReadonlyMap<ClassId, SourceLocation>;
 };
 
 /**
@@ -83,7 +96,19 @@ export default function ShinyController({
     const { context, onApplyEdits: applyEdits } = commandExecutionInputsRef.current;
     if (!context) return;
 
-    const result = applyCommand(transaction, context);
+    if (isTranslatedTransaction(transaction)) {
+      const intents = translateCommands(transaction, context.graph, context.provenance);
+      const edits = resolveIntents(intents, context.provenance, context.sourceText);
+      if (edits.length > 0) {
+        applyEdits(edits);
+      }
+      return;
+    }
+
+    const result = applyCommand(transaction, {
+      ...context,
+      provenance: toOldProvenance(context.provenance),
+    });
     if (result.ok && result.edits.length > 0) {
       applyEdits(result.edits);
     }
@@ -92,4 +117,42 @@ export default function ShinyController({
   commandExecutionInputsRef.current = commandExecutionInputs;
 
   return <EditorView view={editorViewModel} onTransactionDispatch={dispatch} />;
+}
+
+function isTranslatedTransaction(transaction: EditorCommandTransaction): boolean {
+  return transaction.every((command) => {
+    switch (command.type) {
+      case "class.create":
+      case "class.duplicate":
+      case "class.delete":
+      case "class.spatial.set":
+      case "class.directStyle.property.set":
+        return true;
+      default:
+        return false;
+    }
+  });
+}
+
+function toOldProvenance(provenance: ProvenanceIndex): OldProvenanceIndex {
+  return {
+    classes: new Map([...provenance.classes.entries()].map(([id, record]) => [id, record.self])),
+    members: new Map([...provenance.members.entries()].map(([id, record]) => [id, record.self])),
+    namespaces: new Map(
+      [...provenance.namespaces.entries()].map(([id, record]) => [id, record.self])
+    ),
+    styleDefinitions: new Map(
+      [...provenance.styleDefinitions.entries()].map(([id, record]) => [id, record.self])
+    ),
+    relationships: new Map(
+      [...provenance.relationships.entries()].map(([id, record]) => [id, record.self])
+    ),
+    classSpatial: new Map(
+      [...provenance.classSpatial.entries()].map(([id, record]) => [id, record.self])
+    ),
+    namespaceMemberships: new Map(),
+    styleApplications: new Map(
+      [...provenance.styleApplications.entries()].map(([id, record]) => [id, record.self])
+    ),
+  };
 }

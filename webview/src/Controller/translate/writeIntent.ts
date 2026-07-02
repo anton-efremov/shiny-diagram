@@ -61,8 +61,16 @@ export type BlockRef =
 
 /** A `key:value` entry (delete target). */
 export type EntryRef =
-  | { readonly kind: "directStyleProperty"; readonly classId: ClassId; readonly property: StylePropertyName }
-  | { readonly kind: "styleDefProperty"; readonly styleDefId: StyleDefId; readonly property: StylePropertyName };
+  | {
+      readonly kind: "directStyleProperty";
+      readonly classId: ClassId;
+      readonly property: StylePropertyName;
+    }
+  | {
+      readonly kind: "styleDefProperty";
+      readonly styleDefId: StyleDefId;
+      readonly property: StylePropertyName;
+    };
 
 /** A single overwrite-able span (replace target). */
 export type ValueRef =
@@ -70,16 +78,36 @@ export type ValueRef =
   | { readonly kind: "namespaceName"; readonly namespaceId: NamespaceId }
   | { readonly kind: "memberName"; readonly memberId: AttributeId | MethodId }
   | { readonly kind: "memberOwner"; readonly memberId: AttributeId | MethodId } // `User` in `User : +name`
-  | { readonly kind: "relationshipEndpoint"; readonly relationshipId: RelationshipId; readonly side: "source" | "target" }
-  | { readonly kind: "relationshipMultiplicity"; readonly relationshipId: RelationshipId; readonly side: "source" | "target" }
+  | {
+      readonly kind: "relationshipEndpoint";
+      readonly relationshipId: RelationshipId;
+      readonly side: "source" | "target";
+    }
+  | {
+      readonly kind: "relationshipMultiplicity";
+      readonly relationshipId: RelationshipId;
+      readonly side: "source" | "target";
+    }
   | { readonly kind: "relationshipOperator"; readonly relationshipId: RelationshipId }
   | { readonly kind: "relationshipLabel"; readonly relationshipId: RelationshipId }
-  | { readonly kind: "directStylePropertyValue"; readonly classId: ClassId; readonly property: StylePropertyName }
-  | { readonly kind: "styleDefPropertyValue"; readonly styleDefId: StyleDefId; readonly property: StylePropertyName }
+  | {
+      readonly kind: "directStylePropertyValue";
+      readonly classId: ClassId;
+      readonly property: StylePropertyName;
+    }
+  | {
+      readonly kind: "styleDefPropertyValue";
+      readonly styleDefId: StyleDefId;
+      readonly property: StylePropertyName;
+    }
   | { readonly kind: "styleApplicationTarget"; readonly styleApplicationId: StyleApplicationId }
   | { readonly kind: "styleApplicationName"; readonly styleApplicationId: StyleApplicationId }
   | { readonly kind: "spatialTarget"; readonly target: BlockRef }
-  | { readonly kind: "spatialCoord"; readonly target: BlockRef; readonly coord: "x" | "y" | "w" | "h" };
+  | {
+      readonly kind: "spatialCoord";
+      readonly target: BlockRef;
+      readonly coord: "x" | "y" | "w" | "h";
+    };
 
 /** Where a new statement lands — always after a point. */
 export type StatementAnchor =

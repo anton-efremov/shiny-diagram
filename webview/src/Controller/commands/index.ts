@@ -4,4 +4,4 @@
  */
 
 export { applyCommand } from "./applyCommand";
-export type { SourceEdit } from "./sourceEdit";
+export type { SourceEdit, SourcePosition } from "./sourceEdit";
