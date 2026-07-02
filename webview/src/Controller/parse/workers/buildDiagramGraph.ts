@@ -11,7 +11,7 @@ import type {
   StyleApplicationEdge,
   StyleDefNode,
 } from "../../model/diagramGraph";
-import type { ProvenanceIndex } from "../../model/provenanceIndex";
+import type { ProvenanceIndex } from "../../model/provenanceIndexOld";
 import type { SourceLocation } from "../../model/sourceLocation";
 import { buildAppliesStyleEdge } from "./builders/buildAppliesStyleEdge";
 import { buildClassNode } from "./builders/buildClassNode";

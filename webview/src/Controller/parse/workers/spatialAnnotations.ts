@@ -3,7 +3,7 @@
  */
 
 import type { DiagramGraph } from "../../model/diagramGraph";
-import type { ProvenanceIndex } from "../../model/provenanceIndex";
+import type { ProvenanceIndex } from "../../model/provenanceIndexOld";
 import {
   buildSpatialData,
   type MalformedAnnotation,
