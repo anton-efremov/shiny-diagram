@@ -126,14 +126,24 @@ export type RelationshipRecord = {
 // Styles
 // ============================================================================
 
-export type StylePropertyValueFields = Partial<Record<StylePropertyName, SourceLocation>>;
+/** A single style property. `entry` is the whole `fill:#f9f` pair (delete
+ *  target); `value` is just the `#f9f` span (replace target). */
+export type StylePropertyField = {
+  readonly entry: SourceLocation;
+  readonly value: SourceLocation;
+};
 
-/** A class direct-style line: `style User fill:#f9f,stroke:#333`. */
+export type StylePropertyFields = Partial<Record<StylePropertyName, StylePropertyField>>;
+
+/** A class direct-style line: `style User fill:#f9f,stroke:#333`. `propertyList`
+ *  is the whole comma-separated list area; a first entry inserts after its
+ *  opening, subsequent entries after an existing property `entry`. */
 export type ClassDirectStyleRecord = {
   readonly self: SourceLocation;
   readonly fields: {
     readonly target: SourceLocation; // `User` in `style User ...`
-    readonly properties: StylePropertyValueFields; // value spans only, e.g. `#f9f`
+    readonly propertyList: SourceLocation; // `fill:#f9f,stroke:#333`
+    readonly properties: StylePropertyFields;
   };
 };
 
@@ -142,7 +152,8 @@ export type StyleDefRecord = {
   readonly self: SourceLocation;
   readonly fields: {
     readonly declaredName: SourceLocation; // `Important` in `classDef Important ...`
-    readonly properties: StylePropertyValueFields; // value spans only, e.g. `#f9f`
+    readonly propertyList: SourceLocation;
+    readonly properties: StylePropertyFields;
   };
 };
 
