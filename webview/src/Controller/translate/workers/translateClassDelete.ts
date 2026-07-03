@@ -1,5 +1,5 @@
 /**
- * @fileoverview Translates class deletion commands.
+ * @fileoverview Translates class.delete: delete the class statement and cascade to its spatial, relationships, direct style, and style applications.
  */
 
 import type { EditorCommandOf } from "../../../View/commands";
@@ -7,7 +7,7 @@ import type { DiagramGraph } from "../../model/diagramGraph";
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { WriteIntent } from "../writeIntent";
 
-export function translateDelete(
+export function translateClassDelete(
   command: EditorCommandOf<"class.delete">,
   graph: DiagramGraph,
   provenance: ProvenanceIndex

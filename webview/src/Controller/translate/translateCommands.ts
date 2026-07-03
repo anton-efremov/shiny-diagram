@@ -6,9 +6,11 @@ import type { EditorCommand, EditorCommandTransaction } from "../../View/command
 import type { DiagramGraph } from "../model/diagramGraph";
 import type { ProvenanceIndex } from "../model/provenanceIndex";
 import type { WriteIntent } from "./writeIntent";
-import { translateCreate, translateDuplicate } from "./workers/translateCreate";
-import { translateDelete } from "./workers/translateDelete";
-import { translateDirectStyleSet, translateSpatialSet } from "./workers/translateSet";
+import { translateClassCreate } from "./workers/translateClassCreate";
+import { translateClassDelete } from "./workers/translateClassDelete";
+import { translateClassDirectStyleSet } from "./workers/translateClassDirectStyleSet";
+import { translateClassDuplicate } from "./workers/translateClassDuplicate";
+import { translateClassSpatialSet } from "./workers/translateClassSpatialSet";
 
 export function translateCommands(
   transaction: EditorCommandTransaction,
@@ -25,15 +27,15 @@ function translateCommand(
 ): WriteIntent[] {
   switch (command.type) {
     case "class.create":
-      return translateCreate(command, graph, provenance);
+      return translateClassCreate(command, graph, provenance);
     case "class.duplicate":
-      return translateDuplicate(command, graph);
+      return translateClassDuplicate(command, graph);
     case "class.delete":
-      return translateDelete(command, graph, provenance);
+      return translateClassDelete(command, graph, provenance);
     case "class.spatial.set":
-      return translateSpatialSet(command, provenance);
+      return translateClassSpatialSet(command, provenance);
     case "class.directStyle.property.set":
-      return translateDirectStyleSet(command, provenance);
+      return translateClassDirectStyleSet(command, provenance);
     default:
       throw new Error(`Command ${command.type} is not supported by translate`);
   }
