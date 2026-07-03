@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ReactElement } from "react";
-import type { SourceEdit as ControllerSourceEdit } from "../Controller/commands";
+import type { SourceEdit as ControllerSourceEdit } from "../Controller/model/sourceEdit";
 import type { ApplyEditsMessage, SourceEdit as ProtocolSourceEdit } from "./protocol";
 import { readInitialData } from "./initialData";
 import { isHostMessage } from "./typeGuards";

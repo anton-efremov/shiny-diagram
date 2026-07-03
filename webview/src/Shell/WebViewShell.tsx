@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ReactElement } from "react";
-import type { SourceEdit } from "../Controller/commands";
+import type { SourceEdit } from "../Controller/model/sourceEdit";
 import ShinyController from "../Controller/ShinyController";
 import MermaidRenderer from "../mermaidRenderer/MermaidRenderer";
 import WebViewHeader from "./WebViewHeader/WebViewHeader";

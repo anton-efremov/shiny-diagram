@@ -1,5 +1,5 @@
 /**
- * @fileoverview Source edit operations produced by commands for host application.
+ * @fileoverview Source edit operations produced by Controller writeback.
  */
 
 export type SourcePosition = {

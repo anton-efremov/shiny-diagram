@@ -2,8 +2,8 @@
  * @fileoverview Resolves logical write intents into concrete source edits.
  */
 
-import type { SourceEdit, SourcePosition } from "../commands";
 import type { ProvenanceIndex, SourceLocation } from "../model/provenanceIndex";
+import type { SourceEdit, SourcePosition } from "../model/sourceEdit";
 import type {
   BlockRef,
   EntryAnchor,
