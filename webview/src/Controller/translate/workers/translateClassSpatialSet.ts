@@ -3,13 +3,15 @@
  */
 
 import type { EditorCommandOf } from "../../../View/commands";
+import type { DiagramGraph } from "../../model/diagramGraph";
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { WriteIntent } from "../writeIntent";
-import { anchorAfterLastStatement } from "../anchors";
+import { anchorStatement } from "../anchors/anchorStatement";
 import { composeSpatialAnnotation } from "../syntax/spatialSyntax";
 
 export function translateClassSpatialSet(
   command: EditorCommandOf<"class.spatial.set">,
+  graph: DiagramGraph,
   provenance: ProvenanceIndex
 ): WriteIntent[] {
   if (command.spatial) {
@@ -34,7 +36,10 @@ export function translateClassSpatialSet(
       {
         kind: "insertStatement",
         payload: composeSpatialAnnotation(command.classId, command.spatial),
-        anchor: anchorAfterLastStatement(provenance, { kind: "diagram" }),
+        anchor: anchorStatement(graph, provenance, { kind: "diagram" }, [
+          "classSpatial",
+          "namespaceSpatial",
+        ]),
       },
     ];
   }

@@ -7,7 +7,7 @@ import type { DiagramGraph } from "../../model/diagramGraph";
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { ClassId } from "../../../shared/ids";
 import type { WriteIntent } from "../writeIntent";
-import { anchorAfterLastStatement } from "../anchors";
+import { anchorStatement } from "../anchors/anchorStatement";
 import { allocateClassId } from "../generateId";
 import { composeSpatialAnnotation } from "../syntax/spatialSyntax";
 
@@ -26,7 +26,10 @@ export function translateClassCreate(
     {
       kind: "insertStatement",
       payload: composeSpatialAnnotation(id, command.spatial),
-      anchor: anchorAfterLastStatement(provenance, { kind: "diagram" }),
+      anchor: anchorStatement(graph, provenance, { kind: "diagram" }, [
+        "classSpatial",
+        "namespaceSpatial",
+      ]),
     },
   ];
 }

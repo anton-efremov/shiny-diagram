@@ -33,9 +33,9 @@ function translateCommand(
     case "class.delete":
       return translateClassDelete(command, graph, provenance);
     case "class.spatial.set":
-      return translateClassSpatialSet(command, provenance);
+      return translateClassSpatialSet(command, graph, provenance);
     case "class.directStyle.property.set":
-      return translateClassDirectStyleSet(command, provenance);
+      return translateClassDirectStyleSet(command, graph, provenance);
     default:
       throw new Error(`Command ${command.type} is not supported by translate`);
   }

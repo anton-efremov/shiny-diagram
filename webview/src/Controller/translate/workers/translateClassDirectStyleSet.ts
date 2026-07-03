@@ -3,15 +3,18 @@
  */
 
 import type { EditorCommandOf } from "../../../View/commands";
+import type { DiagramGraph } from "../../model/diagramGraph";
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { StylePropertyName } from "../../../shared/style";
 import type { ClassId } from "../../../shared/ids";
 import type { WriteIntent } from "../writeIntent";
-import { anchorAfterLastEntry, anchorAfterLastStatement } from "../anchors";
+import { anchorEntry } from "../anchors/anchorEntry";
+import { anchorStatement } from "../anchors/anchorStatement";
 import { composeStyleEntry } from "../syntax/styleSyntax";
 
 export function translateClassDirectStyleSet(
   command: EditorCommandOf<"class.directStyle.property.set">,
+  graph: DiagramGraph,
   provenance: ProvenanceIndex
 ): WriteIntent[] {
   const record = provenance.classDirectStyles.get(command.classId);
@@ -37,10 +40,7 @@ export function translateClassDirectStyleSet(
         {
           kind: "insertEntry",
           payload: composeStyleEntry(command.property, command.value),
-          anchor: anchorAfterLastEntry({
-            list: { kind: "directStyle", classId: command.classId },
-            record,
-          }),
+          anchor: anchorEntry(provenance, { kind: "directStyle", classId: command.classId }),
         },
       ];
     }
@@ -49,7 +49,7 @@ export function translateClassDirectStyleSet(
       {
         kind: "insertStatement",
         payload: composeClassDirectStyle(command.classId, command.property, command.value),
-        anchor: anchorAfterLastStatement(provenance, { kind: "diagram" }),
+        anchor: anchorStatement(graph, provenance, { kind: "diagram" }, ["classDirectStyle"]),
       },
     ];
   }
