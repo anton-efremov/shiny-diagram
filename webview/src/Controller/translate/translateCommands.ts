@@ -8,7 +8,7 @@ import type { ProvenanceIndex } from "../model/provenanceIndex";
 import type { WriteIntent } from "./writeIntent";
 import { translateClassCreate } from "./workers/translateClassCreate";
 import { translateClassDelete } from "./workers/translateClassDelete";
-import { translateClassDirectStyleSet } from "./workers/translateClassDirectStyleSet";
+import { translateClassDirectStyleSet } from "./workers/translateClassDirectStylePropertySet";
 import { translateClassDuplicate } from "./workers/translateClassDuplicate";
 import { translateClassSpatialSet } from "./workers/translateClassSpatialSet";
 

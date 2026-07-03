@@ -1,5 +1,20 @@
 /**
- * @fileoverview Translates class.directStyle.property.set: replace an existing value, insert an entry into an existing style line, insert a new style line, or delete an entry.
+ * @fileoverview Translates `class.directStyle.property.set`.
+ *
+ * Emits one logical write intent for changing one direct style property of a class.
+ *
+ * a. ReplaceValueIntent if entry for requested property exists
+ *
+ * b. InsertEntryIntent if entry for requested property is missing 
+ * in direct style declaration statement
+ * - Written after the latest property entry in that direct style statement.
+ *
+ * c. InsertStatementIntent with requested entry if direct style statement is missing
+ * - Written after the latest direct style statement in the class's scope.
+ * - if no direct style statements - after style assignement statement
+ * - Otherwise, after the latest non-spatial-annotation statement
+ *
+ * NOTE - CODE IS NOT ALIGNED WITH DESCRIPTION YET
  */
 
 import type { EditorCommandOf } from "../../../View/commands";

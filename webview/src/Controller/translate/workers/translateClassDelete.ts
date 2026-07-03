@@ -1,5 +1,18 @@
 /**
- * @fileoverview Translates class.delete: delete the class statement and cascade to its spatial, relationships, direct style, and style applications.
+ * @fileoverview Translates `class.delete`.
+ *
+ * Emits deletion of every explicit source statement owned by or attached to the
+ * deleted class (in case they exist)
+ *
+ * 1. Class declaration block (incl. members)
+ *
+ * 2. Spatial annotation
+ *
+ * 3. Relationships (where the source class is either the source endpoint or the target endpoint).
+ *
+ * 4. Direct style statements
+ *
+ * 5. Style application statements
  */
 
 import type { EditorCommandOf } from "../../../View/commands";

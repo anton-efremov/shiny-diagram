@@ -1,5 +1,20 @@
 /**
- * @fileoverview Translates class.create: insert a new class declaration and spatial annotation.
+ * @fileoverview Translates `class.create`.
+ *
+ * Emits class creation as two logical statement insertions.
+ *
+ * 1. Class declaration statement
+ * - Written inside the requested parent namespace if `parentNamespaceId` is set
+ * or diagram scope otherwise
+ * - Written after the latest class statement in the target scope.
+ * - If no class statements in the target scope - after the latest namespace statement
+ * - Otherwise, in the beginning of scope block
+ *
+ * 2. Spatial annotation
+ * - Written after the latest class spatial annotation in the target scope.
+ * - If no class spatial annotations - after latest statement of any kind.
+ *
+ * NOTE - CODE IS NOT ALIGNED WITH DESCRIPTION YET
  */
 
 import type { EditorCommandOf } from "../../../View/commands";

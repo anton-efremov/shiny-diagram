@@ -1,13 +1,40 @@
 /**
- * @fileoverview Translates class.duplicate: copy declaration content, spatial annotation, and first style application.
+ * @fileoverview Translates `class.duplicate`.
+ *
+ * Emits the duplicate as three logical statement insertions. The style insertion
+ * is omitted when the source class has no explicit style representation.
+ *
+ * 1. Class declaration block (incl. members)
+ * - Written after the source class statement.
+ *
+ * 2. Spatial annotation
+ * - Written after the source class spatial annotation.
+ *
+ * 3. Style annotation, preserving the source representation
+ *
+ *   a. Direct style statement of the source in case the source class has direct style
+ *     - Written after the direct style statement of the source class.
+ *
+ *   b. Style application statement of source's style in case the source class has a style application
+ *     - Written after the style application statement of the source class.
+ *
+ *   c. No statement if the source class has no style.
+ * 
+ * NOTE - CODE IS NOT ALIGNED WITH DESCRIPTION YET
  */
 
+import type {
+  ClassNode,
+  DiagramGraph,
+  StyleApplicationEdge,
+} from "../../model/diagramGraph";
 import type { EditorCommandOf } from "../../../View/commands";
-import type { ClassNode, DiagramGraph } from "../../model/diagramGraph";
 import type { ClassId, StyleDefId } from "../../../shared/ids";
+import type { StylePropertyName } from "../../../shared/style";
 import type { WriteIntent } from "../writeIntent";
 import { generateDuplicateClassId } from "../generateId";
 import { composeSpatialAnnotation } from "../syntax/spatialSyntax";
+import { composeStyleEntry } from "../syntax/styleSyntax";
 
 export function translateClassDuplicate(
   command: EditorCommandOf<"class.duplicate">,
@@ -18,38 +45,83 @@ export function translateClassDuplicate(
   if (!source.spatial) throw new Error(`Class ${command.sourceClassId} has no spatial data`);
 
   const id = generateDuplicateClassId(graph, command.sourceClassId);
-  const anchor = {
-    kind: "afterStatement" as const,
-    statement: { kind: "class" as const, classId: command.sourceClassId },
+
+  const insertClassIntent: WriteIntent = {
+    kind: "insertStatement",
+    payload: composeDuplicatedClassDeclaration(source, id),
+    anchor: {
+      kind: "afterStatement",
+      statement: { kind: "class", classId: command.sourceClassId },
+    },
   };
-  const intents: WriteIntent[] = [
-    {
-      kind: "insertStatement",
-      payload: composeDuplicatedClassDeclaration(source, id),
-      anchor,
+
+  const insertSpatialIntent: WriteIntent = {
+    kind: "insertStatement",
+    payload: composeSpatialAnnotation(id, {
+      position: command.position,
+      size: source.spatial.size,
+    }),
+    anchor: {
+      kind: "afterStatement",
+      statement: { kind: "classSpatial", classId: command.sourceClassId },
     },
-    {
-      kind: "insertStatement",
-      payload: composeSpatialAnnotation(id, {
-        position: command.position,
-        size: source.spatial.size,
-      }),
-      anchor,
-    },
+  };
+
+  const insertStyleIntent: WriteIntent | null = (() => {
+    // -------------------------------------------------------------------------
+    // Direct style
+    // -------------------------------------------------------------------------
+    if (source.directStyle) {
+      return {
+        kind: "insertStatement",
+        payload: composeClassDirectStyle(id, source.directStyle),
+        anchor: {
+          kind: "afterStatement",
+          statement: { kind: "classDirectStyle", classId: command.sourceClassId },
+        },
+      };
+    }
+
+    // -------------------------------------------------------------------------
+    // Style application
+    // -------------------------------------------------------------------------
+    const sourceStyleApplication = findSourceStyleApplication(graph, command.sourceClassId);
+    if (sourceStyleApplication) {
+      return {
+        kind: "insertStatement",
+        payload: composeClassStyleApplication(id, sourceStyleApplication.styleDefId),
+        anchor: {
+          kind: "afterStatement",
+          statement: {
+            kind: "styleApplication",
+            styleApplicationId: sourceStyleApplication.id,
+          },
+        },
+      };
+    }
+
+    // -------------------------------------------------------------------------
+    // No style
+    // -------------------------------------------------------------------------
+    return null;
+  })();
+
+  return [
+    insertClassIntent,
+    insertSpatialIntent,
+    ...(insertStyleIntent ? [insertStyleIntent] : []),
   ];
+}
 
-  const style = [...graph.styleApplications.values()].find(
-    (candidate) => candidate.targetId === command.sourceClassId
+function findSourceStyleApplication(
+  graph: DiagramGraph,
+  classId: ClassId
+): StyleApplicationEdge | null {
+  return (
+    [...graph.styleApplications.values()].find(
+      (styleApplication) => styleApplication.targetId === classId
+    ) ?? null
   );
-  if (style) {
-    intents.push({
-      kind: "insertStatement",
-      payload: composeClassStyleApplication(id, style.styleDefId),
-      anchor,
-    });
-  }
-
-  return intents;
 }
 
 function composeDuplicatedClassDeclaration(source: ClassNode, classId: ClassId): string {
@@ -58,13 +130,26 @@ function composeDuplicatedClassDeclaration(source: ClassNode, classId: ClassId):
     ...source.attributes.map((attribute) => attribute.name),
     ...source.methods.map((method) => `${method.name}(${method.parameters})`),
   ];
+
   if (source.annotation || members.length > 0) {
     lines[0] = `class ${classId} {`;
     if (source.annotation) lines.push(`<<${source.annotation}>>`);
     lines.push(...members);
     lines.push("}");
   }
+
   return lines.join("\n");
+}
+
+function composeClassDirectStyle(
+  classId: ClassId,
+  directStyle: NonNullable<ClassNode["directStyle"]>
+): string {
+  const entries = Object.entries(directStyle).flatMap(([property, value]) =>
+    value == null ? [] : [composeStyleEntry(property as StylePropertyName, value)]
+  );
+
+  return `style ${classId} ${entries.join(",")}`;
 }
 
 function composeClassStyleApplication(classId: ClassId, styleDefId: StyleDefId): string {

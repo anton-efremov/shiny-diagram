@@ -1,5 +1,20 @@
 /**
- * @fileoverview Translates class.spatial.set: replace coordinate values, insert a new annotation, or delete the annotation.
+ * @fileoverview Translates `class.spatial.set`.
+ *
+ * Emits write intents depending on existence of spatial annotations for requested class:
+ *
+ * a. Two write intents if spatial annotation exists
+ * 
+ *   1. DeleteStatementIntent for existing annotation line
+ * 
+ *   2. InsertStatementIntent for newly constructing annotation line
+ *     - Written at position of deleted annotation line
+ * 
+ * b. InsertStatementIntent if spatial annotation is missing
+ *   - Written after the latest class spatial annotation in the target scope.
+ *   - If no class spatial annotations - after latest statement of any kind.
+ *
+ * NOTE - CODE IS NOT ALIGNED WITH DESCRIPTION YET
  */
 
 import type { EditorCommandOf } from "../../../View/commands";
