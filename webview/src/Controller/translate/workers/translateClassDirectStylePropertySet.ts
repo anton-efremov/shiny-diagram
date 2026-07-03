@@ -5,7 +5,7 @@
  *
  * a. ReplaceValueIntent if entry for requested property exists
  *
- * b. InsertEntryIntent if entry for requested property is missing 
+ * b. InsertEntryIntent if entry for requested property is missing
  * in direct style declaration statement
  * - Written after the latest property entry in that direct style statement.
  *
@@ -22,9 +22,15 @@ import type { DiagramGraph } from "../../model/diagramGraph";
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { StylePropertyName } from "../../../shared/style";
 import type { ClassId } from "../../../shared/ids";
-import type { WriteIntent } from "../writeIntent";
+import type { BlockRef, StatementAnchor, WriteIntent } from "../writeIntent";
 import { anchorEntry } from "../anchors/anchorEntry";
-import { anchorStatement } from "../anchors/anchorStatement";
+import {
+  anchorAfterKindList,
+  anchorBlockOpening,
+  asDifferentKind,
+  asSameKind,
+  STATEMENT_KINDS,
+} from "../anchors/statementAnchors";
 import { composeStyleEntry } from "../syntax/styleSyntax";
 
 export function translateClassDirectStyleSet(
@@ -34,6 +40,7 @@ export function translateClassDirectStyleSet(
 ): WriteIntent[] {
   const record = provenance.classDirectStyles.get(command.classId);
   const property = record?.fields.properties[command.property];
+  const diagramScope: BlockRef = { kind: "diagram" };
 
   if (command.value !== null) {
     if (property) {
@@ -60,13 +67,25 @@ export function translateClassDirectStyleSet(
       ];
     }
 
-    return [
-      {
-        kind: "insertStatement",
-        payload: composeClassDirectStyle(command.classId, command.property, command.value),
-        anchor: anchorStatement(graph, provenance, { kind: "diagram" }, ["classDirectStyle"]),
-      },
-    ];
+    const anchor: StatementAnchor =
+      asSameKind(anchorAfterKindList(graph, provenance, diagramScope, ["classDirectStyle"])) ??
+      asDifferentKind(anchorAfterKindList(graph, provenance, diagramScope, ["styleApplication"])) ??
+      asDifferentKind(
+        anchorAfterKindList(
+          graph,
+          provenance,
+          diagramScope,
+          STATEMENT_KINDS.filter((kind) => kind !== "classSpatial" && kind !== "namespaceSpatial")
+        )
+      ) ??
+      anchorBlockOpening(diagramScope);
+    const insertDirectStyleIntent: WriteIntent = {
+      kind: "insertStatement",
+      payload: composeClassDirectStyle(command.classId, command.property, command.value),
+      anchor,
+    };
+
+    return [insertDirectStyleIntent];
   }
 
   return property

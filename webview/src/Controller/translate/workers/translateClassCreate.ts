@@ -21,8 +21,14 @@ import type { EditorCommandOf } from "../../../View/commands";
 import type { DiagramGraph } from "../../model/diagramGraph";
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { ClassId } from "../../../shared/ids";
-import type { WriteIntent } from "../writeIntent";
-import { anchorStatement } from "../anchors/anchorStatement";
+import type { BlockRef, StatementAnchor, WriteIntent } from "../writeIntent";
+import {
+  anchorAfterKindList,
+  anchorBlockOpening,
+  asDifferentKind,
+  asSameKind,
+  STATEMENT_KINDS,
+} from "../anchors/statementAnchors";
 import { allocateClassId } from "../generateId";
 import { composeSpatialAnnotation } from "../syntax/spatialSyntax";
 
@@ -32,21 +38,38 @@ export function translateClassCreate(
   provenance: ProvenanceIndex
 ): WriteIntent[] {
   const id = allocateClassId(null, graph);
-  return [
-    {
-      kind: "insertStatement",
-      payload: composeClassDeclaration(id),
-      anchor: { kind: "afterBlockOpening", block: { kind: "diagram" } },
-    },
-    {
-      kind: "insertStatement",
-      payload: composeSpatialAnnotation(id, command.spatial),
-      anchor: anchorStatement(graph, provenance, { kind: "diagram" }, [
-        "classSpatial",
-        "namespaceSpatial",
-      ]),
-    },
-  ];
+  const declarationScope: BlockRef = command.parentNamespaceId
+    ? { kind: "namespace", namespaceId: command.parentNamespaceId }
+    : { kind: "diagram" };
+  const diagramScope: BlockRef = { kind: "diagram" };
+
+  // ---
+  // Class declaration
+  // ---
+  const declarationAnchor: StatementAnchor =
+    asSameKind(anchorAfterKindList(graph, provenance, declarationScope, ["class"])) ??
+    asDifferentKind(anchorAfterKindList(graph, provenance, declarationScope, ["namespace"])) ??
+    anchorBlockOpening(declarationScope);
+  const insertDeclarationIntent: WriteIntent = {
+    kind: "insertStatement",
+    payload: composeClassDeclaration(id),
+    anchor: declarationAnchor,
+  };
+
+  // ---
+  // Spatial annotation
+  // ---
+  const spatialAnchor: StatementAnchor =
+    asSameKind(anchorAfterKindList(graph, provenance, diagramScope, ["classSpatial"])) ??
+    asDifferentKind(anchorAfterKindList(graph, provenance, diagramScope, STATEMENT_KINDS)) ??
+    anchorBlockOpening(diagramScope);
+  const insertSpatialIntent: WriteIntent = {
+    kind: "insertStatement",
+    payload: composeSpatialAnnotation(id, command.spatial),
+    anchor: spatialAnchor,
+  };
+
+  return [insertDeclarationIntent, insertSpatialIntent];
 }
 
 function composeClassDeclaration(classId: ClassId): string {

@@ -24,6 +24,7 @@ import { getLine, getLineIndent, toEndPosition, toStartPosition } from "./text";
 export type ResolvedStatementAnchor = {
   readonly position: SourcePosition;
   readonly indent: string;
+  readonly blankBefore: boolean;
 };
 
 /** A resolved entry insertion: where the entry goes, and the separator to prefix it with. */
@@ -37,11 +38,12 @@ export function resolveStatementAnchor(
   provenance: ProvenanceIndex,
   sourceText: string
 ): ResolvedStatementAnchor {
-  if (anchor.kind === "afterStatement") {
+  if (anchor.kind === "afterSameKind" || anchor.kind === "afterDifferentKind") {
     const location = resolveStatementRef(anchor.statement, provenance);
     return {
       position: toEndPosition(location),
       indent: getLineIndent(sourceText, location.startLine),
+      blankBefore: anchor.kind === "afterDifferentKind",
     };
   }
 
@@ -53,6 +55,7 @@ export function resolveStatementAnchor(
       provenance,
       sourceText
     )}`,
+    blankBefore: false,
   };
 }
 

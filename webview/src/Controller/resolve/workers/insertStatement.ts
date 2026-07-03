@@ -17,7 +17,15 @@ export function resolveInsertStatement(
   sourceText: string,
   eol: string
 ): SourceEdit {
-  const { position, indent } = resolveStatementAnchor(intent.anchor, provenance, sourceText);
+  const { position, indent, blankBefore } = resolveStatementAnchor(
+    intent.anchor,
+    provenance,
+    sourceText
+  );
   const lines = intent.payload.split("\n").map((line) => `${indent}${line}`);
-  return { start: position, end: position, replacementText: `${eol}${lines.join(eol)}` };
+  return {
+    start: position,
+    end: position,
+    replacementText: `${blankBefore ? eol : ""}${eol}${lines.join(eol)}`,
+  };
 }

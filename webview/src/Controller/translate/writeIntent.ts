@@ -21,7 +21,8 @@
  * owns Mermaid syntax (`payload` is zero-indent, `\n`-joined, no EOL); resolution
  * owns coordinates, indentation, EOL, and entry separators. Insertion is always
  * *after* a point — a statement's last line (sibling), or a container's opening
- * (first child).
+ * (first child). The same/different-kind sibling distinction drives statement
+ * newline policy during resolution.
  */
 
 import type {
@@ -111,8 +112,9 @@ export type ValueRef =
 
 /** Where a new statement lands — always after a point. */
 export type StatementAnchor =
-  | { readonly kind: "afterStatement"; readonly statement: StatementRef } // sibling
-  | { readonly kind: "afterBlockOpening"; readonly block: BlockRef }; // first child of a block
+  | { readonly kind: "afterSameKind"; readonly statement: StatementRef } // sibling, same kind
+  | { readonly kind: "afterDifferentKind"; readonly statement: StatementRef } // sibling, other kind
+  | { readonly kind: "atBlockOpening"; readonly block: BlockRef }; // first child of a block
 
 /** A property list a first entry inserts into. */
 export type StyleListRef =

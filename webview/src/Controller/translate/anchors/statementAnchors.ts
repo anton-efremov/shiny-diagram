@@ -1,6 +1,6 @@
 /**
  * @fileoverview
- * Generic statement insertion anchor.
+ * Statement insertion anchor providers.
  *
  * One rule, applied uniformly:
  * - `blockOf` is the single source of truth for which block a statement is
@@ -10,9 +10,9 @@
  * - `ProvenanceIndex` decides explicit source existence and source order: a
  *   statement is a candidate only if it has a record, and the latest record wins.
  *
- * A new statement is anchored after the latest existing explicit sibling of the
- * requested statement kind(s) in the requested container. If there is no such
- * sibling, it is anchored after the container opening.
+ * Thin providers intentionally return either raw refs or one anchor shape. The
+ * workers own fallback ordering with `??`, including the same-vs-different kind
+ * distinction that later controls blank-line insertion.
  */
 
 import type { DiagramGraph } from "../../model/diagramGraph";
@@ -24,12 +24,25 @@ export type StatementKind = StatementRef["kind"];
 
 type AnchorCandidate = { readonly ref: StatementRef; readonly location: SourceLocation };
 
-export function anchorStatement(
+export const STATEMENT_KINDS: readonly StatementKind[] = [
+  "class",
+  "namespace",
+  "member",
+  "relationship",
+  "styleDefinition",
+  "classDirectStyle",
+  "styleApplication",
+  "classSpatial",
+  "namespaceSpatial",
+  "note",
+];
+
+export function anchorAfterKindList(
   graph: DiagramGraph,
   provenance: ProvenanceIndex,
   container: BlockRef,
   statementKinds: readonly StatementKind[]
-): StatementAnchor {
+): StatementRef | null {
   let latest: AnchorCandidate | null = null;
 
   for (const kind of statementKinds) {
@@ -43,9 +56,51 @@ export function anchorStatement(
     }
   }
 
-  return latest
-    ? { kind: "afterStatement", statement: latest.ref }
-    : { kind: "afterBlockOpening", block: container };
+  return latest?.ref ?? null;
+}
+
+export function anchorExactStatement(
+  provenance: ProvenanceIndex,
+  statement: StatementRef
+): StatementAnchor | null {
+  return hasStatementRecord(provenance, statement) ? { kind: "afterSameKind", statement } : null;
+}
+
+export function anchorBlockOpening(scope: BlockRef): StatementAnchor {
+  return { kind: "atBlockOpening", block: scope };
+}
+
+export function asSameKind(ref: StatementRef | null): StatementAnchor | null {
+  return ref === null ? null : { kind: "afterSameKind", statement: ref };
+}
+
+export function asDifferentKind(ref: StatementRef | null): StatementAnchor | null {
+  return ref === null ? null : { kind: "afterDifferentKind", statement: ref };
+}
+
+function hasStatementRecord(provenance: ProvenanceIndex, statement: StatementRef): boolean {
+  switch (statement.kind) {
+    case "class":
+      return provenance.classes.has(statement.classId);
+    case "namespace":
+      return provenance.namespaces.has(statement.namespaceId);
+    case "member":
+      return provenance.members.has(statement.memberId);
+    case "relationship":
+      return provenance.relationships.has(statement.relationshipId);
+    case "styleDefinition":
+      return provenance.styleDefinitions.has(statement.styleDefId);
+    case "classDirectStyle":
+      return provenance.classDirectStyles.has(statement.classId);
+    case "styleApplication":
+      return provenance.styleApplications.has(statement.styleApplicationId);
+    case "classSpatial":
+      return provenance.classSpatial.has(statement.classId);
+    case "namespaceSpatial":
+      return provenance.namespaceSpatial.has(statement.namespaceId);
+    case "note":
+      return provenance.notes.has(statement.noteId);
+  }
 }
 
 // ============================================================================

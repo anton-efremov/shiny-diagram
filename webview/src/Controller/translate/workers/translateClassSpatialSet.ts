@@ -3,13 +3,8 @@
  *
  * Emits write intents depending on existence of spatial annotations for requested class:
  *
- * a. Two write intents if spatial annotation exists
- * 
- *   1. DeleteStatementIntent for existing annotation line
- * 
- *   2. InsertStatementIntent for newly constructing annotation line
- *     - Written at position of deleted annotation line
- * 
+ * a. Four ReplaceValueIntent's for each value in spatial annotation
+ *
  * b. InsertStatementIntent if spatial annotation is missing
  *   - Written after the latest class spatial annotation in the target scope.
  *   - If no class spatial annotations - after latest statement of any kind.
@@ -20,8 +15,14 @@
 import type { EditorCommandOf } from "../../../View/commands";
 import type { DiagramGraph } from "../../model/diagramGraph";
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
-import type { WriteIntent } from "../writeIntent";
-import { anchorStatement } from "../anchors/anchorStatement";
+import type { BlockRef, StatementAnchor, WriteIntent } from "../writeIntent";
+import {
+  anchorAfterKindList,
+  anchorBlockOpening,
+  asDifferentKind,
+  asSameKind,
+  STATEMENT_KINDS,
+} from "../anchors/statementAnchors";
 import { composeSpatialAnnotation } from "../syntax/spatialSyntax";
 
 export function translateClassSpatialSet(
@@ -29,6 +30,8 @@ export function translateClassSpatialSet(
   graph: DiagramGraph,
   provenance: ProvenanceIndex
 ): WriteIntent[] {
+  const diagramScope: BlockRef = { kind: "diagram" };
+
   if (command.spatial) {
     if (provenance.classSpatial.has(command.classId)) {
       return [
@@ -47,16 +50,17 @@ export function translateClassSpatialSet(
       }));
     }
 
-    return [
-      {
-        kind: "insertStatement",
-        payload: composeSpatialAnnotation(command.classId, command.spatial),
-        anchor: anchorStatement(graph, provenance, { kind: "diagram" }, [
-          "classSpatial",
-          "namespaceSpatial",
-        ]),
-      },
-    ];
+    const anchor: StatementAnchor =
+      asSameKind(anchorAfterKindList(graph, provenance, diagramScope, ["classSpatial"])) ??
+      asDifferentKind(anchorAfterKindList(graph, provenance, diagramScope, STATEMENT_KINDS)) ??
+      anchorBlockOpening(diagramScope);
+    const insertSpatialIntent: WriteIntent = {
+      kind: "insertStatement",
+      payload: composeSpatialAnnotation(command.classId, command.spatial),
+      anchor,
+    };
+
+    return [insertSpatialIntent];
   }
 
   return provenance.classSpatial.has(command.classId)

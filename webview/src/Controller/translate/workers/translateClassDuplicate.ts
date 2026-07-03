@@ -19,26 +19,25 @@
  *     - Written after the style application statement of the source class.
  *
  *   c. No statement if the source class has no style.
- * 
+ *
  * NOTE - CODE IS NOT ALIGNED WITH DESCRIPTION YET
  */
 
-import type {
-  ClassNode,
-  DiagramGraph,
-  StyleApplicationEdge,
-} from "../../model/diagramGraph";
+import type { ClassNode, DiagramGraph, StyleApplicationEdge } from "../../model/diagramGraph";
+import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { EditorCommandOf } from "../../../View/commands";
 import type { ClassId, StyleDefId } from "../../../shared/ids";
 import type { StylePropertyName } from "../../../shared/style";
-import type { WriteIntent } from "../writeIntent";
+import type { StatementAnchor, StatementRef, WriteIntent } from "../writeIntent";
+import { anchorExactStatement } from "../anchors/statementAnchors";
 import { generateDuplicateClassId } from "../generateId";
 import { composeSpatialAnnotation } from "../syntax/spatialSyntax";
 import { composeStyleEntry } from "../syntax/styleSyntax";
 
 export function translateClassDuplicate(
   command: EditorCommandOf<"class.duplicate">,
-  graph: DiagramGraph
+  graph: DiagramGraph,
+  provenance: ProvenanceIndex
 ): WriteIntent[] {
   const source = graph.classes.get(command.sourceClassId);
   if (!source) throw new Error(`Class ${command.sourceClassId} cannot be duplicated`);
@@ -46,63 +45,63 @@ export function translateClassDuplicate(
 
   const id = generateDuplicateClassId(graph, command.sourceClassId);
 
+  // ---
+  // Class declaration
+  // ---
   const insertClassIntent: WriteIntent = {
     kind: "insertStatement",
     payload: composeDuplicatedClassDeclaration(source, id),
-    anchor: {
-      kind: "afterStatement",
-      statement: { kind: "class", classId: command.sourceClassId },
-    },
+    anchor: requireExactAnchor(provenance, { kind: "class", classId: command.sourceClassId }),
   };
 
+  // ---
+  // Spatial annotation
+  // ---
   const insertSpatialIntent: WriteIntent = {
     kind: "insertStatement",
     payload: composeSpatialAnnotation(id, {
       position: command.position,
       size: source.spatial.size,
     }),
-    anchor: {
-      kind: "afterStatement",
-      statement: { kind: "classSpatial", classId: command.sourceClassId },
-    },
+    anchor: requireExactAnchor(provenance, {
+      kind: "classSpatial",
+      classId: command.sourceClassId,
+    }),
   };
 
   const insertStyleIntent: WriteIntent | null = (() => {
-    // -------------------------------------------------------------------------
+    // ---
     // Direct style
-    // -------------------------------------------------------------------------
+    // ---
     if (source.directStyle) {
       return {
         kind: "insertStatement",
         payload: composeClassDirectStyle(id, source.directStyle),
-        anchor: {
-          kind: "afterStatement",
-          statement: { kind: "classDirectStyle", classId: command.sourceClassId },
-        },
+        anchor: requireExactAnchor(provenance, {
+          kind: "classDirectStyle",
+          classId: command.sourceClassId,
+        }),
       };
     }
 
-    // -------------------------------------------------------------------------
+    // ---
     // Style application
-    // -------------------------------------------------------------------------
+    // ---
     const sourceStyleApplication = findSourceStyleApplication(graph, command.sourceClassId);
     if (sourceStyleApplication) {
       return {
         kind: "insertStatement",
         payload: composeClassStyleApplication(id, sourceStyleApplication.styleDefId),
-        anchor: {
-          kind: "afterStatement",
-          statement: {
-            kind: "styleApplication",
-            styleApplicationId: sourceStyleApplication.id,
-          },
-        },
+        anchor: requireExactAnchor(provenance, {
+          kind: "styleApplication",
+          styleApplicationId: sourceStyleApplication.id,
+        }),
       };
     }
 
-    // -------------------------------------------------------------------------
+    // ---
     // No style
-    // -------------------------------------------------------------------------
+    // ---
     return null;
   })();
 
@@ -111,6 +110,14 @@ export function translateClassDuplicate(
     insertSpatialIntent,
     ...(insertStyleIntent ? [insertStyleIntent] : []),
   ];
+}
+
+function requireExactAnchor(provenance: ProvenanceIndex, statement: StatementRef): StatementAnchor {
+  const anchor = anchorExactStatement(provenance, statement);
+  if (anchor === null) {
+    throw new Error(`Missing provenance for ${statement.kind} duplicate anchor`);
+  }
+  return anchor;
 }
 
 function findSourceStyleApplication(

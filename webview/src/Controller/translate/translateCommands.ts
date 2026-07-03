@@ -29,7 +29,7 @@ function translateCommand(
     case "class.create":
       return translateClassCreate(command, graph, provenance);
     case "class.duplicate":
-      return translateClassDuplicate(command, graph);
+      return translateClassDuplicate(command, graph, provenance);
     case "class.delete":
       return translateClassDelete(command, graph, provenance);
     case "class.spatial.set":
