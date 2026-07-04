@@ -19,8 +19,6 @@
  *     - Written after the style application statement of the source class.
  *
  *   c. No statement if the source class has no style.
- *
- * NOTE - CODE IS NOT ALIGNED WITH DESCRIPTION YET
  */
 
 import type { ClassNode, DiagramGraph, StyleApplicationEdge } from "../../model/diagramGraph";
@@ -29,7 +27,7 @@ import type { EditorCommandOf } from "../../../View/commands";
 import type { ClassId, StyleDefId } from "../../../shared/ids";
 import type { StylePropertyName } from "../../../shared/style";
 import type { StatementAnchor, StatementRef, WriteIntent } from "../writeIntent";
-import { anchorExactStatement } from "../anchors/statementAnchors";
+import { anchorExactStatement, asSameKind } from "../anchors/statementAnchors";
 import { generateDuplicateClassId } from "../generateId";
 import { composeSpatialAnnotation } from "../syntax/spatialSyntax";
 import { composeStyleEntry } from "../syntax/styleSyntax";
@@ -113,7 +111,11 @@ export function translateClassDuplicate(
 }
 
 function requireExactAnchor(provenance: ProvenanceIndex, statement: StatementRef): StatementAnchor {
-  const anchor = anchorExactStatement(provenance, statement);
+  const ref = anchorExactStatement(provenance, statement);
+  if (ref === null) {
+    throw new Error(`Missing provenance for ${statement.kind} duplicate anchor`);
+  }
+  const anchor = asSameKind(ref);
   if (anchor === null) {
     throw new Error(`Missing provenance for ${statement.kind} duplicate anchor`);
   }

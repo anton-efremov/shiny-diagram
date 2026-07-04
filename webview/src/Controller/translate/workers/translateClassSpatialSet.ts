@@ -8,8 +8,6 @@
  * b. InsertStatementIntent if spatial annotation is missing
  *   - Written after the latest class spatial annotation in the target scope.
  *   - If no class spatial annotations - after latest statement of any kind.
- *
- * NOTE - CODE IS NOT ALIGNED WITH DESCRIPTION YET
  */
 
 import type { EditorCommandOf } from "../../../View/commands";

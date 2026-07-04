@@ -45,7 +45,8 @@ import type { StylePropertyName } from "../../shared/style";
 export type StatementRef =
   | { readonly kind: "class"; readonly classId: ClassId }
   | { readonly kind: "namespace"; readonly namespaceId: NamespaceId }
-  | { readonly kind: "member"; readonly memberId: AttributeId | MethodId }
+  | { readonly kind: "blockMember"; readonly memberId: AttributeId | MethodId }
+  | { readonly kind: "shortMember"; readonly memberId: AttributeId | MethodId }
   | { readonly kind: "relationship"; readonly relationshipId: RelationshipId }
   | { readonly kind: "styleDefinition"; readonly styleDefId: StyleDefId }
   | { readonly kind: "classDirectStyle"; readonly classId: ClassId }

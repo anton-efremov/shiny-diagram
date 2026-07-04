@@ -1,18 +1,14 @@
 /**
  * @fileoverview
- * Statement insertion anchor providers.
+ * Statement insertion anchors, exposed as two composable sets of functions:
  *
- * One rule, applied uniformly:
- * - `blockOf` is the single source of truth for which block a statement is
- *   written in. Only classes and namespaces nest (by `parentNamespaceId`), and
- *   only members live inside a class; every other statement is diagram-level,
- *   because a Mermaid namespace body accepts nothing but class declarations.
- * - `ProvenanceIndex` decides explicit source existence and source order: a
- *   statement is a candidate only if it has a record, and the latest record wins.
- *
- * Thin providers intentionally return either raw refs or one anchor shape. The
- * workers own fallback ordering with `??`, including the same-vs-different kind
- * distinction that later controls blank-line insertion.
+ * 1. Builders — locate a statement and return a raw `StatementRef | null`: the
+ *    sibling to anchor after, or `null` when none exists.
+ * 2. Labelers — take a located ref and tag it for the blank-line policy,
+ *    yielding a `StatementAnchor | null`: `asSameKind` (no blank line before) and
+ *    `asDifferentKind` (blank line before). Only `anchorBlockOpening` skips the split
+ *    and returns a finished * `StatementAnchor` directly: the terminal first-child fallback,
+ *    genuinely label-free.
  */
 
 import type { DiagramGraph } from "../../model/diagramGraph";
@@ -20,14 +16,18 @@ import type { ProvenanceIndex, SourceLocation } from "../../model/provenanceInde
 import type { AttributeId, MethodId, NamespaceId } from "../../../shared/ids";
 import type { BlockRef, StatementAnchor, StatementRef } from "../writeIntent";
 
+// ============================================================================
+// Vocabulary
+// ============================================================================
+
 export type StatementKind = StatementRef["kind"];
 
-type AnchorCandidate = { readonly ref: StatementRef; readonly location: SourceLocation };
-
+/** Every statement kind, e.g. for the "after the latest statement of any kind" fallback tier. */
 export const STATEMENT_KINDS: readonly StatementKind[] = [
   "class",
   "namespace",
-  "member",
+  "blockMember",
+  "shortMember",
   "relationship",
   "styleDefinition",
   "classDirectStyle",
@@ -37,6 +37,15 @@ export const STATEMENT_KINDS: readonly StatementKind[] = [
   "note",
 ];
 
+// ============================================================================
+// Builders — each answers one question; workers chain them with `??`
+// ============================================================================
+
+/**
+ * The latest explicit statement of any listed kind inside `container`, or `null`.
+ * Union across the list, latest by source order. Returns a raw ref — the caller
+ * labels it same- or different-kind.
+ */
 export function anchorAfterKindList(
   graph: DiagramGraph,
   provenance: ProvenanceIndex,
@@ -59,52 +68,39 @@ export function anchorAfterKindList(
   return latest?.ref ?? null;
 }
 
+/**
+ * Locate a specific statement, or `null` when it has no explicit record (an
+ * implicit statement is not an anchorable sibling). Returns a raw ref — the
+ * caller labels it same- or different-kind.
+ */
 export function anchorExactStatement(
   provenance: ProvenanceIndex,
   statement: StatementRef
-): StatementAnchor | null {
-  return hasStatementRecord(provenance, statement) ? { kind: "afterSameKind", statement } : null;
+): StatementRef | null {
+  return hasStatementRecord(provenance, statement) ? statement : null;
 }
 
+/** The terminal fallback: the first-child position under a container's opening. */
 export function anchorBlockOpening(scope: BlockRef): StatementAnchor {
   return { kind: "atBlockOpening", block: scope };
 }
 
+// ============================================================================
+// Labels — tag a located ref with its blank-line policy, or pass `null` through
+// ============================================================================
+
+/** Same-kind neighbor → no blank line. Passes `null` through so it composes in a `??` chain. */
 export function asSameKind(ref: StatementRef | null): StatementAnchor | null {
   return ref === null ? null : { kind: "afterSameKind", statement: ref };
 }
 
+/** Different-kind neighbor → blank line before. Passes `null` through so it composes in a `??` chain. */
 export function asDifferentKind(ref: StatementRef | null): StatementAnchor | null {
   return ref === null ? null : { kind: "afterDifferentKind", statement: ref };
 }
 
-function hasStatementRecord(provenance: ProvenanceIndex, statement: StatementRef): boolean {
-  switch (statement.kind) {
-    case "class":
-      return provenance.classes.has(statement.classId);
-    case "namespace":
-      return provenance.namespaces.has(statement.namespaceId);
-    case "member":
-      return provenance.members.has(statement.memberId);
-    case "relationship":
-      return provenance.relationships.has(statement.relationshipId);
-    case "styleDefinition":
-      return provenance.styleDefinitions.has(statement.styleDefId);
-    case "classDirectStyle":
-      return provenance.classDirectStyles.has(statement.classId);
-    case "styleApplication":
-      return provenance.styleApplications.has(statement.styleApplicationId);
-    case "classSpatial":
-      return provenance.classSpatial.has(statement.classId);
-    case "namespaceSpatial":
-      return provenance.namespaceSpatial.has(statement.namespaceId);
-    case "note":
-      return provenance.notes.has(statement.noteId);
-  }
-}
-
 // ============================================================================
-// Membership — the one rule: which block is a statement written in
+// Internals: block membership — which block is a statement written in
 // ============================================================================
 
 function blockOf(graph: DiagramGraph, ref: StatementRef): BlockRef {
@@ -113,8 +109,10 @@ function blockOf(graph: DiagramGraph, ref: StatementRef): BlockRef {
       return namespaceBlock(graph.classes.get(ref.classId)?.parentNamespaceId ?? null);
     case "namespace":
       return namespaceBlock(graph.namespaces.get(ref.namespaceId)?.parentNamespaceId ?? null);
-    case "member":
-      return memberBlock(graph, ref.memberId);
+    case "blockMember":
+      return blockMemberOwningClass(graph, ref.memberId);
+    case "shortMember":
+      return { kind: "diagram" };
     default:
       // relationship, styleDefinition, classDirectStyle, styleApplication,
       // classSpatial, namespaceSpatial, note: only ever written at diagram level.
@@ -126,8 +124,8 @@ function namespaceBlock(namespaceId: NamespaceId | null): BlockRef {
   return namespaceId === null ? { kind: "diagram" } : { kind: "namespace", namespaceId };
 }
 
-/** A member's block is its owning class; an orphan member matches no class container. */
-function memberBlock(graph: DiagramGraph, memberId: AttributeId | MethodId): BlockRef {
+/** A blockMember is enclosed by its owning class; an orphan falls back to diagram scope. */
+function blockMemberOwningClass(graph: DiagramGraph, memberId: AttributeId | MethodId): BlockRef {
   for (const node of graph.classes.values()) {
     const owns =
       node.attributes.some((attribute) => attribute.id === memberId) ||
@@ -154,8 +152,10 @@ function sameBlock(left: BlockRef, right: BlockRef): boolean {
 }
 
 // ============================================================================
-// Enumeration — explicit statements of a kind, tagged with their `self` location
+// Internals: candidate enumeration — explicit statements of a kind, with location
 // ============================================================================
+
+type AnchorCandidate = { readonly ref: StatementRef; readonly location: SourceLocation };
 
 function anchorCandidatesOfKind(
   kind: StatementKind,
@@ -166,8 +166,10 @@ function anchorCandidatesOfKind(
       return candidatesFrom(provenance.classes, (classId) => ({ kind, classId }));
     case "namespace":
       return candidatesFrom(provenance.namespaces, (namespaceId) => ({ kind, namespaceId }));
-    case "member":
-      return candidatesFrom(provenance.members, (memberId) => ({ kind, memberId }));
+    case "blockMember":
+      return candidatesFrom(provenance.blockMembers, (memberId) => ({ kind, memberId }));
+    case "shortMember":
+      return candidatesFrom(provenance.shortMembers, (memberId) => ({ kind, memberId }));
     case "relationship":
       return candidatesFrom(provenance.relationships, (relationshipId) => ({
         kind,
@@ -200,7 +202,38 @@ function candidatesFrom<Id>(
 }
 
 // ============================================================================
-// Ordering
+// Internals: record existence — does this exact statement have a source record
+// ============================================================================
+
+function hasStatementRecord(provenance: ProvenanceIndex, statement: StatementRef): boolean {
+  switch (statement.kind) {
+    case "class":
+      return provenance.classes.has(statement.classId);
+    case "namespace":
+      return provenance.namespaces.has(statement.namespaceId);
+    case "blockMember":
+      return provenance.blockMembers.has(statement.memberId);
+    case "shortMember":
+      return provenance.shortMembers.has(statement.memberId);
+    case "relationship":
+      return provenance.relationships.has(statement.relationshipId);
+    case "styleDefinition":
+      return provenance.styleDefinitions.has(statement.styleDefId);
+    case "classDirectStyle":
+      return provenance.classDirectStyles.has(statement.classId);
+    case "styleApplication":
+      return provenance.styleApplications.has(statement.styleApplicationId);
+    case "classSpatial":
+      return provenance.classSpatial.has(statement.classId);
+    case "namespaceSpatial":
+      return provenance.namespaceSpatial.has(statement.namespaceId);
+    case "note":
+      return provenance.notes.has(statement.noteId);
+  }
+}
+
+// ============================================================================
+// Internals: ordering
 // ============================================================================
 
 function compareLocations(left: SourceLocation, right: SourceLocation): number {

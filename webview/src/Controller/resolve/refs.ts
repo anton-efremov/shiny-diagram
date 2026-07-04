@@ -47,8 +47,12 @@ export function resolveStatementRef(
         provenance.namespaces.get(ref.namespaceId),
         `namespace ${ref.namespaceId}`
       ).self;
-    case "member":
-      return requireRecord(provenance.members.get(ref.memberId), `member ${ref.memberId}`).self;
+    case "blockMember":
+      return requireRecord(provenance.blockMembers.get(ref.memberId), `member ${ref.memberId}`)
+        .self;
+    case "shortMember":
+      return requireRecord(provenance.shortMembers.get(ref.memberId), `member ${ref.memberId}`)
+        .self;
     case "styleDefinition":
       return requireRecord(
         provenance.styleDefinitions.get(ref.styleDefId),
@@ -149,15 +153,13 @@ export function resolveValueRef(ref: ValueRef, provenance: ProvenanceIndex): Sou
         `namespace ${ref.namespaceId}`
       ).fields.declaredName;
     case "memberName":
-      return requireRecord(provenance.members.get(ref.memberId), `member ${ref.memberId}`).fields
-        .name;
-    case "memberOwner": {
-      const member = requireRecord(provenance.members.get(ref.memberId), `member ${ref.memberId}`);
-      if (member.sourceForm !== "shortMember") {
-        throw new Error(`Member ${ref.memberId} has no owner span`);
-      }
-      return member.fields.owner;
-    }
+      return requireRecord(
+        provenance.blockMembers.get(ref.memberId) ?? provenance.shortMembers.get(ref.memberId),
+        `member ${ref.memberId}`
+      ).fields.name;
+    case "memberOwner":
+      return requireRecord(provenance.shortMembers.get(ref.memberId), `member ${ref.memberId}`)
+        .fields.owner;
     case "styleDefPropertyValue":
       return requireRecord(
         provenance.styleDefinitions.get(ref.styleDefId)?.fields.properties[ref.property],

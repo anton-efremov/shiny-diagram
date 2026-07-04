@@ -17,12 +17,13 @@ import type {
   StyleDefNode,
 } from "../../model/diagramGraph";
 import type {
+  BlockMemberRecord,
   ClassDirectStyleRecord,
   ClassRecord,
-  MemberRecord,
   NamespaceRecord,
   ProvenanceIndex,
   RelationshipRecord,
+  ShortMemberRecord,
   SourceLocation,
   SpatialRecord,
   StyleApplicationRecord,
@@ -47,9 +48,13 @@ type MutableGraphBuild = {
   readonly inNamespaceEdges: InNamespaceEdge[];
   readonly provenance: {
     readonly classes: Map<ClassNode["id"], ClassRecord>;
-    readonly members: Map<
+    readonly blockMembers: Map<
       ClassNode["attributes"][number]["id"] | ClassNode["methods"][number]["id"],
-      MemberRecord
+      BlockMemberRecord
+    >;
+    readonly shortMembers: Map<
+      ClassNode["attributes"][number]["id"] | ClassNode["methods"][number]["id"],
+      ShortMemberRecord
     >;
     readonly namespaces: Map<NamespaceNode["id"], NamespaceRecord>;
     readonly styleDefinitions: Map<StyleDefNode["id"], StyleDefRecord>;
@@ -76,7 +81,8 @@ export function buildSpatiallyUnawareDiagramGraph(tokens: ParseToken[]): GraphBu
     inNamespaceEdges: [],
     provenance: {
       classes: new Map(),
-      members: new Map(),
+      blockMembers: new Map(),
+      shortMembers: new Map(),
       namespaces: new Map(),
       styleDefinitions: new Map(),
       relationships: new Map(),
@@ -107,8 +113,7 @@ function traverseTokens(tokens: readonly ParseToken[], build: MutableGraphBuild)
           build.classes.set(parsed.node.id, parsed.node);
           build.provenance.classes.set(parsed.node.id, toClassRecord(token));
           for (const [memberId, location] of parsed.memberLocations) {
-            build.provenance.members.set(memberId, {
-              sourceForm: "blockMember",
+            build.provenance.blockMembers.set(memberId, {
               self: location,
               fields: { name: location },
             });
@@ -259,7 +264,8 @@ function toProvenanceIndex(
     diagram: toDiagramRecord(tokens),
     classes: build.provenance.classes,
     namespaces: build.provenance.namespaces,
-    members: build.provenance.members,
+    blockMembers: build.provenance.blockMembers,
+    shortMembers: build.provenance.shortMembers,
     relationships: build.provenance.relationships,
     classDirectStyles: build.provenance.classDirectStyles,
     styleDefinitions: build.provenance.styleDefinitions,
@@ -305,7 +311,6 @@ export function toDiagramRecord(tokens: readonly ParseToken[]): ProvenanceIndex[
 function toClassRecord(token: ParseToken): ClassRecord {
   const isBlock = token.raw.includes("{");
   return {
-    sourceForm: isBlock ? "blockDeclaration" : "simpleDeclaration",
     self: toSourceLocation(token),
     header: toHeaderLocation(token),
     body: isBlock ? toBodyLocation(token) : null,

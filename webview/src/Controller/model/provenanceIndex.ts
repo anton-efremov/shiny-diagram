@@ -57,7 +57,6 @@ export type DiagramRecord = {
 
 /** A class with a declaration in source. Missing map entry means implicit class. */
 export type ClassRecord = {
-  readonly sourceForm: "simpleDeclaration" | "blockDeclaration";
   readonly self: SourceLocation; // line for simple form, whole brace block for block form
   readonly header: SourceLocation; // declaration/header line
   readonly body: SourceLocation | null; // interior of `{ ... }`, only for block form
@@ -86,7 +85,6 @@ export type NamespaceRecord = {
 
 /** A member inside a class block: `+string name`. */
 export type BlockMemberRecord = {
-  readonly sourceForm: "blockMember";
   readonly self: SourceLocation;
   readonly fields: {
     readonly name: SourceLocation;
@@ -95,15 +93,12 @@ export type BlockMemberRecord = {
 
 /** A member as a short-form line: `User : +string name`. */
 export type ShortMemberRecord = {
-  readonly sourceForm: "shortMember";
   readonly self: SourceLocation;
   readonly fields: {
     readonly owner: SourceLocation; // `User` in `User : ...`
     readonly name: SourceLocation;
   };
 };
-
-export type MemberRecord = BlockMemberRecord | ShortMemberRecord;
 
 // ============================================================================
 // Relationships
@@ -201,8 +196,11 @@ export type ProvenanceIndex = {
   /** Namespace blocks. */
   readonly namespaces: ReadonlyMap<NamespaceId, NamespaceRecord>;
 
-  /** Attribute and method lines. */
-  readonly members: ReadonlyMap<AttributeId | MethodId, MemberRecord>;
+  /** Attribute and method lines inside a class block. */
+  readonly blockMembers: ReadonlyMap<AttributeId | MethodId, BlockMemberRecord>;
+
+  /** Top-level short-form attribute and method lines. */
+  readonly shortMembers: ReadonlyMap<AttributeId | MethodId, ShortMemberRecord>;
 
   /** Relationship lines. */
   readonly relationships: ReadonlyMap<RelationshipId, RelationshipRecord>;

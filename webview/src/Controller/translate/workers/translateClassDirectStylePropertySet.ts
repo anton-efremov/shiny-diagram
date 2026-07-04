@@ -13,8 +13,6 @@
  * - Written after the latest direct style statement in the class's scope.
  * - if no direct style statements - after style assignement statement
  * - Otherwise, after the latest non-spatial-annotation statement
- *
- * NOTE - CODE IS NOT ALIGNED WITH DESCRIPTION YET
  */
 
 import type { EditorCommandOf } from "../../../View/commands";
