@@ -23,6 +23,7 @@
 
 import type { ClassNode, DiagramGraph, StyleApplicationEdge } from "../../model/diagramGraph";
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
+import type { SourcePosition, SourceSpan } from "../../model/sourceEdit";
 import type { EditorCommandOf } from "../../../View/commands";
 import type { ClassId, StyleDefId } from "../../../shared/ids";
 import type { StylePropertyName } from "../../../shared/style";
@@ -35,7 +36,8 @@ import { composeStyleEntry } from "../syntax/styleSyntax";
 export function translateClassDuplicate(
   command: EditorCommandOf<"class.duplicate">,
   graph: DiagramGraph,
-  provenance: ProvenanceIndex
+  provenance: ProvenanceIndex,
+  sourceText: string
 ): WriteIntent[] {
   const source = graph.classes.get(command.sourceClassId);
   if (!source) throw new Error(`Class ${command.sourceClassId} cannot be duplicated`);
@@ -47,14 +49,8 @@ export function translateClassDuplicate(
   // Class declaration
   // ---
   const insertClassIntent: WriteIntent = {
-    kind: "copyStatement",
-    source: { kind: "class", classId: command.sourceClassId },
-    overrides: [
-      {
-        value: { kind: "className", classId: command.sourceClassId },
-        replacement: id,
-      },
-    ],
+    kind: "insertStatement",
+    payload: composeDuplicatedClassDeclaration(provenance, sourceText, command.sourceClassId, id),
     anchor: requireExactAnchor(provenance, { kind: "class", classId: command.sourceClassId }),
   };
 
@@ -137,6 +133,73 @@ function findSourceStyleApplication(
       (styleApplication) => styleApplication.targetId === classId
     ) ?? null
   );
+}
+
+function composeDuplicatedClassDeclaration(
+  provenance: ProvenanceIndex,
+  sourceText: string,
+  sourceClassId: ClassId,
+  classId: ClassId
+): string {
+  const record = provenance.classes.get(sourceClassId);
+  if (!record) throw new Error(`Missing provenance for class ${sourceClassId}`);
+
+  const blockText = sliceSpan(sourceText, record.self);
+  const renamedText = replaceSpanWithinText(
+    blockText,
+    sourceText,
+    record.self,
+    record.fields.declaredName,
+    classId
+  );
+  return toRelativeBlockIndent(renamedText);
+}
+
+function replaceSpanWithinText(
+  text: string,
+  sourceText: string,
+  baseSpan: SourceSpan,
+  targetSpan: SourceSpan,
+  replacement: string
+): string {
+  const baseOffset = positionToOffset(sourceText, baseSpan.start);
+  const startOffset = positionToOffset(sourceText, targetSpan.start) - baseOffset;
+  const endOffset = positionToOffset(sourceText, targetSpan.end) - baseOffset;
+  return `${text.slice(0, startOffset)}${replacement}${text.slice(endOffset)}`;
+}
+
+/** Multi-line insertStatement payloads are relative-indented before resolve adds anchor indent. */
+function toRelativeBlockIndent(text: string): string {
+  const lines = text.split("\n");
+  const baseIndent = /^\s*/.exec(lines[0])?.[0] ?? "";
+  if (baseIndent === "") return text;
+  return lines.map((line) => removeIndentPrefix(line, baseIndent)).join("\n");
+}
+
+function removeIndentPrefix(line: string, baseIndent: string): string {
+  if (line === "" || !line.startsWith(baseIndent)) return line;
+  return line.slice(baseIndent.length);
+}
+
+function sliceSpan(sourceText: string, span: SourceSpan): string {
+  return sourceText.slice(
+    positionToOffset(sourceText, span.start),
+    positionToOffset(sourceText, span.end)
+  );
+}
+
+function positionToOffset(sourceText: string, position: SourcePosition): number {
+  let offset = 0;
+  let line = 0;
+
+  while (line < position.line && offset < sourceText.length) {
+    const nextLf = sourceText.indexOf("\n", offset);
+    if (nextLf === -1) return sourceText.length;
+    offset = nextLf + 1;
+    line++;
+  }
+
+  return offset + position.character;
 }
 
 function composeClassDirectStyle(

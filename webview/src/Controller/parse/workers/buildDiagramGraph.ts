@@ -439,9 +439,7 @@ function toStylePropertyFields(
   listStart: number,
   propertyList: string
 ): StylePropertyFields {
-  const fields: Partial<
-    Record<StylePropertyName, { entry: SourceSpan; value: SourceSpan }>
-  > = {};
+  const fields: Partial<Record<StylePropertyName, { entry: SourceSpan; value: SourceSpan }>> = {};
   let offset = 0;
   for (const part of propertyList.split(",")) {
     const entryStart = listStart + offset;

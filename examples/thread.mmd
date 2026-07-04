@@ -8,11 +8,11 @@ direction TB
 	    +addParticipant(UserContact participant) void
     }
     class ConversationThread_1 {
-	    +UUID id
-	    +List~TextMessage~ messages
-	    +List~UserContact~ participants
-	    +addMessage(TextMessage message) void
-	    +addParticipant(UserContact participant) void
+    	    +UUID id
+    	    +List~TextMessage~ messages
+    	    +List~UserContact~ participants
+    	    +addMessage(TextMessage message) void
+    	    +addParticipant(UserContact participant) void
     }
 
     class UserContact {
@@ -23,7 +23,6 @@ direction TB
 	    +addCommunicationChannel(CommunicationChannel channel) void
 	    +removeCommunicationChannel(UUID channelId) void
     }
-    class NewClass
 
     ConversationThread --> UserContact : involves
 
@@ -39,9 +38,8 @@ direction TB
 
 
     %% @spatial:ConversationThread x=-370 y=40 w=228 h=210
-    %% @spatial:ConversationThread_1 x=-346 y=64 w=228 h=210
+    %% @spatial:ConversationThread_1 x=-191 y=120 w=228 h=210
     %% @spatial:UserContact x=-94 y=-55 w=200 h=150
-    %% @spatial:NewClass x=-341 y=-78 w=149.49130571846902 h=178.13634909561222
     style UserContact fill:#932f2f
 
 

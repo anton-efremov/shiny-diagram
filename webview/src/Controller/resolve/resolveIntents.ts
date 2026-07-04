@@ -17,7 +17,6 @@
 import type { ProvenanceIndex } from "../model/provenanceIndex";
 import type { SourceEdit } from "../model/sourceEdit";
 import type { WriteIntent } from "../translate";
-import { resolveCopyStatement } from "./workers/copyStatement";
 import { resolveDeleteEntry } from "./workers/deleteEntry";
 import { resolveDeleteStatement } from "./workers/deleteStatement";
 import { resolveInsertEntry } from "./workers/insertEntry";
@@ -44,8 +43,6 @@ function buildEdit(
   switch (intent.kind) {
     case "insertStatement":
       return resolveInsertStatement(intent, provenance, sourceText, eol);
-    case "copyStatement":
-      return resolveCopyStatement(intent, provenance, sourceText, eol);
     case "deleteStatement":
       return resolveDeleteStatement(intent, provenance, sourceText);
     case "insertEntry":
@@ -61,8 +58,8 @@ function buildEdit(
 // Edit-list post-processing
 // ============================================================================
 
-/** 
- * Concatenates insertions sharing an exact position (in order); leaves other edits distinct. 
+/**
+ * Concatenates insertions sharing an exact position (in order); leaves other edits distinct.
  * Needed so edits to the same source locations do not get dumped by VSCode's
  * vscode.workspace.applyEdit(workspaceEdit)
  */

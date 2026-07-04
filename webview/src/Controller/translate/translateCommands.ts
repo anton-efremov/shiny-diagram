@@ -15,21 +15,23 @@ import { translateClassSpatialSet } from "./workers/translateClassSpatialSet";
 export function translateCommands(
   transaction: EditorCommandTransaction,
   graph: DiagramGraph,
-  provenance: ProvenanceIndex
+  provenance: ProvenanceIndex,
+  sourceText: string
 ): WriteIntent[] {
-  return transaction.flatMap((command) => translateCommand(command, graph, provenance));
+  return transaction.flatMap((command) => translateCommand(command, graph, provenance, sourceText));
 }
 
 function translateCommand(
   command: EditorCommand,
   graph: DiagramGraph,
-  provenance: ProvenanceIndex
+  provenance: ProvenanceIndex,
+  sourceText: string
 ): WriteIntent[] {
   switch (command.type) {
     case "class.create":
       return translateClassCreate(command, graph, provenance);
     case "class.duplicate":
-      return translateClassDuplicate(command, graph, provenance);
+      return translateClassDuplicate(command, graph, provenance, sourceText);
     case "class.delete":
       return translateClassDelete(command, graph, provenance);
     case "class.spatial.set":

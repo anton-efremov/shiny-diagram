@@ -18,10 +18,7 @@ import type {
 import type { SourceSpan } from "../../../model/sourceEdit";
 import type { BlockRef, EntryRef, StatementRef, StyleListRef, ValueRef } from "../../../translate";
 
-export function resolveStatementRef(
-  ref: StatementRef,
-  provenance: ProvenanceIndex
-): SourceSpan {
+export function resolveStatementRef(ref: StatementRef, provenance: ProvenanceIndex): SourceSpan {
   switch (ref.kind) {
     case "class":
       return requireRecord(provenance.classes.get(ref.classId), `class ${ref.classId}`).self;
@@ -185,10 +182,7 @@ export function resolveBlockRef(
   }
 }
 
-export function resolveStyleListRef(
-  ref: StyleListRef,
-  provenance: ProvenanceIndex
-): SourceSpan {
+export function resolveStyleListRef(ref: StyleListRef, provenance: ProvenanceIndex): SourceSpan {
   switch (ref.kind) {
     case "directStyle":
       return requireRecord(

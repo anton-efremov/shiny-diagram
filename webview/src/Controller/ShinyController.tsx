@@ -88,7 +88,12 @@ export default function ShinyController({
     const { context, onApplyEdits: applyEdits } = commandExecutionInputsRef.current;
     if (!context) return;
 
-    const intents = translateCommands(transaction, context.graph, context.provenance);
+    const intents = translateCommands(
+      transaction,
+      context.graph,
+      context.provenance,
+      context.sourceText
+    );
     const edits = resolveIntents(intents, context.provenance, context.sourceText);
     if (edits.length > 0) {
       applyEdits(edits);

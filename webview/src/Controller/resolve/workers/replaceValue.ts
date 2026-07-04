@@ -10,7 +10,10 @@ import { resolveValueRef } from "./helpers/resolveRefs";
 
 type ReplaceValueIntent = Extract<WriteIntent, { readonly kind: "replaceValue" }>;
 
-export function resolveReplaceValue(intent: ReplaceValueIntent, provenance: ProvenanceIndex): SourceEdit {
+export function resolveReplaceValue(
+  intent: ReplaceValueIntent,
+  provenance: ProvenanceIndex
+): SourceEdit {
   const location = resolveValueRef(intent.target, provenance);
   return {
     start: location.start,

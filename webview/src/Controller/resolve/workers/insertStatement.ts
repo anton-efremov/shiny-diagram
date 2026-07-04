@@ -22,7 +22,7 @@ export function resolveInsertStatement(
     provenance,
     sourceText
   );
-  const lines = intent.payload.split("\n").map((line) => `${indent}${line}`);
+  const lines = intent.payload.split("\n").map((line) => (line === "" ? line : `${indent}${line}`));
   return {
     start: position,
     end: position,

@@ -419,13 +419,13 @@ function permittedDependencyRule(file, dependency, target) {
       return true;
     }
     if (target === "Shell/index.ts") return true;
-    if (target === "Controller/model/sourceSpan.ts" && dependency.isTypeOnly) {
+    if (target === "Controller/model/sourceEdit.ts" && dependency.isTypeOnly) {
       return true;
     }
-    if (target === "Controller/model/sourceSpan.ts") {
-      return "Extension Bridge may consume Controller/model/sourceSpan only through a type-only dependency";
+    if (target === "Controller/model/sourceEdit.ts") {
+      return "Extension Bridge may consume Controller/model/sourceEdit only through a type-only dependency";
     }
-    return "Extension Bridge may depend only on its own modules, Shell, type-only Controller/model/sourceSpan, or shared";
+    return "Extension Bridge may depend only on its own modules, Shell, type-only Controller/model/sourceEdit, or shared";
   }
 
   if (isUnder(file, "Shell")) {
@@ -434,13 +434,13 @@ function permittedDependencyRule(file, dependency, target) {
     }
     if (isUnder(target, "mermaidRenderer")) return true;
     if (target === "Controller/ShinyController.tsx") return true;
-    if (target === "Controller/model/sourceSpan.ts" && dependency.isTypeOnly) {
+    if (target === "Controller/model/sourceEdit.ts" && dependency.isTypeOnly) {
       return true;
     }
-    if (target === "Controller/model/sourceSpan.ts") {
-      return "Shell may consume Controller/model/sourceSpan only through a type-only dependency";
+    if (target === "Controller/model/sourceEdit.ts") {
+      return "Shell may consume Controller/model/sourceEdit only through a type-only dependency";
     }
-    return "Shell may depend only on its own modules, mermaidRenderer, Controller/ShinyController, type-only Controller/model/sourceSpan, or shared";
+    return "Shell may depend only on its own modules, mermaidRenderer, Controller/ShinyController, type-only Controller/model/sourceEdit, or shared";
   }
 
   if (isUnder(file, "mermaidRenderer")) {
