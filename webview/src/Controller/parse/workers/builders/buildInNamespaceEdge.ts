@@ -4,14 +4,14 @@
 
 import { toClassId, toNamespaceId } from "../../../../shared/ids";
 import type { ClassId, NamespaceId } from "../../../../shared/ids";
-import type { SourceLocation } from "../../../model/sourceLocation";
+import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
 
 export type InNamespaceEdge = {
   readonly source: ClassId;
   readonly target: NamespaceId;
-  readonly location: SourceLocation;
+  readonly location: SourceSpan;
 };
 
 /**

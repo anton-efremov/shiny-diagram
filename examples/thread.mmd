@@ -1,5 +1,4 @@
 classDiagram
-    class NewClass
 direction TB
     class ConversationThread {
 	    +UUID id
@@ -17,6 +16,7 @@ direction TB
 	    +addCommunicationChannel(CommunicationChannel channel) void
 	    +removeCommunicationChannel(UUID channelId) void
     }
+    class NewClass
 
     ConversationThread --> UserContact : involves
 
@@ -30,10 +30,12 @@ direction TB
     classDef ShinyStyleSelected fill:#a76262,stroke:#37c368
 
 
-    %% @spatial:ConversationThread x=-477 y=71 w=228 h=210
-    %% @spatial:UserContact x=-144 y=22 w=200 h=150
-    %% @spatial:NewClass x=-445 y=-62 w=198.43615041735612 h=141.14952020015693
+    %% @spatial:ConversationThread x=-417 y=81 w=228 h=210
+    %% @spatial:UserContact x=-139 y=-2 w=200 h=150
+    %% @spatial:NewClass x=-344 y=-83 w=193.45372123341636 h=141.8326204673864
     style UserContact fill:#932f2f
+    style NewClass fill:#b72424
+    style ConversationThread fill:#36634e,stroke:#6a57ff
 
 
 

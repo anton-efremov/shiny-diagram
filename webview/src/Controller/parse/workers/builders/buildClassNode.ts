@@ -3,7 +3,7 @@
  */
 
 import type { ClassAttribute, ClassMethod, ClassNode } from "../../../model/diagramGraph";
-import type { SourceLocation } from "../../../model/sourceLocation";
+import type { SourceSpan } from "../../../model/sourceEdit";
 import { toAttributeId, toClassId, toMethodId, type ClassId } from "../../../../shared/ids";
 import type { Visibility } from "../../../../shared/uml";
 import type { ParseToken } from "../tokenizer";
@@ -13,8 +13,8 @@ const VISIBILITY_PREFIXES = new Set<string>(["+", "-", "#", "~"]);
 
 export type ParsedClassNode = {
   readonly node: ClassNode;
-  readonly location: SourceLocation;
-  readonly memberLocations: ReadonlyMap<ClassAttribute["id"] | ClassMethod["id"], SourceLocation>;
+  readonly location: SourceSpan;
+  readonly memberLocations: ReadonlyMap<ClassAttribute["id"] | ClassMethod["id"], SourceSpan>;
 };
 
 /**
@@ -60,11 +60,11 @@ function parseClassBody(
   attributes: ClassAttribute[];
   methods: ClassMethod[];
   annotation: string | null;
-  memberLocations: Map<ClassAttribute["id"] | ClassMethod["id"], SourceLocation>;
+  memberLocations: Map<ClassAttribute["id"] | ClassMethod["id"], SourceSpan>;
 } {
   const attributes: ClassAttribute[] = [];
   const methods: ClassMethod[] = [];
-  const memberLocations = new Map<ClassAttribute["id"] | ClassMethod["id"], SourceLocation>();
+  const memberLocations = new Map<ClassAttribute["id"] | ClassMethod["id"], SourceSpan>();
   let annotation: string | null = null;
 
   for (const token of blockTokens) {
@@ -99,9 +99,9 @@ function parseClassMember(
   | {
       readonly kind: "attribute";
       readonly attribute: ClassAttribute;
-      readonly location: SourceLocation;
+      readonly location: SourceSpan;
     }
-  | { readonly kind: "method"; readonly method: ClassMethod; readonly location: SourceLocation }
+  | { readonly kind: "method"; readonly method: ClassMethod; readonly location: SourceSpan }
   | null {
   const trimmed = token.raw.trim();
   const firstCharacter = trimmed.charAt(0);
@@ -126,7 +126,7 @@ function parseFieldMember(
 ): {
   readonly kind: "attribute";
   readonly attribute: ClassAttribute;
-  readonly location: SourceLocation;
+  readonly location: SourceSpan;
 } {
   const parts = declaration.split(/\s+/);
   const name = parts.length > 1 ? parts[parts.length - 1] : parts[0];
@@ -150,7 +150,7 @@ function parseMethodMember(
   token: ParseToken,
   visibility: Visibility,
   declaration: string
-): { readonly kind: "method"; readonly method: ClassMethod; readonly location: SourceLocation } {
+): { readonly kind: "method"; readonly method: ClassMethod; readonly location: SourceSpan } {
   const methodMatch = /^([^\s(]+)\s*\(([^)]*)\)\s*(.*)$/.exec(declaration);
 
   if (!methodMatch) {

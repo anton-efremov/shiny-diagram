@@ -6,13 +6,13 @@ import { toStyleDefId } from "../../../../shared/ids";
 import { STYLE_PROPERTIES } from "../../../../shared/style";
 import type { StyleProperties } from "../../../../shared/style";
 import type { StyleDefNode } from "../../../model/diagramGraph";
-import type { SourceLocation } from "../../../model/sourceLocation";
+import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
 
 export type ParsedStyleDefNode = {
   readonly node: StyleDefNode;
-  readonly location: SourceLocation;
+  readonly location: SourceSpan;
 };
 
 /**

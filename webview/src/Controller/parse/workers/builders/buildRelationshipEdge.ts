@@ -9,7 +9,7 @@ import type {
   RelationshipLineKind,
   RelationshipType,
 } from "../../../../shared/uml";
-import type { SourceLocation } from "../../../model/sourceLocation";
+import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
 
@@ -17,7 +17,7 @@ type RelationshipOperator = { readonly syntax: string; readonly type: Relationsh
 
 export type ParsedRelationshipEdge = {
   readonly edge: RelationshipEdge;
-  readonly location: SourceLocation;
+  readonly location: SourceSpan;
 };
 
 const RELATIONSHIP_OPERATORS: readonly RelationshipOperator[] = [

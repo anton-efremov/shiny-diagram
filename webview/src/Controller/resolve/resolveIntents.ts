@@ -22,14 +22,14 @@ import { resolveDeleteStatement } from "./workers/deleteStatement";
 import { resolveInsertEntry } from "./workers/insertEntry";
 import { resolveInsertStatement } from "./workers/insertStatement";
 import { resolveReplaceValue } from "./workers/replaceValue";
-import { detectEol, positionsOverlap } from "./text";
+import type { SourcePosition } from "../model/sourceEdit";
 
 export function resolveIntents(
   intents: readonly WriteIntent[],
   provenance: ProvenanceIndex,
   sourceText: string
 ): SourceEdit[] {
-  const eol = detectEol(sourceText);
+  const eol = sourceText.includes("\r\n") ? "\r\n" : "\n"; // detects which EOL used in source
   const edits = intents.map((intent) => buildEdit(intent, provenance, sourceText, eol));
   return assertNoOverlaps(coalesceInsertions(edits));
 }
@@ -99,4 +99,11 @@ function compareEdits(left: SourceEdit, right: SourceEdit): number {
 
 function isInsertion(edit: SourceEdit): boolean {
   return edit.start.line === edit.end.line && edit.start.character === edit.end.character;
+}
+
+/** Whether one edit's end sits strictly past the next edit's start (touching is allowed). */
+export function positionsOverlap(leftEnd: SourcePosition, rightStart: SourcePosition): boolean {
+  if (leftEnd.line < rightStart.line) return false;
+  if (leftEnd.line === rightStart.line && leftEnd.character <= rightStart.character) return false;
+  return true;
 }

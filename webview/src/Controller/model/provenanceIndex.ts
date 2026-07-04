@@ -39,6 +39,7 @@ import type {
   StyleDefId,
 } from "../../shared/ids";
 import type { StylePropertyName } from "../../shared/style";
+import type { SourceSpan } from "./sourceEdit";
 
 // ============================================================================
 // Diagram
@@ -46,9 +47,9 @@ import type { StylePropertyName } from "../../shared/style";
 
 /** The parsed class diagram area. `body` is the top-level diagram interior. */
 export type DiagramRecord = {
-  readonly self: SourceLocation;
-  readonly header: SourceLocation; // `classDiagram`
-  readonly body: SourceLocation;
+  readonly self: SourceSpan;
+  readonly header: SourceSpan; // `classDiagram`
+  readonly body: SourceSpan;
 };
 
 // ============================================================================
@@ -57,11 +58,11 @@ export type DiagramRecord = {
 
 /** A class with a declaration in source. Missing map entry means implicit class. */
 export type ClassRecord = {
-  readonly self: SourceLocation; // line for simple form, whole brace block for block form
-  readonly header: SourceLocation; // declaration/header line
-  readonly body: SourceLocation | null; // interior of `{ ... }`, only for block form
+  readonly self: SourceSpan; // line for simple form, whole brace block for block form
+  readonly header: SourceSpan; // declaration/header line
+  readonly body: SourceSpan | null; // interior of `{ ... }`, only for block form
   readonly fields: {
-    readonly declaredName: SourceLocation; // `User` in `class User`
+    readonly declaredName: SourceSpan; // `User` in `class User`
   };
 };
 
@@ -71,11 +72,11 @@ export type ClassRecord = {
 
 /** A namespace declaration block: `namespace Domain { ... }`. */
 export type NamespaceRecord = {
-  readonly self: SourceLocation;
-  readonly header: SourceLocation;
-  readonly body: SourceLocation;
+  readonly self: SourceSpan;
+  readonly header: SourceSpan;
+  readonly body: SourceSpan;
   readonly fields: {
-    readonly declaredName: SourceLocation;
+    readonly declaredName: SourceSpan;
   };
 };
 
@@ -85,18 +86,18 @@ export type NamespaceRecord = {
 
 /** A member inside a class block: `+string name`. */
 export type BlockMemberRecord = {
-  readonly self: SourceLocation;
+  readonly self: SourceSpan;
   readonly fields: {
-    readonly name: SourceLocation;
+    readonly name: SourceSpan;
   };
 };
 
 /** A member as a short-form line: `User : +string name`. */
 export type ShortMemberRecord = {
-  readonly self: SourceLocation;
+  readonly self: SourceSpan;
   readonly fields: {
-    readonly owner: SourceLocation; // `User` in `User : ...`
-    readonly name: SourceLocation;
+    readonly owner: SourceSpan; // `User` in `User : ...`
+    readonly name: SourceSpan;
   };
 };
 
@@ -106,14 +107,14 @@ export type ShortMemberRecord = {
 
 /** A relationship line: `User "1" --> "*" Session : owns`. */
 export type RelationshipRecord = {
-  readonly self: SourceLocation;
+  readonly self: SourceSpan;
   readonly fields: {
-    readonly sourceEndpoint: SourceLocation;
-    readonly sourceMultiplicity?: SourceLocation;
-    readonly operator: SourceLocation; // `-->`, `<|--`, `*--`, `..>`, etc.
-    readonly targetMultiplicity?: SourceLocation;
-    readonly targetEndpoint: SourceLocation;
-    readonly label?: SourceLocation; // text after `:`, when present
+    readonly sourceEndpoint: SourceSpan;
+    readonly sourceMultiplicity?: SourceSpan;
+    readonly operator: SourceSpan; // `-->`, `<|--`, `*--`, `..>`, etc.
+    readonly targetMultiplicity?: SourceSpan;
+    readonly targetEndpoint: SourceSpan;
+    readonly label?: SourceSpan; // text after `:`, when present
   };
 };
 
@@ -124,8 +125,8 @@ export type RelationshipRecord = {
 /** A single style property. `entry` is the whole `fill:#f9f` pair (delete
  *  target); `value` is just the `#f9f` span (replace target). */
 export type StylePropertyField = {
-  readonly entry: SourceLocation;
-  readonly value: SourceLocation;
+  readonly entry: SourceSpan;
+  readonly value: SourceSpan;
 };
 
 export type StylePropertyFields = Partial<Record<StylePropertyName, StylePropertyField>>;
@@ -134,30 +135,30 @@ export type StylePropertyFields = Partial<Record<StylePropertyName, StylePropert
  *  is the whole comma-separated list area; a first entry inserts after its
  *  opening, subsequent entries after an existing property `entry`. */
 export type ClassDirectStyleRecord = {
-  readonly self: SourceLocation;
+  readonly self: SourceSpan;
   readonly fields: {
-    readonly target: SourceLocation; // `User` in `style User ...`
-    readonly propertyList: SourceLocation; // `fill:#f9f,stroke:#333`
+    readonly target: SourceSpan; // `User` in `style User ...`
+    readonly propertyList: SourceSpan; // `fill:#f9f,stroke:#333`
     readonly properties: StylePropertyFields;
   };
 };
 
 /** A style-definition line: `classDef Important fill:#f9f`. */
 export type StyleDefRecord = {
-  readonly self: SourceLocation;
+  readonly self: SourceSpan;
   readonly fields: {
-    readonly declaredName: SourceLocation; // `Important` in `classDef Important ...`
-    readonly propertyList: SourceLocation;
+    readonly declaredName: SourceSpan; // `Important` in `classDef Important ...`
+    readonly propertyList: SourceSpan;
     readonly properties: StylePropertyFields;
   };
 };
 
 /** A style-application line: `class User:::Important` / `cssClass "User" Important`. */
 export type StyleApplicationRecord = {
-  readonly self: SourceLocation;
+  readonly self: SourceSpan;
   readonly fields: {
-    readonly target: SourceLocation; // applied-to class token
-    readonly styleName: SourceLocation; // applied style token
+    readonly target: SourceSpan; // applied-to class token
+    readonly styleName: SourceSpan; // applied style token
   };
 };
 
@@ -167,13 +168,13 @@ export type StyleApplicationRecord = {
 
 /** A spatial annotation line: `%% @spatial:User x=.. y=.. w=.. h=..`. */
 export type SpatialRecord = {
-  readonly self: SourceLocation;
+  readonly self: SourceSpan;
   readonly fields: {
-    readonly target: SourceLocation;
-    readonly x: SourceLocation;
-    readonly y: SourceLocation;
-    readonly w: SourceLocation;
-    readonly h: SourceLocation;
+    readonly target: SourceSpan;
+    readonly x: SourceSpan;
+    readonly y: SourceSpan;
+    readonly w: SourceSpan;
+    readonly h: SourceSpan;
   };
 };
 
@@ -183,7 +184,7 @@ export type SpatialRecord = {
 
 /** A note line/block: `note for User "text"`. */
 export type NoteRecord = {
-  readonly self: SourceLocation;
+  readonly self: SourceSpan;
 };
 
 export type ProvenanceIndex = {
@@ -218,17 +219,4 @@ export type ProvenanceIndex = {
   readonly notes: ReadonlyMap<NoteId, NoteRecord>;
 };
 
-// ============================================================================
-// Shared types
-// ============================================================================
-
-/**
- * @fileoverview Source ranges attached to parsed diagram constructs.
- */
-export type SourceLocation = {
-  readonly startLine: number;
-  readonly startChar: number;
-  readonly endLine: number;
-  readonly endChar: number;
-  readonly raw: string;
-};
+export type { SourceSpan as SourceLocation } from "./sourceEdit";

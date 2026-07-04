@@ -24,12 +24,12 @@ import type {
   ProvenanceIndex,
   RelationshipRecord,
   ShortMemberRecord,
-  SourceLocation,
   SpatialRecord,
   StyleApplicationRecord,
   StyleDefRecord,
   StylePropertyFields,
 } from "../../model/provenanceIndex";
+import type { SourceSpan } from "../../model/sourceEdit";
 import { buildAppliesStyleEdge } from "./builders/buildAppliesStyleEdge";
 import { buildClassNode } from "./builders/buildClassNode";
 import { buildInNamespaceEdges, type InNamespaceEdge } from "./builders/buildInNamespaceEdge";
@@ -46,6 +46,7 @@ type MutableGraphBuild = {
   readonly relationships: Map<RelationshipEdge["id"], RelationshipEdge>;
   readonly styleApplications: Map<StyleApplicationEdge["id"], StyleApplicationEdge>;
   readonly inNamespaceEdges: InNamespaceEdge[];
+  readonly directStyleProperties: Map<ClassNode["id"], StyleProperties>;
   readonly provenance: {
     readonly classes: Map<ClassNode["id"], ClassRecord>;
     readonly blockMembers: Map<
@@ -61,7 +62,7 @@ type MutableGraphBuild = {
     readonly relationships: Map<RelationshipEdge["id"], RelationshipRecord>;
     readonly classDirectStyles: Map<ClassNode["id"], ClassDirectStyleRecord>;
     readonly classSpatial: Map<ClassNode["id"], SpatialRecord>;
-    readonly namespaceMemberships: Map<ClassNode["id"], SourceLocation>;
+    readonly namespaceMemberships: Map<ClassNode["id"], SourceSpan>;
     readonly styleApplications: Map<StyleApplicationEdge["id"], StyleApplicationRecord>;
   };
 };
@@ -79,6 +80,7 @@ export function buildSpatiallyUnawareDiagramGraph(tokens: ParseToken[]): GraphBu
     relationships: new Map(),
     styleApplications: new Map(),
     inNamespaceEdges: [],
+    directStyleProperties: new Map(),
     provenance: {
       classes: new Map(),
       blockMembers: new Map(),
@@ -124,6 +126,7 @@ function traverseTokens(tokens: readonly ParseToken[], build: MutableGraphBuild)
       case "classDirectStyle": {
         const parsed = parseClassDirectStyle(token);
         if (parsed) {
+          build.directStyleProperties.set(parsed.classId, parsed.properties);
           build.provenance.classDirectStyles.set(parsed.classId, parsed.record);
           const existing = build.classes.get(parsed.classId);
           if (existing) {
@@ -179,12 +182,12 @@ function traverseTokens(tokens: readonly ParseToken[], build: MutableGraphBuild)
 }
 
 function attachDirectStyles(build: MutableGraphBuild): void {
-  for (const [classId, record] of build.provenance.classDirectStyles) {
+  for (const [classId, properties] of build.directStyleProperties) {
     const node = build.classes.get(classId);
     if (!node) continue;
     build.classes.set(classId, {
       ...node,
-      directStyle: parseStyleProperties(record.fields.propertyList.raw),
+      directStyle: properties,
     });
   }
 }
@@ -279,31 +282,31 @@ function toProvenanceIndex(
 export function toDiagramRecord(tokens: readonly ParseToken[]): ProvenanceIndex["diagram"] {
   const headerToken = tokens.find((token) => token.raw.trim().startsWith("classDiagram"));
   if (!headerToken) {
-    const empty = { startLine: 0, startChar: 0, endLine: 0, endChar: 0, raw: "" };
+    const empty = { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } };
     return { self: empty, header: empty, body: empty };
   }
   const last = tokens.at(-1) ?? headerToken;
   return {
     self: {
-      startLine: headerToken.lineNumber,
-      startChar: 0,
-      endLine: last.endLine,
-      endChar:
-        last.endLine === last.lineNumber
-          ? last.raw.length
-          : (last.fullRaw.split("\n").at(-1)?.length ?? 0),
-      raw: "",
+      start: { line: headerToken.lineNumber, character: 0 },
+      end: {
+        line: last.endLine,
+        character:
+          last.endLine === last.lineNumber
+            ? last.raw.length
+            : (last.fullRaw.split("\n").at(-1)?.length ?? 0),
+      },
     },
     header: toHeaderLocation(headerToken),
     body: {
-      startLine: headerToken.lineNumber + 1,
-      startChar: 0,
-      endLine: last.endLine,
-      endChar:
-        last.endLine === last.lineNumber
-          ? last.raw.length
-          : (last.fullRaw.split("\n").at(-1)?.length ?? 0),
-      raw: "",
+      start: { line: headerToken.lineNumber + 1, character: 0 },
+      end: {
+        line: last.endLine,
+        character:
+          last.endLine === last.lineNumber
+            ? last.raw.length
+            : (last.fullRaw.split("\n").at(-1)?.length ?? 0),
+      },
     },
   };
 }
@@ -318,21 +321,18 @@ function toClassRecord(token: ParseToken): ClassRecord {
   };
 }
 
-function toDeclaredNameLocation(token: ParseToken, keyword: "class" | "namespace"): SourceLocation {
+function toDeclaredNameLocation(token: ParseToken, keyword: "class" | "namespace"): SourceSpan {
   const match = new RegExp(`^(\\s*${keyword}\\s+)(\\w+)`).exec(token.raw);
   if (!match) return toHeaderLocation(token);
   const start = match[1].length;
   return toLineFieldLocation(token, start, start + match[2].length);
 }
 
-function toBodyLocation(token: ParseToken): SourceLocation {
+function toBodyLocation(token: ParseToken): SourceSpan {
   if (!token.raw.includes("{")) return toSourceLocation(token);
   return {
-    startLine: token.lineNumber + 1,
-    startChar: 0,
-    endLine: Math.max(token.lineNumber + 1, token.endLine - 1),
-    endChar: 0,
-    raw: "",
+    start: { line: token.lineNumber + 1, character: 0 },
+    end: { line: Math.max(token.lineNumber + 1, token.endLine - 1), character: 0 },
   };
 }
 
@@ -440,7 +440,7 @@ function toStylePropertyFields(
   propertyList: string
 ): StylePropertyFields {
   const fields: Partial<
-    Record<StylePropertyName, { entry: SourceLocation; value: SourceLocation }>
+    Record<StylePropertyName, { entry: SourceSpan; value: SourceSpan }>
   > = {};
   let offset = 0;
   for (const part of propertyList.split(",")) {

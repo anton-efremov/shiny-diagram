@@ -21,7 +21,7 @@ import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { StylePropertyName } from "../../../shared/style";
 import type { ClassId } from "../../../shared/ids";
 import type { BlockRef, StatementAnchor, WriteIntent } from "../writeIntent";
-import { anchorEntry } from "../anchors/anchorEntry";
+import { anchorEntry } from "../anchors/entryAnchors";
 import {
   anchorAfterKindList,
   anchorBlockOpening,

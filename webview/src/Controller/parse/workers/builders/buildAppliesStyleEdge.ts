@@ -4,13 +4,13 @@
 
 import { toClassId, toStyleApplicationId, toStyleDefId } from "../../../../shared/ids";
 import type { StyleApplicationEdge } from "../../../model/diagramGraph";
-import type { SourceLocation } from "../../../model/sourceLocation";
+import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
 
 export type ParsedStyleApplicationEdge = {
   readonly edge: StyleApplicationEdge;
-  readonly location: SourceLocation;
+  readonly location: SourceSpan;
 };
 
 /**

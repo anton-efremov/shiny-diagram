@@ -12,7 +12,8 @@
  */
 
 import type { DiagramGraph } from "../../model/diagramGraph";
-import type { ProvenanceIndex, SourceLocation } from "../../model/provenanceIndex";
+import type { ProvenanceIndex } from "../../model/provenanceIndex";
+import type { SourceSpan } from "../../model/sourceEdit";
 import type { AttributeId, MethodId, NamespaceId } from "../../../shared/ids";
 import type { BlockRef, StatementAnchor, StatementRef } from "../writeIntent";
 
@@ -155,7 +156,7 @@ function sameBlock(left: BlockRef, right: BlockRef): boolean {
 // Internals: candidate enumeration — explicit statements of a kind, with location
 // ============================================================================
 
-type AnchorCandidate = { readonly ref: StatementRef; readonly location: SourceLocation };
+type AnchorCandidate = { readonly ref: StatementRef; readonly location: SourceSpan };
 
 function anchorCandidatesOfKind(
   kind: StatementKind,
@@ -195,7 +196,7 @@ function anchorCandidatesOfKind(
 
 /** Wraps a provenance map's entries as candidates, pairing each ref with its `self` location. */
 function candidatesFrom<Id>(
-  records: ReadonlyMap<Id, { readonly self: SourceLocation }>,
+  records: ReadonlyMap<Id, { readonly self: SourceSpan }>,
   toRef: (id: Id) => StatementRef
 ): AnchorCandidate[] {
   return [...records.entries()].map(([id, record]) => ({ ref: toRef(id), location: record.self }));
@@ -236,11 +237,11 @@ function hasStatementRecord(provenance: ProvenanceIndex, statement: StatementRef
 // Internals: ordering
 // ============================================================================
 
-function compareLocations(left: SourceLocation, right: SourceLocation): number {
+function compareLocations(left: SourceSpan, right: SourceSpan): number {
   return (
-    left.startLine - right.startLine ||
-    left.startChar - right.startChar ||
-    left.endLine - right.endLine ||
-    left.endChar - right.endChar
+    left.start.line - right.start.line ||
+    left.start.character - right.start.character ||
+    left.end.line - right.end.line ||
+    left.end.character - right.end.character
   );
 }

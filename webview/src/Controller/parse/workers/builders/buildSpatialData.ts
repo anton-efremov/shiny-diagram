@@ -4,16 +4,17 @@
 
 import { toClassId, type ClassId } from "../../../../shared/ids";
 import type { SpatialAttachment } from "../../../../shared/geometry";
-import type { SourceLocation } from "../../../model/sourceLocation";
+import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
 
 export type SpatialEntry = {
   readonly classId: ClassId;
   readonly spatial: SpatialAttachment;
-  readonly location: SourceLocation;
+  readonly location: SourceSpan;
+  readonly rawLine: string;
 };
-export type MalformedAnnotation = { readonly classId: ClassId; readonly location: SourceLocation };
+export type MalformedAnnotation = { readonly classId: ClassId; readonly location: SourceSpan };
 
 /**
  * Builds valid spatial data or a malformed annotation record.
@@ -32,6 +33,7 @@ export function buildSpatialData(token: ParseToken): SpatialEntry | MalformedAnn
   return {
     classId,
     location,
+    rawLine: token.raw,
     spatial: {
       position: { x: values.x, y: values.y },
       size: { width: values.width, height: values.height },

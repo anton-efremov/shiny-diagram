@@ -7,7 +7,7 @@
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { SourceEdit } from "../../model/sourceEdit";
 import type { WriteIntent } from "../../translate";
-import { resolveEntryAnchor } from "../anchors";
+import { resolveEntryAnchor } from "./helpers/resolveAnchors";
 
 type Intent = Extract<WriteIntent, { readonly kind: "insertEntry" }>;
 

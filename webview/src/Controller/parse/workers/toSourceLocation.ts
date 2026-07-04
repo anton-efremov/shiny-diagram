@@ -2,44 +2,38 @@
  * @fileoverview Converts parser tokens into Controller source ranges.
  */
 
-import type { SourceLocation } from "../../model/sourceLocation";
+import type { SourceSpan } from "../../model/sourceEdit";
 import type { ParseToken } from "./tokenizer";
 
 /**
  * Converts a parser token into its exact source location.
  */
-export function toSourceLocation(token: ParseToken): SourceLocation {
+export function toSourceLocation(token: ParseToken): SourceSpan {
   return {
-    startLine: token.lineNumber,
-    startChar: 0,
-    endLine: token.endLine,
-    endChar:
-      token.endLine === token.lineNumber ? token.raw.length : getLastLine(token.fullRaw).length,
-    raw: token.fullRaw,
+    start: { line: token.lineNumber, character: 0 },
+    end: {
+      line: token.endLine,
+      character:
+        token.endLine === token.lineNumber ? token.raw.length : getLastLine(token.fullRaw).length,
+    },
   };
 }
 
-export function toHeaderLocation(token: ParseToken): SourceLocation {
+export function toHeaderLocation(token: ParseToken): SourceSpan {
   return {
-    startLine: token.lineNumber,
-    startChar: 0,
-    endLine: token.lineNumber,
-    endChar: token.raw.length,
-    raw: token.raw,
+    start: { line: token.lineNumber, character: 0 },
+    end: { line: token.lineNumber, character: token.raw.length },
   };
 }
 
 export function toLineFieldLocation(
   token: ParseToken,
-  startChar: number,
-  endChar: number
-): SourceLocation {
+  startColumn: number,
+  endColumn: number
+): SourceSpan {
   return {
-    startLine: token.lineNumber,
-    startChar,
-    endLine: token.lineNumber,
-    endChar,
-    raw: token.raw.slice(startChar, endChar),
+    start: { line: token.lineNumber, character: startColumn },
+    end: { line: token.lineNumber, character: endColumn },
   };
 }
 

@@ -3,7 +3,8 @@
  */
 
 import type { DiagramGraph } from "../../model/diagramGraph";
-import type { ProvenanceIndex, SourceLocation, SpatialRecord } from "../../model/provenanceIndex";
+import type { ProvenanceIndex, SpatialRecord } from "../../model/provenanceIndex";
+import type { SourceSpan } from "../../model/sourceEdit";
 import {
   buildSpatialData,
   type MalformedAnnotation,
@@ -43,8 +44,9 @@ export function attachSpatial(
   for (const [id, node] of classes) {
     const entry = spatialByClassId.get(node.id);
     if (entry) {
-      classes.set(id, { ...node, spatial: entry.spatial });
-      classSpatial.set(id, toSpatialRecord(entry.location));
+      const { location, rawLine, spatial } = entry;
+      classes.set(id, { ...node, spatial });
+      classSpatial.set(id, toSpatialRecord(location, rawLine));
     }
   }
 
@@ -54,8 +56,8 @@ export function attachSpatial(
   };
 }
 
-function toSpatialRecord(location: SourceLocation): SpatialRecord {
-  const targetMatch = /@spatial:([A-Za-z_]\w*)/.exec(location.raw);
+function toSpatialRecord(location: SourceSpan, rawLine: string): SpatialRecord {
+  const targetMatch = /@spatial:([A-Za-z_]\w*)/.exec(rawLine);
   return {
     self: location,
     fields: {
@@ -65,47 +67,42 @@ function toSpatialRecord(location: SourceLocation): SpatialRecord {
         targetMatch?.[0].length ?? 0,
         "@spatial:".length
       ),
-      x: toSpatialValueLocation(location, "x"),
-      y: toSpatialValueLocation(location, "y"),
-      w: toSpatialValueLocation(location, "w"),
-      h: toSpatialValueLocation(location, "h"),
+      x: toSpatialValueLocation(location, rawLine, "x"),
+      y: toSpatialValueLocation(location, rawLine, "y"),
+      w: toSpatialValueLocation(location, rawLine, "w"),
+      h: toSpatialValueLocation(location, rawLine, "h"),
     },
   };
 }
 
 function toSpatialValueLocation(
-  location: SourceLocation,
+  location: SourceSpan,
+  rawLine: string,
   key: "x" | "y" | "w" | "h"
-): SourceLocation {
-  const match = new RegExp(`(?:^|\\s)${key}=([^\\s]+)`).exec(location.raw);
+): SourceSpan {
+  const match = new RegExp(`(?:^|\\s)${key}=([^\\s]+)`).exec(rawLine);
   if (!match || match.index === undefined) {
     throw new Error(`Missing spatial coordinate ${key}`);
   }
-  const keyStart = location.raw.indexOf(`${key}=`, match.index);
+  const keyStart = rawLine.indexOf(`${key}=`, match.index);
   const start = keyStart + 2;
   return {
-    startLine: location.startLine,
-    startChar: start,
-    endLine: location.startLine,
-    endChar: start + match[1].length,
-    raw: match[1],
+    start: { line: location.start.line, character: start },
+    end: { line: location.start.line, character: start + match[1].length },
   };
 }
 
 function toFieldLocation(
-  location: SourceLocation,
+  location: SourceSpan,
   matchStart: number,
   matchLength: number,
   prefixLength: number
-): SourceLocation {
+): SourceSpan {
   const start = matchStart + prefixLength;
   const end = matchStart + matchLength;
   return {
-    startLine: location.startLine,
-    startChar: start,
-    endLine: location.startLine,
-    endChar: end,
-    raw: location.raw.slice(start, end),
+    start: { line: location.start.line, character: start },
+    end: { line: location.start.line, character: end },
   };
 }
 

@@ -14,14 +14,14 @@ import type {
   DiagramRecord,
   NamespaceRecord,
   ProvenanceIndex,
-  SourceLocation,
-} from "../model/provenanceIndex";
-import type { BlockRef, EntryRef, StatementRef, StyleListRef, ValueRef } from "../translate";
+} from "../../../model/provenanceIndex";
+import type { SourceSpan } from "../../../model/sourceEdit";
+import type { BlockRef, EntryRef, StatementRef, StyleListRef, ValueRef } from "../../../translate";
 
 export function resolveStatementRef(
   ref: StatementRef,
   provenance: ProvenanceIndex
-): SourceLocation {
+): SourceSpan {
   switch (ref.kind) {
     case "class":
       return requireRecord(provenance.classes.get(ref.classId), `class ${ref.classId}`).self;
@@ -68,7 +68,7 @@ export function resolveStatementRef(
   }
 }
 
-export function resolveEntryRef(ref: EntryRef, provenance: ProvenanceIndex): SourceLocation {
+export function resolveEntryRef(ref: EntryRef, provenance: ProvenanceIndex): SourceSpan {
   switch (ref.kind) {
     case "directStyleProperty":
       return requireRecord(
@@ -83,7 +83,7 @@ export function resolveEntryRef(ref: EntryRef, provenance: ProvenanceIndex): Sou
   }
 }
 
-export function resolveValueRef(ref: ValueRef, provenance: ProvenanceIndex): SourceLocation {
+export function resolveValueRef(ref: ValueRef, provenance: ProvenanceIndex): SourceSpan {
   switch (ref.kind) {
     case "className":
       return requireRecord(provenance.classes.get(ref.classId), `class ${ref.classId}`).fields
@@ -188,7 +188,7 @@ export function resolveBlockRef(
 export function resolveStyleListRef(
   ref: StyleListRef,
   provenance: ProvenanceIndex
-): SourceLocation {
+): SourceSpan {
   switch (ref.kind) {
     case "directStyle":
       return requireRecord(

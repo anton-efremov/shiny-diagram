@@ -13,14 +13,14 @@
 
 import type {
   ProvenanceIndex,
-  SourceLocation,
   StylePropertyField,
   StylePropertyFields,
 } from "../../model/provenanceIndex";
+import type { SourceSpan } from "../../model/sourceEdit";
 import type { StylePropertyName } from "../../../shared/style";
 import type { EntryAnchor, EntryRef, StyleListRef } from "../writeIntent";
 
-type AnchorCandidate = { readonly ref: EntryRef; readonly location: SourceLocation };
+type AnchorCandidate = { readonly ref: EntryRef; readonly location: SourceSpan };
 
 export function anchorEntry(provenance: ProvenanceIndex, list: StyleListRef): EntryAnchor {
   const last = anchorCandidatesOfList(list, provenance)
@@ -83,11 +83,11 @@ function presentProperties(
 // Ordering
 // ============================================================================
 
-function compareLocations(left: SourceLocation, right: SourceLocation): number {
+function compareLocations(left: SourceSpan, right: SourceSpan): number {
   return (
-    left.startLine - right.startLine ||
-    left.startChar - right.startChar ||
-    left.endLine - right.endLine ||
-    left.endChar - right.endChar
+    left.start.line - right.start.line ||
+    left.start.character - right.start.character ||
+    left.end.line - right.end.line ||
+    left.end.character - right.end.character
   );
 }

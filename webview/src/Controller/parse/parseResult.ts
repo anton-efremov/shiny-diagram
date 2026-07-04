@@ -4,7 +4,7 @@
 
 import type { DiagramGraph } from "../model/diagramGraph";
 import type { ProvenanceIndex } from "../model/provenanceIndex";
-import type { SourceLocation } from "../model/sourceLocation";
+import type { SourceSpan } from "../model/sourceEdit";
 import type { ClassId } from "../../shared/ids";
 
 export type EditorDiagnostic = {
@@ -35,6 +35,6 @@ export type ParseResult =
       readonly provenance: ProvenanceIndex;
       readonly diagnostics: readonly EditorDiagnostic[];
       readonly missingIds: readonly ClassId[];
-      readonly malformedAnnotations: ReadonlyMap<ClassId, SourceLocation>;
+      readonly malformedAnnotations: ReadonlyMap<ClassId, SourceSpan>;
     }
   | { readonly status: "invalidSyntax"; readonly diagnostics: readonly EditorDiagnostic[] };

@@ -4,13 +4,13 @@
 
 import { toNamespaceId } from "../../../../shared/ids";
 import type { NamespaceNode } from "../../../model/diagramGraph";
-import type { SourceLocation } from "../../../model/sourceLocation";
+import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";
 import { toSourceLocation } from "../toSourceLocation";
 
 export type ParsedNamespaceNode = {
   readonly node: NamespaceNode;
-  readonly location: SourceLocation;
+  readonly location: SourceSpan;
 };
 
 /**

@@ -6,16 +6,15 @@
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { SourceEdit } from "../../model/sourceEdit";
 import type { WriteIntent } from "../../translate";
-import { resolveValueRef } from "../refs";
-import { toEndPosition, toStartPosition } from "../text";
+import { resolveValueRef } from "./helpers/resolveRefs";
 
 type Intent = Extract<WriteIntent, { readonly kind: "replaceValue" }>;
 
 export function resolveReplaceValue(intent: Intent, provenance: ProvenanceIndex): SourceEdit {
   const location = resolveValueRef(intent.target, provenance);
   return {
-    start: toStartPosition(location),
-    end: toEndPosition(location),
+    start: location.start,
+    end: location.end,
     replacementText: intent.payload,
   };
 }

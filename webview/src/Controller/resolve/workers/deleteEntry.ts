@@ -8,8 +8,8 @@
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { SourceEdit } from "../../model/sourceEdit";
 import type { WriteIntent } from "../../translate";
-import { resolveEntryRef } from "../refs";
-import { getLine } from "../text";
+import { resolveEntryRef } from "./helpers/resolveRefs";
+import { getLine } from "./helpers/textUtils";
 
 type Intent = Extract<WriteIntent, { readonly kind: "deleteEntry" }>;
 
@@ -19,9 +19,9 @@ export function resolveDeleteEntry(
   sourceText: string
 ): SourceEdit {
   const location = resolveEntryRef(intent.target, provenance);
-  const line = getLine(sourceText, location.startLine);
-  let start = location.startChar;
-  let end = location.endChar;
+  const line = getLine(sourceText, location.start.line);
+  let start = location.start.character;
+  let end = location.end.character;
 
   if (line[end] === ",") {
     end++;
@@ -32,8 +32,8 @@ export function resolveDeleteEntry(
   }
 
   return {
-    start: { line: location.startLine, character: start },
-    end: { line: location.endLine, character: end },
+    start: { line: location.start.line, character: start },
+    end: { line: location.end.line, character: end },
     replacementText: "",
   };
 }

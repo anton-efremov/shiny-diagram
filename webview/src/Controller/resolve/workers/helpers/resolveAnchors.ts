@@ -14,11 +14,16 @@
  * Composes slice resolution (`refs`) with text mechanics (`text`).
  */
 
-import type { ProvenanceIndex } from "../model/provenanceIndex";
-import type { SourcePosition } from "../model/sourceEdit";
-import type { BlockRef, EntryAnchor, StatementAnchor } from "../translate";
-import { resolveBlockRef, resolveEntryRef, resolveStatementRef, resolveStyleListRef } from "./refs";
-import { getLine, getLineIndent, toEndPosition, toStartPosition } from "./text";
+import type { ProvenanceIndex } from "../../../model/provenanceIndex";
+import type { SourcePosition } from "../../../model/sourceEdit";
+import type { BlockRef, EntryAnchor, StatementAnchor } from "../../../translate";
+import {
+  resolveBlockRef,
+  resolveEntryRef,
+  resolveStatementRef,
+  resolveStyleListRef,
+} from "./resolveRefs";
+import { getLine, getLineIndent } from "./textUtils";
 
 /** A resolved statement insertion: where the new line goes, and the indent to prefix each line with. */
 export type ResolvedStatementAnchor = {
@@ -41,16 +46,16 @@ export function resolveStatementAnchor(
   if (anchor.kind === "afterSameKind" || anchor.kind === "afterDifferentKind") {
     const location = resolveStatementRef(anchor.statement, provenance);
     return {
-      position: toEndPosition(location),
-      indent: getLineIndent(sourceText, location.startLine),
+      position: location.end,
+      indent: getLineIndent(sourceText, location.start.line),
       blankBefore: anchor.kind === "afterDifferentKind",
     };
   }
 
   const header = resolveBlockRef(anchor.block, provenance).header;
   return {
-    position: toEndPosition(header),
-    indent: `${getLineIndent(sourceText, header.startLine)}${deriveIndentStep(
+    position: header.end,
+    indent: `${getLineIndent(sourceText, header.start.line)}${deriveIndentStep(
       anchor.block,
       provenance,
       sourceText
@@ -64,9 +69,9 @@ export function resolveEntryAnchor(
   provenance: ProvenanceIndex
 ): ResolvedEntryAnchor {
   if (anchor.kind === "afterEntry") {
-    return { position: toEndPosition(resolveEntryRef(anchor.entry, provenance)), separator: "," };
+    return { position: resolveEntryRef(anchor.entry, provenance).end, separator: "," };
   }
-  return { position: toStartPosition(resolveStyleListRef(anchor.list, provenance)), separator: "" };
+  return { position: resolveStyleListRef(anchor.list, provenance).start, separator: "" };
 }
 
 /**
@@ -81,8 +86,8 @@ function deriveIndentStep(
   const record = resolveBlockRef(block, provenance);
   const body = record.body;
   if (body) {
-    const parentIndent = getLineIndent(sourceText, record.header.startLine);
-    for (let line = body.startLine; line <= body.endLine; line++) {
+    const parentIndent = getLineIndent(sourceText, record.header.start.line);
+    for (let line = body.start.line; line <= body.end.line; line++) {
       const raw = getLine(sourceText, line);
       if (raw.trim() === "" || raw.trim() === "}") continue;
       const childIndent = getLineIndent(sourceText, line);

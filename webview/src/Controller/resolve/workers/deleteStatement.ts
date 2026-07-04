@@ -7,8 +7,8 @@
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { SourceEdit } from "../../model/sourceEdit";
 import type { WriteIntent } from "../../translate";
-import { resolveStatementRef } from "../refs";
-import { getLine } from "../text";
+import { resolveStatementRef } from "./helpers/resolveRefs";
+import { getLine } from "./helpers/textUtils";
 
 type Intent = Extract<WriteIntent, { readonly kind: "deleteStatement" }>;
 
@@ -19,12 +19,12 @@ export function resolveDeleteStatement(
 ): SourceEdit {
   const location = resolveStatementRef(intent.target, provenance);
   const lineCount = sourceText.split("\n").length;
-  const hasFollowingLine = location.endLine < lineCount - 1;
+  const hasFollowingLine = location.end.line < lineCount - 1;
   return {
-    start: { line: location.startLine, character: 0 },
+    start: { line: location.start.line, character: 0 },
     end: {
-      line: hasFollowingLine ? location.endLine + 1 : location.endLine,
-      character: hasFollowingLine ? 0 : getLine(sourceText, location.endLine).length,
+      line: hasFollowingLine ? location.end.line + 1 : location.end.line,
+      character: hasFollowingLine ? 0 : getLine(sourceText, location.end.line).length,
     },
     replacementText: "",
   };
