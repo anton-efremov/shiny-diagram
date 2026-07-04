@@ -9,10 +9,10 @@ import type { SourceEdit } from "../../model/sourceEdit";
 import type { WriteIntent } from "../../translate";
 import { resolveStatementAnchor } from "./helpers/resolveAnchors";
 
-type Intent = Extract<WriteIntent, { readonly kind: "insertStatement" }>;
+type InsertStatementIntent = Extract<WriteIntent, { readonly kind: "insertStatement" }>;
 
 export function resolveInsertStatement(
-  intent: Intent,
+  intent: InsertStatementIntent,
   provenance: ProvenanceIndex,
   sourceText: string,
   eol: string

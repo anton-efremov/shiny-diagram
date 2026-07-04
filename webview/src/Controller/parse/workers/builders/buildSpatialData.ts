@@ -6,7 +6,7 @@ import { toClassId, type ClassId } from "../../../../shared/ids";
 import type { SpatialAttachment } from "../../../../shared/geometry";
 import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";
-import { toSourceLocation } from "../toSourceLocation";
+import { toSourceSpan } from "../toSourceSpan";
 
 export type SpatialEntry = {
   readonly classId: ClassId;
@@ -26,7 +26,7 @@ export function buildSpatialData(token: ParseToken): SpatialEntry | MalformedAnn
   if (!match) return null;
 
   const classId = toClassId(match[1]);
-  const location = toSourceLocation(token);
+  const location = toSourceSpan(token);
   const values = parseSpatialValues(match[2]);
   if (!values) return { classId, location };
 

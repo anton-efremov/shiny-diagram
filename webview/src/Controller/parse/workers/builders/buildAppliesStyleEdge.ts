@@ -6,7 +6,7 @@ import { toClassId, toStyleApplicationId, toStyleDefId } from "../../../../share
 import type { StyleApplicationEdge } from "../../../model/diagramGraph";
 import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";
-import { toSourceLocation } from "../toSourceLocation";
+import { toSourceSpan } from "../toSourceSpan";
 
 export type ParsedStyleApplicationEdge = {
   readonly edge: StyleApplicationEdge;
@@ -28,7 +28,7 @@ export function buildAppliesStyleEdge(
   const targetId = toClassId(match[1]);
   const styleDefId = toStyleDefId(match[2]);
   return {
-    location: toSourceLocation(token),
+    location: toSourceSpan(token),
     edge: {
       kind: "styleApplication",
       id: toStyleApplicationId(`${targetId}:::${styleDefId}:${index}`),

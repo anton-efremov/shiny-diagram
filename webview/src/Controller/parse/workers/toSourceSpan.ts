@@ -8,7 +8,7 @@ import type { ParseToken } from "./tokenizer";
 /**
  * Converts a parser token into its exact source location.
  */
-export function toSourceLocation(token: ParseToken): SourceSpan {
+export function toSourceSpan(token: ParseToken): SourceSpan {
   return {
     start: { line: token.lineNumber, character: 0 },
     end: {

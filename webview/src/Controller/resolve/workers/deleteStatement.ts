@@ -10,10 +10,10 @@ import type { WriteIntent } from "../../translate";
 import { resolveStatementRef } from "./helpers/resolveRefs";
 import { getLine } from "./helpers/textUtils";
 
-type Intent = Extract<WriteIntent, { readonly kind: "deleteStatement" }>;
+type DeleteStatementIntent = Extract<WriteIntent, { readonly kind: "deleteStatement" }>;
 
 export function resolveDeleteStatement(
-  intent: Intent,
+  intent: DeleteStatementIntent,
   provenance: ProvenanceIndex,
   sourceText: string
 ): SourceEdit {

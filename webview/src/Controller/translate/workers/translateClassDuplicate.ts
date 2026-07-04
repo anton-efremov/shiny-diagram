@@ -47,8 +47,14 @@ export function translateClassDuplicate(
   // Class declaration
   // ---
   const insertClassIntent: WriteIntent = {
-    kind: "insertStatement",
-    payload: composeDuplicatedClassDeclaration(source, id),
+    kind: "copyStatement",
+    source: { kind: "class", classId: command.sourceClassId },
+    overrides: [
+      {
+        value: { kind: "className", classId: command.sourceClassId },
+        replacement: id,
+      },
+    ],
     anchor: requireExactAnchor(provenance, { kind: "class", classId: command.sourceClassId }),
   };
 
@@ -131,23 +137,6 @@ function findSourceStyleApplication(
       (styleApplication) => styleApplication.targetId === classId
     ) ?? null
   );
-}
-
-function composeDuplicatedClassDeclaration(source: ClassNode, classId: ClassId): string {
-  const lines = [`class ${classId}`];
-  const members = [
-    ...source.attributes.map((attribute) => attribute.name),
-    ...source.methods.map((method) => `${method.name}(${method.parameters})`),
-  ];
-
-  if (source.annotation || members.length > 0) {
-    lines[0] = `class ${classId} {`;
-    if (source.annotation) lines.push(`<<${source.annotation}>>`);
-    lines.push(...members);
-    lines.push("}");
-  }
-
-  return lines.join("\n");
 }
 
 function composeClassDirectStyle(

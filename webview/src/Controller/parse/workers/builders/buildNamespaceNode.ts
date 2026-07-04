@@ -6,7 +6,7 @@ import { toNamespaceId } from "../../../../shared/ids";
 import type { NamespaceNode } from "../../../model/diagramGraph";
 import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";
-import { toSourceLocation } from "../toSourceLocation";
+import { toSourceSpan } from "../toSourceSpan";
 
 export type ParsedNamespaceNode = {
   readonly node: NamespaceNode;
@@ -24,7 +24,7 @@ export function buildNamespaceNode(token: ParseToken): ParsedNamespaceNode | nul
 
   const id = toNamespaceId(match[1]);
   return {
-    location: toSourceLocation(token),
+    location: toSourceSpan(token),
     node: {
       kind: "namespace",
       id,

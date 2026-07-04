@@ -7,7 +7,7 @@ import type { SourceSpan } from "../../../model/sourceEdit";
 import { toAttributeId, toClassId, toMethodId, type ClassId } from "../../../../shared/ids";
 import type { Visibility } from "../../../../shared/uml";
 import type { ParseToken } from "../tokenizer";
-import { toSourceLocation } from "../toSourceLocation";
+import { toSourceSpan } from "../toSourceSpan";
 
 const VISIBILITY_PREFIXES = new Set<string>(["+", "-", "#", "~"]);
 
@@ -33,7 +33,7 @@ export function buildClassNode(token: ParseToken): ParsedClassNode | null {
   );
 
   return {
-    location: toSourceLocation(token),
+    location: toSourceSpan(token),
     memberLocations,
     node: {
       kind: "class",
@@ -134,7 +134,7 @@ function parseFieldMember(
 
   return {
     kind: "attribute",
-    location: toSourceLocation(token),
+    location: toSourceSpan(token),
     attribute: {
       id: toAttributeId(`${classId}:${token.lineNumber}`),
       visibility,
@@ -156,7 +156,7 @@ function parseMethodMember(
   if (!methodMatch) {
     return {
       kind: "method",
-      location: toSourceLocation(token),
+      location: toSourceSpan(token),
       method: {
         id: toMethodId(`${classId}:${token.lineNumber}`),
         visibility,
@@ -173,7 +173,7 @@ function parseMethodMember(
 
   return {
     kind: "method",
-    location: toSourceLocation(token),
+    location: toSourceSpan(token),
     method: {
       id: toMethodId(`${classId}:${token.lineNumber}`),
       visibility,

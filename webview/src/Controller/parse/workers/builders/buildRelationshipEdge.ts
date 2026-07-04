@@ -11,7 +11,7 @@ import type {
 } from "../../../../shared/uml";
 import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";
-import { toSourceLocation } from "../toSourceLocation";
+import { toSourceSpan } from "../toSourceSpan";
 
 type RelationshipOperator = { readonly syntax: string; readonly type: RelationshipType };
 
@@ -55,7 +55,7 @@ export function buildRelationshipEdge(
   if (!source.name || !target.name) return null;
 
   return {
-    location: toSourceLocation(token),
+    location: toSourceSpan(token),
     edge: {
       kind: "relationship",
       id: toRelationshipId(`${source.name}--${target.name}--${relationshipIndex}`),

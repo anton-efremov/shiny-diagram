@@ -6,7 +6,7 @@
  * half. Both are keyed by the same ids. A writeback address asks for a parsed
  * syntax area such as "User's class declaration", "User's class body", or
  * "the fill value in User's style line"; a record here answers with
- * `SourceLocation`s.
+ * `SourceSpan`s.
  *
  * Provenance stores parsed syntax areas, not write anchors. The translate layer
  * reads these records to choose Mermaid syntax and derive logical write
@@ -219,4 +219,4 @@ export type ProvenanceIndex = {
   readonly notes: ReadonlyMap<NoteId, NoteRecord>;
 };
 
-export type { SourceSpan as SourceLocation } from "./sourceEdit";
+export type { SourceSpan } from "./sourceEdit";

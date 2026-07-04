@@ -8,7 +8,7 @@ import type { StyleProperties } from "../../../../shared/style";
 import type { StyleDefNode } from "../../../model/diagramGraph";
 import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";
-import { toSourceLocation } from "../toSourceLocation";
+import { toSourceSpan } from "../toSourceSpan";
 
 export type ParsedStyleDefNode = {
   readonly node: StyleDefNode;
@@ -26,7 +26,7 @@ export function buildStyleDefNode(token: ParseToken): ParsedStyleDefNode | null 
 
   const id = toStyleDefId(match[1]);
   return {
-    location: toSourceLocation(token),
+    location: toSourceSpan(token),
     node: {
       kind: "styleDef",
       id,

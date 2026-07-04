@@ -138,6 +138,19 @@ export type InsertStatementIntent = {
   readonly anchor: StatementAnchor;
 };
 
+/** Reproduce a statement's source span verbatim, with value spans overridden, at an anchor. */
+export type CopyStatementIntent = {
+  readonly kind: "copyStatement";
+  readonly source: StatementRef;
+  readonly overrides: readonly ValueOverride[];
+  readonly anchor: StatementAnchor;
+};
+
+export type ValueOverride = {
+  readonly value: ValueRef;
+  readonly replacement: string;
+};
+
 /** Remove a whole statement (line or block) and its EOL. */
 export type DeleteStatementIntent = {
   readonly kind: "deleteStatement";
@@ -166,6 +179,7 @@ export type ReplaceValueIntent = {
 
 export type WriteIntent =
   | InsertStatementIntent
+  | CopyStatementIntent
   | DeleteStatementIntent
   | InsertEntryIntent
   | DeleteEntryIntent

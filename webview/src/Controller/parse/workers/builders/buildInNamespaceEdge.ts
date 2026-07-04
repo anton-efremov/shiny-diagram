@@ -6,7 +6,7 @@ import { toClassId, toNamespaceId } from "../../../../shared/ids";
 import type { ClassId, NamespaceId } from "../../../../shared/ids";
 import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";
-import { toSourceLocation } from "../toSourceLocation";
+import { toSourceSpan } from "../toSourceSpan";
 
 export type InNamespaceEdge = {
   readonly source: ClassId;
@@ -35,7 +35,7 @@ export function buildInNamespaceEdges(token: ParseToken): InNamespaceEdge[] {
     edges.push({
       source: toClassId(classMatch[1]),
       target: namespaceId,
-      location: toSourceLocation(child),
+      location: toSourceSpan(child),
     });
   }
 

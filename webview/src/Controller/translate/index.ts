@@ -11,5 +11,6 @@ export type {
   StatementRef,
   StyleListRef,
   ValueRef,
+  ValueOverride,
   WriteIntent,
 } from "./writeIntent";

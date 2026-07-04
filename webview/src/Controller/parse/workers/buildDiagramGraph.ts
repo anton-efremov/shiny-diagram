@@ -37,7 +37,7 @@ import { buildNamespaceNode } from "./builders/buildNamespaceNode";
 import { buildRelationshipEdge } from "./builders/buildRelationshipEdge";
 import { buildStyleDefNode } from "./builders/buildStyleDefNode";
 import type { ParseToken } from "./tokenizer";
-import { toHeaderLocation, toLineFieldLocation, toSourceLocation } from "./toSourceLocation";
+import { toHeaderLocation, toLineFieldLocation, toSourceSpan } from "./toSourceSpan";
 
 type MutableGraphBuild = {
   readonly classes: Map<ClassNode["id"], ClassNode>;
@@ -314,7 +314,7 @@ export function toDiagramRecord(tokens: readonly ParseToken[]): ProvenanceIndex[
 function toClassRecord(token: ParseToken): ClassRecord {
   const isBlock = token.raw.includes("{");
   return {
-    self: toSourceLocation(token),
+    self: toSourceSpan(token),
     header: toHeaderLocation(token),
     body: isBlock ? toBodyLocation(token) : null,
     fields: { declaredName: toDeclaredNameLocation(token, "class") },
@@ -329,7 +329,7 @@ function toDeclaredNameLocation(token: ParseToken, keyword: "class" | "namespace
 }
 
 function toBodyLocation(token: ParseToken): SourceSpan {
-  if (!token.raw.includes("{")) return toSourceLocation(token);
+  if (!token.raw.includes("{")) return toSourceSpan(token);
   return {
     start: { line: token.lineNumber + 1, character: 0 },
     end: { line: Math.max(token.lineNumber + 1, token.endLine - 1), character: 0 },
@@ -352,7 +352,7 @@ function parseClassDirectStyle(token: ParseToken): {
     classId,
     properties,
     record: {
-      self: toSourceLocation(token),
+      self: toSourceSpan(token),
       fields: {
         target: toLineFieldLocation(token, match[1].length, match[1].length + match[2].length),
         propertyList: toLineFieldLocation(token, listStart, token.raw.length),
@@ -366,7 +366,7 @@ function toStyleDefRecord(token: ParseToken): StyleDefRecord {
   const match = /^(\s*classDef\s+)(\w+)(\s+)(.+)$/.exec(token.raw);
   if (!match) {
     return {
-      self: toSourceLocation(token),
+      self: toSourceSpan(token),
       fields: {
         declaredName: toHeaderLocation(token),
         propertyList: toHeaderLocation(token),
@@ -377,7 +377,7 @@ function toStyleDefRecord(token: ParseToken): StyleDefRecord {
 
   const listStart = match[1].length + match[2].length + match[3].length;
   return {
-    self: toSourceLocation(token),
+    self: toSourceSpan(token),
     fields: {
       declaredName: toLineFieldLocation(token, match[1].length, match[1].length + match[2].length),
       propertyList: toLineFieldLocation(token, listStart, token.raw.length),
@@ -390,14 +390,14 @@ function toStyleApplicationRecord(token: ParseToken): StyleApplicationRecord {
   const match = /^(\s*class\s+)(\w+)(:::)(\w+)/.exec(token.raw);
   if (!match) {
     return {
-      self: toSourceLocation(token),
+      self: toSourceSpan(token),
       fields: { target: toHeaderLocation(token), styleName: toHeaderLocation(token) },
     };
   }
   const targetStart = match[1].length;
   const styleStart = targetStart + match[2].length + match[3].length;
   return {
-    self: toSourceLocation(token),
+    self: toSourceSpan(token),
     fields: {
       target: toLineFieldLocation(token, targetStart, targetStart + match[2].length),
       styleName: toLineFieldLocation(token, styleStart, styleStart + match[4].length),
@@ -406,7 +406,7 @@ function toStyleApplicationRecord(token: ParseToken): StyleApplicationRecord {
 }
 
 function toRelationshipRecord(token: ParseToken): RelationshipRecord {
-  const self = toSourceLocation(token);
+  const self = toSourceSpan(token);
   const match =
     /^(\s*)(\w+)(?:\s+"([^"]+)")?\s+([<|*o.]?-?-+>?|<\|--\|>|--\(\)|\.\.\|>|\.\.>)\s+(?:"([^"]+)"\s+)?(\w+)(?:\s*:\s*(.+))?/.exec(
       token.raw

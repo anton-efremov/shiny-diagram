@@ -7,6 +7,13 @@ direction TB
 	    +addMessage(TextMessage message) void
 	    +addParticipant(UserContact participant) void
     }
+    class ConversationThread_1 {
+	    +UUID id
+	    +List~TextMessage~ messages
+	    +List~UserContact~ participants
+	    +addMessage(TextMessage message) void
+	    +addParticipant(UserContact participant) void
+    }
 
     class UserContact {
 	    +UUID id
@@ -22,6 +29,7 @@ direction TB
 
     %% Native Style Applications
     class ConversationThread:::Rose
+    class ConversationThread_1:::Rose
     class UserContact:::PineSelectedSelected
 
     %% Native Style Definitions
@@ -30,12 +38,11 @@ direction TB
     classDef ShinyStyleSelected fill:#a76262,stroke:#37c368
 
 
-    %% @spatial:ConversationThread x=-417 y=81 w=228 h=210
-    %% @spatial:UserContact x=-139 y=-2 w=200 h=150
-    %% @spatial:NewClass x=-344 y=-83 w=193.45372123341636 h=141.8326204673864
+    %% @spatial:ConversationThread x=-370 y=40 w=228 h=210
+    %% @spatial:ConversationThread_1 x=-346 y=64 w=228 h=210
+    %% @spatial:UserContact x=-94 y=-55 w=200 h=150
+    %% @spatial:NewClass x=-341 y=-78 w=149.49130571846902 h=178.13634909561222
     style UserContact fill:#932f2f
-    style NewClass fill:#b72424
-    style ConversationThread fill:#36634e,stroke:#6a57ff
 
 
 
