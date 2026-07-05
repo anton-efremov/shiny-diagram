@@ -18,7 +18,7 @@ type DiagramCanvasProps = {
   readonly view: DiagramView;
   readonly selectionState: SelectionState;
   readonly nodePlacementState: NodePlacementState;
-  readonly onSelectionChange: (classIds: readonly ClassId[]) => void;
+  readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
   readonly onSelectionClear: () => void;
   readonly onPlacementComplete: () => void;
 };
@@ -27,7 +27,7 @@ export default function DiagramCanvas({
   view,
   selectionState,
   nodePlacementState,
-  onSelectionChange,
+  onClassSelect,
   onSelectionClear,
   onPlacementComplete,
 }: DiagramCanvasProps): ReactElement {
@@ -57,7 +57,7 @@ export default function DiagramCanvas({
         classBoxPlacementState={classBoxPlacementState}
         onClassBoxPlacementChange={onClassBoxPlacementChange}
         onDragComplete={onDragComplete}
-        onSelectionChange={onSelectionChange}
+        onClassSelect={onClassSelect}
         onSelectionClear={onSelectionClear}
         onPlacementComplete={onPlacementComplete}
       />

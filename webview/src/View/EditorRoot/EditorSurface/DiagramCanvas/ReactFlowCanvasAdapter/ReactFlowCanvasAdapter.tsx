@@ -28,7 +28,7 @@ type ReactFlowCanvasAdapterProps = {
   readonly classBoxPlacementState: ClassBoxPlacementState;
   readonly onClassBoxPlacementChange: (changes: readonly ClassBoxPlacementChange[]) => void;
   readonly onDragComplete: (finalPositions: readonly ClassBoxPlacementChange[]) => void;
-  readonly onSelectionChange: (classIds: readonly ClassId[]) => void;
+  readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
   readonly onSelectionClear: () => void;
   readonly onPlacementComplete: () => void;
 };
@@ -40,7 +40,7 @@ export default function ReactFlowCanvasAdapter({
   classBoxPlacementState,
   onClassBoxPlacementChange,
   onDragComplete,
-  onSelectionChange,
+  onClassSelect,
   onSelectionClear,
   onPlacementComplete,
 }: ReactFlowCanvasAdapterProps): ReactElement {
@@ -53,9 +53,9 @@ export default function ReactFlowCanvasAdapter({
         view.classes,
         selectionState.classIds,
         classBoxPlacementState,
-        onSelectionChange
+        onClassSelect
       ),
-    [view.classes, selectionState.classIds, classBoxPlacementState, onSelectionChange]
+    [view.classes, selectionState.classIds, classBoxPlacementState, onClassSelect]
   );
   const rfEdges = useMemo(
     () => toRelationshipEdgeDescriptors(view.classes, view.relationships, classBoxPlacementState),

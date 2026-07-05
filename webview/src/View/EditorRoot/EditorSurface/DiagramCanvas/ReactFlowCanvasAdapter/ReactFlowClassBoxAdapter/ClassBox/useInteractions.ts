@@ -1,5 +1,6 @@
 /**
  * @behavior Class-box selection and class resize semantic handlers.
+ * @framework DOM click modifier state to additive class selection fact.
  */
 
 import { useCallback } from "react";
@@ -16,8 +17,7 @@ type Interactions = {
 
 export function useInteractions(
   classId: ClassId,
-  selectedClassIds: readonly ClassId[],
-  onClassSelect: (classIds: readonly ClassId[]) => void
+  onClassSelect: (classId: ClassId, additive: boolean) => void
 ): Interactions {
   const dispatchCommand = useDispatchTransaction();
 
@@ -25,11 +25,9 @@ export function useInteractions(
   const onClassBoxClick = useCallback(
     (event: MouseEvent<HTMLDivElement>) => {
       event.stopPropagation();
-      onClassSelect(
-        event.ctrlKey || event.metaKey ? toToggledClassIds(selectedClassIds, classId) : [classId]
-      );
+      onClassSelect(classId, event.ctrlKey || event.metaKey);
     },
-    [classId, onClassSelect, selectedClassIds]
+    [classId, onClassSelect]
   );
 
   const onResizeEnd = useCallback(
@@ -42,13 +40,4 @@ export function useInteractions(
   );
 
   return { onClassBoxClick, onResizeEnd };
-}
-
-function toToggledClassIds(
-  selectedClassIds: readonly ClassId[],
-  classId: ClassId
-): readonly ClassId[] {
-  return selectedClassIds.includes(classId)
-    ? selectedClassIds.filter((selectedClassId) => selectedClassId !== classId)
-    : [...selectedClassIds, classId];
 }

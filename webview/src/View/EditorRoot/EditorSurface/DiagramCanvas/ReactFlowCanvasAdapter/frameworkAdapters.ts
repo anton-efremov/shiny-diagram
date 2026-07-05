@@ -16,8 +16,7 @@ export type ClassBoxNodeData = {
   readonly view: ClassView;
   readonly isSelected: boolean;
   readonly isResizeVisible: boolean;
-  readonly selectedClassIds: readonly ClassId[];
-  readonly onClassSelect: (classIds: readonly ClassId[]) => void;
+  readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
 };
 
 export type ClassBoxNodeDescriptor = ReactFlowNode<ClassBoxNodeData, "classBox">;
@@ -36,7 +35,7 @@ export function toClassBoxNodeDescriptors(
   classes: readonly ClassView[],
   selectedClassIds: readonly ClassId[],
   classBoxPlacementState: ClassBoxPlacementState,
-  onClassSelect: (classIds: readonly ClassId[]) => void
+  onClassSelect: (classId: ClassId, additive: boolean) => void
 ): ClassBoxNodeDescriptor[] {
   const selected = new Set<ClassId>(selectedClassIds);
   return classes.flatMap((classView) => {
@@ -52,7 +51,6 @@ export function toClassBoxNodeDescriptors(
           view: classView,
           isSelected: selected.has(classView.classId),
           isResizeVisible: selected.size === 1 && selected.has(classView.classId),
-          selectedClassIds,
           onClassSelect,
         },
         selectable: false,

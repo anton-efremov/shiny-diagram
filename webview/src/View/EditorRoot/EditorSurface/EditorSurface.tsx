@@ -34,7 +34,7 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
   // Event handler props derivation
   const {
     onClassPlacementStart,
-    onSelectionChange,
+    onClassSelect,
     onStyleSelect,
     onSelectionClear,
     onPlacementComplete,
@@ -51,7 +51,7 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
           view={view}
           selectionState={selectionState}
           nodePlacementState={nodePlacementState}
-          onSelectionChange={onSelectionChange}
+          onClassSelect={onClassSelect}
           onSelectionClear={onSelectionClear}
           onPlacementComplete={onPlacementComplete}
         />

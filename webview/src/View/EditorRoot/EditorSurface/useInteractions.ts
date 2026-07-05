@@ -10,7 +10,7 @@ import type { NodePlacementState, SelectionState } from "../../state/editorState
 
 type Interactions = {
   readonly onClassPlacementStart: () => void;
-  readonly onSelectionChange: (classIds: readonly ClassId[]) => void;
+  readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
   readonly onStyleSelect: (styleDefId: StyleDefId) => void;
   readonly onSelectionClear: () => void;
   readonly onPlacementComplete: () => void;
@@ -30,9 +30,14 @@ export function useInteractions({
     setNodePlacementState((state) => updateNodePlacementState(state, "class"));
   }, [setNodePlacementState]);
 
-  const onSelectionChange = useCallback(
-    (classIds: readonly ClassId[]) => {
-      setSelectionState((state) => updateSelectedClassIds(state, classIds));
+  const onClassSelect = useCallback(
+    (classId: ClassId, additive: boolean) => {
+      setSelectionState((state) =>
+        updateSelectedClassIds(
+          state,
+          additive ? toToggledClassIds(state.classIds, classId) : [classId]
+        )
+      );
     },
     [setSelectionState]
   );
@@ -54,7 +59,7 @@ export function useInteractions({
 
   return {
     onClassPlacementStart,
-    onSelectionChange,
+    onClassSelect,
     onStyleSelect,
     onSelectionClear,
     onPlacementComplete,
@@ -86,6 +91,15 @@ function toClassOnlySelectionState(classIds: readonly ClassId[]): SelectionState
     noteIds: [],
     styleDefIds: [],
   };
+}
+
+function toToggledClassIds(
+  selectedClassIds: readonly ClassId[],
+  classId: ClassId
+): readonly ClassId[] {
+  return selectedClassIds.includes(classId)
+    ? selectedClassIds.filter((selectedClassId) => selectedClassId !== classId)
+    : [...selectedClassIds, classId];
 }
 
 function updateSelectedStyleDefId(
