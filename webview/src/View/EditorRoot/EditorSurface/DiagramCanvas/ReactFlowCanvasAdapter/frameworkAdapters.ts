@@ -16,6 +16,7 @@ export type ClassBoxNodeData = {
   readonly view: ClassView;
   readonly isSelected: boolean;
   readonly isResizeVisible: boolean;
+  readonly selectedClassIds: readonly ClassId[];
   readonly onClassSelect: (classIds: readonly ClassId[]) => void;
 };
 
@@ -51,6 +52,7 @@ export function toClassBoxNodeDescriptors(
           view: classView,
           isSelected: selected.has(classView.classId),
           isResizeVisible: selected.size === 1 && selected.has(classView.classId),
+          selectedClassIds,
           onClassSelect,
         },
         selectable: false,

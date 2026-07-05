@@ -16,6 +16,7 @@ type Interactions = {
 
 export function useInteractions(
   classId: ClassId,
+  selectedClassIds: readonly ClassId[],
   onClassSelect: (classIds: readonly ClassId[]) => void
 ): Interactions {
   const dispatchCommand = useDispatchTransaction();
@@ -24,9 +25,11 @@ export function useInteractions(
   const onClassBoxClick = useCallback(
     (event: MouseEvent<HTMLDivElement>) => {
       event.stopPropagation();
-      onClassSelect([classId]);
+      onClassSelect(
+        event.ctrlKey || event.metaKey ? toToggledClassIds(selectedClassIds, classId) : [classId]
+      );
     },
-    [classId, onClassSelect]
+    [classId, onClassSelect, selectedClassIds]
   );
 
   const onResizeEnd = useCallback(
@@ -39,4 +42,13 @@ export function useInteractions(
   );
 
   return { onClassBoxClick, onResizeEnd };
+}
+
+function toToggledClassIds(
+  selectedClassIds: readonly ClassId[],
+  classId: ClassId
+): readonly ClassId[] {
+  return selectedClassIds.includes(classId)
+    ? selectedClassIds.filter((selectedClassId) => selectedClassId !== classId)
+    : [...selectedClassIds, classId];
 }

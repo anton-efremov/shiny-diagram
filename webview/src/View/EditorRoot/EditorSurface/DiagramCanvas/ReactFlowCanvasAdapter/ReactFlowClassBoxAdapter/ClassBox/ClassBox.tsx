@@ -18,6 +18,7 @@ type ClassBoxProps = {
   readonly isSelected: boolean;
   readonly isDragging: boolean;
   readonly isResizeVisible: boolean;
+  readonly selectedClassIds: readonly ClassId[];
   readonly onClassSelect: (classIds: readonly ClassId[]) => void;
 };
 
@@ -43,10 +44,15 @@ export default function ClassBox({
   isSelected,
   isDragging,
   isResizeVisible,
+  selectedClassIds,
   onClassSelect,
 }: ClassBoxProps): ReactElement {
   // Event handler props derivation
-  const { onClassBoxClick, onResizeEnd } = useInteractions(view.classId, onClassSelect);
+  const { onClassBoxClick, onResizeEnd } = useInteractions(
+    view.classId,
+    selectedClassIds,
+    onClassSelect
+  );
 
   // UI props derivation
   const className = [
