@@ -1,0 +1,19 @@
+/**
+ * @render Diagram shell and empty state styling.
+ */
+
+.diagramShell {
+  height: 620px;
+  border: 1px solid var(--shiny-border);
+  background: var(--shiny-surface);
+  overflow: hidden;
+}
+
+.emptyState {
+  position: absolute;
+  z-index: 5;
+  margin: 0;
+  padding: 20px;
+  color: var(--shiny-text-muted);
+  pointer-events: none;
+}

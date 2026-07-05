@@ -1,0 +1,42 @@
+/**
+ * @render Member table sections inside a class box styling.
+ */
+
+.body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  padding: 6px 0;
+  overflow: hidden;
+}
+
+.memberList {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+}
+
+.memberRow {
+  min-height: 18px;
+  padding: 1px 10px;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.isSelected .memberRow {
+  cursor: default;
+}
+
+.isSelected .memberRow:hover {
+  background: var(--shiny-overlay-faint);
+}
+
+.memberDivider {
+  flex: 0 0 auto;
+  margin: 5px 0;
+  border-top: 1px solid var(--class-stroke, var(--shiny-border));
+}

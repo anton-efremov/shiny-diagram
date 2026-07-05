@@ -1,0 +1,167 @@
+/**
+ * @render Class-box node and member rows styling.
+ */
+
+.classBox {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: var(--class-stroke-width, 1px) solid var(--class-stroke, var(--shiny-border));
+  border-style: var(--class-stroke-dasharray, solid);
+  background: var(--class-fill, var(--shiny-surface));
+  color: var(--class-color, var(--shiny-text));
+  display: flex;
+  flex-direction: column;
+  font-family: var(--shiny-font-family);
+  font-size: 13px;
+  position: relative;
+  cursor: grab;
+}
+
+.classBox:hover {
+  border-color: var(--shiny-accent);
+}
+
+.selected {
+  border-color: var(--shiny-accent);
+  box-shadow: 0 0 0 1px var(--shiny-accent);
+}
+
+.dragging {
+  cursor: grabbing;
+}
+
+.connectionHandle {
+  width: 1px;
+  height: 1px;
+  border: 0;
+  background: transparent;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--class-stroke, var(--shiny-border));
+  text-align: center;
+}
+
+.stereotype {
+  max-width: 100%;
+  margin-bottom: 2px;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.className {
+  max-width: 100%;
+  overflow: hidden;
+  font-weight: 600;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resizeHandle {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.resizeHandle::after,
+.resizeLine::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--shiny-accent);
+  background: var(--shiny-page-bg);
+  box-sizing: border-box;
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+.resizeLine:global(.line) {
+  width: 18px;
+  height: 18px;
+  border: 0;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.resizeLine:global(.line):global(.top) {
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.resizeLine:global(.line):global(.right) {
+  top: 50%;
+  left: 100%;
+  transform: translate(-50%, -50%);
+}
+
+.resizeLine:global(.line):global(.bottom) {
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.resizeLine:global(.line):global(.left) {
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+}
+
+.resizeHandle:global(.top):global(.left),
+.resizeLine:global(.top):global(.left) {
+  cursor: nwse-resize;
+}
+
+.resizeHandle:global(.top),
+.resizeLine:global(.top) {
+  cursor: ns-resize;
+}
+
+.resizeHandle:global(.top):global(.right),
+.resizeLine:global(.top):global(.right) {
+  cursor: nesw-resize;
+}
+
+.resizeHandle:global(.right),
+.resizeLine:global(.right) {
+  cursor: ew-resize;
+}
+
+.resizeHandle:global(.bottom):global(.right),
+.resizeLine:global(.bottom):global(.right) {
+  cursor: nwse-resize;
+}
+
+.resizeHandle:global(.bottom),
+.resizeLine:global(.bottom) {
+  cursor: ns-resize;
+}
+
+.resizeHandle:global(.bottom):global(.left),
+.resizeLine:global(.bottom):global(.left) {
+  cursor: nesw-resize;
+}
+
+.resizeHandle:global(.left),
+.resizeLine:global(.left) {
+  cursor: ew-resize;
+}

@@ -1,0 +1,9 @@
+/**
+ * @render Empty style inspector scenario styling.
+ */
+
+.emptySelection {
+  flex: 1;
+  min-height: 120px;
+  background: var(--shiny-overlay-faint);
+}

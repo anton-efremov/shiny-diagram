@@ -1,0 +1,66 @@
+/**
+ * @behavior Ready editor selection, placement state lifecycle, and child interaction routing.
+ * @render Ready editor layout.
+ */
+
+import { useState } from "react";
+import type { ReactElement } from "react";
+import type { NodePlacementState, SelectionState } from "../../state/editorStates";
+import type { DiagramView } from "../../views/schema";
+import ClassDiagram from "./DiagramCanvas/DiagramCanvas";
+import StylePane from "./StylePane/StylePane";
+import ToolPane from "./ToolPane/ToolPane";
+import { toInitialNodePlacementState, toInitialSelectionState } from "./state";
+import { useInteractions } from "./useInteractions";
+import { useStateReconciliation } from "./useStateReconciliation";
+import styles from "./EditorSurface.module.css";
+
+type EditorSurfaceProps = {
+  readonly view: DiagramView;
+};
+
+export default function EditorSurface({ view }: EditorSurfaceProps): ReactElement {
+  // State creation: ledger states - selected editor entities and active node placement kind
+  const [selectionState, setSelectionState] = useState<SelectionState>(() =>
+    toInitialSelectionState()
+  );
+  const [nodePlacementState, setNodePlacementState] = useState<NodePlacementState>(() =>
+    toInitialNodePlacementState()
+  );
+
+  // State reconciliation
+  useStateReconciliation({ view, setSelectionState });
+
+  // Event handler props derivation
+  const {
+    onClassPlacementStart,
+    onClassSelect,
+    onStyleSelect,
+    onSelectionClear,
+    onPlacementComplete,
+  } = useInteractions({ setSelectionState, setNodePlacementState });
+
+  return (
+    <section className={styles.editorShell} aria-label="Class diagram editor">
+      <ToolPane
+        nodePlacementState={nodePlacementState}
+        onClassPlacementStart={onClassPlacementStart}
+      />
+      <div className={styles.canvasRegion}>
+        <ClassDiagram
+          view={view}
+          selectionState={selectionState}
+          nodePlacementState={nodePlacementState}
+          onClassSelect={onClassSelect}
+          onSelectionClear={onSelectionClear}
+          onPlacementComplete={onPlacementComplete}
+        />
+      </div>
+      <StylePane
+        view={{ classes: view.classes, styles: view.styles }}
+        selectionState={selectionState}
+        onStyleSelect={onStyleSelect}
+      />
+    </section>
+  );
+}

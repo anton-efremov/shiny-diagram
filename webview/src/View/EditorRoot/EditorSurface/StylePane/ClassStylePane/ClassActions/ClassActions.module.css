@@ -1,0 +1,21 @@
+/**
+ * @render Class action buttons styling.
+ */
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.actions button {
+  border: 1px solid var(--shiny-border);
+  background: var(--shiny-surface-raised);
+  color: var(--shiny-text);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.actions .danger {
+  color: var(--shiny-text-error);
+}

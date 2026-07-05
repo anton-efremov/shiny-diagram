@@ -7,15 +7,26 @@ direction TB
 	    +addMessage(TextMessage message) void
 	    +addParticipant(UserContact participant) void
     }
-
-    class TextMessage {
-	    +UUID id
-	    +String content
-	    +DateTime timestamp
-	    +UserContact sender
-	    +List~FileAttachment~ attachments
-	    +attachFile(FileAttachment attachment) void
-	    +removeAttachment(UUID attachmentId) void
+    class ConversationThread_2 {
+    	    +UUID id
+    	    +List~TextMessage~ messages
+    	    +List~UserContact~ participants
+    	    +addMessage(TextMessage message) void
+    	    +addParticipant(UserContact participant) void
+    }
+    class ConversationThread_1 {
+    	    +UUID id
+    	    +List~TextMessage~ messages
+    	    +List~UserContact~ participants
+    	    +addMessage(TextMessage message) void
+    	    +addParticipant(UserContact participant) void
+    }
+    class ConversationThread_3 {
+    	    +UUID id
+    	    +List~TextMessage~ messages
+    	    +List~UserContact~ participants
+    	    +addMessage(TextMessage message) void
+    	    +addParticipant(UserContact participant) void
     }
 
     class UserContact {
@@ -27,21 +38,34 @@ direction TB
 	    +removeCommunicationChannel(UUID channelId) void
     }
 
-    ConversationThread --> TextMessage : contains
     ConversationThread --> UserContact : involves
 
     %% Native Style Applications
-    class ConversationThread:::Rose
-    class TextMessage:::Pine
-    class UserContact:::Pine
+    class ConversationThread:::PineSelected
+    class ConversationThread_2:::PineSelected
+
+    style UserContact fill:#ce7373
+    style ConversationThread_1 fill:#b73434
+    style ConversationThread_3 fill:#b73434
 
     %% Native Style Definitions
-    classDef Rose stroke-width:1px,stroke-dasharray:none,stroke:#FF5978,fill:#e6e9ef,color:#8E2236
-    classDef Pine stroke-width:1px,stroke-dasharray:none,stroke:#254336,fill:#697771,color:#FFFFFF
+    classDef Rose stroke-width:1px,stroke-dasharray:none,stroke:#FF5978,fill:#ad3894,color:#050505
+    classDef PineSelected stroke-width:1px,stroke-dasharray:none,stroke:#275340,fill:#779c8c,color:#FFFFFF
+    classDef ShinyStyleSelected fill:#a76262,stroke:#37c368
 
-%% @spatial:TextMessage x=196 y=149 w=200 h=150
-%% @spatial:UserContact x=39 y=-34 w=200 h=150
-%% @spatial:ConversationThread x=-55 y=196 w=200 h=150
+
+
+    %% @spatial:ConversationThread x=-413 y=-53 w=228 h=210
+    %% @spatial:ConversationThread_2 x=-231 y=6 w=228 h=210
+    %% @spatial:ConversationThread_1 x=-391 y=215 w=228 h=210
+    %% @spatial:ConversationThread_3 x=-271 y=232 w=228 h=210
+    %% @spatial:UserContact x=-115 y=-49 w=200 h=150
+
+
+
+
+
+
 
 
 

@@ -1,5 +1,5 @@
 /**
- * @fileoverview Geometry primitives shared across Controller and View contracts.
+ * @fileoverview Spatial primitives (Rect, Point, Size) shared across Controller and View contracts.
  */
 
 export type Rect = {
@@ -9,3 +9,11 @@ export type Rect = {
   readonly h: number;
 };
 export type Point = { readonly x: number; readonly y: number };
+export type Size = { readonly width: number; readonly height: number };
+
+export type SpatialAttachment = {
+  readonly position: Point;
+  readonly size: Size;
+};
+
+export type AttachmentSide = "top" | "right" | "bottom" | "left";

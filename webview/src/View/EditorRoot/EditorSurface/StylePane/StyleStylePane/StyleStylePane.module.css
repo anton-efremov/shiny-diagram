@@ -1,0 +1,16 @@
+/**
+ * @render Named style inspector styling.
+ */
+
+.panel {
+  display: grid;
+  gap: 14px;
+}
+
+.danger {
+  border: 1px solid var(--shiny-text-error);
+  background: var(--shiny-surface-raised);
+  color: var(--shiny-text-error);
+  border-radius: 6px;
+  padding: 6px 8px;
+}

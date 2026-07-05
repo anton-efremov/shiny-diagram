@@ -27,8 +27,8 @@ This document is the primary engineering entry point for human developers and th
 │   ├── product/
 │   │   ├── specification.md        # Target product behavior, syntax, and user journeys
 │   │   └── sprints/
-│   │       ├── 001-class-poc.md    # Sprint 1 delivery record
-│   │       └── 002-class-full-not-started-yet.md
+│   │       ├── 0.1-class-poc.md    # Sprint 1 delivery record
+│   │       └── 1.1-class-box.md
 │   │
 │   ├── engineering/
 │   │   ├── coding-standards.md     # Maintained code-quality and style rules

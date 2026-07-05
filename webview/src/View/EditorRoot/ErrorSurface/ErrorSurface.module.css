@@ -1,0 +1,23 @@
+/**
+ * @render Invalid-syntax editor-state interface styling.
+ */
+
+.statusMessage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 4px 0;
+  color: var(--shiny-text-error);
+  font-size: 13px;
+}
+
+.errorCanvas {
+  padding: 24px;
+  color: var(--shiny-text-muted);
+}
+
+.errorMessage {
+  margin: 0;
+  color: var(--shiny-text-error);
+}

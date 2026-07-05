@@ -4,7 +4,7 @@
 
 import React from "react";
 import { createRoot } from "react-dom/client";
-import ExtensionBridge from "./extensionBridge/ExtensionBridge";
+import ExtensionBridge from "./Bridge/ExtensionBridge";
 
 const root = document.getElementById("root");
 
