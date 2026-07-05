@@ -7,7 +7,21 @@ direction TB
 	    +addMessage(TextMessage message) void
 	    +addParticipant(UserContact participant) void
     }
+    class ConversationThread_2 {
+    	    +UUID id
+    	    +List~TextMessage~ messages
+    	    +List~UserContact~ participants
+    	    +addMessage(TextMessage message) void
+    	    +addParticipant(UserContact participant) void
+    }
     class ConversationThread_1 {
+    	    +UUID id
+    	    +List~TextMessage~ messages
+    	    +List~UserContact~ participants
+    	    +addMessage(TextMessage message) void
+    	    +addParticipant(UserContact participant) void
+    }
+    class ConversationThread_3 {
     	    +UUID id
     	    +List~TextMessage~ messages
     	    +List~UserContact~ participants
@@ -28,9 +42,11 @@ direction TB
 
     %% Native Style Applications
     class ConversationThread:::PineSelected
-    class ConversationThread_1:::Newstyle2
+    class ConversationThread_2:::PineSelected
 
     style UserContact fill:#ce7373
+    style ConversationThread_1 fill:#b73434
+    style ConversationThread_3 fill:#b73434
 
     %% Native Style Definitions
     classDef Rose stroke-width:1px,stroke-dasharray:none,stroke:#FF5978,fill:#ad3894,color:#050505
@@ -39,8 +55,10 @@ direction TB
 
 
 
-    %% @spatial:ConversationThread x=-383 y=-44 w=228 h=210
-    %% @spatial:ConversationThread_1 x=-119 y=146 w=228 h=210
+    %% @spatial:ConversationThread x=-413 y=-53 w=228 h=210
+    %% @spatial:ConversationThread_2 x=-231 y=6 w=228 h=210
+    %% @spatial:ConversationThread_1 x=-391 y=215 w=228 h=210
+    %% @spatial:ConversationThread_3 x=-271 y=232 w=228 h=210
     %% @spatial:UserContact x=-115 y=-49 w=200 h=150
 
 

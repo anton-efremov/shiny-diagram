@@ -37,13 +37,15 @@ export function translateClassDuplicate(
   command: EditorCommandOf<"class.duplicate">,
   graph: DiagramGraph,
   provenance: ProvenanceIndex,
-  sourceText: string
+  sourceText: string,
+  reservedClassIds: Set<ClassId>
 ): WriteIntent[] {
   const source = graph.classes.get(command.sourceClassId);
   if (!source) throw new Error(`Class ${command.sourceClassId} cannot be duplicated`);
   if (!source.spatial) throw new Error(`Class ${command.sourceClassId} has no spatial data`);
 
-  const id = generateDuplicateClassId(graph, command.sourceClassId);
+  const id = generateDuplicateClassId(graph, command.sourceClassId, reservedClassIds);
+  reservedClassIds.add(id);
 
   // ---
   // Class declaration

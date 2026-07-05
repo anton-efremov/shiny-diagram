@@ -3,8 +3,9 @@
  * @render Duplicate and delete class actions.
  */
 
-import type { ReactElement } from "react";
+import { useEffect, type ReactElement } from "react";
 import type { ClassView } from "../../../../../views/schema";
+import { shouldIgnoreKeyboardShortcutEvent } from "../../../../../utils/keyboardEvents";
 import { useInteractions } from "./useInteractions";
 import styles from "./ClassActions.module.css";
 
@@ -14,6 +15,18 @@ type ClassActionsProps = {
 
 export default function ClassActions({ view }: ClassActionsProps): ReactElement {
   const { onDuplicate, onDelete } = useInteractions(view);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent): void {
+      if (event.key !== "Delete" || shouldIgnoreKeyboardShortcutEvent(event)) return;
+
+      event.preventDefault();
+      onDelete();
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onDelete]);
 
   return (
     <section className={styles.actions} aria-label="Class actions">
