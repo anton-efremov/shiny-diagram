@@ -19,7 +19,14 @@
 import type { StyleProperties } from "../../shared/style";
 import type { MemberKind, MemberPrefix, RelationshipType } from "../../shared/uml";
 import type { Rect } from "../../shared/geometry";
-import type { AttributeId, ClassId, MethodId, NamespaceId, RelationshipId } from "../../shared/ids";
+import type {
+  AttributeId,
+  ClassId,
+  MethodId,
+  NamespaceId,
+  RelationshipId,
+  StyleDefId,
+} from "../../shared/ids";
 
 /* ── Leaf views ──────────────────────────────────────────────────────────── */
 
@@ -43,6 +50,7 @@ export type ClassView = {
   readonly header: ClassHeaderView;
   readonly members: readonly ClassMemberView[];
   readonly style?: StyleProperties;
+  readonly appliedStyleId?: StyleDefId;
 };
 
 export type NamespaceView = {
@@ -50,6 +58,12 @@ export type NamespaceView = {
   readonly bounds: Rect;
   readonly label: string;
   readonly style?: StyleProperties;
+};
+
+export type StyleView = {
+  readonly styleId: StyleDefId;
+  readonly name: string;
+  readonly style: StyleProperties;
 };
 
 export type RelationshipView = {
@@ -68,6 +82,7 @@ export type DiagramView = {
   readonly classes: readonly ClassView[];
   readonly namespaces: readonly NamespaceView[];
   readonly relationships: readonly RelationshipView[];
+  readonly styles: readonly StyleView[];
 };
 
 /* ── Root contract (Controller -> View) ──────────────────────────────────── */

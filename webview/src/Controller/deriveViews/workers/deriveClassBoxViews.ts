@@ -50,6 +50,7 @@ export function deriveClassBoxViews(model: DiagramGraph): ClassView[] {
         }),
       ],
       style: styleDef?.properties,
+      appliedStyleId: styleEdge?.styleDefId,
     });
   }
 

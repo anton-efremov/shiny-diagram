@@ -7,6 +7,7 @@ import type { DiagramView } from "../../View/views";
 import { deriveClassBoxViews } from "./workers/deriveClassBoxViews";
 import { deriveNamespaceBoxViews } from "./workers/deriveNamespaceBoxViews";
 import { deriveRelationshipViews } from "./workers/deriveRelationshipViews";
+import { deriveStyleViews } from "./workers/deriveStyleViews";
 
 /**
  * Derives all render-facing views from a Controller diagram graph.
@@ -16,5 +17,6 @@ export function deriveDiagramView(model: DiagramGraph): DiagramView {
     classes: deriveClassBoxViews(model),
     namespaces: deriveNamespaceBoxViews(model),
     relationships: deriveRelationshipViews(model),
+    styles: deriveStyleViews(model),
   };
 }
