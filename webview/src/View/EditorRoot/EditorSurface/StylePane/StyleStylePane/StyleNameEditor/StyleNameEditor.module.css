@@ -1,0 +1,46 @@
+/**
+ * @render Style name editor styling.
+ */
+
+.editor {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.swatch {
+  width: 36px;
+  height: 28px;
+  border: 2px solid var(--shiny-border);
+  background: var(--shiny-surface-raised);
+}
+
+.editor button,
+.editor input {
+  min-width: 0;
+  border: 1px solid var(--shiny-border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  color: var(--shiny-text);
+  background: var(--shiny-surface);
+}
+
+.notification {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--shiny-text-error);
+  font-size: 12px;
+  animation: flash 420ms ease-out;
+}
+
+@keyframes flash {
+  0% {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

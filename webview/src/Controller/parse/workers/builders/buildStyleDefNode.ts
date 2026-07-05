@@ -42,7 +42,8 @@ function parseStyleProperties(propertiesStr: string): StyleProperties {
     fill: null,
     stroke: null,
     strokeWidth: null,
-    fontSize: null,
+    strokeDasharray: null,
+    color: null,
   };
 
   for (const part of propertiesStr.split(",")) {

@@ -77,6 +77,7 @@ export type EntryRef =
 /** A single overwrite-able span (replace target). */
 export type ValueRef =
   | { readonly kind: "className"; readonly classId: ClassId }
+  | { readonly kind: "styleDefName"; readonly styleDefId: StyleDefId }
   | { readonly kind: "namespaceName"; readonly namespaceId: NamespaceId }
   | { readonly kind: "memberName"; readonly memberId: AttributeId | MethodId }
   | { readonly kind: "memberOwner"; readonly memberId: AttributeId | MethodId } // `User` in `User : +name`

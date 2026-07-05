@@ -85,6 +85,11 @@ export function resolveValueRef(ref: ValueRef, provenance: ProvenanceIndex): Sou
     case "className":
       return requireRecord(provenance.classes.get(ref.classId), `class ${ref.classId}`).fields
         .declaredName;
+    case "styleDefName":
+      return requireRecord(
+        provenance.styleDefinitions.get(ref.styleDefId),
+        `style definition ${ref.styleDefId}`
+      ).fields.declaredName;
     case "directStylePropertyValue":
       return requireRecord(
         provenance.classDirectStyles.get(ref.classId)?.fields.properties[ref.property],

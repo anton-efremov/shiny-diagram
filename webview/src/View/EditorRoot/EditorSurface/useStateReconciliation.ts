@@ -1,10 +1,10 @@
 /**
- * @behavior SelectionState reconciliation when selected classes disappear from the diagram view.
+ * @behavior SelectionState reconciliation when selected classes or styles disappear from the diagram view.
  */
 
 import { useEffect } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import type { ClassId } from "../../../shared/ids";
+import type { ClassId, StyleDefId } from "../../../shared/ids";
 import type { SelectionState } from "../../state/editorStates";
 import type { DiagramView } from "../../views/schema";
 
@@ -29,9 +29,11 @@ function reconcileSelectionStateWithElements(
   diagram: DiagramView
 ): SelectionState {
   const classIds = reconcileSelectedClassIds(selectionState.classIds, diagram);
-  return areClassIdCollectionsEqual(selectionState.classIds, classIds)
+  const styleDefIds = reconcileSelectedStyleDefIds(selectionState.styleDefIds, diagram);
+  return areClassIdCollectionsEqual(selectionState.classIds, classIds) &&
+    areStyleDefIdCollectionsEqual(selectionState.styleDefIds, styleDefIds)
     ? selectionState
-    : toClassOnlySelectionState(classIds);
+    : toSelectionState(classIds, styleDefIds);
 }
 
 function reconcileSelectedClassIds(
@@ -51,11 +53,35 @@ function areClassIdCollectionsEqual(left: readonly ClassId[], right: readonly Cl
   return left.length === right.length && left.every((id, index) => id === right[index]);
 }
 
-function toClassOnlySelectionState(classIds: readonly ClassId[]): SelectionState {
+function reconcileSelectedStyleDefIds(
+  selectedStyleDefIds: readonly StyleDefId[],
+  diagram: DiagramView
+): readonly StyleDefId[] {
+  const styleDefIds = diagram.styles.map((styleView) => styleView.styleId);
+  if (selectedStyleDefIds.length === 0 || styleDefIds.length === 0) {
+    return selectedStyleDefIds.length === 0 ? selectedStyleDefIds : [];
+  }
+
+  const selected = new Set(selectedStyleDefIds);
+  return styleDefIds.flatMap((styleDefId) => (selected.has(styleDefId) ? [styleDefId] : []));
+}
+
+function areStyleDefIdCollectionsEqual(
+  left: readonly StyleDefId[],
+  right: readonly StyleDefId[]
+): boolean {
+  return left.length === right.length && left.every((id, index) => id === right[index]);
+}
+
+function toSelectionState(
+  classIds: readonly ClassId[],
+  styleDefIds: readonly StyleDefId[]
+): SelectionState {
   return {
     classIds,
     relationshipIds: [],
     namespaceIds: [],
     noteIds: [],
+    styleDefIds,
   };
 }

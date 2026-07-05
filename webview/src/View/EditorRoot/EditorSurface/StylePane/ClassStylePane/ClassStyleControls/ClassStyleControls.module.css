@@ -1,9 +1,0 @@
-/**
- * @render Class style color controls styling.
- */
-
-.styleList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}

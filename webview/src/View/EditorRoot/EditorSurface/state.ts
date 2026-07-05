@@ -11,6 +11,7 @@ export function toInitialSelectionState(): SelectionState {
     relationshipIds: [],
     namespaceIds: [],
     noteIds: [],
+    styleDefIds: [],
   };
 }
 

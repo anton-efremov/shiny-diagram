@@ -62,7 +62,8 @@ export default function ClassBox({
         "--class-fill": view.style.fill ?? undefined,
         "--class-stroke": view.style.stroke ?? undefined,
         "--class-stroke-width": view.style.strokeWidth ?? undefined,
-        "--class-font-size": view.style.fontSize ?? undefined,
+        "--class-stroke-dasharray": view.style.strokeDasharray ?? undefined,
+        "--class-color": view.style.color ?? undefined,
       } as CSSProperties)
     : undefined;
 

@@ -8,7 +8,8 @@ export const STYLE_PROPERTIES = [
   { name: "fill", source: "fill", escapeCommas: false },
   { name: "stroke", source: "stroke", escapeCommas: false },
   { name: "strokeWidth", source: "stroke-width", escapeCommas: false },
-  { name: "fontSize", source: "font-size", escapeCommas: false },
+  { name: "strokeDasharray", source: "stroke-dasharray", escapeCommas: false },
+  { name: "color", source: "color", escapeCommas: false },
 ] as const;
 
 export type StylePropertyName = (typeof STYLE_PROPERTIES)[number]["name"];

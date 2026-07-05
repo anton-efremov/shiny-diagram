@@ -32,8 +32,13 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
   useStateReconciliation({ view, setSelectionState });
 
   // Event handler props derivation
-  const { onClassPlacementStart, onSelectionChange, onSelectionClear, onPlacementComplete } =
-    useInteractions({ setSelectionState, setNodePlacementState });
+  const {
+    onClassPlacementStart,
+    onSelectionChange,
+    onStyleSelect,
+    onSelectionClear,
+    onPlacementComplete,
+  } = useInteractions({ setSelectionState, setNodePlacementState });
 
   return (
     <section className={styles.editorShell} aria-label="Class diagram editor">
@@ -51,7 +56,11 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
           onPlacementComplete={onPlacementComplete}
         />
       </div>
-      <StylePane view={{ classes: view.classes }} selectionState={selectionState} />
+      <StylePane
+        view={{ classes: view.classes, styles: view.styles }}
+        selectionState={selectionState}
+        onStyleSelect={onStyleSelect}
+      />
     </section>
   );
 }

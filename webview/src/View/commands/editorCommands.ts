@@ -122,8 +122,18 @@ export type EditorCommand =
       readonly value: string | null;
     }
   | {
+      readonly type: "class.directStyle.set";
+      readonly classId: ClassId;
+      readonly properties: StyleProperties;
+    }
+  | {
       readonly type: "class.directStyle.clear";
       readonly classId: ClassId;
+    }
+  | {
+      readonly type: "class.appliedStyle.set";
+      readonly classId: ClassId;
+      readonly styleDefId: StyleDefId | null;
     }
   | {
       readonly type: "class.interaction.set";
@@ -374,6 +384,7 @@ export type EditorCommand =
       readonly name: string;
       readonly sourceKind: "classDef" | "externalCssClass";
       readonly properties: StyleProperties;
+      readonly applyToClassIds: readonly ClassId[];
     }
   | {
       readonly type: "style.definition.delete";

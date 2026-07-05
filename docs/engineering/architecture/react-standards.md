@@ -328,12 +328,12 @@ Providing a child the callback by which it requests a change. The child **must**
     - **naming**: remains the same as received
     - **when:** the parent adds no decision, normalization, command dispatch, state-change behavior, or argument adaptation
 2. **event handler binding defined in component file**
-    - assign the handler to a binding named by the event the child reports. **Location:** `<Component>.tsx`
+    - assign the handler to a binding named by the event the child reports. Raw DOM event adapters may remain inline at the rendering boundary only when they perform mechanical event extraction/normalization and immediately call a semantic handler. **Location:** `<Component>.tsx`
     - pass the binding to the child prop. **Location:** `<Component>.tsx`
     - **naming:** handler is named `on<Event>`, e.g. `onPlacementCommit`, `onClassResize`, `onSelectionChange`; handler **must not** be named by its state effect, e.g. `setPlacementState`, `clearSelection`
     - **when:** the handler performs a small local argument adaptation or delegates to an owner callback without needing a separate interaction pipeline
 3. **derive all event handlers in `useInteractions()` hook**
-    - export a single `useInteractions(...)` hook that returns **all required** event handlers for the component's children with the **exception of** pass-through handlers. **Location:** `useInteractions.ts`
+    - export a single `useInteractions(...)` hook that returns **all required semantic ShinyView** event handlers for the component's children with the **exception of** pass-through handlers. Raw DOM event adapters may remain inline at the rendering boundary only when they perform mechanical event extraction/normalization and immediately call a semantic handler. **Location:** `useInteractions.ts`
     - call the hook and assign the result to named handler bindings. **Location:** `<Component>.tsx`
     - pass the returned handlers to child props. **Location:** `<Component>.tsx`
     - Once a component uses `useInteractions()`, all non-pass-through handlers must live there

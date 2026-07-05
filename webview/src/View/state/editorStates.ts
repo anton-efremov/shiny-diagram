@@ -8,7 +8,7 @@
  * State annotations identify the View component that owns runtime storage.
  */
 
-import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../shared/ids";
+import type { ClassId, NamespaceId, NoteId, RelationshipId, StyleDefId } from "../../shared/ids";
 import type { Rect } from "../../shared/geometry";
 import type { PlaceableNodeKind } from "../../shared/nodeKinds";
 /*
@@ -23,6 +23,7 @@ export type SelectionState = {
   readonly relationshipIds: readonly RelationshipId[];
   readonly namespaceIds: readonly NamespaceId[];
   readonly noteIds: readonly NoteId[];
+  readonly styleDefIds: readonly StyleDefId[];
 };
 
 /*

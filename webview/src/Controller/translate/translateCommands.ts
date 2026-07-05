@@ -7,10 +7,21 @@ import type { DiagramGraph } from "../model/diagramGraph";
 import type { ProvenanceIndex } from "../model/provenanceIndex";
 import type { WriteIntent } from "./writeIntent";
 import { translateClassCreate } from "./workers/translateClassCreate";
+import { translateClassAppliedStyleSet } from "./workers/translateClassAppliedStyleSet";
 import { translateClassDelete } from "./workers/translateClassDelete";
 import { translateClassDirectStyleSet } from "./workers/translateClassDirectStylePropertySet";
+import {
+  translateClassDirectStyleClear,
+  translateClassDirectStyleSet as translateClassFullDirectStyleSet,
+} from "./workers/translateClassDirectStyleSet";
 import { translateClassDuplicate } from "./workers/translateClassDuplicate";
 import { translateClassSpatialSet } from "./workers/translateClassSpatialSet";
+import {
+  translateStyleDefinitionCreate,
+  translateStyleDefinitionDelete,
+  translateStyleDefinitionNameSet,
+  translateStyleDefinitionPropertySet,
+} from "./workers/translateStyleDefinition";
 
 export function translateCommands(
   transaction: EditorCommandTransaction,
@@ -38,6 +49,20 @@ function translateCommand(
       return translateClassSpatialSet(command, graph, provenance);
     case "class.directStyle.property.set":
       return translateClassDirectStyleSet(command, graph, provenance);
+    case "class.directStyle.set":
+      return translateClassFullDirectStyleSet(command, graph, provenance);
+    case "class.directStyle.clear":
+      return translateClassDirectStyleClear(command, provenance);
+    case "class.appliedStyle.set":
+      return translateClassAppliedStyleSet(command, graph, provenance);
+    case "style.definition.create":
+      return translateStyleDefinitionCreate(command, graph, provenance);
+    case "style.definition.delete":
+      return translateStyleDefinitionDelete(command, graph, provenance);
+    case "style.definition.name.set":
+      return translateStyleDefinitionNameSet(command, graph);
+    case "style.definition.property.set":
+      return translateStyleDefinitionPropertySet(command, provenance);
     default:
       throw new Error(`Command ${command.type} is not supported by translate`);
   }

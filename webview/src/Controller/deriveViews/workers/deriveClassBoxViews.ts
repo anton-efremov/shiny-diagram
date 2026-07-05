@@ -16,6 +16,7 @@ export function deriveClassBoxViews(model: DiagramGraph): ClassView[] {
 
     const styleEdge = [...model.styleApplications.values()].find((e) => e.targetId === node.id);
     const styleDef = styleEdge ? model.styleDefinitions.get(styleEdge.styleDefId) : undefined;
+    const style = node.directStyle ?? styleDef?.properties;
 
     views.push({
       classId: node.id,
@@ -49,7 +50,7 @@ export function deriveClassBoxViews(model: DiagramGraph): ClassView[] {
           };
         }),
       ],
-      style: styleDef?.properties,
+      style,
       appliedStyleId: styleEdge?.styleDefId,
     });
   }
