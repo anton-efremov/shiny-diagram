@@ -3,9 +3,10 @@
  */
 
 import type { EditorCommand, EditorCommandTransaction } from "../../View/commands";
-import type { ClassId } from "../../shared/ids";
 import type { DiagramGraph } from "../model/diagramGraph";
 import type { ProvenanceIndex } from "../model/provenanceIndex";
+import { createTranslateContext } from "./translateContext";
+import type { TranslateContext } from "./translateContext";
 import type { WriteIntent } from "./writeIntent";
 import { translateClassCreate } from "./workers/translateClassCreate";
 import { translateClassAppliedStyleSet } from "./workers/translateClassAppliedStyleSet";
@@ -30,37 +31,25 @@ export function translateCommands(
   provenance: ProvenanceIndex,
   sourceText: string
 ): WriteIntent[] {
-  const context: TranslateTransactionContext = {
-    reservedDuplicateClassIds: new Set<ClassId>(),
-  };
+  const context = createTranslateContext(graph);
 
   return transaction.flatMap((command) =>
     translateCommand(command, graph, provenance, sourceText, context)
   );
 }
 
-type TranslateTransactionContext = {
-  readonly reservedDuplicateClassIds: Set<ClassId>;
-};
-
 function translateCommand(
   command: EditorCommand,
   graph: DiagramGraph,
   provenance: ProvenanceIndex,
   sourceText: string,
-  context: TranslateTransactionContext
+  context: TranslateContext
 ): WriteIntent[] {
   switch (command.type) {
     case "class.create":
       return translateClassCreate(command, graph, provenance);
     case "class.duplicate":
-      return translateClassDuplicate(
-        command,
-        graph,
-        provenance,
-        sourceText,
-        context.reservedDuplicateClassIds
-      );
+      return translateClassDuplicate(command, graph, provenance, sourceText, context);
     case "class.delete":
       return translateClassDelete(command, graph, provenance);
     case "class.spatial.set":

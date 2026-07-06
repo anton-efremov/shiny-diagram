@@ -26,7 +26,7 @@ Invariants:
 
 - **Single snapshot.** Every intent is translated and resolved against the same pre-edit `graph`/`provenance`. Intents never see each other's output; a whole-statement rewrite is `delete` + `insert` resolved atomically, not a mutate-then-reparse.
 - **Ordered, not order-independent.** Intents are a sequence, not a set: co-located insertions are concatenated in intent order during resolution (see §5).
-- **Layer boundary.** Translate owns Mermaid *content* — it produces `payload` text that is normalized to relative indentation, `\n`-joined, no EOL. Resolve owns *presentation* — coordinates, absolute indentation, EOL, and entry separators. `sourceText` is passed to translate only for workers that copy existing source (currently only class-duplicate); all other workers operate purely on `graph` + `provenance`.
+- **Layer boundary.** Translate owns Mermaid *content* — it produces `payload` text that is normalized to relative indentation, `\n`-joined, no EOL. Resolve owns *presentation* — coordinates, absolute indentation, EOL, and entry separators. `sourceText` is passed to translate only for workers that copy existing source (currently only class-duplicate); workers that allocate source identities additionally receive a transaction-scoped allocator (`TranslateContext`) that exposes only this transaction's claim bookkeeping and never graph state modified by earlier commands; all other workers operate purely on `graph` + `provenance`.
 
 ## 2. Model the pipeline reads
 
