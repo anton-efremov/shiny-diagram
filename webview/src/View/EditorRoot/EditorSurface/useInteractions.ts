@@ -1,15 +1,22 @@
 /**
- * @behavior Ready editor selection and placement semantic handlers.
+ * @behavior Ready editor selection, class placement, and relationship placement semantic handlers.
  * @state SelectionState and NodePlacementState updates.
  */
 
 import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { ClassId, StyleDefId } from "../../../shared/ids";
-import type { NodePlacementState, SelectionState } from "../../state/editorStates";
+import type {
+  NodePlacementState,
+  RelationshipSeed,
+  SelectionState,
+} from "../../state/editorStates";
+import { useDispatchTransaction } from "../../contexts";
+import { toRelationshipCreateTransaction } from "./transactions";
 
 type Interactions = {
   readonly onClassPlacementStart: () => void;
+  readonly onRelationshipPlacementStart: (seed: RelationshipSeed) => void;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
   readonly onStyleSelect: (styleDefId: StyleDefId) => void;
   readonly onSelectionClear: () => void;
@@ -17,24 +24,61 @@ type Interactions = {
 };
 
 type UseInteractionsInput = {
+  readonly nodePlacementState: NodePlacementState;
   readonly setSelectionState: Dispatch<SetStateAction<SelectionState>>;
   readonly setNodePlacementState: Dispatch<SetStateAction<NodePlacementState>>;
 };
 
 export function useInteractions({
+  nodePlacementState,
   setSelectionState,
   setNodePlacementState,
 }: UseInteractionsInput): Interactions {
+  const dispatchTransaction = useDispatchTransaction();
+
   // Event handler props derivation
   const onClassPlacementStart = useCallback(() => {
-    setNodePlacementState((state) => updateNodePlacementState(state, "class"));
+    setNodePlacementState((state) => updateNodePlacementState(state, { kind: "class" }));
   }, [setNodePlacementState]);
+
+  const onRelationshipPlacementStart = useCallback(
+    (seed: RelationshipSeed) => {
+      setSelectionState((state) => clearSelectionState(state));
+      setNodePlacementState({
+        kind: "relationship",
+        seed,
+        pendingSourceClassId: null,
+      });
+    },
+    [setNodePlacementState, setSelectionState]
+  );
 
   const onClassSelect = useCallback(
     (classId: ClassId, additive: boolean) => {
-      setSelectionState((state) => updateSelectedClassIds(state, classId, additive));
+      if (nodePlacementState?.kind !== "relationship") {
+        setSelectionState((selectionState) =>
+          updateSelectedClassIds(selectionState, classId, additive)
+        );
+        return;
+      }
+
+      if (nodePlacementState.pendingSourceClassId === null) {
+        setNodePlacementState({ ...nodePlacementState, pendingSourceClassId: classId });
+        return;
+      }
+
+      // Implementing interaction through command transaction
+      dispatchTransaction(
+        toRelationshipCreateTransaction(
+          nodePlacementState.seed,
+          nodePlacementState.pendingSourceClassId,
+          classId
+        )
+      );
+      setNodePlacementState(null);
+      setSelectionState((selectionState) => clearSelectionState(selectionState));
     },
-    [setSelectionState]
+    [dispatchTransaction, nodePlacementState, setNodePlacementState, setSelectionState]
   );
 
   const onStyleSelect = useCallback(
@@ -46,7 +90,8 @@ export function useInteractions({
 
   const onSelectionClear = useCallback(() => {
     setSelectionState((state) => clearSelectionState(state));
-  }, [setSelectionState]);
+    setNodePlacementState((state) => (state?.kind === "relationship" ? null : state));
+  }, [setNodePlacementState, setSelectionState]);
 
   const onPlacementComplete = useCallback(() => {
     setNodePlacementState((state) => updateNodePlacementState(state, null));
@@ -54,6 +99,7 @@ export function useInteractions({
 
   return {
     onClassPlacementStart,
+    onRelationshipPlacementStart,
     onClassSelect,
     onStyleSelect,
     onSelectionClear,
@@ -81,7 +127,9 @@ function updateNodePlacementState(
   state: NodePlacementState,
   nodePlacementState: NodePlacementState
 ): NodePlacementState {
-  return state === nodePlacementState ? state : nodePlacementState;
+  if (state === nodePlacementState) return state;
+  if (state?.kind === "class" && nodePlacementState?.kind === "class") return state;
+  return nodePlacementState;
 }
 
 function toClassSelectionState(classIds: readonly ClassId[]): SelectionState {

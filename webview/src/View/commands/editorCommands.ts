@@ -396,8 +396,6 @@ export type EditorCommand =
       readonly name: string;
     }
   | {
-      // NOTE: mirrors the catalog verbatim, which omits the target value.
-      // Almost certainly should also carry `sourceKind: "classDef" | "externalCssClass"`.
       readonly type: "style.definition.sourceKind.set";
       readonly styleDefId: StyleDefId;
     }

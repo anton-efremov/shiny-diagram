@@ -34,17 +34,19 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
   // Event handler props derivation
   const {
     onClassPlacementStart,
+    onRelationshipPlacementStart,
     onClassSelect,
     onStyleSelect,
     onSelectionClear,
     onPlacementComplete,
-  } = useInteractions({ setSelectionState, setNodePlacementState });
+  } = useInteractions({ nodePlacementState, setSelectionState, setNodePlacementState });
 
   return (
     <section className={styles.editorShell} aria-label="Class diagram editor">
       <ToolPane
         nodePlacementState={nodePlacementState}
         onClassPlacementStart={onClassPlacementStart}
+        onRelationshipPlacementStart={onRelationshipPlacementStart}
       />
       <div className={styles.canvasRegion}>
         <ClassDiagram

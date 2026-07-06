@@ -21,13 +21,6 @@ direction TB
     	    +addMessage(TextMessage message) void
     	    +addParticipant(UserContact participant) void
     }
-    class ConversationThread_3 {
-    	    +UUID id
-    	    +List~TextMessage~ messages
-    	    +List~UserContact~ participants
-    	    +addMessage(TextMessage message) void
-    	    +addParticipant(UserContact participant) void
-    }
 
     class UserContact {
 	    +UUID id
@@ -37,7 +30,6 @@ direction TB
 	    +addCommunicationChannel(CommunicationChannel channel) void
 	    +removeCommunicationChannel(UUID channelId) void
     }
-    class NewClass
 
     ConversationThread --> UserContact : involves
 
@@ -47,7 +39,6 @@ direction TB
 
     style UserContact fill:#ce7373
     style ConversationThread_1 fill:#b73434
-    style ConversationThread_3 fill:#b73434
 
     %% Native Style Definitions
     classDef Rose stroke-width:1px,stroke-dasharray:none,stroke:#FF5978,fill:#ad3894,color:#050505
@@ -56,12 +47,10 @@ direction TB
 
 
 
-    %% @spatial:ConversationThread x=-413 y=-53 w=228 h=210
-    %% @spatial:ConversationThread_2 x=-231 y=6 w=228 h=210
-    %% @spatial:ConversationThread_1 x=-391 y=215 w=228 h=210
-    %% @spatial:ConversationThread_3 x=-271 y=232 w=228 h=210
+    %% @spatial:ConversationThread x=-442 y=-54 w=228 h=210
+    %% @spatial:ConversationThread_2 x=-104 y=179 w=228 h=210
+    %% @spatial:ConversationThread_1 x=-430 y=223 w=228 h=210
     %% @spatial:UserContact x=-115 y=-49 w=200 h=150
-    %% @spatial:NewClass x=-353 y=107 w=189.91121688490438 h=162.3623624703389
 
 
 

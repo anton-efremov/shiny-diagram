@@ -43,7 +43,7 @@ export type RelationshipType =
   | "directedAssociation" // A --> B
   | "bidirectionalAssociation" // A <--> B
   | "dependency" // A ..> B
-  | "inheritance" // Child --|> Parent
+  | "inheritance" // Child <|-- Parent
   | "realization" // Impl ..|> Interface
   | "aggregation" // Whole o-- Part
   | "composition"; // Whole *-- Part

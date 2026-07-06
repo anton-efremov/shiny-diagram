@@ -18,6 +18,7 @@ import {
 } from "./workers/translateClassDirectStyleSet";
 import { translateClassDuplicate } from "./workers/translateClassDuplicate";
 import { translateClassSpatialSet } from "./workers/translateClassSpatialSet";
+import { translateRelationshipCreate } from "./workers/translateRelationshipCreate";
 import {
   translateStyleDefinitionCreate,
   translateStyleDefinitionDelete,
@@ -62,6 +63,8 @@ function translateCommand(
       return translateClassDirectStyleClear(command, provenance);
     case "class.appliedStyle.set":
       return translateClassAppliedStyleSet(command, graph, provenance);
+    case "relationship.create":
+      return translateRelationshipCreate(command, graph, provenance);
     case "style.definition.create":
       return translateStyleDefinitionCreate(command, graph, provenance);
     case "style.definition.delete":

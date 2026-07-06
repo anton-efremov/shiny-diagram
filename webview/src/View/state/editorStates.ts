@@ -10,7 +10,7 @@
 
 import type { ClassId, RelationshipId, StyleDefId } from "../../shared/ids";
 import type { Rect } from "../../shared/geometry";
-import type { PlaceableNodeKind } from "../../shared/nodeKinds";
+import type { RelationshipEndpointKind, RelationshipLineKind } from "../../shared/uml";
 /*
  * Owned by: EditorSurface.
  *
@@ -38,10 +38,25 @@ export type SelectionState =
 /*
  * Owned by: EditorSurface.
  *
- * Pending node-placement tool state. Null means no node placement is active;
- * a value means the next canvas placement creates that node kind.
+ * Pending node-placement tool state. Null means no node placement is active.
  */
-export type NodePlacementState = PlaceableNodeKind | null;
+export type NodePlacementState =
+  | null
+  | { readonly kind: "class" }
+  | {
+      readonly kind: "relationship";
+      readonly seed: RelationshipSeed;
+      readonly pendingSourceClassId: ClassId | null;
+    };
+
+export type RelationshipSeed = {
+  readonly sourceEndpointKind: RelationshipEndpointKind;
+  readonly lineKind: RelationshipLineKind;
+  readonly targetEndpointKind: RelationshipEndpointKind;
+  readonly sourceMultiplicity: string | null;
+  readonly targetMultiplicity: string | null;
+  readonly label: string | null;
+};
 
 /*
  * Owned by: DiagramCanvas.

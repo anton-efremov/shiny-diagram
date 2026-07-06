@@ -25,6 +25,7 @@ export function useInteractions(
   const onClassBoxClick = useCallback(
     (event: MouseEvent<HTMLDivElement>) => {
       event.stopPropagation();
+      event.nativeEvent.stopImmediatePropagation();
       onClassSelect(classId, event.ctrlKey || event.metaKey);
     },
     [classId, onClassSelect]
