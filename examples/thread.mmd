@@ -29,9 +29,10 @@ direction TB
 	    +List~CommunicationChannel~ preferredChannels
 	    +addCommunicationChannel(CommunicationChannel channel) void
 	    +removeCommunicationChannel(UUID channelId) void
+
+	    UserContact <-- ConversationThread
     }
 
-    ConversationThread --> UserContact : involves
 
     %% Native Style Applications
     class ConversationThread:::PineSelected
@@ -47,10 +48,10 @@ direction TB
 
 
 
-    %% @spatial:ConversationThread x=-442 y=-54 w=228 h=210
+    %% @spatial:ConversationThread x=-472 y=-40 w=228 h=210
     %% @spatial:ConversationThread_2 x=-104 y=179 w=228 h=210
-    %% @spatial:ConversationThread_1 x=-430 y=223 w=228 h=210
-    %% @spatial:UserContact x=-115 y=-49 w=200 h=150
+    %% @spatial:ConversationThread_1 x=-417 y=220 w=228 h=210
+    %% @spatial:UserContact x=36 y=-51 w=200 h=150
 
 
 

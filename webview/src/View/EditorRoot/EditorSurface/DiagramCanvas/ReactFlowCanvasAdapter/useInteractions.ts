@@ -3,6 +3,7 @@
  */
 
 import { useCallback } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import type { NodeChange, OnNodeDrag } from "@xyflow/react";
 import type { ClassBoxNodeDescriptor, ClassBoxPlacementChange } from "./frameworkAdapters";
 import { toClassBoxPlacementChanges } from "./frameworkAdapters";
@@ -16,7 +17,7 @@ type ReactFlowCanvasAdapterCallbacks = {
 type Interactions = {
   readonly onNodesChange: (changes: NodeChange<ClassBoxNodeDescriptor>[]) => void;
   readonly onNodeDragStop: OnNodeDrag<ClassBoxNodeDescriptor>;
-  readonly onPaneClick: () => void;
+  readonly onPaneClick: (event: ReactMouseEvent) => void;
 };
 
 export function useInteractions(callbacks: ReactFlowCanvasAdapterCallbacks): Interactions {
@@ -44,9 +45,13 @@ export function useInteractions(callbacks: ReactFlowCanvasAdapterCallbacks): Int
   );
 
   // Framework prop and event adaptation
-  const onPaneClick = useCallback(() => {
-    callbacks.onSelectionClear();
-  }, [callbacks]);
+  const onPaneClick = useCallback(
+    (event: ReactMouseEvent) => {
+      if (event.target !== event.currentTarget) return;
+      callbacks.onSelectionClear();
+    },
+    [callbacks]
+  );
 
   return { onNodesChange, onNodeDragStop, onPaneClick };
 }

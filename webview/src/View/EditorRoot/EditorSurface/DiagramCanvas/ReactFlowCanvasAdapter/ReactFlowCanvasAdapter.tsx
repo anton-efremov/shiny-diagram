@@ -5,7 +5,7 @@
 import { useMemo } from "react";
 import type { ReactElement } from "react";
 import { Background, Controls, ReactFlow, ReactFlowProvider } from "@xyflow/react";
-import type { ClassId } from "../../../../../shared/ids";
+import type { ClassId, RelationshipId } from "../../../../../shared/ids";
 import type { DiagramView } from "../../../../views/schema";
 import type {
   ClassBoxPlacementState,
@@ -18,8 +18,11 @@ import { toClassBoxNodeDescriptors, toRelationshipEdgeDescriptors } from "./fram
 import { useInteractions } from "./useInteractions";
 import PlacementOverlay from "./PlacementOverlay/PlacementOverlay";
 import ReactFlowClassBoxNodeAdapter from "./ReactFlowClassBoxAdapter/ReactFlowClassBoxAdapter";
+import RelationshipEdgeAdapter from "./RelationshipEdgeAdapter/RelationshipEdgeAdapter";
+import styles from "./ReactFlowCanvasAdapter.module.css";
 
 const nodeTypes = { classBox: ReactFlowClassBoxNodeAdapter };
+const edgeTypes = { relationship: RelationshipEdgeAdapter };
 
 type ReactFlowCanvasAdapterProps = {
   readonly view: DiagramView;
@@ -29,6 +32,7 @@ type ReactFlowCanvasAdapterProps = {
   readonly onClassBoxPlacementChange: (changes: readonly ClassBoxPlacementChange[]) => void;
   readonly onDragComplete: (finalPositions: readonly ClassBoxPlacementChange[]) => void;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
+  readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
   readonly onSelectionClear: () => void;
   readonly onPlacementComplete: () => void;
 };
@@ -41,11 +45,13 @@ export default function ReactFlowCanvasAdapter({
   onClassBoxPlacementChange,
   onDragComplete,
   onClassSelect,
+  onRelationshipSelect,
   onSelectionClear,
   onPlacementComplete,
 }: ReactFlowCanvasAdapterProps): ReactElement {
   // Framework prop and event adaptation
   const isPlacementActive = nodePlacementState !== null;
+  const isRelationshipPlacementActive = nodePlacementState?.kind === "relationship";
 
   const rfNodes = useMemo(() => {
     const selectedClassIds = selectionState.kind === "classes" ? selectionState.classIds : [];
@@ -57,8 +63,15 @@ export default function ReactFlowCanvasAdapter({
     );
   }, [view.classes, selectionState, classBoxPlacementState, onClassSelect]);
   const rfEdges = useMemo(
-    () => toRelationshipEdgeDescriptors(view.classes, view.relationships, classBoxPlacementState),
-    [view.classes, view.relationships, classBoxPlacementState]
+    () =>
+      toRelationshipEdgeDescriptors(
+        view.classes,
+        view.relationships,
+        selectionState,
+        classBoxPlacementState,
+        onRelationshipSelect
+      ),
+    [view.classes, view.relationships, selectionState, classBoxPlacementState, onRelationshipSelect]
   );
 
   const callbacks = useMemo(
@@ -80,9 +93,11 @@ export default function ReactFlowCanvasAdapter({
         nodes={rfNodes}
         edges={rfEdges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onNodeDragStop={onNodeDragStop}
         onPaneClick={onPaneClick}
+        className={isRelationshipPlacementActive ? styles.relationshipPlacement : undefined}
         fitView
         nodesDraggable={!isPlacementActive}
         panOnDrag={!isPlacementActive}

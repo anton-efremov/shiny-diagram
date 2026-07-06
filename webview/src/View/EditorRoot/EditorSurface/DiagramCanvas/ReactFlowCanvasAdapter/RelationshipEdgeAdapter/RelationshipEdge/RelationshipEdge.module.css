@@ -1,0 +1,54 @@
+/**
+ * @render Relationship edge path, markers, and inline text editors.
+ */
+
+.edgePath {
+  stroke: var(--shiny-text-muted);
+  stroke-width: 1.5;
+}
+
+.selected {
+  stroke: var(--shiny-accent);
+  stroke-width: 2;
+}
+
+.hitPath {
+  cursor: pointer;
+}
+
+.openMarker {
+  fill: var(--shiny-surface);
+  stroke: var(--shiny-text-muted);
+  stroke-width: 1.5;
+}
+
+.filledMarker {
+  fill: var(--shiny-text-muted);
+  stroke: var(--shiny-text-muted);
+  stroke-width: 1.5;
+}
+
+.textObject {
+  overflow: visible;
+  pointer-events: all;
+}
+
+.textButton,
+.textInput {
+  width: 96px;
+  min-height: 22px;
+  border: 1px solid transparent;
+  background: var(--shiny-surface);
+  color: var(--shiny-text);
+  font: 12px var(--shiny-font-family);
+  text-align: center;
+}
+
+.textButton {
+  cursor: text;
+}
+
+.textInput {
+  border-color: var(--shiny-accent);
+  outline: none;
+}

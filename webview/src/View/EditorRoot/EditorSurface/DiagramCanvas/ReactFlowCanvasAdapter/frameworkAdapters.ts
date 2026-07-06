@@ -8,8 +8,8 @@ import type {
   NodeChange as ReactFlowNodeChange,
 } from "@xyflow/react";
 import type { Rect } from "../../../../../shared/geometry";
-import type { ClassId } from "../../../../../shared/ids";
-import type { ClassBoxPlacementState } from "../../../../state/editorStates";
+import type { ClassId, RelationshipId } from "../../../../../shared/ids";
+import type { ClassBoxPlacementState, SelectionState } from "../../../../state/editorStates";
 import type { ClassView, DiagramView, RelationshipView } from "../../../../views/schema";
 
 export type ClassBoxNodeData = {
@@ -20,7 +20,13 @@ export type ClassBoxNodeData = {
 };
 
 export type ClassBoxNodeDescriptor = ReactFlowNode<ClassBoxNodeData, "classBox">;
-export type RelationshipEdgeDescriptor = ReactFlowEdge;
+export type RelationshipEdgeData = {
+  readonly view: RelationshipView;
+  readonly isSelected: boolean;
+  readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
+};
+
+export type RelationshipEdgeDescriptor = ReactFlowEdge<RelationshipEdgeData, "relationship">;
 
 export type ClassBoxPlacementChange = {
   readonly classId: ClassId;
@@ -67,7 +73,9 @@ export function toClassBoxNodeDescriptors(
 export function toRelationshipEdgeDescriptors(
   classes: readonly ClassView[],
   relationships: readonly RelationshipView[],
-  classBoxPlacementState: ClassBoxPlacementState
+  selectionState: SelectionState,
+  classBoxPlacementState: ClassBoxPlacementState,
+  onRelationshipSelect: (relationshipId: RelationshipId) => void
 ): RelationshipEdgeDescriptor[] {
   const classesById = new Map(
     classes.flatMap((classView) => {
@@ -92,9 +100,14 @@ export function toRelationshipEdgeDescriptors(
         target: rel.targetClassId,
         sourceHandle: sourceSide,
         targetHandle: `target-${targetSide}`,
-        label: rel.label,
-        type: "default",
-        style: rel.lineKind === "dashed" ? { strokeDasharray: "6 4" } : undefined,
+        data: {
+          view: rel,
+          isSelected:
+            selectionState.kind === "relationship" &&
+            selectionState.relationshipId === rel.relationshipId,
+          onRelationshipSelect,
+        },
+        type: "relationship",
         selectable: false,
         focusable: false,
       },

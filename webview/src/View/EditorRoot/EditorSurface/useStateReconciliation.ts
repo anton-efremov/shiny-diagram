@@ -1,5 +1,5 @@
 /**
- * @behavior SelectionState reconciliation when selected classes or styles disappear from the diagram view.
+ * @behavior SelectionState reconciliation when selected classes, styles, or relationships disappear from the diagram view.
  */
 
 import { useEffect } from "react";
@@ -42,7 +42,11 @@ function reconcileSelectionStateWithElements(
         ? selectionState
         : { kind: "none" };
     case "relationship":
-      return selectionState;
+      return diagram.relationships.some(
+        (relationshipView) => relationshipView.relationshipId === selectionState.relationshipId
+      )
+        ? selectionState
+        : { kind: "none" };
   }
 }
 

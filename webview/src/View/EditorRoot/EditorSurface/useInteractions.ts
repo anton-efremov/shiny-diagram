@@ -5,7 +5,7 @@
 
 import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import type { ClassId, StyleDefId } from "../../../shared/ids";
+import type { ClassId, RelationshipId, StyleDefId } from "../../../shared/ids";
 import type {
   NodePlacementState,
   RelationshipSeed,
@@ -18,6 +18,8 @@ type Interactions = {
   readonly onClassPlacementStart: () => void;
   readonly onRelationshipPlacementStart: (seed: RelationshipSeed) => void;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
+  readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
+  readonly onRelationshipDuplicate: (seed: RelationshipSeed) => void;
   readonly onStyleSelect: (styleDefId: StyleDefId) => void;
   readonly onSelectionClear: () => void;
   readonly onPlacementComplete: () => void;
@@ -81,6 +83,28 @@ export function useInteractions({
     [dispatchTransaction, nodePlacementState, setNodePlacementState, setSelectionState]
   );
 
+  const onRelationshipSelect = useCallback(
+    (relationshipId: RelationshipId) => {
+      if (nodePlacementState?.kind === "relationship") return;
+      setSelectionState((selectionState) =>
+        updateSelectedRelationshipId(selectionState, relationshipId)
+      );
+    },
+    [nodePlacementState, setSelectionState]
+  );
+
+  const onRelationshipDuplicate = useCallback(
+    (seed: RelationshipSeed) => {
+      setSelectionState((selectionState) => clearSelectionState(selectionState));
+      setNodePlacementState({
+        kind: "relationship",
+        seed,
+        pendingSourceClassId: null,
+      });
+    },
+    [setNodePlacementState, setSelectionState]
+  );
+
   const onStyleSelect = useCallback(
     (styleDefId: StyleDefId) => {
       setSelectionState((state) => updateSelectedStyleDefId(state, styleDefId));
@@ -101,10 +125,21 @@ export function useInteractions({
     onClassPlacementStart,
     onRelationshipPlacementStart,
     onClassSelect,
+    onRelationshipSelect,
+    onRelationshipDuplicate,
     onStyleSelect,
     onSelectionClear,
     onPlacementComplete,
   };
+}
+
+function updateSelectedRelationshipId(
+  selectionState: SelectionState,
+  relationshipId: RelationshipId
+): SelectionState {
+  return selectionState.kind === "relationship" && selectionState.relationshipId === relationshipId
+    ? selectionState
+    : { kind: "relationship", relationshipId };
 }
 
 // Private helpers

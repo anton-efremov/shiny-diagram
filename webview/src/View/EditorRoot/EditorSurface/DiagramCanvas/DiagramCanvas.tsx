@@ -5,7 +5,7 @@
 
 import { useState } from "react";
 import type { ReactElement } from "react";
-import type { ClassId } from "../../../../shared/ids";
+import type { ClassId, RelationshipId } from "../../../../shared/ids";
 import type { DiagramView } from "../../../views/schema";
 import type { NodePlacementState, SelectionState } from "../../../state/editorStates";
 import { toInitialClassBoxPlacementState } from "./state";
@@ -19,6 +19,7 @@ type DiagramCanvasProps = {
   readonly selectionState: SelectionState;
   readonly nodePlacementState: NodePlacementState;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
+  readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
   readonly onSelectionClear: () => void;
   readonly onPlacementComplete: () => void;
 };
@@ -28,6 +29,7 @@ export default function DiagramCanvas({
   selectionState,
   nodePlacementState,
   onClassSelect,
+  onRelationshipSelect,
   onSelectionClear,
   onPlacementComplete,
 }: DiagramCanvasProps): ReactElement {
@@ -58,6 +60,7 @@ export default function DiagramCanvas({
         onClassBoxPlacementChange={onClassBoxPlacementChange}
         onDragComplete={onDragComplete}
         onClassSelect={onClassSelect}
+        onRelationshipSelect={onRelationshipSelect}
         onSelectionClear={onSelectionClear}
         onPlacementComplete={onPlacementComplete}
       />

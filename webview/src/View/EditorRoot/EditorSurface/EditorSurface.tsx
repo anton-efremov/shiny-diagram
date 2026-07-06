@@ -36,6 +36,8 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
     onClassPlacementStart,
     onRelationshipPlacementStart,
     onClassSelect,
+    onRelationshipSelect,
+    onRelationshipDuplicate,
     onStyleSelect,
     onSelectionClear,
     onPlacementComplete,
@@ -54,14 +56,17 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
           selectionState={selectionState}
           nodePlacementState={nodePlacementState}
           onClassSelect={onClassSelect}
+          onRelationshipSelect={onRelationshipSelect}
           onSelectionClear={onSelectionClear}
           onPlacementComplete={onPlacementComplete}
         />
       </div>
       <StylePane
-        view={{ classes: view.classes, styles: view.styles }}
+        view={{ classes: view.classes, relationships: view.relationships, styles: view.styles }}
         selectionState={selectionState}
         onStyleSelect={onStyleSelect}
+        onRelationshipSelect={onRelationshipSelect}
+        onRelationshipDuplicate={onRelationshipDuplicate}
       />
     </section>
   );

@@ -1,0 +1,19 @@
+/**
+ * @render Relationship label control styling.
+ */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--shiny-border);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--shiny-text);
+  font-size: 12px;
+}
