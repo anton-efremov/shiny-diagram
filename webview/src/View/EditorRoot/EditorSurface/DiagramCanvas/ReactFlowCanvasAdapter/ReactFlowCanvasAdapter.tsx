@@ -41,6 +41,11 @@ type ReactFlowCanvasAdapterProps = {
   readonly onDragComplete: (finalPositions: readonly ClassBoxPlacementChange[]) => void;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
   readonly onRelationshipConnect: (sourceClassId: ClassId, targetClassId: ClassId) => void;
+  readonly onRelationshipReconnect: (
+    relationshipId: RelationshipId,
+    end: "source" | "target",
+    newClassId: ClassId
+  ) => void;
   readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
   readonly onSelectionClear: () => void;
   readonly onPlacementComplete: () => void;
@@ -55,6 +60,7 @@ export default function ReactFlowCanvasAdapter({
   onDragComplete,
   onClassSelect,
   onRelationshipConnect,
+  onRelationshipReconnect,
   onRelationshipSelect,
   onSelectionClear,
   onPlacementComplete,
@@ -88,9 +94,17 @@ export default function ReactFlowCanvasAdapter({
         view.relationships,
         selectionState,
         classBoxPlacementState,
+        isRelationshipPlacementActive,
         onRelationshipSelect
       ),
-    [view.classes, view.relationships, selectionState, classBoxPlacementState, onRelationshipSelect]
+    [
+      view.classes,
+      view.relationships,
+      selectionState,
+      classBoxPlacementState,
+      isRelationshipPlacementActive,
+      onRelationshipSelect,
+    ]
   );
 
   const callbacks = useMemo(
@@ -98,9 +112,16 @@ export default function ReactFlowCanvasAdapter({
       onClassBoxPlacementChange,
       onDragComplete,
       onRelationshipConnect,
+      onRelationshipReconnect,
       onSelectionClear,
     }),
-    [onClassBoxPlacementChange, onDragComplete, onRelationshipConnect, onSelectionClear]
+    [
+      onClassBoxPlacementChange,
+      onDragComplete,
+      onRelationshipConnect,
+      onRelationshipReconnect,
+      onSelectionClear,
+    ]
   );
 
   const connectionLineComponent = useMemo<
@@ -114,7 +135,7 @@ export default function ReactFlowCanvasAdapter({
   }, [relationshipPlacementState]);
 
   // Event handler props derivation
-  const { onNodesChange, onNodeDragStop, onConnect, onConnectEnd, onPaneClick } =
+  const { onNodesChange, onNodeDragStop, onConnect, onConnectEnd, onReconnect, onPaneClick } =
     useInteractions(callbacks);
 
   return (
@@ -129,8 +150,10 @@ export default function ReactFlowCanvasAdapter({
         onNodeDragStop={onNodeDragStop}
         onConnect={onConnect}
         onConnectEnd={onConnectEnd}
+        onReconnect={onReconnect}
         onPaneClick={onPaneClick}
         connectionMode={ConnectionMode.Loose}
+        reconnectRadius={12}
         connectionLineComponent={connectionLineComponent}
         className={isRelationshipPlacementActive ? styles.relationshipPlacement : undefined}
         fitView

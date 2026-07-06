@@ -56,3 +56,5 @@ Multiple relationship cannot be selected
 Click anywhere on relationship + click on text area OR doubleclick on text area allows direct edit of this area:
 - Label (on empty text label field disappears)
 - Multiplicity
+
+Reconnect endpoint: drag one endpoint of an existing relationship edge to another class box. The dragged end's class changes; the other end does not. Multiplicity and end marker are positional, so they stay with the dragged end and now apply to the new class. Reconnecting an end to the other end's class is allowed.

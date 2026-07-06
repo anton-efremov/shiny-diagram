@@ -5,14 +5,27 @@
 import { useCallback } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import type { Connection, NodeChange, OnConnectEnd, OnNodeDrag } from "@xyflow/react";
-import type { ClassBoxNodeDescriptor, ClassBoxPlacementChange } from "./frameworkAdapters";
-import { toClassBoxPlacementChanges, toRelationshipConnection } from "./frameworkAdapters";
-import type { ClassId } from "../../../../../shared/ids";
+import type {
+  ClassBoxNodeDescriptor,
+  ClassBoxPlacementChange,
+  RelationshipEdgeDescriptor,
+} from "./frameworkAdapters";
+import {
+  toClassBoxPlacementChanges,
+  toRelationshipConnection,
+  toRelationshipReconnect,
+} from "./frameworkAdapters";
+import type { ClassId, RelationshipId } from "../../../../../shared/ids";
 
 type ReactFlowCanvasAdapterCallbacks = {
   readonly onClassBoxPlacementChange: (changes: readonly ClassBoxPlacementChange[]) => void;
   readonly onDragComplete: (finalPositions: readonly ClassBoxPlacementChange[]) => void;
   readonly onRelationshipConnect: (sourceClassId: ClassId, targetClassId: ClassId) => void;
+  readonly onRelationshipReconnect: (
+    relationshipId: RelationshipId,
+    end: "source" | "target",
+    newClassId: ClassId
+  ) => void;
   readonly onSelectionClear: () => void;
 };
 
@@ -21,6 +34,7 @@ type Interactions = {
   readonly onNodeDragStop: OnNodeDrag<ClassBoxNodeDescriptor>;
   readonly onConnect: (connection: Connection) => void;
   readonly onConnectEnd: OnConnectEnd;
+  readonly onReconnect: (oldEdge: RelationshipEdgeDescriptor, newConnection: Connection) => void;
   readonly onPaneClick: (event: ReactMouseEvent) => void;
 };
 
@@ -71,6 +85,20 @@ export function useInteractions(callbacks: ReactFlowCanvasAdapterCallbacks): Int
   );
 
   // Framework prop and event adaptation
+  const onReconnect = useCallback(
+    (oldEdge: RelationshipEdgeDescriptor, newConnection: Connection) => {
+      const reconnect = toRelationshipReconnect(oldEdge, newConnection);
+      if (!reconnect) return;
+      callbacks.onRelationshipReconnect(
+        reconnect.relationshipId,
+        reconnect.end,
+        reconnect.newClassId
+      );
+    },
+    [callbacks]
+  );
+
+  // Framework prop and event adaptation
   const onPaneClick = useCallback(
     (event: ReactMouseEvent) => {
       if (event.target !== event.currentTarget) return;
@@ -79,5 +107,5 @@ export function useInteractions(callbacks: ReactFlowCanvasAdapterCallbacks): Int
     [callbacks]
   );
 
-  return { onNodesChange, onNodeDragStop, onConnect, onConnectEnd, onPaneClick };
+  return { onNodesChange, onNodeDragStop, onConnect, onConnectEnd, onReconnect, onPaneClick };
 }

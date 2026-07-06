@@ -6,19 +6,29 @@
 import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { ClassId, RelationshipId, StyleDefId } from "../../../shared/ids";
+import { toRelationshipId } from "../../../shared/ids";
 import type {
   NodePlacementState,
   RelationshipSeed,
   SelectionState,
 } from "../../state/editorStates";
+import type { RelationshipView } from "../../views/schema";
 import { useDispatchTransaction } from "../../contexts";
-import { toRelationshipCreateTransaction } from "./transactions";
+import {
+  toRelationshipCreateTransaction,
+  toRelationshipReconnectTransaction,
+} from "./transactions";
 
 type Interactions = {
   readonly onClassPlacementStart: () => void;
   readonly onRelationshipPlacementStart: (seed: RelationshipSeed) => void;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
   readonly onRelationshipConnect: (sourceClassId: ClassId, targetClassId: ClassId) => void;
+  readonly onRelationshipReconnect: (
+    relationshipId: RelationshipId,
+    end: "source" | "target",
+    newClassId: ClassId
+  ) => void;
   readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
   readonly onRelationshipDuplicate: (seed: RelationshipSeed) => void;
   readonly onStyleSelect: (styleDefId: StyleDefId) => void;
@@ -27,12 +37,14 @@ type Interactions = {
 };
 
 type UseInteractionsInput = {
+  readonly relationships: readonly RelationshipView[];
   readonly nodePlacementState: NodePlacementState;
   readonly setSelectionState: Dispatch<SetStateAction<SelectionState>>;
   readonly setNodePlacementState: Dispatch<SetStateAction<NodePlacementState>>;
 };
 
 export function useInteractions({
+  relationships,
   nodePlacementState,
   setSelectionState,
   setNodePlacementState,
@@ -78,6 +90,30 @@ export function useInteractions({
     [dispatchTransaction, nodePlacementState, setNodePlacementState, setSelectionState]
   );
 
+  const onRelationshipReconnect = useCallback(
+    (relationshipId: RelationshipId, end: "source" | "target", newClassId: ClassId) => {
+      const relationship = relationships.find(
+        (relationshipView) => relationshipView.relationshipId === relationshipId
+      );
+      if (!relationship) return;
+      const existingClassId =
+        end === "source" ? relationship.sourceClassId : relationship.targetClassId;
+      if (existingClassId === newClassId) return;
+
+      // Implementing interaction through command transaction
+      dispatchTransaction(toRelationshipReconnectTransaction(relationshipId, end, newClassId));
+      setSelectionState((selectionState) =>
+        selectionState.kind === "relationship" && selectionState.relationshipId === relationshipId
+          ? updateSelectedRelationshipId(
+              selectionState,
+              toPredictedReconnectedRelationshipId(relationship, end, newClassId)
+            )
+          : selectionState
+      );
+    },
+    [dispatchTransaction, relationships, setSelectionState]
+  );
+
   const onRelationshipSelect = useCallback(
     (relationshipId: RelationshipId) => {
       if (nodePlacementState?.kind === "relationship") return;
@@ -120,6 +156,7 @@ export function useInteractions({
     onRelationshipPlacementStart,
     onClassSelect,
     onRelationshipConnect,
+    onRelationshipReconnect,
     onRelationshipSelect,
     onRelationshipDuplicate,
     onStyleSelect,
@@ -138,6 +175,20 @@ function updateSelectedRelationshipId(
 }
 
 // Private helpers
+function toPredictedReconnectedRelationshipId(
+  relationship: RelationshipView,
+  end: "source" | "target",
+  newClassId: ClassId
+): RelationshipId {
+  const relationshipId = relationship.relationshipId;
+  const indexStart = relationshipId.lastIndexOf("--");
+  const index = indexStart === -1 ? "0" : relationshipId.slice(indexStart + 2);
+  const sourceClassId = end === "source" ? newClassId : relationship.sourceClassId;
+  const targetClassId = end === "target" ? newClassId : relationship.targetClassId;
+  // Shiny: mirrors buildRelationshipEdge id derivation `${source}--${target}--${index}`.
+  return toRelationshipId(`${sourceClassId}--${targetClassId}--${index}`);
+}
+
 function updateSelectedClassIds(
   selectionState: SelectionState,
   classId: ClassId,

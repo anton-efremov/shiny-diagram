@@ -43,6 +43,12 @@ export type RelationshipConnection = {
   readonly targetClassId: ClassId;
 };
 
+export type RelationshipReconnect = {
+  readonly relationshipId: RelationshipId;
+  readonly end: "source" | "target";
+  readonly newClassId: ClassId;
+};
+
 // Framework prop and event adaptation
 export function toClassBoxNodeDescriptors(
   classes: readonly ClassView[],
@@ -88,12 +94,38 @@ export function toRelationshipConnection(connection: Connection): RelationshipCo
     : null;
 }
 
+// Framework command adaptation
+export function toRelationshipReconnect(
+  oldEdge: RelationshipEdgeDescriptor,
+  newConnection: Connection
+): RelationshipReconnect | null {
+  const relationshipView = oldEdge.data?.view;
+  if (!relationshipView || !newConnection.source || !newConnection.target) return null;
+
+  const sourceChanged = relationshipView.sourceClassId !== newConnection.source;
+  const targetChanged = relationshipView.targetClassId !== newConnection.target;
+  if (sourceChanged === targetChanged) return null;
+
+  return sourceChanged
+    ? {
+        relationshipId: relationshipView.relationshipId,
+        end: "source",
+        newClassId: newConnection.source as ClassId,
+      }
+    : {
+        relationshipId: relationshipView.relationshipId,
+        end: "target",
+        newClassId: newConnection.target as ClassId,
+      };
+}
+
 // Framework prop and event adaptation
 export function toRelationshipEdgeDescriptors(
   classes: readonly ClassView[],
   relationships: readonly RelationshipView[],
   selectionState: SelectionState,
   classBoxPlacementState: ClassBoxPlacementState,
+  isRelationshipPlacementArmed: boolean,
   onRelationshipSelect: (relationshipId: RelationshipId) => void
 ): RelationshipEdgeDescriptor[] {
   const classesById = new Map(
@@ -127,6 +159,7 @@ export function toRelationshipEdgeDescriptors(
           onRelationshipSelect,
         },
         type: "relationship",
+        reconnectable: !isRelationshipPlacementArmed,
         selectable: false,
         focusable: false,
       },

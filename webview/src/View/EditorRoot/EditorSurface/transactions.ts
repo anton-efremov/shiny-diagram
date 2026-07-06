@@ -1,8 +1,8 @@
 /**
- * @behavior Relationship creation transaction derivation.
+ * @behavior Relationship creation and reconnect transaction derivation.
  */
 
-import type { ClassId } from "../../../shared/ids";
+import type { ClassId, RelationshipId } from "../../../shared/ids";
 import type { EditorCommandTransaction } from "../../commands/editorCommands";
 import type { RelationshipSeed } from "../../state/editorStates";
 
@@ -27,5 +27,17 @@ export function toRelationshipCreateTransaction(
       lineKind: seed.lineKind,
       label: seed.label,
     },
+  ];
+}
+
+export function toRelationshipReconnectTransaction(
+  relationshipId: RelationshipId,
+  end: "source" | "target",
+  newClassId: ClassId
+): EditorCommandTransaction {
+  return [
+    end === "source"
+      ? { type: "relationship.source.class.set", relationshipId, classId: newClassId }
+      : { type: "relationship.target.class.set", relationshipId, classId: newClassId },
   ];
 }

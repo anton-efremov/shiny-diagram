@@ -37,12 +37,18 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
     onRelationshipPlacementStart,
     onClassSelect,
     onRelationshipConnect,
+    onRelationshipReconnect,
     onRelationshipSelect,
     onRelationshipDuplicate,
     onStyleSelect,
     onSelectionClear,
     onPlacementComplete,
-  } = useInteractions({ nodePlacementState, setSelectionState, setNodePlacementState });
+  } = useInteractions({
+    relationships: view.relationships,
+    nodePlacementState,
+    setSelectionState,
+    setNodePlacementState,
+  });
 
   return (
     <section className={styles.editorShell} aria-label="Class diagram editor">
@@ -58,6 +64,7 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
           nodePlacementState={nodePlacementState}
           onClassSelect={onClassSelect}
           onRelationshipConnect={onRelationshipConnect}
+          onRelationshipReconnect={onRelationshipReconnect}
           onRelationshipSelect={onRelationshipSelect}
           onSelectionClear={onSelectionClear}
           onPlacementComplete={onPlacementComplete}

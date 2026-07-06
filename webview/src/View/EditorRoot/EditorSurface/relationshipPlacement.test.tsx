@@ -5,7 +5,12 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { toClassId, type ClassId } from "../../../shared/ids";
+import {
+  toClassId,
+  toRelationshipId,
+  type ClassId,
+  type RelationshipId,
+} from "../../../shared/ids";
 import type { EditorCommandTransaction } from "../../commands/editorCommands";
 import { CommandDispatchProvider } from "../../contexts";
 import type { DiagramView } from "../../views/schema";
@@ -91,6 +96,30 @@ describe("relationship placement", () => {
     fireEvent.click(screen.getByTestId("invalid-connect-end"));
     expect(onSelectionClear).toHaveBeenCalledTimes(2);
   });
+
+  test("dispatches relationship class set for changed reconnect endpoints only", () => {
+    const onTransactionDispatch = vi.fn<(transaction: EditorCommandTransaction) => void>();
+
+    render(
+      <CommandDispatchProvider onTransactionDispatch={onTransactionDispatch}>
+        <EditorSurface view={diagramView} />
+      </CommandDispatchProvider>
+    );
+
+    fireEvent.click(screen.getByTestId("reconnect-source-c"));
+    expect(onTransactionDispatch).toHaveBeenCalledTimes(1);
+    expect(onTransactionDispatch).toHaveBeenCalledWith([
+      {
+        type: "relationship.source.class.set",
+        relationshipId: toRelationshipId("A--B--0"),
+        classId: toClassId("C"),
+      },
+    ]);
+
+    onTransactionDispatch.mockClear();
+    fireEvent.click(screen.getByTestId("reconnect-source-a"));
+    expect(onTransactionDispatch).not.toHaveBeenCalled();
+  });
 });
 
 const diagramView: DiagramView = {
@@ -107,19 +136,40 @@ const diagramView: DiagramView = {
       header: { label: "B" },
       members: [],
     },
+    {
+      classId: toClassId("C"),
+      bounds: { x: 440, y: 0, w: 140, h: 80 },
+      header: { label: "C" },
+      members: [],
+    },
   ],
   namespaces: [],
-  relationships: [],
+  relationships: [
+    {
+      relationshipId: toRelationshipId("A--B--0"),
+      sourceClassId: toClassId("A"),
+      targetClassId: toClassId("B"),
+      sourceEndpointKind: "triangle",
+      targetEndpointKind: "none",
+      lineKind: "solid",
+    },
+  ],
   styles: [],
 };
 
 type MockReactFlowCanvasAdapterProps = {
   readonly onRelationshipConnect: (sourceClassId: ClassId, targetClassId: ClassId) => void;
+  readonly onRelationshipReconnect: (
+    relationshipId: RelationshipId,
+    end: "source" | "target",
+    newClassId: ClassId
+  ) => void;
   readonly onSelectionClear: () => void;
 };
 
 function MockReactFlowCanvasAdapter({
   onRelationshipConnect,
+  onRelationshipReconnect,
   onSelectionClear,
 }: MockReactFlowCanvasAdapterProps): ReactElement {
   return (
@@ -133,6 +183,24 @@ function MockReactFlowCanvasAdapter({
       </button>
       <button type="button" data-testid="cancel-placement" onClick={onSelectionClear}>
         Cancel placement
+      </button>
+      <button
+        type="button"
+        data-testid="reconnect-source-c"
+        onClick={() =>
+          onRelationshipReconnect(toRelationshipId("A--B--0"), "source", toClassId("C"))
+        }
+      >
+        Reconnect source to C
+      </button>
+      <button
+        type="button"
+        data-testid="reconnect-source-a"
+        onClick={() =>
+          onRelationshipReconnect(toRelationshipId("A--B--0"), "source", toClassId("A"))
+        }
+      >
+        Reconnect source to A
       </button>
     </div>
   );
@@ -151,6 +219,7 @@ function ReactFlowInteractionProbe({
     onClassBoxPlacementChange: () => {},
     onDragComplete: () => {},
     onRelationshipConnect: () => {},
+    onRelationshipReconnect: () => {},
     onSelectionClear,
   });
 

@@ -20,6 +20,11 @@ type DiagramCanvasProps = {
   readonly nodePlacementState: NodePlacementState;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
   readonly onRelationshipConnect: (sourceClassId: ClassId, targetClassId: ClassId) => void;
+  readonly onRelationshipReconnect: (
+    relationshipId: RelationshipId,
+    end: "source" | "target",
+    newClassId: ClassId
+  ) => void;
   readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
   readonly onSelectionClear: () => void;
   readonly onPlacementComplete: () => void;
@@ -31,6 +36,7 @@ export default function DiagramCanvas({
   nodePlacementState,
   onClassSelect,
   onRelationshipConnect,
+  onRelationshipReconnect,
   onRelationshipSelect,
   onSelectionClear,
   onPlacementComplete,
@@ -63,6 +69,7 @@ export default function DiagramCanvas({
         onDragComplete={onDragComplete}
         onClassSelect={onClassSelect}
         onRelationshipConnect={onRelationshipConnect}
+        onRelationshipReconnect={onRelationshipReconnect}
         onRelationshipSelect={onRelationshipSelect}
         onSelectionClear={onSelectionClear}
         onPlacementComplete={onPlacementComplete}
