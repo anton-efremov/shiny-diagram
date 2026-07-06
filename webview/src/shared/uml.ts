@@ -19,7 +19,8 @@ export type RelationshipEndpointKind =
   | "arrow"
   | "triangle"
   | "composition"
-  | "aggregation";
+  | "aggregation"
+  | "lollipop";
 
 export type RelationshipLineKind = "solid" | "dashed";
 
@@ -29,14 +30,19 @@ export type RelationshipEndpoint = {
   readonly endpointKind: RelationshipEndpointKind;
 };
 
+/**
+ * Authoring-preset vocabulary for UI relationship creation.
+ *
+ * RelationshipType is not a stored graph, provenance, view, or command type.
+ * Stored relationships use decomposed endpoint and line kinds.
+ */
 export type RelationshipType =
   | "association"
+  | "bidirectionalAssociation"
   | "solidLink"
   | "dashedLink"
   | "inheritance"
   | "composition"
   | "aggregation"
   | "dependency"
-  | "realization"
-  | "twoWay"
-  | "lollipop";
+  | "realization";

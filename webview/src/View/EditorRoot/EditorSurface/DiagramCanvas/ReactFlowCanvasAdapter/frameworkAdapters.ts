@@ -94,6 +94,7 @@ export function toRelationshipEdgeDescriptors(
         targetHandle: `target-${targetSide}`,
         label: rel.label,
         type: "default",
+        style: rel.lineKind === "dashed" ? { strokeDasharray: "6 4" } : undefined,
         selectable: false,
         focusable: false,
       },

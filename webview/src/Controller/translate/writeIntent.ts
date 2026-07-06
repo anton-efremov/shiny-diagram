@@ -28,6 +28,7 @@
 import type {
   AttributeId,
   ClassId,
+  LollipopInterfaceId,
   MethodId,
   NamespaceId,
   NoteId,
@@ -48,6 +49,7 @@ export type StatementRef =
   | { readonly kind: "blockMember"; readonly memberId: AttributeId | MethodId }
   | { readonly kind: "shortMember"; readonly memberId: AttributeId | MethodId }
   | { readonly kind: "relationship"; readonly relationshipId: RelationshipId }
+  | { readonly kind: "lollipopInterface"; readonly lollipopInterfaceId: LollipopInterfaceId }
   | { readonly kind: "styleDefinition"; readonly styleDefId: StyleDefId }
   | { readonly kind: "classDirectStyle"; readonly classId: ClassId }
   | { readonly kind: "styleApplication"; readonly styleApplicationId: StyleApplicationId }
