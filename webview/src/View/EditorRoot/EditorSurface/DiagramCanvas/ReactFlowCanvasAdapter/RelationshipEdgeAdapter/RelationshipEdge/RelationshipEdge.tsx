@@ -94,7 +94,7 @@ export default function RelationshipEdge({
         markerEnd={toMarkerUrl(targetMarkerId, view.targetEndpointKind)}
         strokeDasharray={view.lineKind === "dashed" ? "6 4" : undefined}
       />
-      {view.sourceMultiplicity || isSelected ? (
+      {view.sourceMultiplicity ? (
         <EditableText
           target="sourceMultiplicity"
           x={sourceMultiplicityX}
@@ -109,7 +109,7 @@ export default function RelationshipEdge({
           onDraftBlur={onDraftBlur}
         />
       ) : null}
-      {view.targetMultiplicity || isSelected ? (
+      {view.targetMultiplicity ? (
         <EditableText
           target="targetMultiplicity"
           x={targetMultiplicityX}
@@ -124,7 +124,7 @@ export default function RelationshipEdge({
           onDraftBlur={onDraftBlur}
         />
       ) : null}
-      {view.label || isSelected ? (
+      {view.label ? (
         <EditableText
           target="label"
           x={labelX}

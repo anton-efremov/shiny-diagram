@@ -30,8 +30,11 @@ direction TB
 	    +addCommunicationChannel(CommunicationChannel channel) void
 	    +removeCommunicationChannel(UUID channelId) void
 
-	    UserContact <-- ConversationThread
+	    UserContact "0..1" <|.. ConversationThread : Rel
     }
+
+	ConversationThread_1 --> ConversationThread
+	ConversationThread_1 ..> ConversationThread_2
 
 
     %% Native Style Applications
@@ -50,7 +53,7 @@ direction TB
 
     %% @spatial:ConversationThread x=-472 y=-40 w=228 h=210
     %% @spatial:ConversationThread_2 x=-104 y=179 w=228 h=210
-    %% @spatial:ConversationThread_1 x=-393 y=239 w=228 h=210
+    %% @spatial:ConversationThread_1 x=-409 y=277 w=228 h=210
     %% @spatial:UserContact x=36 y=-51 w=200 h=150
 
 
