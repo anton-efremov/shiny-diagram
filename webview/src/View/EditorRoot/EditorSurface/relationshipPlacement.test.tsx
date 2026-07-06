@@ -2,18 +2,24 @@
  * @fileoverview Relationship placement interaction regression tests.
  */
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactElement } from "react";
-import { describe, expect, test, vi } from "vitest";
-import { toClassId } from "../../../shared/ids";
+import { afterEach, describe, expect, test, vi } from "vitest";
+import { toClassId, type ClassId } from "../../../shared/ids";
 import type { EditorCommandTransaction } from "../../commands/editorCommands";
 import { CommandDispatchProvider } from "../../contexts";
 import type { DiagramView } from "../../views/schema";
 import EditorSurface from "./EditorSurface";
 import { useInteractions as useReactFlowCanvasInteractions } from "./DiagramCanvas/ReactFlowCanvasAdapter/useInteractions";
 
+vi.mock("./DiagramCanvas/ReactFlowCanvasAdapter/ReactFlowCanvasAdapter", () => ({
+  default: MockReactFlowCanvasAdapter,
+}));
+
+afterEach(() => cleanup());
+
 describe("relationship placement", () => {
-  test("keeps placement armed after the source class click and creates one relationship", async () => {
+  test("arms placement and creates one relationship through the connection seam", async () => {
     const onTransactionDispatch = vi.fn<(transaction: EditorCommandTransaction) => void>();
 
     render(
@@ -27,11 +33,9 @@ describe("relationship placement", () => {
     fireEvent.click(inheritanceButton);
     expect(inheritanceButton).toHaveAttribute("aria-pressed", "true");
 
-    fireEvent.click(screen.getByText("A"));
-    expect(inheritanceButton).toHaveAttribute("aria-pressed", "true");
-    expect(onTransactionDispatch).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByText("B"));
+    // Known jsdom limitation: React Flow connection drags cannot be simulated
+    // faithfully here, so this test drives EditorSurface's adapter callback seam.
+    fireEvent.click(screen.getByTestId("connect-a-b"));
 
     await waitFor(() => expect(onTransactionDispatch).toHaveBeenCalledTimes(1));
     expect(onTransactionDispatch).toHaveBeenCalledWith([
@@ -51,18 +55,41 @@ describe("relationship placement", () => {
         label: null,
       },
     ]);
+    expect(inheritanceButton).not.toHaveAttribute("aria-pressed", "true");
   });
 
-  test("clears only direct pane background clicks", () => {
+  test("cancels placement through the adapter seam", () => {
+    const onTransactionDispatch = vi.fn<(transaction: EditorCommandTransaction) => void>();
+
+    render(
+      <CommandDispatchProvider onTransactionDispatch={onTransactionDispatch}>
+        <EditorSurface view={diagramView} />
+      </CommandDispatchProvider>
+    );
+
+    const inheritanceButton = screen.getByRole("button", { name: "Inheritance" });
+
+    fireEvent.click(inheritanceButton);
+    expect(inheritanceButton).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(screen.getByTestId("cancel-placement"));
+    expect(inheritanceButton).not.toHaveAttribute("aria-pressed", "true");
+    expect(onTransactionDispatch).not.toHaveBeenCalled();
+  });
+
+  test("clears only direct pane background clicks and invalid connection endings", () => {
     const onSelectionClear = vi.fn();
 
-    render(<ReactFlowPaneClickProbe onSelectionClear={onSelectionClear} />);
+    render(<ReactFlowInteractionProbe onSelectionClear={onSelectionClear} />);
 
     fireEvent.click(screen.getByTestId("pane-child"));
     expect(onSelectionClear).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByTestId("pane"));
     expect(onSelectionClear).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByTestId("invalid-connect-end"));
+    expect(onSelectionClear).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -86,22 +113,72 @@ const diagramView: DiagramView = {
   styles: [],
 };
 
-type ReactFlowPaneClickProbeProps = {
+type MockReactFlowCanvasAdapterProps = {
+  readonly onRelationshipConnect: (sourceClassId: ClassId, targetClassId: ClassId) => void;
   readonly onSelectionClear: () => void;
 };
 
-function ReactFlowPaneClickProbe({ onSelectionClear }: ReactFlowPaneClickProbeProps): ReactElement {
+function MockReactFlowCanvasAdapter({
+  onRelationshipConnect,
+  onSelectionClear,
+}: MockReactFlowCanvasAdapterProps): ReactElement {
+  return (
+    <div>
+      <button
+        type="button"
+        data-testid="connect-a-b"
+        onClick={() => onRelationshipConnect(toClassId("A"), toClassId("B"))}
+      >
+        Connect A to B
+      </button>
+      <button type="button" data-testid="cancel-placement" onClick={onSelectionClear}>
+        Cancel placement
+      </button>
+    </div>
+  );
+}
+
+type ReactFlowInteractionProbeProps = {
+  readonly onSelectionClear: () => void;
+};
+
+function ReactFlowInteractionProbe({
+  onSelectionClear,
+}: ReactFlowInteractionProbeProps): ReactElement {
   // Known jsdom limitation: React Flow's pane onClick does not fire reliably
   // through the mocked canvas, so this test drives the adapter callback directly.
-  const { onPaneClick } = useReactFlowCanvasInteractions({
+  const { onConnectEnd, onPaneClick } = useReactFlowCanvasInteractions({
     onClassBoxPlacementChange: () => {},
     onDragComplete: () => {},
+    onRelationshipConnect: () => {},
     onSelectionClear,
   });
 
   return (
-    <div data-testid="pane" onClick={onPaneClick}>
-      <div data-testid="pane-child" />
-    </div>
+    <>
+      <div data-testid="pane" onClick={onPaneClick}>
+        <div data-testid="pane-child" />
+      </div>
+      <button
+        type="button"
+        data-testid="invalid-connect-end"
+        onClick={() =>
+          onConnectEnd(new MouseEvent("mouseup"), {
+            isValid: false,
+            from: null,
+            fromHandle: null,
+            fromPosition: null,
+            fromNode: null,
+            to: null,
+            toHandle: null,
+            toPosition: null,
+            toNode: null,
+            pointer: null,
+          })
+        }
+      >
+        Invalid connect end
+      </button>
+    </>
   );
 }

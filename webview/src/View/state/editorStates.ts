@@ -46,7 +46,6 @@ export type NodePlacementState =
   | {
       readonly kind: "relationship";
       readonly seed: RelationshipSeed;
-      readonly pendingSourceClassId: ClassId | null;
     };
 
 export type RelationshipSeed = {

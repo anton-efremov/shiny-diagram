@@ -16,15 +16,15 @@
 
 **Relationship type is a ToolPane-only concept.** Each button owns a fixed mapping from its label to a marker/line/marker combo (Inheritance → `{triangle, solid, none}`, Bidirectional association → `{arrow, solid, arrow}`, and so on). The button resolves the combo and passes the combo up; nothing outside `RelationshipTools.tsx` ever sees a type name. Acceptance check: `RelationshipType` is imported by exactly one file. The pressed-button look works the same way — the button compares the armed combo in placement state against its own combo; no type name is stored.
 
-**Placement mode (two-click create).** `NodePlacementState` grows a relationship arm:
+**Placement mode (drag-to-connect create).** `NodePlacementState` has a relationship arm:
 
-- payload: the seed (source marker, line, target marker, source/target multiplicity, label) + `pendingSourceClassId: ClassId | null`
+- payload: the seed (source marker, line, target marker, source/target multiplicity, label)
 - entered from a ToolPane button (seed = preset combo, empty multiplicities, no label) or from [Duplicate] (seed = copy of the selected relationship's attributes)
-- first class-box click → store as pending source; second class-box click → dispatch `relationship.create` from seed + the two picked classes, exit placement
-- click anywhere that is not a class box → cancel, exit placement
+- drag from source class box → release on target class box → dispatch `relationship.create` from seed + the two connected classes, exit placement
+- release on background or click empty canvas → cancel, exit placement
 - selection is none after placement completes or cancels (per spec)
-- class-box clicks are arbitrated at the owner through the existing `onClassSelect` seam: placement active → the click is a pick; placement inactive → the click is a selection
-- open design point for the brief: who owns this state (DiagramCanvas owns `NodePlacementState` today, EditorSurface owns selection — the two interact here), and whether the first pick gets visual feedback (highlight picked box / ghost edge). Spec is silent on feedback.
+- class-box clicks are suppressed while relationship placement is armed; creation enters through React Flow's connection seam
+- ghost edge feedback follows the cursor while dragging
 
 **Selection wiring.** The `relationship` selection variant already exists in the union; nothing constructs it yet. This feature: adds `onRelationshipSelect` to the owner's interactions; turns the reconciliation `relationship` arm into a real existence check against `view.relationships` (today it silently keeps the selection); replaces StylePane's `relationship → Empty` placeholder with RelationshipStylePane. Single-relationship selection is structural in the union — no work needed.
 

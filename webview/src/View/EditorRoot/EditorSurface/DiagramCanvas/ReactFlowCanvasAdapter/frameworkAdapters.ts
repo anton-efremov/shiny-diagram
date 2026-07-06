@@ -3,6 +3,7 @@
  */
 
 import type {
+  Connection,
   Edge as ReactFlowEdge,
   Node as ReactFlowNode,
   NodeChange as ReactFlowNodeChange,
@@ -16,6 +17,7 @@ export type ClassBoxNodeData = {
   readonly view: ClassView;
   readonly isSelected: boolean;
   readonly isResizeVisible: boolean;
+  readonly isConnectSourceEnabled: boolean;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
 };
 
@@ -36,11 +38,17 @@ export type ClassBoxPlacementChange = {
   readonly h?: number;
 };
 
+export type RelationshipConnection = {
+  readonly sourceClassId: ClassId;
+  readonly targetClassId: ClassId;
+};
+
 // Framework prop and event adaptation
 export function toClassBoxNodeDescriptors(
   classes: readonly ClassView[],
   selectedClassIds: readonly ClassId[],
   classBoxPlacementState: ClassBoxPlacementState,
+  isConnectSourceEnabled: boolean,
   onClassSelect: (classId: ClassId, additive: boolean) => void
 ): ClassBoxNodeDescriptor[] {
   const selected = new Set<ClassId>(selectedClassIds);
@@ -57,6 +65,7 @@ export function toClassBoxNodeDescriptors(
           view: classView,
           isSelected: selected.has(classView.classId),
           isResizeVisible: selected.size === 1 && selected.has(classView.classId),
+          isConnectSourceEnabled,
           onClassSelect,
         },
         selectable: false,
@@ -67,6 +76,16 @@ export function toClassBoxNodeDescriptors(
       },
     ];
   });
+}
+
+// Framework command adaptation
+export function toRelationshipConnection(connection: Connection): RelationshipConnection | null {
+  return connection.source && connection.target
+    ? {
+        sourceClassId: connection.source as ClassId,
+        targetClassId: connection.target as ClassId,
+      }
+    : null;
 }
 
 // Framework prop and event adaptation

@@ -14,18 +14,7 @@
 
 .hitPath {
   cursor: pointer;
-}
-
-.openMarker {
-  fill: var(--shiny-surface);
-  stroke: var(--shiny-text-muted);
-  stroke-width: 1.5;
-}
-
-.filledMarker {
-  fill: var(--shiny-text-muted);
-  stroke: var(--shiny-text-muted);
-  stroke-width: 1.5;
+  pointer-events: stroke;
 }
 
 .textObject {
@@ -41,6 +30,7 @@
   background: var(--shiny-surface);
   color: var(--shiny-text);
   font: 12px var(--shiny-font-family);
+  pointer-events: all;
   text-align: center;
 }
 

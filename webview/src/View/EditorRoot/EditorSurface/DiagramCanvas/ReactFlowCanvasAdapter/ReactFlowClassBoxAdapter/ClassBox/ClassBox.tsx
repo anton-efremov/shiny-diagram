@@ -18,6 +18,7 @@ type ClassBoxProps = {
   readonly isSelected: boolean;
   readonly isDragging: boolean;
   readonly isResizeVisible: boolean;
+  readonly isConnectSourceEnabled: boolean;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
 };
 
@@ -43,6 +44,7 @@ export default function ClassBox({
   isSelected,
   isDragging,
   isResizeVisible,
+  isConnectSourceEnabled,
   onClassSelect,
 }: ClassBoxProps): ReactElement {
   // Event handler props derivation
@@ -81,6 +83,8 @@ export default function ClassBox({
       <ReactFlowConnectionHandlesAdapter
         handles={CONNECTION_HANDLES}
         className={styles.connectionHandle}
+        connectSourceClassName={styles.connectSourceHandle}
+        isConnectSourceEnabled={isConnectSourceEnabled}
       />
       <header className={styles.header}>
         {view.header.stereotype ? (

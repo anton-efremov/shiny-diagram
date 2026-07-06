@@ -1,93 +1,18 @@
 /**
- * @fileoverview Translates relationship edits and deletion into write intents.
+ * @fileoverview Shared helpers for relationship edit translate workers.
  */
 
-import type { EditorCommandOf } from "../../../View/commands";
 import type { RelationshipId } from "../../../shared/ids";
 import type { RelationshipEndpointKind, RelationshipLineKind } from "../../../shared/uml";
 import type { RelationshipEdge } from "../../model/diagramGraph";
+import type { DiagramGraph } from "../../model/diagramGraph";
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { SourceSpan } from "../../model/sourceEdit";
-import type { DiagramGraph } from "../../model/diagramGraph";
 import type { StatementAnchor, StatementRef, WriteIntent } from "../writeIntent";
 import { anchorBlockOpening } from "../anchors/statementAnchors";
 import { composeRelationshipOperator, composeRelationshipStatement } from "./relationshipSyntax";
 
-export function translateRelationshipDelete(
-  command: EditorCommandOf<"relationship.delete">
-): WriteIntent[] {
-  return [
-    {
-      kind: "deleteStatement",
-      target: { kind: "relationship", relationshipId: command.relationshipId },
-    },
-  ];
-}
-
-export function translateRelationshipSourceClassSet(
-  command: EditorCommandOf<"relationship.source.class.set">
-): WriteIntent[] {
-  return [
-    {
-      kind: "replaceValue",
-      target: {
-        kind: "relationshipEndpoint",
-        relationshipId: command.relationshipId,
-        side: "source",
-      },
-      payload: command.classId,
-    },
-  ];
-}
-
-export function translateRelationshipTargetClassSet(
-  command: EditorCommandOf<"relationship.target.class.set">
-): WriteIntent[] {
-  return [
-    {
-      kind: "replaceValue",
-      target: {
-        kind: "relationshipEndpoint",
-        relationshipId: command.relationshipId,
-        side: "target",
-      },
-      payload: command.classId,
-    },
-  ];
-}
-
-export function translateRelationshipSourceEndpointKindSet(
-  command: EditorCommandOf<"relationship.source.endpointKind.set">,
-  graph: DiagramGraph
-): WriteIntent[] {
-  const relationship = graph.relationships.get(command.relationshipId);
-  if (!relationship) return [];
-  return replaceOperator(command.relationshipId, relationship, {
-    sourceEndpointKind: command.endpointKind,
-  });
-}
-
-export function translateRelationshipTargetEndpointKindSet(
-  command: EditorCommandOf<"relationship.target.endpointKind.set">,
-  graph: DiagramGraph
-): WriteIntent[] {
-  const relationship = graph.relationships.get(command.relationshipId);
-  if (!relationship) return [];
-  return replaceOperator(command.relationshipId, relationship, {
-    targetEndpointKind: command.endpointKind,
-  });
-}
-
-export function translateRelationshipLineKindSet(
-  command: EditorCommandOf<"relationship.lineKind.set">,
-  graph: DiagramGraph
-): WriteIntent[] {
-  const relationship = graph.relationships.get(command.relationshipId);
-  if (!relationship) return [];
-  return replaceOperator(command.relationshipId, relationship, { lineKind: command.lineKind });
-}
-
-export function translateRelationshipOperatorPatch(
+export function replaceRelationshipOperator(
   relationshipId: RelationshipId,
   graph: DiagramGraph,
   patch: Partial<{
@@ -98,72 +23,6 @@ export function translateRelationshipOperatorPatch(
 ): WriteIntent[] {
   const relationship = graph.relationships.get(relationshipId);
   if (!relationship) return [];
-  return replaceOperator(relationshipId, relationship, patch);
-}
-
-export function translateRelationshipSourceMultiplicitySet(
-  command: EditorCommandOf<"relationship.source.multiplicity.set">,
-  graph: DiagramGraph,
-  provenance: ProvenanceIndex
-): WriteIntent[] {
-  const relationship = graph.relationships.get(command.relationshipId);
-  if (!relationship) return [];
-  const existing = relationship.source.multiplicity;
-  if (existing === command.multiplicity) return [];
-  if (existing !== null && command.multiplicity !== null) {
-    return replaceMultiplicity(command.relationshipId, "source", command.multiplicity);
-  }
-  return rewriteRelationship(command.relationshipId, graph, provenance, {
-    sourceMultiplicity: command.multiplicity,
-  });
-}
-
-export function translateRelationshipTargetMultiplicitySet(
-  command: EditorCommandOf<"relationship.target.multiplicity.set">,
-  graph: DiagramGraph,
-  provenance: ProvenanceIndex
-): WriteIntent[] {
-  const relationship = graph.relationships.get(command.relationshipId);
-  if (!relationship) return [];
-  const existing = relationship.target.multiplicity;
-  if (existing === command.multiplicity) return [];
-  if (existing !== null && command.multiplicity !== null) {
-    return replaceMultiplicity(command.relationshipId, "target", command.multiplicity);
-  }
-  return rewriteRelationship(command.relationshipId, graph, provenance, {
-    targetMultiplicity: command.multiplicity,
-  });
-}
-
-export function translateRelationshipLabelSet(
-  command: EditorCommandOf<"relationship.label.set">,
-  graph: DiagramGraph,
-  provenance: ProvenanceIndex
-): WriteIntent[] {
-  const relationship = graph.relationships.get(command.relationshipId);
-  if (!relationship) return [];
-  if (relationship.label === command.label) return [];
-  if (relationship.label !== null && command.label !== null) {
-    return [
-      {
-        kind: "replaceValue",
-        target: { kind: "relationshipLabel", relationshipId: command.relationshipId },
-        payload: command.label,
-      },
-    ];
-  }
-  return rewriteRelationship(command.relationshipId, graph, provenance, { label: command.label });
-}
-
-function replaceOperator(
-  relationshipId: RelationshipId,
-  relationship: RelationshipEdge,
-  patch: Partial<{
-    readonly sourceEndpointKind: RelationshipEndpointKind;
-    readonly targetEndpointKind: RelationshipEndpointKind;
-    readonly lineKind: RelationshipLineKind;
-  }>
-): WriteIntent[] {
   const operator = composeRelationshipOperator({
     sourceEndpointKind: patch.sourceEndpointKind ?? relationship.source.endpointKind,
     targetEndpointKind: patch.targetEndpointKind ?? relationship.target.endpointKind,
@@ -178,7 +37,7 @@ function replaceOperator(
   ];
 }
 
-function replaceMultiplicity(
+export function replaceRelationshipMultiplicity(
   relationshipId: RelationshipId,
   side: "source" | "target",
   multiplicity: string
@@ -198,7 +57,7 @@ type RelationshipRewritePatch = Partial<{
   readonly label: string | null;
 }>;
 
-function rewriteRelationship(
+export function rewriteRelationship(
   relationshipId: RelationshipId,
   graph: DiagramGraph,
   provenance: ProvenanceIndex,
@@ -209,24 +68,7 @@ function rewriteRelationship(
   return [
     {
       kind: "insertStatement",
-      payload: composeRelationshipStatement({
-        sourceClassId: relationship.source.classId,
-        targetClassId: relationship.target.classId,
-        sourceEndpointKind: relationship.source.endpointKind,
-        targetEndpointKind: relationship.target.endpointKind,
-        lineKind: relationship.lineKind,
-        sourceMultiplicity: patchedValue(
-          patch,
-          "sourceMultiplicity",
-          relationship.source.multiplicity
-        ),
-        targetMultiplicity: patchedValue(
-          patch,
-          "targetMultiplicity",
-          relationship.target.multiplicity
-        ),
-        label: patchedValue(patch, "label", relationship.label),
-      }),
+      payload: composeRewrittenRelationship(relationship, patch),
       anchor: anchorBeforeRelationship(relationshipId, provenance),
     },
     {
@@ -234,6 +76,22 @@ function rewriteRelationship(
       target: { kind: "relationship", relationshipId },
     },
   ];
+}
+
+function composeRewrittenRelationship(
+  relationship: RelationshipEdge,
+  patch: RelationshipRewritePatch
+): string {
+  return composeRelationshipStatement({
+    sourceClassId: relationship.source.classId,
+    targetClassId: relationship.target.classId,
+    sourceEndpointKind: relationship.source.endpointKind,
+    targetEndpointKind: relationship.target.endpointKind,
+    lineKind: relationship.lineKind,
+    sourceMultiplicity: patchedValue(patch, "sourceMultiplicity", relationship.source.multiplicity),
+    targetMultiplicity: patchedValue(patch, "targetMultiplicity", relationship.target.multiplicity),
+    label: patchedValue(patch, "label", relationship.label),
+  });
 }
 
 function hasPatch<Prop extends string>(patch: Partial<Record<Prop, unknown>>, prop: Prop): boolean {

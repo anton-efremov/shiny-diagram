@@ -6,8 +6,8 @@
 import { useState } from "react";
 import type { KeyboardEvent, MouseEvent, ReactElement } from "react";
 import type { RelationshipId } from "../../../../../../../shared/ids";
-import type { RelationshipEndpointKind } from "../../../../../../../shared/uml";
 import type { RelationshipView } from "../../../../../../views/schema";
+import RelationshipMarker from "../../RelationshipMarker/RelationshipMarker";
 import { useInteractions } from "./useInteractions";
 import styles from "./RelationshipEdge.module.css";
 
@@ -94,38 +94,42 @@ export default function RelationshipEdge({
         markerEnd={toMarkerUrl(targetMarkerId, view.targetEndpointKind)}
         strokeDasharray={view.lineKind === "dashed" ? "6 4" : undefined}
       />
-      <EditableText
-        target="sourceMultiplicity"
-        x={sourceMultiplicityX}
-        y={sourceMultiplicityY}
-        value={view.sourceMultiplicity ?? ""}
-        editTarget={editTarget}
-        draft={draft}
-        isSelected={isSelected}
-        onTextEditStart={onTextEditStart}
-        onDraftChange={onDraftChange}
-        onDraftKeyDown={onDraftKeyDown}
-        onDraftBlur={onDraftBlur}
-      />
-      <EditableText
-        target="targetMultiplicity"
-        x={targetMultiplicityX}
-        y={targetMultiplicityY}
-        value={view.targetMultiplicity ?? ""}
-        editTarget={editTarget}
-        draft={draft}
-        isSelected={isSelected}
-        onTextEditStart={onTextEditStart}
-        onDraftChange={onDraftChange}
-        onDraftKeyDown={onDraftKeyDown}
-        onDraftBlur={onDraftBlur}
-      />
-      {view.label ? (
+      {view.sourceMultiplicity || isSelected ? (
+        <EditableText
+          target="sourceMultiplicity"
+          x={sourceMultiplicityX}
+          y={sourceMultiplicityY}
+          value={view.sourceMultiplicity ?? ""}
+          editTarget={editTarget}
+          draft={draft}
+          isSelected={isSelected}
+          onTextEditStart={onTextEditStart}
+          onDraftChange={onDraftChange}
+          onDraftKeyDown={onDraftKeyDown}
+          onDraftBlur={onDraftBlur}
+        />
+      ) : null}
+      {view.targetMultiplicity || isSelected ? (
+        <EditableText
+          target="targetMultiplicity"
+          x={targetMultiplicityX}
+          y={targetMultiplicityY}
+          value={view.targetMultiplicity ?? ""}
+          editTarget={editTarget}
+          draft={draft}
+          isSelected={isSelected}
+          onTextEditStart={onTextEditStart}
+          onDraftChange={onDraftChange}
+          onDraftKeyDown={onDraftKeyDown}
+          onDraftBlur={onDraftBlur}
+        />
+      ) : null}
+      {view.label || isSelected ? (
         <EditableText
           target="label"
           x={labelX}
           y={labelY}
-          value={view.label}
+          value={view.label ?? ""}
           editTarget={editTarget}
           draft={draft}
           isSelected={isSelected}
@@ -200,55 +204,7 @@ function EditableText({
   );
 }
 
-type RelationshipMarkerProps = {
-  readonly id: string;
-  readonly endpointKind: RelationshipEndpointKind;
-  readonly side: "source" | "target";
-};
-
-function RelationshipMarker({
-  id,
-  endpointKind,
-  side,
-}: RelationshipMarkerProps): ReactElement | null {
-  const orient = side === "source" ? "auto-start-reverse" : "auto";
-  switch (endpointKind) {
-    case "none":
-      return null;
-    case "arrow":
-      return (
-        <marker id={id} markerWidth="10" markerHeight="10" refX="9" refY="5" orient={orient}>
-          <path d="M 1 1 L 9 5 L 1 9" className={styles.openMarker} />
-        </marker>
-      );
-    case "triangle":
-      return (
-        <marker id={id} markerWidth="12" markerHeight="12" refX="10" refY="6" orient={orient}>
-          <path d="M 1 1 L 10 6 L 1 11 Z" className={styles.openMarker} />
-        </marker>
-      );
-    case "composition":
-      return (
-        <marker id={id} markerWidth="14" markerHeight="10" refX="12" refY="5" orient={orient}>
-          <path d="M 1 5 L 6 1 L 12 5 L 6 9 Z" className={styles.filledMarker} />
-        </marker>
-      );
-    case "aggregation":
-      return (
-        <marker id={id} markerWidth="14" markerHeight="10" refX="12" refY="5" orient={orient}>
-          <path d="M 1 5 L 6 1 L 12 5 L 6 9 Z" className={styles.openMarker} />
-        </marker>
-      );
-    case "lollipop":
-      return (
-        <marker id={id} markerWidth="12" markerHeight="12" refX="10" refY="6" orient={orient}>
-          <circle cx="6" cy="6" r="4" className={styles.openMarker} />
-        </marker>
-      );
-  }
-}
-
 // Private helpers
-function toMarkerUrl(id: string, endpointKind: RelationshipEndpointKind): string | undefined {
+function toMarkerUrl(id: string, endpointKind: string): string | undefined {
   return endpointKind === "none" ? undefined : `url(#${id})`;
 }

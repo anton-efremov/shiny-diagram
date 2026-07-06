@@ -4,7 +4,14 @@
 
 import { useMemo } from "react";
 import type { ReactElement } from "react";
-import { Background, Controls, ReactFlow, ReactFlowProvider } from "@xyflow/react";
+import {
+  Background,
+  ConnectionMode,
+  Controls,
+  ReactFlow,
+  ReactFlowProvider,
+  type ConnectionLineComponent,
+} from "@xyflow/react";
 import type { ClassId, RelationshipId } from "../../../../../shared/ids";
 import type { DiagramView } from "../../../../views/schema";
 import type {
@@ -13,11 +20,12 @@ import type {
   SelectionState,
 } from "../../../../state/editorStates";
 import { reactFlowCanvasBoundaryProps } from "../../../../config/reactFlowConfig";
-import type { ClassBoxPlacementChange } from "./frameworkAdapters";
+import type { ClassBoxNodeDescriptor, ClassBoxPlacementChange } from "./frameworkAdapters";
 import { toClassBoxNodeDescriptors, toRelationshipEdgeDescriptors } from "./frameworkAdapters";
 import { useInteractions } from "./useInteractions";
 import PlacementOverlay from "./PlacementOverlay/PlacementOverlay";
 import ReactFlowClassBoxNodeAdapter from "./ReactFlowClassBoxAdapter/ReactFlowClassBoxAdapter";
+import RelationshipConnectionLineAdapter from "./RelationshipConnectionLineAdapter/RelationshipConnectionLineAdapter";
 import RelationshipEdgeAdapter from "./RelationshipEdgeAdapter/RelationshipEdgeAdapter";
 import styles from "./ReactFlowCanvasAdapter.module.css";
 
@@ -32,6 +40,7 @@ type ReactFlowCanvasAdapterProps = {
   readonly onClassBoxPlacementChange: (changes: readonly ClassBoxPlacementChange[]) => void;
   readonly onDragComplete: (finalPositions: readonly ClassBoxPlacementChange[]) => void;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
+  readonly onRelationshipConnect: (sourceClassId: ClassId, targetClassId: ClassId) => void;
   readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
   readonly onSelectionClear: () => void;
   readonly onPlacementComplete: () => void;
@@ -45,13 +54,16 @@ export default function ReactFlowCanvasAdapter({
   onClassBoxPlacementChange,
   onDragComplete,
   onClassSelect,
+  onRelationshipConnect,
   onRelationshipSelect,
   onSelectionClear,
   onPlacementComplete,
 }: ReactFlowCanvasAdapterProps): ReactElement {
   // Framework prop and event adaptation
   const isPlacementActive = nodePlacementState !== null;
-  const isRelationshipPlacementActive = nodePlacementState?.kind === "relationship";
+  const relationshipPlacementState =
+    nodePlacementState?.kind === "relationship" ? nodePlacementState : null;
+  const isRelationshipPlacementActive = relationshipPlacementState !== null;
 
   const rfNodes = useMemo(() => {
     const selectedClassIds = selectionState.kind === "classes" ? selectionState.classIds : [];
@@ -59,9 +71,16 @@ export default function ReactFlowCanvasAdapter({
       view.classes,
       selectedClassIds,
       classBoxPlacementState,
+      isRelationshipPlacementActive,
       onClassSelect
     );
-  }, [view.classes, selectionState, classBoxPlacementState, onClassSelect]);
+  }, [
+    view.classes,
+    selectionState,
+    classBoxPlacementState,
+    isRelationshipPlacementActive,
+    onClassSelect,
+  ]);
   const rfEdges = useMemo(
     () =>
       toRelationshipEdgeDescriptors(
@@ -78,13 +97,25 @@ export default function ReactFlowCanvasAdapter({
     () => ({
       onClassBoxPlacementChange,
       onDragComplete,
+      onRelationshipConnect,
       onSelectionClear,
     }),
-    [onClassBoxPlacementChange, onDragComplete, onSelectionClear]
+    [onClassBoxPlacementChange, onDragComplete, onRelationshipConnect, onSelectionClear]
   );
 
+  const connectionLineComponent = useMemo<
+    ConnectionLineComponent<ClassBoxNodeDescriptor> | undefined
+  >(() => {
+    if (!relationshipPlacementState) return undefined;
+    const seed = relationshipPlacementState.seed;
+    return function ArmedRelationshipConnectionLine(props): ReactElement {
+      return <RelationshipConnectionLineAdapter {...props} seed={seed} />;
+    };
+  }, [relationshipPlacementState]);
+
   // Event handler props derivation
-  const { onNodesChange, onNodeDragStop, onPaneClick } = useInteractions(callbacks);
+  const { onNodesChange, onNodeDragStop, onConnect, onConnectEnd, onPaneClick } =
+    useInteractions(callbacks);
 
   return (
     <ReactFlowProvider>
@@ -96,7 +127,11 @@ export default function ReactFlowCanvasAdapter({
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onNodeDragStop={onNodeDragStop}
+        onConnect={onConnect}
+        onConnectEnd={onConnectEnd}
         onPaneClick={onPaneClick}
+        connectionMode={ConnectionMode.Loose}
+        connectionLineComponent={connectionLineComponent}
         className={isRelationshipPlacementActive ? styles.relationshipPlacement : undefined}
         fitView
         nodesDraggable={!isPlacementActive}

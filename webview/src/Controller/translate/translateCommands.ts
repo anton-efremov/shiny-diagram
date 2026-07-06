@@ -21,18 +21,16 @@ import {
 import { translateClassDuplicate } from "./workers/translateClassDuplicate";
 import { translateClassSpatialSet } from "./workers/translateClassSpatialSet";
 import { translateRelationshipCreate } from "./workers/translateRelationshipCreate";
-import {
-  translateRelationshipDelete,
-  translateRelationshipLabelSet,
-  translateRelationshipLineKindSet,
-  translateRelationshipSourceClassSet,
-  translateRelationshipSourceEndpointKindSet,
-  translateRelationshipSourceMultiplicitySet,
-  translateRelationshipTargetClassSet,
-  translateRelationshipTargetEndpointKindSet,
-  translateRelationshipTargetMultiplicitySet,
-  translateRelationshipOperatorPatch,
-} from "./workers/translateRelationshipEdit";
+import { translateRelationshipDelete } from "./workers/translateRelationshipDelete";
+import { translateRelationshipLabelSet } from "./workers/translateRelationshipLabelSet";
+import { translateRelationshipLineKindSet } from "./workers/translateRelationshipLineKindSet";
+import { translateRelationshipOperatorPatch } from "./workers/translateRelationshipOperatorPatch";
+import { translateRelationshipSourceClassSet } from "./workers/translateRelationshipSourceClassSet";
+import { translateRelationshipSourceEndpointKindSet } from "./workers/translateRelationshipSourceEndpointKindSet";
+import { translateRelationshipSourceMultiplicitySet } from "./workers/translateRelationshipSourceMultiplicitySet";
+import { translateRelationshipTargetClassSet } from "./workers/translateRelationshipTargetClassSet";
+import { translateRelationshipTargetEndpointKindSet } from "./workers/translateRelationshipTargetEndpointKindSet";
+import { translateRelationshipTargetMultiplicitySet } from "./workers/translateRelationshipTargetMultiplicitySet";
 import {
   translateStyleDefinitionCreate,
   translateStyleDefinitionDelete,

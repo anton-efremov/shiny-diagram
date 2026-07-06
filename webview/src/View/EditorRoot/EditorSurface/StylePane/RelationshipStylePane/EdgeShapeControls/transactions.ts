@@ -44,20 +44,6 @@ export function toRelationshipReverseTransaction(view: RelationshipView): Editor
           relationshipId: view.relationshipId,
           classId: view.sourceClassId,
         },
-    view.sourceEndpointKind === view.targetEndpointKind
-      ? null
-      : {
-          type: "relationship.source.endpointKind.set" as const,
-          relationshipId: view.relationshipId,
-          endpointKind: view.targetEndpointKind,
-        },
-    view.sourceEndpointKind === view.targetEndpointKind
-      ? null
-      : {
-          type: "relationship.target.endpointKind.set" as const,
-          relationshipId: view.relationshipId,
-          endpointKind: view.sourceEndpointKind,
-        },
     (view.sourceMultiplicity ?? null) === (view.targetMultiplicity ?? null)
       ? null
       : {

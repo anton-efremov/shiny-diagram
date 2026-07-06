@@ -36,6 +36,7 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
     onClassPlacementStart,
     onRelationshipPlacementStart,
     onClassSelect,
+    onRelationshipConnect,
     onRelationshipSelect,
     onRelationshipDuplicate,
     onStyleSelect,
@@ -56,6 +57,7 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
           selectionState={selectionState}
           nodePlacementState={nodePlacementState}
           onClassSelect={onClassSelect}
+          onRelationshipConnect={onRelationshipConnect}
           onRelationshipSelect={onRelationshipSelect}
           onSelectionClear={onSelectionClear}
           onPlacementComplete={onPlacementComplete}

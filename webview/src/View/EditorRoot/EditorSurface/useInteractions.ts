@@ -18,6 +18,7 @@ type Interactions = {
   readonly onClassPlacementStart: () => void;
   readonly onRelationshipPlacementStart: (seed: RelationshipSeed) => void;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
+  readonly onRelationshipConnect: (sourceClassId: ClassId, targetClassId: ClassId) => void;
   readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
   readonly onRelationshipDuplicate: (seed: RelationshipSeed) => void;
   readonly onStyleSelect: (styleDefId: StyleDefId) => void;
@@ -49,7 +50,6 @@ export function useInteractions({
       setNodePlacementState({
         kind: "relationship",
         seed,
-        pendingSourceClassId: null,
       });
     },
     [setNodePlacementState, setSelectionState]
@@ -57,25 +57,20 @@ export function useInteractions({
 
   const onClassSelect = useCallback(
     (classId: ClassId, additive: boolean) => {
-      if (nodePlacementState?.kind !== "relationship") {
-        setSelectionState((selectionState) =>
-          updateSelectedClassIds(selectionState, classId, additive)
-        );
-        return;
-      }
+      if (nodePlacementState?.kind === "relationship") return;
+      setSelectionState((selectionState) =>
+        updateSelectedClassIds(selectionState, classId, additive)
+      );
+    },
+    [nodePlacementState, setSelectionState]
+  );
 
-      if (nodePlacementState.pendingSourceClassId === null) {
-        setNodePlacementState({ ...nodePlacementState, pendingSourceClassId: classId });
-        return;
-      }
-
+  const onRelationshipConnect = useCallback(
+    (sourceClassId: ClassId, targetClassId: ClassId) => {
+      if (nodePlacementState?.kind !== "relationship") return;
       // Implementing interaction through command transaction
       dispatchTransaction(
-        toRelationshipCreateTransaction(
-          nodePlacementState.seed,
-          nodePlacementState.pendingSourceClassId,
-          classId
-        )
+        toRelationshipCreateTransaction(nodePlacementState.seed, sourceClassId, targetClassId)
       );
       setNodePlacementState(null);
       setSelectionState((selectionState) => clearSelectionState(selectionState));
@@ -99,7 +94,6 @@ export function useInteractions({
       setNodePlacementState({
         kind: "relationship",
         seed,
-        pendingSourceClassId: null,
       });
     },
     [setNodePlacementState, setSelectionState]
@@ -125,6 +119,7 @@ export function useInteractions({
     onClassPlacementStart,
     onRelationshipPlacementStart,
     onClassSelect,
+    onRelationshipConnect,
     onRelationshipSelect,
     onRelationshipDuplicate,
     onStyleSelect,
