@@ -3,8 +3,16 @@
  */
 
 import { useCallback } from "react";
+import type { MutableRefObject } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
-import type { Connection, NodeChange, OnConnectEnd, OnNodeDrag } from "@xyflow/react";
+import type {
+  Connection,
+  NodeChange,
+  OnConnectEnd,
+  OnConnectStart,
+  OnNodeDrag,
+  XYPosition,
+} from "@xyflow/react";
 import type {
   ClassBoxNodeDescriptor,
   ClassBoxPlacementChange,
@@ -29,16 +37,29 @@ type ReactFlowCanvasAdapterCallbacks = {
   readonly onSelectionClear: () => void;
 };
 
+type UseInteractionsInput = {
+  readonly callbacks: ReactFlowCanvasAdapterCallbacks;
+  readonly isRelationshipPlacementArmed: boolean;
+  readonly pressPointRef: MutableRefObject<XYPosition | null>;
+  readonly screenToFlowPosition: (position: XYPosition) => XYPosition;
+};
+
 type Interactions = {
   readonly onNodesChange: (changes: NodeChange<ClassBoxNodeDescriptor>[]) => void;
   readonly onNodeDragStop: OnNodeDrag<ClassBoxNodeDescriptor>;
   readonly onConnect: (connection: Connection) => void;
+  readonly onConnectStart: OnConnectStart;
   readonly onConnectEnd: OnConnectEnd;
   readonly onReconnect: (oldEdge: RelationshipEdgeDescriptor, newConnection: Connection) => void;
   readonly onPaneClick: (event: ReactMouseEvent) => void;
 };
 
-export function useInteractions(callbacks: ReactFlowCanvasAdapterCallbacks): Interactions {
+export function useInteractions({
+  callbacks,
+  isRelationshipPlacementArmed,
+  pressPointRef,
+  screenToFlowPosition,
+}: UseInteractionsInput): Interactions {
   // Framework prop and event adaptation
   const onNodesChange = useCallback(
     (changes: NodeChange<ClassBoxNodeDescriptor>[]) => {
@@ -76,12 +97,23 @@ export function useInteractions(callbacks: ReactFlowCanvasAdapterCallbacks): Int
   );
 
   // Framework prop and event adaptation
+  const onConnectStart = useCallback<OnConnectStart>(
+    (event) => {
+      const screenPoint = toScreenPoint(event);
+      pressPointRef.current = screenPoint ? screenToFlowPosition(screenPoint) : null;
+    },
+    [pressPointRef, screenToFlowPosition]
+  );
+
+  // Framework prop and event adaptation
   const onConnectEnd = useCallback<OnConnectEnd>(
     (_event, connectionState) => {
+      pressPointRef.current = null;
       if (connectionState.isValid === true) return;
+      if (!isRelationshipPlacementArmed) return;
       callbacks.onSelectionClear();
     },
-    [callbacks]
+    [callbacks, isRelationshipPlacementArmed, pressPointRef]
   );
 
   // Framework prop and event adaptation
@@ -107,5 +139,22 @@ export function useInteractions(callbacks: ReactFlowCanvasAdapterCallbacks): Int
     [callbacks]
   );
 
-  return { onNodesChange, onNodeDragStop, onConnect, onConnectEnd, onReconnect, onPaneClick };
+  return {
+    onNodesChange,
+    onNodeDragStop,
+    onConnect,
+    onConnectStart,
+    onConnectEnd,
+    onReconnect,
+    onPaneClick,
+  };
+}
+
+// Private helpers
+function toScreenPoint(event: MouseEvent | TouchEvent): XYPosition | null {
+  if ("touches" in event) {
+    const touch = event.touches[0] ?? event.changedTouches[0];
+    return touch ? { x: touch.clientX, y: touch.clientY } : null;
+  }
+  return { x: event.clientX, y: event.clientY };
 }

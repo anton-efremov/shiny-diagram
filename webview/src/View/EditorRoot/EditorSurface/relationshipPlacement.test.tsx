@@ -93,7 +93,10 @@ describe("relationship placement", () => {
     fireEvent.click(screen.getByTestId("pane"));
     expect(onSelectionClear).toHaveBeenCalledTimes(1);
 
-    fireEvent.click(screen.getByTestId("invalid-connect-end"));
+    fireEvent.click(screen.getByTestId("invalid-placement-connect-end"));
+    expect(onSelectionClear).toHaveBeenCalledTimes(2);
+
+    fireEvent.click(screen.getByTestId("invalid-idle-connect-end"));
     expect(onSelectionClear).toHaveBeenCalledTimes(2);
   });
 
@@ -215,12 +218,29 @@ function ReactFlowInteractionProbe({
 }: ReactFlowInteractionProbeProps): ReactElement {
   // Known jsdom limitation: React Flow's pane onClick does not fire reliably
   // through the mocked canvas, so this test drives the adapter callback directly.
-  const { onConnectEnd, onPaneClick } = useReactFlowCanvasInteractions({
-    onClassBoxPlacementChange: () => {},
-    onDragComplete: () => {},
-    onRelationshipConnect: () => {},
-    onRelationshipReconnect: () => {},
-    onSelectionClear,
+  const { onConnectEnd: onPlacementConnectEnd, onPaneClick } = useReactFlowCanvasInteractions({
+    callbacks: {
+      onClassBoxPlacementChange: () => {},
+      onDragComplete: () => {},
+      onRelationshipConnect: () => {},
+      onRelationshipReconnect: () => {},
+      onSelectionClear,
+    },
+    isRelationshipPlacementArmed: true,
+    pressPointRef: { current: null },
+    screenToFlowPosition: (position) => position,
+  });
+  const { onConnectEnd: onIdleConnectEnd } = useReactFlowCanvasInteractions({
+    callbacks: {
+      onClassBoxPlacementChange: () => {},
+      onDragComplete: () => {},
+      onRelationshipConnect: () => {},
+      onRelationshipReconnect: () => {},
+      onSelectionClear,
+    },
+    isRelationshipPlacementArmed: false,
+    pressPointRef: { current: null },
+    screenToFlowPosition: (position) => position,
   });
 
   return (
@@ -230,24 +250,31 @@ function ReactFlowInteractionProbe({
       </div>
       <button
         type="button"
-        data-testid="invalid-connect-end"
-        onClick={() =>
-          onConnectEnd(new MouseEvent("mouseup"), {
-            isValid: false,
-            from: null,
-            fromHandle: null,
-            fromPosition: null,
-            fromNode: null,
-            to: null,
-            toHandle: null,
-            toPosition: null,
-            toNode: null,
-            pointer: null,
-          })
-        }
+        data-testid="invalid-placement-connect-end"
+        onClick={() => onPlacementConnectEnd(new MouseEvent("mouseup"), invalidConnectionState)}
       >
-        Invalid connect end
+        Invalid placement connect end
+      </button>
+      <button
+        type="button"
+        data-testid="invalid-idle-connect-end"
+        onClick={() => onIdleConnectEnd(new MouseEvent("mouseup"), invalidConnectionState)}
+      >
+        Invalid idle connect end
       </button>
     </>
   );
 }
+
+const invalidConnectionState = {
+  isValid: false,
+  from: null,
+  fromHandle: null,
+  fromPosition: null,
+  fromNode: null,
+  to: null,
+  toHandle: null,
+  toPosition: null,
+  toNode: null,
+  pointer: null,
+};

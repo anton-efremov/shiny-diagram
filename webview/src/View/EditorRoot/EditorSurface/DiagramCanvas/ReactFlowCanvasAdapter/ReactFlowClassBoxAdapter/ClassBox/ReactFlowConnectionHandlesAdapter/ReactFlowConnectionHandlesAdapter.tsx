@@ -39,7 +39,9 @@ export default function ReactFlowConnectionHandlesAdapter({
         id="connect"
         type="source"
         position={Position.Top}
-        isConnectable={isConnectSourceEnabled}
+        isConnectable
+        isConnectableStart={isConnectSourceEnabled}
+        isConnectableEnd
       />
       {handles.map(({ id, direction, side }) => (
         <Handle

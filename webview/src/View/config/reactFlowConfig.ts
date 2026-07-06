@@ -65,8 +65,9 @@ export const reactFlowCanvasBoundaryProps = {
   /**
    * Shiny owns graph/source editing.
    *
-   * Relationship creation and rerouting use React Flow connection/reconnection
-   * gestures as framework inputs, with semantic handling owned by Shiny View.
+   * Relationship creation, press-point preview capture, and rerouting use React
+   * Flow connection/reconnection gestures as framework inputs, with semantic
+   * handling owned by Shiny View.
    */
   nodesConnectable: true,
   edgesReconnectable: true,
@@ -96,7 +97,6 @@ export const reactFlowCanvasBoundaryProps = {
    * React Flow click-connect and reconnection lifecycle events are intentionally
    * not Shiny relationship-editing inputs.
    */
-  onConnectStart: undefined,
   onClickConnectStart: undefined,
   onClickConnectEnd: undefined,
   onReconnectStart: undefined,
