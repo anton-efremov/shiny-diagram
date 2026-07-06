@@ -37,13 +37,7 @@ export default function StylePane({
   onStyleSelect,
 }: StylePaneProps): ReactElement {
   // View and State slice props derivation
-  const selectedClasses = view.classes.filter((classView) =>
-    selectionState.classIds.includes(classView.classId)
-  );
-  const selectedStyle = view.styles.find(
-    (styleView) => styleView.styleId === selectionState.styleDefIds[0]
-  );
-  const stylePaneScenario = toStylePaneScenario(selectedClasses, selectedStyle);
+  const stylePaneScenario = toStylePaneScenario(view, selectionState);
 
   // Child component routing
   let stylePaneContent: ReactElement;
@@ -76,14 +70,26 @@ export default function StylePane({
 }
 
 function toStylePaneScenario(
-  selectedClasses: readonly ClassView[],
-  selectedStyle: StyleView | undefined
+  view: Pick<DiagramView, "classes" | "styles">,
+  selectionState: SelectionState
 ): StylePaneScenario {
-  if (selectedStyle) {
-    return { kind: "style", selectedStyle };
+  switch (selectionState.kind) {
+    case "none":
+      return { kind: "empty" };
+    case "classes": {
+      const selected = new Set(selectionState.classIds);
+      const selectedClasses = view.classes.filter((classView) => selected.has(classView.classId));
+      return selectedClasses.length === 0
+        ? { kind: "empty" }
+        : { kind: "classes", selectedClasses };
+    }
+    case "style": {
+      const selectedStyle = view.styles.find(
+        (styleView) => styleView.styleId === selectionState.styleDefId
+      );
+      return selectedStyle ? { kind: "style", selectedStyle } : { kind: "empty" };
+    }
+    case "relationship":
+      return { kind: "empty" };
   }
-  if (selectedClasses.length === 0) {
-    return { kind: "empty" };
-  }
-  return { kind: "classes", selectedClasses };
 }

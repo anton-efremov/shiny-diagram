@@ -47,16 +47,15 @@ export default function ReactFlowCanvasAdapter({
   // Framework prop and event adaptation
   const isPlacementActive = nodePlacementState !== null;
 
-  const rfNodes = useMemo(
-    () =>
-      toClassBoxNodeDescriptors(
-        view.classes,
-        selectionState.classIds,
-        classBoxPlacementState,
-        onClassSelect
-      ),
-    [view.classes, selectionState.classIds, classBoxPlacementState, onClassSelect]
-  );
+  const rfNodes = useMemo(() => {
+    const selectedClassIds = selectionState.kind === "classes" ? selectionState.classIds : [];
+    return toClassBoxNodeDescriptors(
+      view.classes,
+      selectedClassIds,
+      classBoxPlacementState,
+      onClassSelect
+    );
+  }, [view.classes, selectionState, classBoxPlacementState, onClassSelect]);
   const rfEdges = useMemo(
     () => toRelationshipEdgeDescriptors(view.classes, view.relationships, classBoxPlacementState),
     [view.classes, view.relationships, classBoxPlacementState]

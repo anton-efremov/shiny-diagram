@@ -107,13 +107,20 @@ function parseRelationshipDeclaration(declaration: string): ParsedRelationshipSh
 function locateLineCore(
   declaration: string
 ): { start: number; end: number; syntax: "--" | ".." } | null {
-  const solid = declaration.indexOf("--");
-  const dashed = declaration.indexOf("..");
-  if (solid === -1 && dashed === -1) return null;
-  if (solid !== -1 && (dashed === -1 || solid < dashed)) {
-    return { start: solid, end: solid + 2, syntax: "--" };
+  let inQuote = false;
+  for (let index = 0; index < declaration.length - 1; index++) {
+    if (declaration[index] === '"') {
+      inQuote = !inQuote;
+      continue;
+    }
+    if (inQuote) continue;
+
+    const syntax = declaration.slice(index, index + 2);
+    if (syntax === "--" || syntax === "..") {
+      return { start: index, end: index + 2, syntax };
+    }
   }
-  return { start: dashed, end: dashed + 2, syntax: ".." };
+  return null;
 }
 
 function parseStartMarker(text: string): {

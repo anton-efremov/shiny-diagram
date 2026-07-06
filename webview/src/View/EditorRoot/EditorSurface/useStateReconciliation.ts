@@ -4,7 +4,7 @@
 
 import { useEffect } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import type { ClassId, StyleDefId } from "../../../shared/ids";
+import type { ClassId } from "../../../shared/ids";
 import type { SelectionState } from "../../state/editorStates";
 import type { DiagramView } from "../../views/schema";
 
@@ -28,12 +28,22 @@ function reconcileSelectionStateWithElements(
   selectionState: SelectionState,
   diagram: DiagramView
 ): SelectionState {
-  const classIds = reconcileSelectedClassIds(selectionState.classIds, diagram);
-  const styleDefIds = reconcileSelectedStyleDefIds(selectionState.styleDefIds, diagram);
-  return areClassIdCollectionsEqual(selectionState.classIds, classIds) &&
-    areStyleDefIdCollectionsEqual(selectionState.styleDefIds, styleDefIds)
-    ? selectionState
-    : toSelectionState(classIds, styleDefIds);
+  switch (selectionState.kind) {
+    case "none":
+      return selectionState;
+    case "classes": {
+      const classIds = reconcileSelectedClassIds(selectionState.classIds, diagram);
+      return areClassIdCollectionsEqual(selectionState.classIds, classIds)
+        ? selectionState
+        : toClassSelectionState(classIds);
+    }
+    case "style":
+      return diagram.styles.some((styleView) => styleView.styleId === selectionState.styleDefId)
+        ? selectionState
+        : { kind: "none" };
+    case "relationship":
+      return selectionState;
+  }
 }
 
 function reconcileSelectedClassIds(
@@ -53,35 +63,6 @@ function areClassIdCollectionsEqual(left: readonly ClassId[], right: readonly Cl
   return left.length === right.length && left.every((id, index) => id === right[index]);
 }
 
-function reconcileSelectedStyleDefIds(
-  selectedStyleDefIds: readonly StyleDefId[],
-  diagram: DiagramView
-): readonly StyleDefId[] {
-  const styleDefIds = diagram.styles.map((styleView) => styleView.styleId);
-  if (selectedStyleDefIds.length === 0 || styleDefIds.length === 0) {
-    return selectedStyleDefIds.length === 0 ? selectedStyleDefIds : [];
-  }
-
-  const selected = new Set(selectedStyleDefIds);
-  return styleDefIds.flatMap((styleDefId) => (selected.has(styleDefId) ? [styleDefId] : []));
-}
-
-function areStyleDefIdCollectionsEqual(
-  left: readonly StyleDefId[],
-  right: readonly StyleDefId[]
-): boolean {
-  return left.length === right.length && left.every((id, index) => id === right[index]);
-}
-
-function toSelectionState(
-  classIds: readonly ClassId[],
-  styleDefIds: readonly StyleDefId[]
-): SelectionState {
-  return {
-    classIds,
-    relationshipIds: [],
-    namespaceIds: [],
-    noteIds: [],
-    styleDefIds,
-  };
+function toClassSelectionState(classIds: readonly ClassId[]): SelectionState {
+  return classIds.length === 0 ? { kind: "none" } : { kind: "classes", classIds };
 }

@@ -32,12 +32,7 @@ export function useInteractions({
 
   const onClassSelect = useCallback(
     (classId: ClassId, additive: boolean) => {
-      setSelectionState((state) =>
-        updateSelectedClassIds(
-          state,
-          additive ? toToggledClassIds(state.classIds, classId) : [classId]
-        )
-      );
+      setSelectionState((state) => updateSelectedClassIds(state, classId, additive));
     },
     [setSelectionState]
   );
@@ -69,11 +64,17 @@ export function useInteractions({
 // Private helpers
 function updateSelectedClassIds(
   selectionState: SelectionState,
-  classIds: readonly ClassId[]
+  classId: ClassId,
+  additive: boolean
 ): SelectionState {
-  return areClassIdCollectionsEqual(selectionState.classIds, classIds)
+  const classIds =
+    selectionState.kind === "classes" && additive
+      ? toToggledClassIds(selectionState.classIds, classId)
+      : [classId];
+  return selectionState.kind === "classes" &&
+    areClassIdCollectionsEqual(selectionState.classIds, classIds)
     ? selectionState
-    : toClassOnlySelectionState(classIds);
+    : toClassSelectionState(classIds);
 }
 
 function updateNodePlacementState(
@@ -83,14 +84,8 @@ function updateNodePlacementState(
   return state === nodePlacementState ? state : nodePlacementState;
 }
 
-function toClassOnlySelectionState(classIds: readonly ClassId[]): SelectionState {
-  return {
-    classIds,
-    relationshipIds: [],
-    namespaceIds: [],
-    noteIds: [],
-    styleDefIds: [],
-  };
+function toClassSelectionState(classIds: readonly ClassId[]): SelectionState {
+  return classIds.length === 0 ? { kind: "none" } : { kind: "classes", classIds };
 }
 
 function toToggledClassIds(
@@ -106,29 +101,17 @@ function updateSelectedStyleDefId(
   selectionState: SelectionState,
   styleDefId: StyleDefId
 ): SelectionState {
-  return selectionState.styleDefIds.length === 1 && selectionState.styleDefIds[0] === styleDefId
+  return selectionState.kind === "style" && selectionState.styleDefId === styleDefId
     ? selectionState
-    : toStyleOnlySelectionState(styleDefId);
+    : toStyleSelectionState(styleDefId);
 }
 
 function clearSelectionState(selectionState: SelectionState): SelectionState {
-  return selectionState.classIds.length === 0 &&
-    selectionState.relationshipIds.length === 0 &&
-    selectionState.namespaceIds.length === 0 &&
-    selectionState.noteIds.length === 0 &&
-    selectionState.styleDefIds.length === 0
-    ? selectionState
-    : toClassOnlySelectionState([]);
+  return selectionState.kind === "none" ? selectionState : { kind: "none" };
 }
 
-function toStyleOnlySelectionState(styleDefId: StyleDefId): SelectionState {
-  return {
-    classIds: [],
-    relationshipIds: [],
-    namespaceIds: [],
-    noteIds: [],
-    styleDefIds: [styleDefId],
-  };
+function toStyleSelectionState(styleDefId: StyleDefId): SelectionState {
+  return { kind: "style", styleDefId };
 }
 
 function areClassIdCollectionsEqual(left: readonly ClassId[], right: readonly ClassId[]): boolean {

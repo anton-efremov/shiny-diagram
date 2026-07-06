@@ -6,13 +6,7 @@ import type { NodePlacementState, SelectionState } from "../../state/editorState
 
 // State initialization
 export function toInitialSelectionState(): SelectionState {
-  return {
-    classIds: [],
-    relationshipIds: [],
-    namespaceIds: [],
-    noteIds: [],
-    styleDefIds: [],
-  };
+  return { kind: "none" };
 }
 
 export function toInitialNodePlacementState(): NodePlacementState {
