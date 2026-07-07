@@ -19,6 +19,7 @@ import { reactFlowCanvasBoundaryProps } from "../../../../config/reactFlowConfig
 import type {
   ClassBoxPlacementState,
   NodePlacementState,
+  RelationshipSeed,
   SelectionState,
 } from "../../../../state/editorStates";
 import type { DiagramView } from "../../../../views/schema";
@@ -26,11 +27,7 @@ import PlacementOverlay from "./PlacementOverlay/PlacementOverlay";
 import ReactFlowClassBoxNodeAdapter from "./ReactFlowClassBoxAdapter/ReactFlowClassBoxAdapter";
 import RelationshipConnectionLineAdapter from "./RelationshipConnectionLineAdapter/RelationshipConnectionLineAdapter";
 import RelationshipEdgeAdapter from "./RelationshipEdgeAdapter/RelationshipEdgeAdapter";
-import type {
-  ClassBoxNodeDescriptor,
-  ClassBoxPlacementChange,
-  RelationshipEdgeDescriptor,
-} from "./frameworkAdapters";
+import type { ClassBoxNodeDescriptor, ClassBoxPlacementChange } from "./frameworkAdapters";
 import { toClassBoxNodeDescriptors, toRelationshipEdgeDescriptors } from "./frameworkAdapters";
 import { useInteractions } from "./useInteractions";
 import styles from "./ReactFlowCanvasAdapter.module.css";
@@ -46,6 +43,7 @@ type ReactFlowCanvasAdapterProps = {
   readonly onClassBoxPlacementChange: (changes: readonly ClassBoxPlacementChange[]) => void;
   readonly onDragComplete: (finalPositions: readonly ClassBoxPlacementChange[]) => void;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
+  readonly onClassMoved: (classId: ClassId) => void;
   readonly onRelationshipConnect: (sourceClassId: ClassId, targetClassId: ClassId) => void;
   readonly onRelationshipReconnect: (
     relationshipId: RelationshipId,
@@ -66,6 +64,7 @@ export default function ReactFlowCanvasAdapter({
   onClassBoxPlacementChange,
   onDragComplete,
   onClassSelect,
+  onClassMoved,
   onRelationshipConnect,
   onRelationshipReconnect,
   onRelationshipSelect,
@@ -74,11 +73,9 @@ export default function ReactFlowCanvasAdapter({
   onPlacementComplete,
 }: ReactFlowCanvasAdapterProps): ReactElement {
   // Framework prop and event adaptation
-  const { screenToFlowPosition } = useReactFlow<
-    ClassBoxNodeDescriptor,
-    RelationshipEdgeDescriptor
-  >();
-  const pressPointRef = useRef<XYPosition | null>(null);
+  const { screenToFlowPosition } = useReactFlow();
+  const placementStartPointRef = useRef<XYPosition | null>(null);
+  const reconnectSeedRef = useRef<RelationshipSeed | null>(null);
   const isPlacementActive = nodePlacementState !== null;
   const relationshipPlacementState =
     nodePlacementState?.kind === "relationship" ? nodePlacementState : null;
@@ -124,6 +121,7 @@ export default function ReactFlowCanvasAdapter({
     () => ({
       onClassBoxPlacementChange,
       onDragComplete,
+      onClassMoved,
       onRelationshipConnect,
       onRelationshipReconnect,
       onBackgroundClick,
@@ -132,6 +130,7 @@ export default function ReactFlowCanvasAdapter({
     [
       onClassBoxPlacementChange,
       onDragComplete,
+      onClassMoved,
       onRelationshipConnect,
       onRelationshipReconnect,
       onBackgroundClick,
@@ -139,17 +138,21 @@ export default function ReactFlowCanvasAdapter({
     ]
   );
 
-  const connectionLineComponent = useMemo<
-    ConnectionLineComponent<ClassBoxNodeDescriptor> | undefined
-  >(() => {
-    if (!relationshipPlacementState) return undefined;
-    const seed = relationshipPlacementState.seed;
+  // Rendered for both placement and reconnect drags; reconnect drags carry no
+  // placement seed and fall back to the neutral ghost styling.
+  const connectionLineComponent = useMemo<ConnectionLineComponent<ClassBoxNodeDescriptor>>(() => {
+    const placementSeed = relationshipPlacementState?.seed ?? null;
     return function ArmedRelationshipConnectionLine(props): ReactElement {
       return (
-        <RelationshipConnectionLineAdapter {...props} seed={seed} pressPointRef={pressPointRef} />
+        <RelationshipConnectionLineAdapter
+          {...props}
+          placementSeed={placementSeed}
+          placementStartPointRef={placementStartPointRef}
+          reconnectSeedRef={reconnectSeedRef}
+        />
       );
     };
-  }, [pressPointRef, relationshipPlacementState]);
+  }, [relationshipPlacementState]);
 
   // Event handler props derivation
   const {
@@ -159,11 +162,13 @@ export default function ReactFlowCanvasAdapter({
     onConnectStart,
     onConnectEnd,
     onReconnect,
+    onReconnectStart,
     onPaneClick,
   } = useInteractions({
     callbacks,
     isRelationshipPlacementArmed: isRelationshipPlacementActive,
-    pressPointRef,
+    placementStartPointRef,
+    reconnectSeedRef,
     screenToFlowPosition,
   });
 
@@ -180,6 +185,7 @@ export default function ReactFlowCanvasAdapter({
       onConnectStart={onConnectStart}
       onConnectEnd={onConnectEnd}
       onReconnect={onReconnect}
+      onReconnectStart={onReconnectStart}
       onPaneClick={onPaneClick}
       connectionMode={ConnectionMode.Loose}
       reconnectRadius={RELATIONSHIP_RECONNECT_RADIUS}

@@ -1,9 +1,7 @@
 /**
- * @behavior Relationship placement cursor tracking for the ghost endpoint.
  * @render Relationship ghost path and endpoint markers.
  */
 
-import { useEffect, useRef } from "react";
 import type { ReactElement } from "react";
 import type { Point } from "../../../../../../../shared/geometry";
 import type { RelationshipSeed } from "../../../../../../state/editorStates";
@@ -13,32 +11,16 @@ import styles from "./RelationshipGhostLine.module.css";
 
 type RelationshipGhostLineProps = {
   readonly seed: RelationshipSeed;
+  readonly startPoint: Point;
   readonly endPoint: Point;
-  readonly getStartPoint: () => Point;
-  readonly toDiagramPoint: (clientX: number, clientY: number) => Point;
 };
 
 export default function RelationshipGhostLine({
   seed,
+  startPoint,
   endPoint,
-  getStartPoint,
-  toDiagramPoint,
 }: RelationshipGhostLineProps): ReactElement {
-  // State creation: local ref - rendered ghost path element updated outside React render
-  const pathRef = useRef<SVGPathElement | null>(null);
-
-  useEffect(() => {
-    function onPointerMove(event: PointerEvent): void {
-      const cursorPoint = toDiagramPoint(event.clientX, event.clientY);
-      pathRef.current?.setAttribute("d", toStraightPath(getStartPoint(), cursorPoint));
-    }
-
-    window.addEventListener("pointermove", onPointerMove);
-    return () => window.removeEventListener("pointermove", onPointerMove);
-  }, [getStartPoint, toDiagramPoint]);
-
   // UI props derivation
-  const startPoint = getStartPoint();
   const edgePath = toStraightPath(startPoint, endPoint);
   const sourceMarkerId = `relationship-placement-source-${seed.sourceEndpointKind}`;
   const targetMarkerId = `relationship-placement-target-${seed.targetEndpointKind}`;
@@ -58,7 +40,6 @@ export default function RelationshipGhostLine({
         />
       </defs>
       <path
-        ref={pathRef}
         className={styles.path}
         d={edgePath}
         fill="none"

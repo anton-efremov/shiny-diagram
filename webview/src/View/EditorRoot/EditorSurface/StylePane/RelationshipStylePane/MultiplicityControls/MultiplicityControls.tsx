@@ -1,31 +1,65 @@
 /**
- * @behavior Relationship multiplicity draft and commit routing.
+ * @behavior Relationship multiplicity preset pick commit and custom draft commit routing.
  * @render Relationship multiplicity controls.
  */
 
 import { useEffect, useState } from "react";
-import type { ChangeEvent, KeyboardEvent, ReactElement } from "react";
+import type { ChangeEvent, Dispatch, KeyboardEvent, ReactElement, SetStateAction } from "react";
 import type { RelationshipView } from "../../../../../views/schema";
 import { useInteractions } from "./useInteractions";
 import styles from "./MultiplicityControls.module.css";
 
-const multiplicityOptions = ["1", "0..1", "*", "0..*", "1..*"] as const;
+const multiplicityPresets = ["1", "0..1", "*", "0..*", "1..*"] as const;
+const NONE_OPTION = "none";
+const CUSTOM_OPTION = "custom";
 
 type MultiplicityControlsProps = {
   readonly view: RelationshipView;
 };
 
 export default function MultiplicityControls({ view }: MultiplicityControlsProps): ReactElement {
-  // State creation: local state - multiplicity drafts
+  // State creation: local state - multiplicity drafts and explicit custom mode per end
   const [sourceDraft, setSourceDraft] = useState(view.sourceMultiplicity ?? "");
   const [targetDraft, setTargetDraft] = useState(view.targetMultiplicity ?? "");
+  const [isSourceCustom, setIsSourceCustom] = useState(() =>
+    isCustomMultiplicity(view.sourceMultiplicity)
+  );
+  const [isTargetCustom, setIsTargetCustom] = useState(() =>
+    isCustomMultiplicity(view.targetMultiplicity)
+  );
 
   // State reconciliation
-  useEffect(() => setSourceDraft(view.sourceMultiplicity ?? ""), [view.sourceMultiplicity]);
-  useEffect(() => setTargetDraft(view.targetMultiplicity ?? ""), [view.targetMultiplicity]);
+  useEffect(() => {
+    setSourceDraft(view.sourceMultiplicity ?? "");
+    setIsSourceCustom(isCustomMultiplicity(view.sourceMultiplicity));
+  }, [view.sourceMultiplicity]);
+  useEffect(() => {
+    setTargetDraft(view.targetMultiplicity ?? "");
+    setIsTargetCustom(isCustomMultiplicity(view.targetMultiplicity));
+  }, [view.targetMultiplicity]);
 
   // Event handler props derivation
   const { onMultiplicityCommit } = useInteractions(view.relationshipId);
+
+  function onSourcePresetChange(event: ChangeEvent<HTMLSelectElement>): void {
+    handlePresetChange(
+      event.currentTarget.value,
+      view.sourceMultiplicity ?? null,
+      setIsSourceCustom,
+      setSourceDraft,
+      (value) => onMultiplicityCommit("source", value)
+    );
+  }
+
+  function onTargetPresetChange(event: ChangeEvent<HTMLSelectElement>): void {
+    handlePresetChange(
+      event.currentTarget.value,
+      view.targetMultiplicity ?? null,
+      setIsTargetCustom,
+      setTargetDraft,
+      (value) => onMultiplicityCommit("target", value)
+    );
+  }
 
   function onSourceChange(event: ChangeEvent<HTMLInputElement>): void {
     setSourceDraft(event.currentTarget.value);
@@ -47,33 +81,27 @@ export default function MultiplicityControls({ view }: MultiplicityControlsProps
     );
   }
 
-  function onSourceClear(): void {
-    setSourceDraft("");
-    onMultiplicityCommit("source", null);
-  }
-
-  function onTargetClear(): void {
-    setTargetDraft("");
-    onMultiplicityCommit("target", null);
-  }
+  // UI props derivation
+  const sourceSelectValue = toSelectValue(view.sourceMultiplicity, isSourceCustom);
+  const targetSelectValue = toSelectValue(view.targetMultiplicity, isTargetCustom);
 
   return (
     <section className={styles.section} aria-label="Relationship multiplicities">
       <MultiplicityField
         label="Source multiplicity"
-        listId="source-multiplicity-options"
-        value={sourceDraft}
-        onChange={onSourceChange}
-        onKeyDown={onSourceKeyDown}
-        onClear={onSourceClear}
+        selectValue={sourceSelectValue}
+        draft={sourceDraft}
+        onPresetChange={onSourcePresetChange}
+        onDraftChange={onSourceChange}
+        onDraftKeyDown={onSourceKeyDown}
       />
       <MultiplicityField
         label="Target multiplicity"
-        listId="target-multiplicity-options"
-        value={targetDraft}
-        onChange={onTargetChange}
-        onKeyDown={onTargetKeyDown}
-        onClear={onTargetClear}
+        selectValue={targetSelectValue}
+        draft={targetDraft}
+        onPresetChange={onTargetPresetChange}
+        onDraftChange={onTargetChange}
+        onDraftKeyDown={onTargetKeyDown}
       />
     </section>
   );
@@ -82,37 +110,69 @@ export default function MultiplicityControls({ view }: MultiplicityControlsProps
 // Private helpers
 type MultiplicityFieldProps = {
   readonly label: string;
-  readonly listId: string;
-  readonly value: string;
-  readonly onChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  readonly onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
-  readonly onClear: () => void;
+  readonly selectValue: string;
+  readonly draft: string;
+  readonly onPresetChange: (event: ChangeEvent<HTMLSelectElement>) => void;
+  readonly onDraftChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  readonly onDraftKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
 };
 
 function MultiplicityField({
   label,
-  listId,
-  value,
-  onChange,
-  onKeyDown,
-  onClear,
+  selectValue,
+  draft,
+  onPresetChange,
+  onDraftChange,
+  onDraftKeyDown,
 }: MultiplicityFieldProps): ReactElement {
   return (
     <label className={styles.field}>
       <span>{label}</span>
-      <div className={styles.row}>
-        <input value={value} list={listId} onChange={onChange} onKeyDown={onKeyDown} />
-        <button type="button" onClick={onClear}>
-          None
-        </button>
-      </div>
-      <datalist id={listId}>
-        {multiplicityOptions.map((option) => (
-          <option key={option} value={option} />
+      <select value={selectValue} onChange={onPresetChange}>
+        <option value={NONE_OPTION}>none</option>
+        {multiplicityPresets.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
         ))}
-      </datalist>
+        <option value={CUSTOM_OPTION}>custom…</option>
+      </select>
+      {selectValue === CUSTOM_OPTION ? (
+        <input value={draft} onChange={onDraftChange} onKeyDown={onDraftKeyDown} />
+      ) : null}
     </label>
   );
+}
+
+function isCustomMultiplicity(value: string | undefined): boolean {
+  return (
+    value !== undefined &&
+    value !== "" &&
+    !(multiplicityPresets as readonly string[]).includes(value)
+  );
+}
+
+function toSelectValue(value: string | undefined, isCustom: boolean): string {
+  if (isCustom || isCustomMultiplicity(value)) return CUSTOM_OPTION;
+  return value === undefined || value === "" ? NONE_OPTION : value;
+}
+
+function handlePresetChange(
+  option: string,
+  currentValue: string | null,
+  onCustomModeChange: Dispatch<SetStateAction<boolean>>,
+  onReset: (value: string) => void,
+  onCommit: (value: string | null) => void
+): void {
+  if (option === CUSTOM_OPTION) {
+    onCustomModeChange(true);
+    return;
+  }
+  onCustomModeChange(false);
+  const value = option === NONE_OPTION ? null : option;
+  onReset(value ?? "");
+  if (value === currentValue) return;
+  onCommit(value);
 }
 
 function handleDraftKeyDown(

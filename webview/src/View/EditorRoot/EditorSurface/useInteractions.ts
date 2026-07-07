@@ -22,6 +22,7 @@ type Interactions = {
   readonly onClassPlacementStart: () => void;
   readonly onRelationshipPlacementStart: (seed: RelationshipSeed) => void;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
+  readonly onClassMoved: (classId: ClassId) => void;
   readonly onRelationshipConnect: (sourceClassId: ClassId, targetClassId: ClassId) => void;
   readonly onRelationshipReconnect: (
     relationshipId: RelationshipId,
@@ -77,6 +78,17 @@ export function useInteractions({
     [nodePlacementState, setSelectionState]
   );
 
+  const onClassMoved = useCallback(
+    (classId: ClassId) => {
+      setSelectionState((selectionState) =>
+        selectionState.kind === "classes" && selectionState.classIds.includes(classId)
+          ? selectionState
+          : { kind: "classes", classIds: [classId] }
+      );
+    },
+    [setSelectionState]
+  );
+
   const onRelationshipConnect = useCallback(
     (sourceClassId: ClassId, targetClassId: ClassId) => {
       if (nodePlacementState?.kind !== "relationship") return;
@@ -106,9 +118,7 @@ export function useInteractions({
       );
       const nextRelationshipId = outcome.relationships.renamed[0]?.to ?? relationshipId;
       setSelectionState((selectionState) =>
-        selectionState.kind === "relationship" && selectionState.relationshipId === relationshipId
-          ? updateSelectedRelationshipId(selectionState, nextRelationshipId)
-          : selectionState
+        updateSelectedRelationshipId(selectionState, nextRelationshipId)
       );
     },
     [dispatchTransaction, relationships, setSelectionState]
@@ -159,6 +169,7 @@ export function useInteractions({
     onClassPlacementStart,
     onRelationshipPlacementStart,
     onClassSelect,
+    onClassMoved,
     onRelationshipConnect,
     onRelationshipReconnect,
     onRelationshipSelect,

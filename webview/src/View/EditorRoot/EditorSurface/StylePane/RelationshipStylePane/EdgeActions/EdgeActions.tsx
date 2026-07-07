@@ -3,9 +3,10 @@
  * @render Relationship action buttons.
  */
 
-import type { ReactElement } from "react";
+import { useEffect, type ReactElement } from "react";
 import type { RelationshipSeed } from "../../../../../state/editorStates";
 import type { RelationshipView } from "../../../../../views/schema";
+import { shouldIgnoreKeyboardShortcutEvent } from "../../../../../utils/keyboardEvents";
 import { useInteractions } from "./useInteractions";
 import styles from "./EdgeActions.module.css";
 
@@ -20,6 +21,18 @@ export default function EdgeActions({
 }: EdgeActionsProps): ReactElement {
   // Event handler props derivation
   const { onDuplicate, onDelete } = useInteractions(view, onRelationshipDuplicate);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent): void {
+      if (event.key !== "Delete" || shouldIgnoreKeyboardShortcutEvent(event)) return;
+
+      event.preventDefault();
+      onDelete();
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onDelete]);
 
   return (
     <section className={styles.actions} aria-label="Relationship actions">

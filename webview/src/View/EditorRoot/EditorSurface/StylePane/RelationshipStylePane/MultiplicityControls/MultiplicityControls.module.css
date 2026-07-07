@@ -17,9 +17,3 @@
   color: var(--shiny-text);
   font-size: 12px;
 }
-
-.row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 6px;
-}

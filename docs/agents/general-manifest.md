@@ -13,8 +13,10 @@ The human will first ask you to read this manifest. The detailed implementation 
 Before implementing a brief, read:
 
 * `COLLABORATORS.md` for repository orientation
-* `docs/engineering/architecture/architectural-standards.md` for architecture rules
-* any additional documents named in the brief
+* `docs/engineering/architecture/architectural-standards.md`
+* `docs/engineering/architecture/react-standards.md` - this is the bible, you should follow it fanatically
+* `docs/engineering/architecture/system-architecture.md`
+any additional documents named in the brief
 * the files and functions named in the brief
 
 Use `COLLABORATORS.md` as orientation only.

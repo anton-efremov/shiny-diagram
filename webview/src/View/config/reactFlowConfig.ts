@@ -94,12 +94,11 @@ export const reactFlowCanvasBoundaryProps = {
   onEdgesDelete: undefined,
 
   /**
-   * React Flow click-connect and reconnection lifecycle events are intentionally
+   * React Flow click-connect and reconnect-end lifecycle events are intentionally
    * not Shiny relationship-editing inputs.
    */
   onClickConnectStart: undefined,
   onClickConnectEnd: undefined,
-  onReconnectStart: undefined,
   onReconnectEnd: undefined,
 
   /**

@@ -4,26 +4,45 @@
 
 .textObject {
   overflow: visible;
-  pointer-events: all;
+  pointer-events: none;
+}
+
+.fitBox {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
 }
 
 .textButton,
 .textInput {
-  width: 96px;
-  min-height: 22px;
+  padding: 1px 5px;
   border: 1px solid transparent;
-  background: var(--shiny-surface);
-  color: var(--shiny-text);
   font: 12px var(--shiny-font-family);
   pointer-events: all;
   text-align: center;
 }
 
 .textButton {
+  width: max-content;
   cursor: text;
 }
 
 .textInput {
+  field-sizing: content;
+  min-width: 2ch;
   border-color: var(--shiny-accent);
   outline: none;
+}
+
+.light {
+  background: #ffffff;
+  color: #000000;
+}
+
+.dark {
+  background: #000000;
+  color: #ffffff;
 }

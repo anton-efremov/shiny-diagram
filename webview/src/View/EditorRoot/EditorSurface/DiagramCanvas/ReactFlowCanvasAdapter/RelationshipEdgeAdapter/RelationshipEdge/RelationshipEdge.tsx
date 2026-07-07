@@ -114,39 +114,45 @@ export default function RelationshipEdge({
         markerEnd={toMarkerUrl(targetMarkerId, view.targetEndpointKind)}
         strokeDasharray={view.lineKind === "dashed" ? RELATIONSHIP_EDGE_DASH_PATTERN : undefined}
       />
-      {view.sourceMultiplicity ? (
+      {view.sourceMultiplicity || isSourceMultiplicityEditing ? (
         <EditableText
           x={sourceMultiplicityX}
           y={sourceMultiplicityY}
           text={isSourceMultiplicityEditing ? draft : (view.sourceMultiplicity ?? "")}
+          tone="dark"
           isEditing={isSourceMultiplicityEditing}
           isEditStartEnabled={isSelected}
+          onSelect={onEdgeSelect}
           onEditStart={onSourceMultiplicityEditStart}
           onDraftChange={onDraftChange}
           onDraftCommit={onDraftCommit}
           onDraftDiscard={onDraftDiscard}
         />
       ) : null}
-      {view.targetMultiplicity ? (
+      {view.targetMultiplicity || isTargetMultiplicityEditing ? (
         <EditableText
           x={targetMultiplicityX}
           y={targetMultiplicityY}
           text={isTargetMultiplicityEditing ? draft : (view.targetMultiplicity ?? "")}
+          tone="dark"
           isEditing={isTargetMultiplicityEditing}
           isEditStartEnabled={isSelected}
+          onSelect={onEdgeSelect}
           onEditStart={onTargetMultiplicityEditStart}
           onDraftChange={onDraftChange}
           onDraftCommit={onDraftCommit}
           onDraftDiscard={onDraftDiscard}
         />
       ) : null}
-      {view.label ? (
+      {view.label || isLabelEditing ? (
         <EditableText
           x={labelX}
           y={labelY}
           text={isLabelEditing ? draft : (view.label ?? "")}
+          tone="light"
           isEditing={isLabelEditing}
           isEditStartEnabled={isSelected}
+          onSelect={onEdgeSelect}
           onEditStart={onLabelEditStart}
           onDraftChange={onDraftChange}
           onDraftCommit={onDraftCommit}
