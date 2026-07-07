@@ -12,6 +12,7 @@ import { toInitialClassBoxPlacementState } from "./state";
 import { useInteractions } from "./useInteractions";
 import { useStateReconciliation } from "./useStateReconciliation";
 import ReactFlowCanvasAdapter from "./ReactFlowCanvasAdapter/ReactFlowCanvasAdapter";
+import ReactFlowProviderAdapter from "./ReactFlowProviderAdapter/ReactFlowProviderAdapter";
 import styles from "./DiagramCanvas.module.css";
 
 type DiagramCanvasProps = {
@@ -62,21 +63,23 @@ export default function DiagramCanvas({
       {view.classes.length === 0 ? (
         <p className={styles.emptyState}>No spatial annotations found.</p>
       ) : null}
-      <ReactFlowCanvasAdapter
-        view={view}
-        selectionState={selectionState}
-        nodePlacementState={nodePlacementState}
-        classBoxPlacementState={classBoxPlacementState}
-        onClassBoxPlacementChange={onClassBoxPlacementChange}
-        onDragComplete={onDragComplete}
-        onClassSelect={onClassSelect}
-        onRelationshipConnect={onRelationshipConnect}
-        onRelationshipReconnect={onRelationshipReconnect}
-        onRelationshipSelect={onRelationshipSelect}
-        onBackgroundClick={onBackgroundClick}
-        onConnectAborted={onConnectAborted}
-        onPlacementComplete={onPlacementComplete}
-      />
+      <ReactFlowProviderAdapter>
+        <ReactFlowCanvasAdapter
+          view={view}
+          selectionState={selectionState}
+          nodePlacementState={nodePlacementState}
+          classBoxPlacementState={classBoxPlacementState}
+          onClassBoxPlacementChange={onClassBoxPlacementChange}
+          onDragComplete={onDragComplete}
+          onClassSelect={onClassSelect}
+          onRelationshipConnect={onRelationshipConnect}
+          onRelationshipReconnect={onRelationshipReconnect}
+          onRelationshipSelect={onRelationshipSelect}
+          onBackgroundClick={onBackgroundClick}
+          onConnectAborted={onConnectAborted}
+          onPlacementComplete={onPlacementComplete}
+        />
+      </ReactFlowProviderAdapter>
     </section>
   );
 }
