@@ -3,7 +3,6 @@
  */
 
 import { useCallback } from "react";
-import { composeRelationshipId } from "../../../../../../shared/ids";
 import type { RelationshipId } from "../../../../../../shared/ids";
 import type { RelationshipEndpointKind, RelationshipLineKind } from "../../../../../../shared/uml";
 import { useDispatchTransaction } from "../../../../../contexts";
@@ -56,10 +55,8 @@ export function useInteractions(
   const onReverse = useCallback(() => {
     const transaction = toRelationshipReverseTransaction(view);
     if (transaction.length === 0) return;
-    dispatchTransaction(transaction);
-    onRelationshipSelect(
-      composeRelationshipId(view.targetClassId, view.sourceClassId, view.ordinal)
-    );
+    const outcome = dispatchTransaction(transaction);
+    onRelationshipSelect(outcome.relationships.renamed[0]?.to ?? view.relationshipId);
   }, [dispatchTransaction, onRelationshipSelect, view]);
 
   return {

@@ -4,7 +4,9 @@
 
 import type { EditorCommandOf } from "../../../View/commands";
 import type { DiagramGraph } from "../../model/diagramGraph";
+import { composeRelationshipId } from "../../model/relationshipIdentity";
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
+import type { TranslateContext } from "../translateContext";
 import type { BlockRef, StatementAnchor, WriteIntent } from "../writeIntent";
 import {
   anchorAfterKindList,
@@ -18,8 +20,22 @@ import { composeRelationshipStatement } from "./relationshipSyntax";
 export function translateRelationshipCreate(
   command: EditorCommandOf<"relationship.create">,
   graph: DiagramGraph,
-  provenance: ProvenanceIndex
+  provenance: ProvenanceIndex,
+  context: TranslateContext
 ): WriteIntent[] {
+  // The created statement is appended after the last relationship, so its parse
+  // ordinal is the count of existing relationships plus the creates already
+  // recorded in this transaction. Precondition: a transaction mixing
+  // relationship creates with relationship deletes yields unreliable `created`
+  // ordinals; no current journey produces that mix.
+  context.recordRelationshipCreated(
+    composeRelationshipId(
+      command.source.classId,
+      command.target.classId,
+      graph.relationships.size + context.relationshipCreateCount()
+    )
+  );
+
   return [
     {
       kind: "insertStatement",

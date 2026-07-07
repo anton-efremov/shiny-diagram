@@ -45,11 +45,12 @@ import type {
   RelationshipLineKind,
   Visibility,
 } from "../../shared/uml";
+import type { TransactionOutcome } from "./transactionOutcome";
 
 /** One View-to-Controller editor transaction. */
 export type EditorCommandTransaction = readonly EditorCommand[];
 
-export type EditorDispatch = (transaction: EditorCommandTransaction) => void;
+export type EditorDispatch = (transaction: EditorCommandTransaction) => TransactionOutcome;
 
 export type EditorCommand =
   // ==========================================================================

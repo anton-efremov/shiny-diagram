@@ -2,8 +2,9 @@
  * @fileoverview Builds relationship facts from relationship tokens.
  */
 
-import { composeRelationshipId, toClassId } from "../../../../shared/ids";
+import { toClassId } from "../../../../shared/ids";
 import type { RelationshipEdge } from "../../../model/diagramGraph";
+import { composeRelationshipId } from "../../../model/relationshipIdentity";
 import type { RelationshipEndpointKind, RelationshipLineKind } from "../../../../shared/uml";
 import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";

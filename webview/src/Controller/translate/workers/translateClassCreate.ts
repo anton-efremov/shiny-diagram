@@ -19,6 +19,7 @@ import type { EditorCommandOf } from "../../../View/commands";
 import type { DiagramGraph } from "../../model/diagramGraph";
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { ClassId } from "../../../shared/ids";
+import type { TranslateContext } from "../translateContext";
 import type { BlockRef, StatementAnchor, WriteIntent } from "../writeIntent";
 import {
   anchorAfterKindList,
@@ -27,15 +28,15 @@ import {
   asSameKind,
   STATEMENT_KINDS,
 } from "../anchors/statementAnchors";
-import { allocateClassId } from "../generateId";
 import { composeSpatialAnnotation } from "../syntax/spatialSyntax";
 
 export function translateClassCreate(
   command: EditorCommandOf<"class.create">,
   graph: DiagramGraph,
-  provenance: ProvenanceIndex
+  provenance: ProvenanceIndex,
+  context: TranslateContext
 ): WriteIntent[] {
-  const id = allocateClassId(null, graph);
+  const id = context.allocateClassId(null);
   const declarationScope: BlockRef = command.parentNamespaceId
     ? { kind: "namespace", namespaceId: command.parentNamespaceId }
     : { kind: "diagram" };

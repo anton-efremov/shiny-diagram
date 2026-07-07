@@ -5,7 +5,6 @@
 
 import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import { composeRelationshipId } from "../../../shared/ids";
 import type { ClassId, RelationshipId, StyleDefId } from "../../../shared/ids";
 import type {
   NodePlacementState,
@@ -102,17 +101,13 @@ export function useInteractions({
       if (existingClassId === newClassId) return;
 
       // Implementing interaction through command transaction
-      dispatchTransaction(toRelationshipReconnectTransaction(relationshipId, end, newClassId));
+      const outcome = dispatchTransaction(
+        toRelationshipReconnectTransaction(relationshipId, end, newClassId)
+      );
+      const nextRelationshipId = outcome.relationships.renamed[0]?.to ?? relationshipId;
       setSelectionState((selectionState) =>
         selectionState.kind === "relationship" && selectionState.relationshipId === relationshipId
-          ? updateSelectedRelationshipId(
-              selectionState,
-              composeRelationshipId(
-                end === "source" ? newClassId : relationship.sourceClassId,
-                end === "target" ? newClassId : relationship.targetClassId,
-                relationship.ordinal
-              )
-            )
+          ? updateSelectedRelationshipId(selectionState, nextRelationshipId)
           : selectionState
       );
     },

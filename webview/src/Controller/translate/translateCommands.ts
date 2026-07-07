@@ -1,9 +1,14 @@
 /**
- * @fileoverview Translates editor command transactions into logical write intents.
+ * @fileoverview Translates editor command transactions into logical write intents
+ * and the transaction's identity outcome.
  */
 
-import type { EditorCommand, EditorCommandTransaction } from "../../View/commands";
-import type { RelationshipId } from "../../shared/ids";
+import type {
+  EditorCommand,
+  EditorCommandTransaction,
+  TransactionOutcome,
+} from "../../View/commands";
+import type { ClassId, RelationshipId } from "../../shared/ids";
 import type { RelationshipEndpointKind, RelationshipLineKind } from "../../shared/uml";
 import type { DiagramGraph } from "../model/diagramGraph";
 import type { ProvenanceIndex } from "../model/provenanceIndex";
@@ -22,6 +27,7 @@ import { translateClassDuplicate } from "./workers/translateClassDuplicate";
 import { translateClassSpatialSet } from "./workers/translateClassSpatialSet";
 import { translateRelationshipCreate } from "./workers/translateRelationshipCreate";
 import { translateRelationshipDelete } from "./workers/translateRelationshipDelete";
+import { translateRelationshipEndpointsPatch } from "./workers/translateRelationshipEndpointsPatch";
 import { translateRelationshipLabelSet } from "./workers/translateRelationshipLabelSet";
 import { translateRelationshipLineKindSet } from "./workers/translateRelationshipLineKindSet";
 import { translateRelationshipOperatorPatch } from "./workers/translateRelationshipOperatorPatch";
@@ -43,16 +49,29 @@ export function translateCommands(
   graph: DiagramGraph,
   provenance: ProvenanceIndex,
   sourceText: string
-): WriteIntent[] {
+): { readonly intents: WriteIntent[]; readonly outcome: TransactionOutcome } {
   const context = createTranslateContext(graph);
   const operatorPatchBatch = collectRelationshipOperatorPatches(transaction, graph);
+  const endpointsPatchBatch = collectRelationshipEndpointsPatches(transaction);
 
-  return transaction.flatMap((command, index) => {
+  const intents = transaction.flatMap((command, index) => {
     const batchedIntents = operatorPatchBatch.intentsByIndex.get(index);
     if (batchedIntents) return batchedIntents;
     if (operatorPatchBatch.skippedIndexes.has(index)) return [];
+    const endpointsPatch = endpointsPatchBatch.patchesByIndex.get(index);
+    if (endpointsPatch) {
+      return translateRelationshipEndpointsPatch(
+        endpointsPatch.relationshipId,
+        graph,
+        endpointsPatch,
+        context
+      );
+    }
+    if (endpointsPatchBatch.skippedIndexes.has(index)) return [];
     return translateCommand(command, graph, provenance, sourceText, context);
   });
+
+  return { intents, outcome: context.toTransactionOutcome() };
 }
 
 function translateCommand(
@@ -64,7 +83,7 @@ function translateCommand(
 ): WriteIntent[] {
   switch (command.type) {
     case "class.create":
-      return translateClassCreate(command, graph, provenance);
+      return translateClassCreate(command, graph, provenance, context);
     case "class.duplicate":
       return translateClassDuplicate(command, graph, provenance, sourceText, context);
     case "class.delete":
@@ -80,13 +99,13 @@ function translateCommand(
     case "class.appliedStyle.set":
       return translateClassAppliedStyleSet(command, graph, provenance);
     case "relationship.create":
-      return translateRelationshipCreate(command, graph, provenance);
+      return translateRelationshipCreate(command, graph, provenance, context);
     case "relationship.delete":
       return translateRelationshipDelete(command);
     case "relationship.source.class.set":
-      return translateRelationshipSourceClassSet(command);
+      return translateRelationshipSourceClassSet(command, graph, context);
     case "relationship.target.class.set":
-      return translateRelationshipTargetClassSet(command);
+      return translateRelationshipTargetClassSet(command, graph, context);
     case "relationship.source.endpointKind.set":
       return translateRelationshipSourceEndpointKindSet(command, graph);
     case "relationship.target.endpointKind.set":
@@ -180,6 +199,96 @@ function toRelationshipOperatorPatch(
         firstIndex,
         relationshipId: command.relationshipId,
         lineKind: command.lineKind,
+      };
+    default:
+      return null;
+  }
+}
+
+type RelationshipEndpointsPatch = {
+  readonly firstIndex: number;
+  readonly relationshipId: RelationshipId;
+  readonly sourceClassId?: ClassId;
+  readonly targetClassId?: ClassId;
+};
+
+type RelationshipEndpointsPatchBatch = {
+  readonly patchesByIndex: ReadonlyMap<
+    number,
+    RelationshipEndpointsPatch & {
+      readonly sourceClassId: ClassId;
+      readonly targetClassId: ClassId;
+    }
+  >;
+  readonly skippedIndexes: ReadonlySet<number>;
+};
+
+/**
+ * Batches endpoint class rewrites of one relationship (the reverse journey) so
+ * the identity rename is recorded once with both endpoints applied. Commands
+ * setting only one endpoint of a relationship (the reconnect journey) are left
+ * to their per-command workers.
+ */
+function collectRelationshipEndpointsPatches(
+  transaction: EditorCommandTransaction
+): RelationshipEndpointsPatchBatch {
+  const patches = new Map<RelationshipId, RelationshipEndpointsPatch>();
+  const indexesByRelationship = new Map<RelationshipId, number[]>();
+
+  transaction.forEach((command, index) => {
+    const patch = toRelationshipEndpointsPatch(command, index);
+    if (!patch) return;
+
+    indexesByRelationship.set(patch.relationshipId, [
+      ...(indexesByRelationship.get(patch.relationshipId) ?? []),
+      index,
+    ]);
+    const existing = patches.get(patch.relationshipId);
+    patches.set(patch.relationshipId, {
+      ...existing,
+      ...patch,
+      firstIndex: existing?.firstIndex ?? patch.firstIndex,
+      relationshipId: patch.relationshipId,
+    });
+  });
+
+  const patchesByIndex = new Map<
+    number,
+    RelationshipEndpointsPatch & {
+      readonly sourceClassId: ClassId;
+      readonly targetClassId: ClassId;
+    }
+  >();
+  const skippedIndexes = new Set<number>();
+  for (const patch of patches.values()) {
+    const { sourceClassId, targetClassId } = patch;
+    if (sourceClassId === undefined || targetClassId === undefined) continue;
+
+    patchesByIndex.set(patch.firstIndex, { ...patch, sourceClassId, targetClassId });
+    for (const index of indexesByRelationship.get(patch.relationshipId) ?? []) {
+      if (index !== patch.firstIndex) skippedIndexes.add(index);
+    }
+  }
+
+  return { patchesByIndex, skippedIndexes };
+}
+
+function toRelationshipEndpointsPatch(
+  command: EditorCommand,
+  firstIndex: number
+): RelationshipEndpointsPatch | null {
+  switch (command.type) {
+    case "relationship.source.class.set":
+      return {
+        firstIndex,
+        relationshipId: command.relationshipId,
+        sourceClassId: command.classId,
+      };
+    case "relationship.target.class.set":
+      return {
+        firstIndex,
+        relationshipId: command.relationshipId,
+        targetClassId: command.classId,
       };
     default:
       return null;
