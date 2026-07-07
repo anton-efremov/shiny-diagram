@@ -4,15 +4,20 @@
  */
 
 import { useState } from "react";
-import type { KeyboardEvent, MouseEvent, ReactElement } from "react";
+import type { ReactElement } from "react";
 import type { RelationshipId } from "../../../../../../../shared/ids";
+import {
+  RELATIONSHIP_EDGE_DASH_PATTERN,
+  RELATIONSHIP_EDGE_HIT_PATH_STROKE_WIDTH,
+  RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION,
+} from "../../../../../../config/editorUiConfig";
 import type { RelationshipView } from "../../../../../../views/schema";
-import RelationshipMarker from "../../RelationshipMarker/RelationshipMarker";
+import RelationshipMarker from "../../../../../../ui/RelationshipMarker/RelationshipMarker";
+import EditableText from "./EditableText/EditableText";
 import { useInteractions } from "./useInteractions";
 import styles from "./RelationshipEdge.module.css";
 
 type RelationshipEdgeProps = {
-  readonly edgeId: string;
   readonly view: RelationshipView;
   readonly isSelected: boolean;
   readonly edgePath: string;
@@ -28,7 +33,6 @@ type RelationshipEdgeProps = {
 type EditTarget = "label" | "sourceMultiplicity" | "targetMultiplicity";
 
 export default function RelationshipEdge({
-  edgeId,
   view,
   isSelected,
   edgePath,
@@ -57,13 +61,17 @@ export default function RelationshipEdge({
     });
 
   // UI props derivation
-  const sourceMarkerId = `${edgeId}-source-${view.sourceEndpointKind}`;
-  const targetMarkerId = `${edgeId}-target-${view.targetEndpointKind}`;
+  const sourceMarkerId = `${view.relationshipId}-source-${view.sourceEndpointKind}`;
+  const targetMarkerId = `${view.relationshipId}-target-${view.targetEndpointKind}`;
   const className = [styles.edgePath, isSelected ? styles.selected : ""].filter(Boolean).join(" ");
-  const sourceMultiplicityX = sourceX + (labelX - sourceX) * 0.3;
-  const sourceMultiplicityY = sourceY + (labelY - sourceY) * 0.3;
-  const targetMultiplicityX = targetX + (labelX - targetX) * 0.3;
-  const targetMultiplicityY = targetY + (labelY - targetY) * 0.3;
+  const sourceMultiplicityX =
+    sourceX + (labelX - sourceX) * RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION;
+  const sourceMultiplicityY =
+    sourceY + (labelY - sourceY) * RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION;
+  const targetMultiplicityX =
+    targetX + (labelX - targetX) * RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION;
+  const targetMultiplicityY =
+    targetY + (labelY - targetY) * RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION;
 
   return (
     <g onClick={onEdgeSelect}>
@@ -84,7 +92,7 @@ export default function RelationshipEdge({
         d={edgePath}
         fill="none"
         stroke="transparent"
-        strokeWidth={14}
+        strokeWidth={RELATIONSHIP_EDGE_HIT_PATH_STROKE_WIDTH}
       />
       <path
         className={className}
@@ -92,7 +100,7 @@ export default function RelationshipEdge({
         fill="none"
         markerStart={toMarkerUrl(sourceMarkerId, view.sourceEndpointKind)}
         markerEnd={toMarkerUrl(targetMarkerId, view.targetEndpointKind)}
-        strokeDasharray={view.lineKind === "dashed" ? "6 4" : undefined}
+        strokeDasharray={view.lineKind === "dashed" ? RELATIONSHIP_EDGE_DASH_PATTERN : undefined}
       />
       {view.sourceMultiplicity ? (
         <EditableText
@@ -140,67 +148,6 @@ export default function RelationshipEdge({
         />
       ) : null}
     </g>
-  );
-}
-
-type EditableTextProps = {
-  readonly target: EditTarget;
-  readonly x: number;
-  readonly y: number;
-  readonly value: string;
-  readonly editTarget: EditTarget | null;
-  readonly draft: string;
-  readonly isSelected: boolean;
-  readonly onTextEditStart: (target: EditTarget, value: string) => void;
-  readonly onDraftChange: (value: string) => void;
-  readonly onDraftKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
-  readonly onDraftBlur: () => void;
-};
-
-function EditableText({
-  target,
-  x,
-  y,
-  value,
-  editTarget,
-  draft,
-  isSelected,
-  onTextEditStart,
-  onDraftChange,
-  onDraftKeyDown,
-  onDraftBlur,
-}: EditableTextProps): ReactElement {
-  const isEditing = editTarget === target;
-  const displayValue = value === "" ? " " : value;
-  return (
-    <foreignObject x={x - 48} y={y - 14} width={96} height={28} className={styles.textObject}>
-      {isEditing ? (
-        <input
-          className={styles.textInput}
-          value={draft}
-          autoFocus
-          onClick={(event) => event.stopPropagation()}
-          onChange={(event) => onDraftChange(event.target.value)}
-          onKeyDown={onDraftKeyDown}
-          onBlur={onDraftBlur}
-        />
-      ) : (
-        <button
-          className={styles.textButton}
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            if (isSelected) onTextEditStart(target, value);
-          }}
-          onDoubleClick={(event: MouseEvent<HTMLButtonElement>) => {
-            event.stopPropagation();
-            onTextEditStart(target, value);
-          }}
-        >
-          {displayValue}
-        </button>
-      )}
-    </foreignObject>
   );
 }
 

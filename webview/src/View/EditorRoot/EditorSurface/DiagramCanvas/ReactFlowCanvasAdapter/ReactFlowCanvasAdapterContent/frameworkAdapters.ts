@@ -8,10 +8,11 @@ import type {
   Node as ReactFlowNode,
   NodeChange as ReactFlowNodeChange,
 } from "@xyflow/react";
-import type { Rect } from "../../../../../shared/geometry";
-import type { ClassId, RelationshipId } from "../../../../../shared/ids";
-import type { ClassBoxPlacementState, SelectionState } from "../../../../state/editorStates";
-import type { ClassView, DiagramView, RelationshipView } from "../../../../views/schema";
+import type { Rect } from "../../../../../../shared/geometry";
+import type { ClassId, RelationshipId } from "../../../../../../shared/ids";
+import { toClassId } from "../../../../../../shared/ids";
+import type { ClassBoxPlacementState, SelectionState } from "../../../../../state/editorStates";
+import type { ClassView, DiagramView, RelationshipView } from "../../../../../views/schema";
 
 export type ClassBoxNodeData = {
   readonly view: ClassView;
@@ -88,8 +89,8 @@ export function toClassBoxNodeDescriptors(
 export function toRelationshipConnection(connection: Connection): RelationshipConnection | null {
   return connection.source && connection.target
     ? {
-        sourceClassId: connection.source as ClassId,
-        targetClassId: connection.target as ClassId,
+        sourceClassId: toClassId(connection.source),
+        targetClassId: toClassId(connection.target),
       }
     : null;
 }
@@ -110,12 +111,12 @@ export function toRelationshipReconnect(
     ? {
         relationshipId: relationshipView.relationshipId,
         end: "source",
-        newClassId: newConnection.source as ClassId,
+        newClassId: toClassId(newConnection.source),
       }
     : {
         relationshipId: relationshipView.relationshipId,
         end: "target",
-        newClassId: newConnection.target as ClassId,
+        newClassId: toClassId(newConnection.target),
       };
 }
 
@@ -188,13 +189,13 @@ export function toClassBoxPlacementChanges(
       case "position":
         return change.position === undefined
           ? []
-          : [{ classId: change.id as ClassId, x: change.position.x, y: change.position.y }];
+          : [{ classId: toClassId(change.id), x: change.position.x, y: change.position.y }];
       case "dimensions":
         return change.dimensions === undefined
           ? []
           : [
               {
-                classId: change.id as ClassId,
+                classId: toClassId(change.id),
                 w: change.dimensions.width,
                 h: change.dimensions.height,
               },

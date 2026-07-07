@@ -6,10 +6,10 @@ import { useCallback } from "react";
 import type { RelationshipId } from "../../../../../../shared/ids";
 import type { RelationshipEndpointKind, RelationshipLineKind } from "../../../../../../shared/uml";
 import { useDispatchTransaction } from "../../../../../contexts";
+import { toPredictedRelationshipId } from "../../../../../utils/relationshipIdPrediction";
 import type { RelationshipView } from "../../../../../views/schema";
 import {
   toLineKindSetTransaction,
-  toPredictedReversedRelationshipId,
   toRelationshipReverseTransaction,
   toSourceEndpointKindSetTransaction,
   toTargetEndpointKindSetTransaction,
@@ -57,7 +57,9 @@ export function useInteractions(
     const transaction = toRelationshipReverseTransaction(view);
     if (transaction.length === 0) return;
     dispatchTransaction(transaction);
-    onRelationshipSelect(toPredictedReversedRelationshipId(view));
+    onRelationshipSelect(
+      toPredictedRelationshipId(view.relationshipId, view.targetClassId, view.sourceClassId)
+    );
   }, [dispatchTransaction, onRelationshipSelect, view]);
 
   return {

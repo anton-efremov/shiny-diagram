@@ -1,5 +1,5 @@
 /**
- * @behavior Initial SelectionState and NodePlacementState values for the ready editor.
+ * @behavior SelectionState and NodePlacementState construction for the ready editor.
  */
 
 import type { NodePlacementState, SelectionState } from "../../state/editorStates";

@@ -41,7 +41,8 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
     onRelationshipSelect,
     onRelationshipDuplicate,
     onStyleSelect,
-    onSelectionClear,
+    onBackgroundClick,
+    onConnectAborted,
     onPlacementComplete,
   } = useInteractions({
     relationships: view.relationships,
@@ -66,7 +67,8 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
           onRelationshipConnect={onRelationshipConnect}
           onRelationshipReconnect={onRelationshipReconnect}
           onRelationshipSelect={onRelationshipSelect}
-          onSelectionClear={onSelectionClear}
+          onBackgroundClick={onBackgroundClick}
+          onConnectAborted={onConnectAborted}
           onPlacementComplete={onPlacementComplete}
         />
       </div>

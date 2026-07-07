@@ -2,7 +2,7 @@
  * @behavior Relationship shape edit transaction derivation.
  */
 
-import { toRelationshipId, type RelationshipId } from "../../../../../../shared/ids";
+import type { RelationshipId } from "../../../../../../shared/ids";
 import type { EditorCommandTransaction } from "../../../../../commands/editorCommands";
 import type { RelationshipView } from "../../../../../views/schema";
 import type { RelationshipEndpointKind, RelationshipLineKind } from "../../../../../../shared/uml";
@@ -59,12 +59,4 @@ export function toRelationshipReverseTransaction(view: RelationshipView): Editor
           multiplicity: view.sourceMultiplicity ?? null,
         },
   ].filter((command) => command !== null);
-}
-
-export function toPredictedReversedRelationshipId(view: RelationshipView): RelationshipId {
-  const relationshipId = view.relationshipId;
-  const indexStart = relationshipId.lastIndexOf("--");
-  const index = indexStart === -1 ? "0" : relationshipId.slice(indexStart + 2);
-  // Shiny: mirrors buildRelationshipEdge id derivation `${source}--${target}--${index}`.
-  return toRelationshipId(`${view.targetClassId}--${view.sourceClassId}--${index}`);
 }

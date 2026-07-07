@@ -5,21 +5,19 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import {
-  toClassId,
-  toRelationshipId,
-  type ClassId,
-  type RelationshipId,
-} from "../../../shared/ids";
-import type { EditorCommandTransaction } from "../../commands/editorCommands";
-import { CommandDispatchProvider } from "../../contexts";
-import type { DiagramView } from "../../views/schema";
-import EditorSurface from "./EditorSurface";
-import { useInteractions as useReactFlowCanvasInteractions } from "./DiagramCanvas/ReactFlowCanvasAdapter/useInteractions";
+import { toClassId, toRelationshipId, type ClassId, type RelationshipId } from "../../shared/ids";
+import type { EditorCommandTransaction } from "../commands/editorCommands";
+import { CommandDispatchProvider } from "../contexts";
+import type { DiagramView } from "../views/schema";
+import EditorSurface from "../EditorRoot/EditorSurface/EditorSurface";
+import { useInteractions as useReactFlowCanvasInteractions } from "../EditorRoot/EditorSurface/DiagramCanvas/ReactFlowCanvasAdapter/ReactFlowCanvasAdapterContent/useInteractions";
 
-vi.mock("./DiagramCanvas/ReactFlowCanvasAdapter/ReactFlowCanvasAdapter", () => ({
-  default: MockReactFlowCanvasAdapter,
-}));
+vi.mock(
+  "../EditorRoot/EditorSurface/DiagramCanvas/ReactFlowCanvasAdapter/ReactFlowCanvasAdapter",
+  () => ({
+    default: MockReactFlowCanvasAdapter,
+  })
+);
 
 afterEach(() => cleanup());
 
@@ -82,22 +80,32 @@ describe("relationship placement", () => {
     expect(onTransactionDispatch).not.toHaveBeenCalled();
   });
 
-  test("clears only direct pane background clicks and invalid connection endings", () => {
-    const onSelectionClear = vi.fn();
+  test("reports only direct pane background clicks and invalid placement connection endings", () => {
+    const onBackgroundClick = vi.fn();
+    const onConnectAborted = vi.fn();
 
-    render(<ReactFlowInteractionProbe onSelectionClear={onSelectionClear} />);
+    render(
+      <ReactFlowInteractionProbe
+        onBackgroundClick={onBackgroundClick}
+        onConnectAborted={onConnectAborted}
+      />
+    );
 
     fireEvent.click(screen.getByTestId("pane-child"));
-    expect(onSelectionClear).not.toHaveBeenCalled();
+    expect(onBackgroundClick).not.toHaveBeenCalled();
+    expect(onConnectAborted).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByTestId("pane"));
-    expect(onSelectionClear).toHaveBeenCalledTimes(1);
+    expect(onBackgroundClick).toHaveBeenCalledTimes(1);
+    expect(onConnectAborted).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByTestId("invalid-placement-connect-end"));
-    expect(onSelectionClear).toHaveBeenCalledTimes(2);
+    expect(onBackgroundClick).toHaveBeenCalledTimes(1);
+    expect(onConnectAborted).toHaveBeenCalledTimes(1);
 
     fireEvent.click(screen.getByTestId("invalid-idle-connect-end"));
-    expect(onSelectionClear).toHaveBeenCalledTimes(2);
+    expect(onBackgroundClick).toHaveBeenCalledTimes(1);
+    expect(onConnectAborted).toHaveBeenCalledTimes(1);
   });
 
   test("dispatches relationship class set for changed reconnect endpoints only", () => {
@@ -167,13 +175,13 @@ type MockReactFlowCanvasAdapterProps = {
     end: "source" | "target",
     newClassId: ClassId
   ) => void;
-  readonly onSelectionClear: () => void;
+  readonly onBackgroundClick: () => void;
 };
 
 function MockReactFlowCanvasAdapter({
   onRelationshipConnect,
   onRelationshipReconnect,
-  onSelectionClear,
+  onBackgroundClick,
 }: MockReactFlowCanvasAdapterProps): ReactElement {
   return (
     <div>
@@ -184,7 +192,7 @@ function MockReactFlowCanvasAdapter({
       >
         Connect A to B
       </button>
-      <button type="button" data-testid="cancel-placement" onClick={onSelectionClear}>
+      <button type="button" data-testid="cancel-placement" onClick={onBackgroundClick}>
         Cancel placement
       </button>
       <button
@@ -210,11 +218,13 @@ function MockReactFlowCanvasAdapter({
 }
 
 type ReactFlowInteractionProbeProps = {
-  readonly onSelectionClear: () => void;
+  readonly onBackgroundClick: () => void;
+  readonly onConnectAborted: () => void;
 };
 
 function ReactFlowInteractionProbe({
-  onSelectionClear,
+  onBackgroundClick,
+  onConnectAborted,
 }: ReactFlowInteractionProbeProps): ReactElement {
   // Known jsdom limitation: React Flow's pane onClick does not fire reliably
   // through the mocked canvas, so this test drives the adapter callback directly.
@@ -224,7 +234,8 @@ function ReactFlowInteractionProbe({
       onDragComplete: () => {},
       onRelationshipConnect: () => {},
       onRelationshipReconnect: () => {},
-      onSelectionClear,
+      onBackgroundClick,
+      onConnectAborted,
     },
     isRelationshipPlacementArmed: true,
     pressPointRef: { current: null },
@@ -236,7 +247,8 @@ function ReactFlowInteractionProbe({
       onDragComplete: () => {},
       onRelationshipConnect: () => {},
       onRelationshipReconnect: () => {},
-      onSelectionClear,
+      onBackgroundClick,
+      onConnectAborted,
     },
     isRelationshipPlacementArmed: false,
     pressPointRef: { current: null },

@@ -7,15 +7,14 @@ import { useCallback, useEffect, useRef } from "react";
 import type { MutableRefObject, ReactElement } from "react";
 import { type ConnectionLineComponentProps, useReactFlow, type XYPosition } from "@xyflow/react";
 import type { RelationshipSeed } from "../../../../../state/editorStates";
-import type { ClassBoxNodeDescriptor } from "../frameworkAdapters";
-import RelationshipMarker from "../RelationshipMarker/RelationshipMarker";
+import { RELATIONSHIP_EDGE_DASH_PATTERN } from "../../../../../config/editorUiConfig";
+import RelationshipMarker from "../../../../../ui/RelationshipMarker/RelationshipMarker";
 import styles from "./RelationshipConnectionLineAdapter.module.css";
 
-type RelationshipConnectionLineAdapterProps =
-  ConnectionLineComponentProps<ClassBoxNodeDescriptor> & {
-    readonly seed: RelationshipSeed;
-    readonly pressPointRef: MutableRefObject<XYPosition | null>;
-  };
+type RelationshipConnectionLineAdapterProps = ConnectionLineComponentProps & {
+  readonly seed: RelationshipSeed;
+  readonly pressPointRef: MutableRefObject<XYPosition | null>;
+};
 
 export default function RelationshipConnectionLineAdapter({
   fromX,
@@ -29,7 +28,7 @@ export default function RelationshipConnectionLineAdapter({
   const pathRef = useRef<SVGPathElement | null>(null);
 
   // Framework prop and event adaptation
-  const { screenToFlowPosition } = useReactFlow<ClassBoxNodeDescriptor>();
+  const { screenToFlowPosition } = useReactFlow();
   const toStartPoint = useCallback(
     (): XYPosition => pressPointRef.current ?? { x: fromX, y: fromY },
     [fromX, fromY, pressPointRef]
@@ -72,7 +71,7 @@ export default function RelationshipConnectionLineAdapter({
         fill="none"
         markerStart={toMarkerUrl(sourceMarkerId, seed.sourceEndpointKind)}
         markerEnd={toMarkerUrl(targetMarkerId, seed.targetEndpointKind)}
-        strokeDasharray={seed.lineKind === "dashed" ? "6 4" : undefined}
+        strokeDasharray={seed.lineKind === "dashed" ? RELATIONSHIP_EDGE_DASH_PATTERN : undefined}
       />
     </g>
   );

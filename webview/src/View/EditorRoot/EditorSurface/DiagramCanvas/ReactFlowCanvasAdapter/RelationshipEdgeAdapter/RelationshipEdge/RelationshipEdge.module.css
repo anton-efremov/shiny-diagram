@@ -16,29 +16,3 @@
   cursor: pointer;
   pointer-events: stroke;
 }
-
-.textObject {
-  overflow: visible;
-  pointer-events: all;
-}
-
-.textButton,
-.textInput {
-  width: 96px;
-  min-height: 22px;
-  border: 1px solid transparent;
-  background: var(--shiny-surface);
-  color: var(--shiny-text);
-  font: 12px var(--shiny-font-family);
-  pointer-events: all;
-  text-align: center;
-}
-
-.textButton {
-  cursor: text;
-}
-
-.textInput {
-  border-color: var(--shiny-accent);
-  outline: none;
-}

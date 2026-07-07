@@ -6,7 +6,6 @@
 import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { ClassId, RelationshipId, StyleDefId } from "../../../shared/ids";
-import { toRelationshipId } from "../../../shared/ids";
 import type {
   NodePlacementState,
   RelationshipSeed,
@@ -14,6 +13,7 @@ import type {
 } from "../../state/editorStates";
 import type { RelationshipView } from "../../views/schema";
 import { useDispatchTransaction } from "../../contexts";
+import { toPredictedRelationshipId } from "../../utils/relationshipIdPrediction";
 import {
   toRelationshipCreateTransaction,
   toRelationshipReconnectTransaction,
@@ -32,7 +32,8 @@ type Interactions = {
   readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
   readonly onRelationshipDuplicate: (seed: RelationshipSeed) => void;
   readonly onStyleSelect: (styleDefId: StyleDefId) => void;
-  readonly onSelectionClear: () => void;
+  readonly onBackgroundClick: () => void;
+  readonly onConnectAborted: () => void;
   readonly onPlacementComplete: () => void;
 };
 
@@ -106,7 +107,11 @@ export function useInteractions({
         selectionState.kind === "relationship" && selectionState.relationshipId === relationshipId
           ? updateSelectedRelationshipId(
               selectionState,
-              toPredictedReconnectedRelationshipId(relationship, end, newClassId)
+              toPredictedRelationshipId(
+                relationship.relationshipId,
+                end === "source" ? newClassId : relationship.sourceClassId,
+                end === "target" ? newClassId : relationship.targetClassId
+              )
             )
           : selectionState
       );
@@ -142,10 +147,14 @@ export function useInteractions({
     [setSelectionState]
   );
 
-  const onSelectionClear = useCallback(() => {
+  const onBackgroundClick = useCallback(() => {
     setSelectionState((state) => clearSelectionState(state));
     setNodePlacementState((state) => (state?.kind === "relationship" ? null : state));
   }, [setNodePlacementState, setSelectionState]);
+
+  const onConnectAborted = useCallback(() => {
+    setNodePlacementState((state) => (state?.kind === "relationship" ? null : state));
+  }, [setNodePlacementState]);
 
   const onPlacementComplete = useCallback(() => {
     setNodePlacementState((state) => updateNodePlacementState(state, null));
@@ -160,7 +169,8 @@ export function useInteractions({
     onRelationshipSelect,
     onRelationshipDuplicate,
     onStyleSelect,
-    onSelectionClear,
+    onBackgroundClick,
+    onConnectAborted,
     onPlacementComplete,
   };
 }
@@ -175,20 +185,6 @@ function updateSelectedRelationshipId(
 }
 
 // Private helpers
-function toPredictedReconnectedRelationshipId(
-  relationship: RelationshipView,
-  end: "source" | "target",
-  newClassId: ClassId
-): RelationshipId {
-  const relationshipId = relationship.relationshipId;
-  const indexStart = relationshipId.lastIndexOf("--");
-  const index = indexStart === -1 ? "0" : relationshipId.slice(indexStart + 2);
-  const sourceClassId = end === "source" ? newClassId : relationship.sourceClassId;
-  const targetClassId = end === "target" ? newClassId : relationship.targetClassId;
-  // Shiny: mirrors buildRelationshipEdge id derivation `${source}--${target}--${index}`.
-  return toRelationshipId(`${sourceClassId}--${targetClassId}--${index}`);
-}
-
 function updateSelectedClassIds(
   selectionState: SelectionState,
   classId: ClassId,
@@ -211,10 +207,6 @@ function updateNodePlacementState(
   if (state === nodePlacementState) return state;
   if (state?.kind === "class" && nodePlacementState?.kind === "class") return state;
   return nodePlacementState;
-}
-
-function toClassSelectionState(classIds: readonly ClassId[]): SelectionState {
-  return classIds.length === 0 ? { kind: "none" } : { kind: "classes", classIds };
 }
 
 function toToggledClassIds(
@@ -241,6 +233,10 @@ function clearSelectionState(selectionState: SelectionState): SelectionState {
 
 function toStyleSelectionState(styleDefId: StyleDefId): SelectionState {
   return { kind: "style", styleDefId };
+}
+
+function toClassSelectionState(classIds: readonly ClassId[]): SelectionState {
+  return classIds.length === 0 ? { kind: "none" } : { kind: "classes", classIds };
 }
 
 function areClassIdCollectionsEqual(left: readonly ClassId[], right: readonly ClassId[]): boolean {

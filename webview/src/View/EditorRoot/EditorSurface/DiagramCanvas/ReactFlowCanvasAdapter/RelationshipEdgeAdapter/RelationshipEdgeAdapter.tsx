@@ -3,12 +3,20 @@
  */
 
 import type { ReactElement } from "react";
-import { getBezierPath, type EdgeProps } from "@xyflow/react";
-import type { RelationshipEdgeDescriptor } from "../frameworkAdapters";
+import { getBezierPath, type Edge as ReactFlowEdge, type EdgeProps } from "@xyflow/react";
+import type { RelationshipId } from "../../../../../../shared/ids";
+import type { RelationshipView } from "../../../../../views/schema";
 import RelationshipEdge from "./RelationshipEdge/RelationshipEdge";
 
+type RelationshipEdgeData = {
+  readonly view: RelationshipView;
+  readonly isSelected: boolean;
+  readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
+};
+
+type RelationshipEdgeDescriptor = ReactFlowEdge<RelationshipEdgeData, "relationship">;
+
 export default function RelationshipEdgeAdapter({
-  id,
   sourceX,
   sourceY,
   targetX,
@@ -31,7 +39,6 @@ export default function RelationshipEdgeAdapter({
 
   return (
     <RelationshipEdge
-      edgeId={id}
       view={data.view}
       isSelected={data.isSelected}
       edgePath={edgePath}

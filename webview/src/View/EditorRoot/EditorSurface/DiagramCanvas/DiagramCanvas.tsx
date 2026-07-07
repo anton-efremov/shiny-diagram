@@ -26,7 +26,8 @@ type DiagramCanvasProps = {
     newClassId: ClassId
   ) => void;
   readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
-  readonly onSelectionClear: () => void;
+  readonly onBackgroundClick: () => void;
+  readonly onConnectAborted: () => void;
   readonly onPlacementComplete: () => void;
 };
 
@@ -38,7 +39,8 @@ export default function DiagramCanvas({
   onRelationshipConnect,
   onRelationshipReconnect,
   onRelationshipSelect,
-  onSelectionClear,
+  onBackgroundClick,
+  onConnectAborted,
   onPlacementComplete,
 }: DiagramCanvasProps): ReactElement {
   // State creation: ledger state - framework-neutral class box positions and dimensions
@@ -71,7 +73,8 @@ export default function DiagramCanvas({
         onRelationshipConnect={onRelationshipConnect}
         onRelationshipReconnect={onRelationshipReconnect}
         onRelationshipSelect={onRelationshipSelect}
-        onSelectionClear={onSelectionClear}
+        onBackgroundClick={onBackgroundClick}
+        onConnectAborted={onConnectAborted}
         onPlacementComplete={onPlacementComplete}
       />
     </section>

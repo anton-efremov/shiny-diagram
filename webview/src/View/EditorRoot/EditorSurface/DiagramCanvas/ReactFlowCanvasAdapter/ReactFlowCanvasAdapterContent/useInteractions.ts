@@ -23,7 +23,7 @@ import {
   toRelationshipConnection,
   toRelationshipReconnect,
 } from "./frameworkAdapters";
-import type { ClassId, RelationshipId } from "../../../../../shared/ids";
+import type { ClassId, RelationshipId } from "../../../../../../shared/ids";
 
 type ReactFlowCanvasAdapterCallbacks = {
   readonly onClassBoxPlacementChange: (changes: readonly ClassBoxPlacementChange[]) => void;
@@ -34,7 +34,8 @@ type ReactFlowCanvasAdapterCallbacks = {
     end: "source" | "target",
     newClassId: ClassId
   ) => void;
-  readonly onSelectionClear: () => void;
+  readonly onBackgroundClick: () => void;
+  readonly onConnectAborted: () => void;
 };
 
 type UseInteractionsInput = {
@@ -111,7 +112,7 @@ export function useInteractions({
       pressPointRef.current = null;
       if (connectionState.isValid === true) return;
       if (!isRelationshipPlacementArmed) return;
-      callbacks.onSelectionClear();
+      callbacks.onConnectAborted();
     },
     [callbacks, isRelationshipPlacementArmed, pressPointRef]
   );
@@ -134,7 +135,7 @@ export function useInteractions({
   const onPaneClick = useCallback(
     (event: ReactMouseEvent) => {
       if (event.target !== event.currentTarget) return;
-      callbacks.onSelectionClear();
+      callbacks.onBackgroundClick();
     },
     [callbacks]
   );
