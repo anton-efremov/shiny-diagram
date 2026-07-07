@@ -34,17 +34,30 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
   // Event handler props derivation
   const {
     onClassPlacementStart,
+    onRelationshipPlacementStart,
     onClassSelect,
+    onClassMoved,
+    onRelationshipConnect,
+    onRelationshipReconnect,
+    onRelationshipSelect,
+    onRelationshipDuplicate,
     onStyleSelect,
-    onSelectionClear,
+    onBackgroundClick,
+    onConnectAborted,
     onPlacementComplete,
-  } = useInteractions({ setSelectionState, setNodePlacementState });
+  } = useInteractions({
+    relationships: view.relationships,
+    nodePlacementState,
+    setSelectionState,
+    setNodePlacementState,
+  });
 
   return (
     <section className={styles.editorShell} aria-label="Class diagram editor">
       <ToolPane
         nodePlacementState={nodePlacementState}
         onClassPlacementStart={onClassPlacementStart}
+        onRelationshipPlacementStart={onRelationshipPlacementStart}
       />
       <div className={styles.canvasRegion}>
         <ClassDiagram
@@ -52,14 +65,21 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
           selectionState={selectionState}
           nodePlacementState={nodePlacementState}
           onClassSelect={onClassSelect}
-          onSelectionClear={onSelectionClear}
+          onClassMoved={onClassMoved}
+          onRelationshipConnect={onRelationshipConnect}
+          onRelationshipReconnect={onRelationshipReconnect}
+          onRelationshipSelect={onRelationshipSelect}
+          onBackgroundClick={onBackgroundClick}
+          onConnectAborted={onConnectAborted}
           onPlacementComplete={onPlacementComplete}
         />
       </div>
       <StylePane
-        view={{ classes: view.classes, styles: view.styles }}
+        view={view}
         selectionState={selectionState}
         onStyleSelect={onStyleSelect}
+        onRelationshipSelect={onRelationshipSelect}
+        onRelationshipDuplicate={onRelationshipDuplicate}
       />
     </section>
   );

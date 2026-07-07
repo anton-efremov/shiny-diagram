@@ -11,6 +11,7 @@ type ClassBoxNodeData = {
   readonly view: ClassView;
   readonly isSelected: boolean;
   readonly isResizeVisible: boolean;
+  readonly isConnectSourceEnabled: boolean;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
 };
 
@@ -24,6 +25,7 @@ export default function ReactFlowClassBoxNodeAdapter(props: NodeProps<ClassBoxNo
       isSelected={props.data.isSelected}
       isDragging={props.dragging ?? false}
       isResizeVisible={props.data.isResizeVisible}
+      isConnectSourceEnabled={props.data.isConnectSourceEnabled}
       onClassSelect={props.data.onClassSelect}
     />
   );

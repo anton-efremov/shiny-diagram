@@ -1,0 +1,12 @@
+/**
+ * @render Relationship placement ghost line styling.
+ */
+
+.connectionLine {
+  pointer-events: none;
+}
+
+.path {
+  stroke: var(--shiny-accent);
+  stroke-width: 1.8;
+}

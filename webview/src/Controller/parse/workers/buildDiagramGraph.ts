@@ -2,7 +2,7 @@
  * @fileoverview Builds the Controller diagram graph and provenance index from parser tokens.
  */
 
-import { toClassId, toDiagramId } from "../../../shared/ids";
+import { toClassId, toDiagramId, toLollipopInterfaceId } from "../../../shared/ids";
 import {
   STYLE_PROPERTIES,
   type StyleProperties,
@@ -11,6 +11,7 @@ import {
 import type {
   ClassNode,
   DiagramGraph,
+  LollipopInterface,
   NamespaceNode,
   RelationshipEdge,
   StyleApplicationEdge,
@@ -20,6 +21,7 @@ import type {
   BlockMemberRecord,
   ClassDirectStyleRecord,
   ClassRecord,
+  LollipopInterfaceRecord,
   NamespaceRecord,
   ProvenanceIndex,
   RelationshipRecord,
@@ -44,6 +46,7 @@ type MutableGraphBuild = {
   readonly styleDefinitions: Map<StyleDefNode["id"], StyleDefNode>;
   readonly namespaces: Map<NamespaceNode["id"], NamespaceNode>;
   readonly relationships: Map<RelationshipEdge["id"], RelationshipEdge>;
+  readonly lollipopInterfaces: Map<ClassNode["id"], LollipopInterface[]>;
   readonly styleApplications: Map<StyleApplicationEdge["id"], StyleApplicationEdge>;
   readonly inNamespaceEdges: InNamespaceEdge[];
   readonly directStyleProperties: Map<ClassNode["id"], StyleProperties>;
@@ -60,6 +63,7 @@ type MutableGraphBuild = {
     readonly namespaces: Map<NamespaceNode["id"], NamespaceRecord>;
     readonly styleDefinitions: Map<StyleDefNode["id"], StyleDefRecord>;
     readonly relationships: Map<RelationshipEdge["id"], RelationshipRecord>;
+    readonly lollipopInterfaces: Map<LollipopInterface["id"], LollipopInterfaceRecord>;
     readonly classDirectStyles: Map<ClassNode["id"], ClassDirectStyleRecord>;
     readonly classSpatial: Map<ClassNode["id"], SpatialRecord>;
     readonly namespaceMemberships: Map<ClassNode["id"], SourceSpan>;
@@ -78,6 +82,7 @@ export function buildSpatiallyUnawareDiagramGraph(tokens: ParseToken[]): GraphBu
     styleDefinitions: new Map(),
     namespaces: new Map(),
     relationships: new Map(),
+    lollipopInterfaces: new Map(),
     styleApplications: new Map(),
     inNamespaceEdges: [],
     directStyleProperties: new Map(),
@@ -88,6 +93,7 @@ export function buildSpatiallyUnawareDiagramGraph(tokens: ParseToken[]): GraphBu
       namespaces: new Map(),
       styleDefinitions: new Map(),
       relationships: new Map(),
+      lollipopInterfaces: new Map(),
       classDirectStyles: new Map(),
       classSpatial: new Map(),
       namespaceMemberships: new Map(),
@@ -97,6 +103,7 @@ export function buildSpatiallyUnawareDiagramGraph(tokens: ParseToken[]): GraphBu
 
   traverseTokens(tokens, build);
   synthesizeImplicitClassNodes(build);
+  attachLollipopInterfaces(build);
   attachDirectStyles(build);
   attachNamespaceMembership(build);
 
@@ -153,9 +160,20 @@ function traverseTokens(tokens: readonly ParseToken[], build: MutableGraphBuild)
       }
       case "relationship": {
         const parsed = buildRelationshipEdge(token, build.relationships.size);
-        if (parsed) {
+        if (parsed?.kind === "edge") {
           build.relationships.set(parsed.edge.id, parsed.edge);
           build.provenance.relationships.set(parsed.edge.id, toRelationshipRecord(token));
+        } else if (parsed?.kind === "lollipopInterface") {
+          const classId = toClassId(parsed.className);
+          const lollipopInterface = toLollipopInterface(classId, parsed.interfaceLabel);
+          build.lollipopInterfaces.set(classId, [
+            ...(build.lollipopInterfaces.get(classId) ?? []),
+            lollipopInterface,
+          ]);
+          build.provenance.lollipopInterfaces.set(lollipopInterface.id, {
+            self: parsed.location,
+            fields: { label: parsed.location },
+          });
         }
         break;
       }
@@ -205,11 +223,36 @@ function synthesizeImplicitClassNodes(build: MutableGraphBuild): void {
       build.classes.set(classId, toImplicitClassNode(classId));
     }
   }
+  for (const [classId] of build.lollipopInterfaces) {
+    if (!build.classes.has(classId)) {
+      build.classes.set(classId, toImplicitClassNode(classId));
+    }
+  }
   for (const styleApplication of build.styleApplications.values()) {
     if (!build.classes.has(styleApplication.targetId)) {
       build.classes.set(styleApplication.targetId, toImplicitClassNode(styleApplication.targetId));
     }
   }
+}
+
+function attachLollipopInterfaces(build: MutableGraphBuild): void {
+  for (const [classId, lollipopInterfaces] of build.lollipopInterfaces) {
+    const node = build.classes.get(classId);
+    if (!node) continue;
+    build.classes.set(classId, {
+      ...node,
+      lollipopInterfaces: [...node.lollipopInterfaces, ...lollipopInterfaces],
+    });
+  }
+}
+
+function toLollipopInterface(classId: ClassNode["id"], label: string): LollipopInterface {
+  return {
+    id: toLollipopInterfaceId(`${classId}--${label}`),
+    label,
+    // Shiny: Mermaid source does not encode lollipop side; future spatial annotation owns it.
+    side: "left",
+  };
 }
 
 function attachNamespaceMembership(build: MutableGraphBuild): void {
@@ -270,6 +313,7 @@ function toProvenanceIndex(
     blockMembers: build.provenance.blockMembers,
     shortMembers: build.provenance.shortMembers,
     relationships: build.provenance.relationships,
+    lollipopInterfaces: build.provenance.lollipopInterfaces,
     classDirectStyles: build.provenance.classDirectStyles,
     styleDefinitions: build.provenance.styleDefinitions,
     styleApplications: build.provenance.styleApplications,
@@ -408,7 +452,7 @@ function toStyleApplicationRecord(token: ParseToken): StyleApplicationRecord {
 function toRelationshipRecord(token: ParseToken): RelationshipRecord {
   const self = toSourceSpan(token);
   const match =
-    /^(\s*)(\w+)(?:\s+"([^"]+)")?\s+([<|*o.]?-?-+>?|<\|--\|>|--\(\)|\.\.\|>|\.\.>)\s+(?:"([^"]+)"\s+)?(\w+)(?:\s*:\s*(.+))?/.exec(
+    /^(\s*)(\w+)(?:\s+"([^"]+)")?\s*((?:\(\)|<\||\|>|<|>|\*|o)?(?:--|\.\.)(?:\(\)|<\||\|>|<|>|\*|o)?)\s*(?:"([^"]+)"\s*)?(\w+)(?:\s*:\s*(.+))?/.exec(
       token.raw
     );
   if (!match) {
@@ -421,11 +465,35 @@ function toRelationshipRecord(token: ParseToken): RelationshipRecord {
   const operatorStart = token.raw.indexOf(match[4], sourceStart + match[2].length);
   const targetStart = token.raw.indexOf(match[6], operatorStart + match[4].length);
   const labelStart = match[7] ? token.raw.indexOf(match[7], targetStart + match[6].length) : -1;
+  const sourceMultiplicityStart =
+    match[3] === undefined ? -1 : token.raw.indexOf(`"${match[3]}"`, sourceStart + match[2].length);
+  const targetMultiplicityStart =
+    match[5] === undefined
+      ? -1
+      : token.raw.indexOf(`"${match[5]}"`, operatorStart + match[4].length);
   return {
     self,
     fields: {
       sourceEndpoint: toLineFieldLocation(token, sourceStart, sourceStart + match[2].length),
+      ...(sourceMultiplicityStart >= 0
+        ? {
+            sourceMultiplicity: toLineFieldLocation(
+              token,
+              sourceMultiplicityStart,
+              sourceMultiplicityStart + (match[3]?.length ?? 0) + 2
+            ),
+          }
+        : {}),
       operator: toLineFieldLocation(token, operatorStart, operatorStart + match[4].length),
+      ...(targetMultiplicityStart >= 0
+        ? {
+            targetMultiplicity: toLineFieldLocation(
+              token,
+              targetMultiplicityStart,
+              targetMultiplicityStart + (match[5]?.length ?? 0) + 2
+            ),
+          }
+        : {}),
       targetEndpoint: toLineFieldLocation(token, targetStart, targetStart + match[6].length),
       ...(labelStart >= 0
         ? { label: toLineFieldLocation(token, labelStart, labelStart + (match[7]?.length ?? 0)) }

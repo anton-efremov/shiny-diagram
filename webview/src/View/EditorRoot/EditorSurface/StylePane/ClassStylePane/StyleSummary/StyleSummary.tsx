@@ -136,6 +136,7 @@ export default function StyleSummary({
   );
 }
 
+// Private helpers
 function toSummaryScenario(
   classes: readonly ClassView[],
   styles: readonly StyleView[]

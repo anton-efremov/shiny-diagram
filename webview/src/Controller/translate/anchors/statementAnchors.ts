@@ -30,6 +30,7 @@ export const STATEMENT_KINDS: readonly StatementKind[] = [
   "blockMember",
   "shortMember",
   "relationship",
+  "lollipopInterface",
   "styleDefinition",
   "classDirectStyle",
   "styleApplication",
@@ -176,6 +177,11 @@ function anchorCandidatesOfKind(
         kind,
         relationshipId,
       }));
+    case "lollipopInterface":
+      return candidatesFrom(provenance.lollipopInterfaces, (lollipopInterfaceId) => ({
+        kind,
+        lollipopInterfaceId,
+      }));
     case "styleDefinition":
       return candidatesFrom(provenance.styleDefinitions, (styleDefId) => ({ kind, styleDefId }));
     case "classDirectStyle":
@@ -218,6 +224,8 @@ function hasStatementRecord(provenance: ProvenanceIndex, statement: StatementRef
       return provenance.shortMembers.has(statement.memberId);
     case "relationship":
       return provenance.relationships.has(statement.relationshipId);
+    case "lollipopInterface":
+      return provenance.lollipopInterfaces.has(statement.lollipopInterfaceId);
     case "styleDefinition":
       return provenance.styleDefinitions.has(statement.styleDefId);
     case "classDirectStyle":

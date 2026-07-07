@@ -17,7 +17,12 @@
  */
 
 import type { StyleProperties } from "../../shared/style";
-import type { MemberKind, MemberPrefix, RelationshipType } from "../../shared/uml";
+import type {
+  MemberKind,
+  MemberPrefix,
+  RelationshipEndpointKind,
+  RelationshipLineKind,
+} from "../../shared/uml";
 import type { Rect } from "../../shared/geometry";
 import type {
   AttributeId,
@@ -70,7 +75,9 @@ export type RelationshipView = {
   readonly relationshipId: RelationshipId;
   readonly sourceClassId: ClassId;
   readonly targetClassId: ClassId;
-  readonly relationType: RelationshipType;
+  readonly sourceEndpointKind: RelationshipEndpointKind;
+  readonly targetEndpointKind: RelationshipEndpointKind;
+  readonly lineKind: RelationshipLineKind;
   readonly sourceMultiplicity?: string;
   readonly targetMultiplicity?: string;
   readonly label?: string;

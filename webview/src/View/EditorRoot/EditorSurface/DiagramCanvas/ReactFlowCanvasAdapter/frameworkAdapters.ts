@@ -3,24 +3,33 @@
  */
 
 import type {
+  Connection,
   Edge as ReactFlowEdge,
   Node as ReactFlowNode,
   NodeChange as ReactFlowNodeChange,
 } from "@xyflow/react";
 import type { Rect } from "../../../../../shared/geometry";
-import type { ClassId } from "../../../../../shared/ids";
-import type { ClassBoxPlacementState } from "../../../../state/editorStates";
+import type { ClassId, RelationshipId } from "../../../../../shared/ids";
+import { toClassId } from "../../../../../shared/ids";
+import type { ClassBoxPlacementState, SelectionState } from "../../../../state/editorStates";
 import type { ClassView, DiagramView, RelationshipView } from "../../../../views/schema";
 
 export type ClassBoxNodeData = {
   readonly view: ClassView;
   readonly isSelected: boolean;
   readonly isResizeVisible: boolean;
+  readonly isConnectSourceEnabled: boolean;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
 };
 
 export type ClassBoxNodeDescriptor = ReactFlowNode<ClassBoxNodeData, "classBox">;
-export type RelationshipEdgeDescriptor = ReactFlowEdge;
+export type RelationshipEdgeData = {
+  readonly view: RelationshipView;
+  readonly isSelected: boolean;
+  readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
+};
+
+export type RelationshipEdgeDescriptor = ReactFlowEdge<RelationshipEdgeData, "relationship">;
 
 export type ClassBoxPlacementChange = {
   readonly classId: ClassId;
@@ -30,11 +39,23 @@ export type ClassBoxPlacementChange = {
   readonly h?: number;
 };
 
+export type RelationshipConnection = {
+  readonly sourceClassId: ClassId;
+  readonly targetClassId: ClassId;
+};
+
+export type RelationshipReconnect = {
+  readonly relationshipId: RelationshipId;
+  readonly end: "source" | "target";
+  readonly newClassId: ClassId;
+};
+
 // Framework prop and event adaptation
 export function toClassBoxNodeDescriptors(
   classes: readonly ClassView[],
   selectedClassIds: readonly ClassId[],
   classBoxPlacementState: ClassBoxPlacementState,
+  isConnectSourceEnabled: boolean,
   onClassSelect: (classId: ClassId, additive: boolean) => void
 ): ClassBoxNodeDescriptor[] {
   const selected = new Set<ClassId>(selectedClassIds);
@@ -51,6 +72,7 @@ export function toClassBoxNodeDescriptors(
           view: classView,
           isSelected: selected.has(classView.classId),
           isResizeVisible: selected.size === 1 && selected.has(classView.classId),
+          isConnectSourceEnabled,
           onClassSelect,
         },
         selectable: false,
@@ -63,11 +85,49 @@ export function toClassBoxNodeDescriptors(
   });
 }
 
+// Framework command adaptation
+export function toRelationshipConnection(connection: Connection): RelationshipConnection | null {
+  return connection.source && connection.target
+    ? {
+        sourceClassId: toClassId(connection.source),
+        targetClassId: toClassId(connection.target),
+      }
+    : null;
+}
+
+// Framework command adaptation
+export function toRelationshipReconnect(
+  oldEdge: RelationshipEdgeDescriptor,
+  newConnection: Connection
+): RelationshipReconnect | null {
+  const relationshipView = oldEdge.data?.view;
+  if (!relationshipView || !newConnection.source || !newConnection.target) return null;
+
+  const sourceChanged = relationshipView.sourceClassId !== newConnection.source;
+  const targetChanged = relationshipView.targetClassId !== newConnection.target;
+  if (sourceChanged === targetChanged) return null;
+
+  return sourceChanged
+    ? {
+        relationshipId: relationshipView.relationshipId,
+        end: "source",
+        newClassId: toClassId(newConnection.source),
+      }
+    : {
+        relationshipId: relationshipView.relationshipId,
+        end: "target",
+        newClassId: toClassId(newConnection.target),
+      };
+}
+
 // Framework prop and event adaptation
 export function toRelationshipEdgeDescriptors(
   classes: readonly ClassView[],
   relationships: readonly RelationshipView[],
-  classBoxPlacementState: ClassBoxPlacementState
+  selectionState: SelectionState,
+  classBoxPlacementState: ClassBoxPlacementState,
+  isRelationshipPlacementArmed: boolean,
+  onRelationshipSelect: (relationshipId: RelationshipId) => void
 ): RelationshipEdgeDescriptor[] {
   const classesById = new Map(
     classes.flatMap((classView) => {
@@ -92,8 +152,15 @@ export function toRelationshipEdgeDescriptors(
         target: rel.targetClassId,
         sourceHandle: sourceSide,
         targetHandle: `target-${targetSide}`,
-        label: rel.label,
-        type: "default",
+        data: {
+          view: rel,
+          isSelected:
+            selectionState.kind === "relationship" &&
+            selectionState.relationshipId === rel.relationshipId,
+          onRelationshipSelect,
+        },
+        type: "relationship",
+        reconnectable: !isRelationshipPlacementArmed,
         selectable: false,
         focusable: false,
       },
@@ -122,13 +189,13 @@ export function toClassBoxPlacementChanges(
       case "position":
         return change.position === undefined
           ? []
-          : [{ classId: change.id as ClassId, x: change.position.x, y: change.position.y }];
+          : [{ classId: toClassId(change.id), x: change.position.x, y: change.position.y }];
       case "dimensions":
         return change.dimensions === undefined
           ? []
           : [
               {
-                classId: change.id as ClassId,
+                classId: toClassId(change.id),
                 w: change.dimensions.width,
                 h: change.dimensions.height,
               },

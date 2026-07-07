@@ -15,6 +15,7 @@ type Interactions = {
 export function useInteractions(view: readonly ClassView[]): Interactions {
   const dispatchTransaction = useDispatchTransaction();
 
+  // Event handler props derivation
   const onDuplicate = useCallback(() => {
     dispatchTransaction(toClassDuplicateTransaction(view));
   }, [dispatchTransaction, view]);

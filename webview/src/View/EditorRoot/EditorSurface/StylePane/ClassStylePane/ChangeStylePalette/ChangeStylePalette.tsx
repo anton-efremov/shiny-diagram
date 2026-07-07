@@ -26,6 +26,7 @@ type ChangeStylePaletteProps = {
 };
 
 export default function ChangeStylePalette({ view }: ChangeStylePaletteProps): ReactElement {
+  // Event handler props derivation
   const { onPropertyChange } = useInteractions(view);
 
   return (
@@ -45,6 +46,7 @@ export default function ChangeStylePalette({ view }: ChangeStylePaletteProps): R
   );
 }
 
+// Private helpers
 function toCommonPropertyValue(
   classes: readonly ClassView[],
   property: StylePropertyName

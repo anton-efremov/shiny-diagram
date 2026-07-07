@@ -1,0 +1,11 @@
+/**
+ * @render Relationship multiplicity control styling.
+ */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--shiny-border);
+}

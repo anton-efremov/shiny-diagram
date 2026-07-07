@@ -27,9 +27,9 @@ import type { SourcePosition, SourceSpan } from "../../model/sourceEdit";
 import type { EditorCommandOf } from "../../../View/commands";
 import type { ClassId, StyleDefId } from "../../../shared/ids";
 import type { StylePropertyName } from "../../../shared/style";
+import type { TranslateContext } from "../translateContext";
 import type { StatementAnchor, StatementRef, WriteIntent } from "../writeIntent";
 import { anchorExactStatement, asSameKind } from "../anchors/statementAnchors";
-import { generateDuplicateClassId } from "../generateId";
 import { composeSpatialAnnotation } from "../syntax/spatialSyntax";
 import { composeStyleEntry } from "../syntax/styleSyntax";
 
@@ -38,14 +38,13 @@ export function translateClassDuplicate(
   graph: DiagramGraph,
   provenance: ProvenanceIndex,
   sourceText: string,
-  reservedClassIds: Set<ClassId>
+  context: TranslateContext
 ): WriteIntent[] {
   const source = graph.classes.get(command.sourceClassId);
   if (!source) throw new Error(`Class ${command.sourceClassId} cannot be duplicated`);
   if (!source.spatial) throw new Error(`Class ${command.sourceClassId} has no spatial data`);
 
-  const id = generateDuplicateClassId(graph, command.sourceClassId, reservedClassIds);
-  reservedClassIds.add(id);
+  const id = context.allocateDuplicateId(command.sourceClassId);
 
   // ---
   // Class declaration

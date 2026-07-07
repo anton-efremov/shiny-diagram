@@ -20,15 +20,29 @@ type ConnectionHandleDescriptor = {
 type ReactFlowConnectionHandlesAdapterProps = {
   readonly handles: readonly ConnectionHandleDescriptor[];
   readonly className: string;
+  readonly connectSourceClassName: string;
+  readonly isConnectSourceEnabled: boolean;
 };
 
 export default function ReactFlowConnectionHandlesAdapter({
   handles,
   className,
+  connectSourceClassName,
+  isConnectSourceEnabled,
 }: ReactFlowConnectionHandlesAdapterProps) {
   // Framework prop and event adaptation
   return (
     <>
+      {/* framework-adaptation nesting exception: existing Handle adapter lives under ClassBox. */}
+      <Handle
+        className={connectSourceClassName}
+        id="connect"
+        type="source"
+        position={Position.Top}
+        isConnectable
+        isConnectableStart={isConnectSourceEnabled}
+        isConnectableEnd
+      />
       {handles.map(({ id, direction, side }) => (
         <Handle
           key={id}

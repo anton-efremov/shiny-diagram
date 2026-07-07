@@ -1,0 +1,18 @@
+/**
+ * @render Relationship edge path, markers, and inline text editors.
+ */
+
+.edgePath {
+  stroke: var(--shiny-text-muted);
+  stroke-width: 1.5;
+}
+
+.selected {
+  stroke: var(--shiny-accent);
+  stroke-width: 2;
+}
+
+.hitPath {
+  cursor: pointer;
+  pointer-events: stroke;
+}

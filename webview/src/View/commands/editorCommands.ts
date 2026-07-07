@@ -45,11 +45,12 @@ import type {
   RelationshipLineKind,
   Visibility,
 } from "../../shared/uml";
+import type { TransactionOutcome } from "./transactionOutcome";
 
 /** One View-to-Controller editor transaction. */
 export type EditorCommandTransaction = readonly EditorCommand[];
 
-export type EditorDispatch = (transaction: EditorCommandTransaction) => void;
+export type EditorDispatch = (transaction: EditorCommandTransaction) => TransactionOutcome;
 
 export type EditorCommand =
   // ==========================================================================
@@ -396,8 +397,6 @@ export type EditorCommand =
       readonly name: string;
     }
   | {
-      // NOTE: mirrors the catalog verbatim, which omits the target value.
-      // Almost certainly should also carry `sourceKind: "classDef" | "externalCssClass"`.
       readonly type: "style.definition.sourceKind.set";
       readonly styleDefId: StyleDefId;
     }

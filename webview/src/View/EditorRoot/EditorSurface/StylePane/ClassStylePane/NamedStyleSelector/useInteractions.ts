@@ -14,6 +14,8 @@ type Interactions = {
 
 export function useInteractions(view: readonly ClassView[]): Interactions {
   const dispatchTransaction = useDispatchTransaction();
+
+  // Event handler props derivation
   const onStyleChange = useCallback(
     (styleDefId: StyleDefId | null) => {
       dispatchTransaction(toNamedStyleSelectTransaction(view, styleDefId));

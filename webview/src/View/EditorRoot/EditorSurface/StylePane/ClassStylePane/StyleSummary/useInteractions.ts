@@ -51,6 +51,7 @@ export function useInteractions({
 }: UseInteractionsInput): Interactions {
   const dispatchTransaction = useDispatchTransaction();
 
+  // Event handler props derivation
   const onPromptOpen = useCallback(() => {
     setPromptState(true);
   }, [setPromptState]);
@@ -98,6 +99,7 @@ export function useInteractions({
   return { onPromptOpen, onDraftNameChange, onSubmit };
 }
 
+// Private helpers
 function toCamelCaseName(value: string): string {
   return value
     .trim()

@@ -1,0 +1,12 @@
+/**
+ * @render Relationship action button styling.
+ */
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.danger {
+  color: #a12828;
+}

@@ -8,9 +8,9 @@
  * State annotations identify the View component that owns runtime storage.
  */
 
-import type { ClassId, NamespaceId, NoteId, RelationshipId, StyleDefId } from "../../shared/ids";
+import type { ClassId, RelationshipId, StyleDefId } from "../../shared/ids";
 import type { Rect } from "../../shared/geometry";
-import type { PlaceableNodeKind } from "../../shared/nodeKinds";
+import type { RelationshipEndpointKind, RelationshipLineKind } from "../../shared/uml";
 /*
  * Owned by: EditorSurface.
  *
@@ -18,21 +18,44 @@ import type { PlaceableNodeKind } from "../../shared/nodeKinds";
  * own scenarios, such as style inspection, shortcuts, canvas affordances, or
  * command derivation.
  */
-export type SelectionState = {
-  readonly classIds: readonly ClassId[];
-  readonly relationshipIds: readonly RelationshipId[];
-  readonly namespaceIds: readonly NamespaceId[];
-  readonly noteIds: readonly NoteId[];
-  readonly styleDefIds: readonly StyleDefId[];
-};
+export type SelectionState =
+  | {
+      readonly kind: "none";
+    }
+  | {
+      readonly kind: "classes";
+      readonly classIds: readonly ClassId[];
+    }
+  | {
+      readonly kind: "relationship";
+      readonly relationshipId: RelationshipId;
+    }
+  | {
+      readonly kind: "style";
+      readonly styleDefId: StyleDefId;
+    };
 
 /*
  * Owned by: EditorSurface.
  *
- * Pending node-placement tool state. Null means no node placement is active;
- * a value means the next canvas placement creates that node kind.
+ * Pending node-placement tool state. Null means no node placement is active.
  */
-export type NodePlacementState = PlaceableNodeKind | null;
+export type NodePlacementState =
+  | null
+  | { readonly kind: "class" }
+  | {
+      readonly kind: "relationship";
+      readonly seed: RelationshipSeed;
+    };
+
+export type RelationshipSeed = {
+  readonly sourceEndpointKind: RelationshipEndpointKind;
+  readonly lineKind: RelationshipLineKind;
+  readonly targetEndpointKind: RelationshipEndpointKind;
+  readonly sourceMultiplicity: string | null;
+  readonly targetMultiplicity: string | null;
+  readonly label: string | null;
+};
 
 /*
  * Owned by: DiagramCanvas.

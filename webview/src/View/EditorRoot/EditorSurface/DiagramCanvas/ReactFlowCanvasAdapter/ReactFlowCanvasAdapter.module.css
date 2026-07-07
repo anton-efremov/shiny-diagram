@@ -1,0 +1,8 @@
+/**
+ * @render React Flow canvas adapter styling.
+ */
+
+.relationshipPlacement,
+.relationshipPlacement :global(.react-flow__node) {
+  cursor: crosshair;
+}

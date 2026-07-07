@@ -39,7 +39,7 @@ export default function PlacementOverlay({
   });
 
   // Child component routing
-  if (nodePlacementState !== "class") return null;
+  if (nodePlacementState?.kind !== "class") return null;
 
   return (
     <div

@@ -40,6 +40,7 @@ export function useInteractions({
 }: UseInteractionsInput): Interactions {
   const dispatchTransaction = useDispatchTransaction();
 
+  // Event handler props derivation
   const onEditStart = useCallback(() => {
     setEditingState(true);
   }, [setEditingState]);
@@ -81,6 +82,7 @@ export function useInteractions({
   return { onEditStart, onDraftNameChange, onNameCommit, onNameCancel };
 }
 
+// Private helpers
 function toCamelCaseName(value: string): string {
   return value
     .trim()

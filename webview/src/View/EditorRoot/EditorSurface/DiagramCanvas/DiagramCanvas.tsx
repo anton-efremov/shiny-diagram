@@ -5,13 +5,14 @@
 
 import { useState } from "react";
 import type { ReactElement } from "react";
-import type { ClassId } from "../../../../shared/ids";
+import type { ClassId, RelationshipId } from "../../../../shared/ids";
 import type { DiagramView } from "../../../views/schema";
 import type { NodePlacementState, SelectionState } from "../../../state/editorStates";
 import { toInitialClassBoxPlacementState } from "./state";
 import { useInteractions } from "./useInteractions";
 import { useStateReconciliation } from "./useStateReconciliation";
 import ReactFlowCanvasAdapter from "./ReactFlowCanvasAdapter/ReactFlowCanvasAdapter";
+import ReactFlowProviderAdapter from "./ReactFlowProviderAdapter/ReactFlowProviderAdapter";
 import styles from "./DiagramCanvas.module.css";
 
 type DiagramCanvasProps = {
@@ -19,7 +20,16 @@ type DiagramCanvasProps = {
   readonly selectionState: SelectionState;
   readonly nodePlacementState: NodePlacementState;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
-  readonly onSelectionClear: () => void;
+  readonly onClassMoved: (classId: ClassId) => void;
+  readonly onRelationshipConnect: (sourceClassId: ClassId, targetClassId: ClassId) => void;
+  readonly onRelationshipReconnect: (
+    relationshipId: RelationshipId,
+    end: "source" | "target",
+    newClassId: ClassId
+  ) => void;
+  readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
+  readonly onBackgroundClick: () => void;
+  readonly onConnectAborted: () => void;
   readonly onPlacementComplete: () => void;
 };
 
@@ -28,7 +38,12 @@ export default function DiagramCanvas({
   selectionState,
   nodePlacementState,
   onClassSelect,
-  onSelectionClear,
+  onClassMoved,
+  onRelationshipConnect,
+  onRelationshipReconnect,
+  onRelationshipSelect,
+  onBackgroundClick,
+  onConnectAborted,
   onPlacementComplete,
 }: DiagramCanvasProps): ReactElement {
   // State creation: ledger state - framework-neutral class box positions and dimensions
@@ -50,17 +65,24 @@ export default function DiagramCanvas({
       {view.classes.length === 0 ? (
         <p className={styles.emptyState}>No spatial annotations found.</p>
       ) : null}
-      <ReactFlowCanvasAdapter
-        view={view}
-        selectionState={selectionState}
-        nodePlacementState={nodePlacementState}
-        classBoxPlacementState={classBoxPlacementState}
-        onClassBoxPlacementChange={onClassBoxPlacementChange}
-        onDragComplete={onDragComplete}
-        onClassSelect={onClassSelect}
-        onSelectionClear={onSelectionClear}
-        onPlacementComplete={onPlacementComplete}
-      />
+      <ReactFlowProviderAdapter>
+        <ReactFlowCanvasAdapter
+          view={view}
+          selectionState={selectionState}
+          nodePlacementState={nodePlacementState}
+          classBoxPlacementState={classBoxPlacementState}
+          onClassBoxPlacementChange={onClassBoxPlacementChange}
+          onDragComplete={onDragComplete}
+          onClassSelect={onClassSelect}
+          onClassMoved={onClassMoved}
+          onRelationshipConnect={onRelationshipConnect}
+          onRelationshipReconnect={onRelationshipReconnect}
+          onRelationshipSelect={onRelationshipSelect}
+          onBackgroundClick={onBackgroundClick}
+          onConnectAborted={onConnectAborted}
+          onPlacementComplete={onPlacementComplete}
+        />
+      </ReactFlowProviderAdapter>
     </section>
   );
 }

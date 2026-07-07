@@ -12,6 +12,7 @@ import type { DiagramGraph } from "./model/diagramGraph";
 import type { ProvenanceIndex } from "./model/provenanceIndex";
 import type { SourceEdit } from "./model/sourceEdit";
 import { EditorView } from "../View/EditorRoot";
+import { EMPTY_TRANSACTION_OUTCOME } from "../View/commands";
 import type { EditorDispatch } from "../View/commands";
 import type { DiagramView, EditorViewModel } from "../View/views";
 
@@ -86,9 +87,9 @@ export default function ShinyController({
 
   const dispatch: EditorDispatch = useCallback((transaction) => {
     const { context, onApplyEdits: applyEdits } = commandExecutionInputsRef.current;
-    if (!context) return;
+    if (!context) return EMPTY_TRANSACTION_OUTCOME;
 
-    const intents = translateCommands(
+    const { intents, outcome } = translateCommands(
       transaction,
       context.graph,
       context.provenance,
@@ -98,6 +99,7 @@ export default function ShinyController({
     if (edits.length > 0) {
       applyEdits(edits);
     }
+    return outcome;
   }, []);
 
   commandExecutionInputsRef.current = commandExecutionInputs;

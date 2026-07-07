@@ -19,6 +19,7 @@ export default function StyleStylePane({
   view,
   styles: styleViews,
 }: StyleStylePaneProps): ReactElement {
+  // Event handler props derivation
   const { onDelete } = useInteractions(view);
 
   return (

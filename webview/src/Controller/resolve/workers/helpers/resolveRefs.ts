@@ -27,6 +27,11 @@ export function resolveStatementRef(ref: StatementRef, provenance: ProvenanceInd
         provenance.relationships.get(ref.relationshipId),
         `relationship ${ref.relationshipId}`
       ).self;
+    case "lollipopInterface":
+      return requireRecord(
+        provenance.lollipopInterfaces.get(ref.lollipopInterfaceId),
+        `lollipop interface ${ref.lollipopInterfaceId}`
+      ).self;
     case "classDirectStyle":
       return requireRecord(
         provenance.classDirectStyles.get(ref.classId),

@@ -14,6 +14,7 @@ type Interactions = {
 export function useInteractions(view: StyleView): Interactions {
   const dispatchTransaction = useDispatchTransaction();
 
+  // Event handler props derivation
   const onDelete = useCallback(() => {
     dispatchTransaction(toStyleDeleteTransaction(view));
   }, [dispatchTransaction, view]);

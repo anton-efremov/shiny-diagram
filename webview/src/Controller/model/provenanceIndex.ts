@@ -24,13 +24,14 @@
  * Records do not store indentation. Resolution derives indentation from the
  * referenced source line.
  *
- * Not yet produced: first-class lollipop interfaces and diagram-config
- * provenance + maybe some element decorator properties are missing
+ * Not yet produced: diagram-config provenance and maybe some element decorator
+ * properties are missing
  */
 
 import type {
   AttributeId,
   ClassId,
+  LollipopInterfaceId,
   MethodId,
   NamespaceId,
   NoteId,
@@ -115,6 +116,14 @@ export type RelationshipRecord = {
     readonly targetMultiplicity?: SourceSpan;
     readonly targetEndpoint: SourceSpan;
     readonly label?: SourceSpan; // text after `:`, when present
+  };
+};
+
+/** A canonical lollipop-interface line: `Api ()-- User` or `User --() Api`. */
+export type LollipopInterfaceRecord = {
+  readonly self: SourceSpan;
+  readonly fields: {
+    readonly label: SourceSpan;
   };
 };
 
@@ -205,6 +214,9 @@ export type ProvenanceIndex = {
 
   /** Relationship lines. */
   readonly relationships: ReadonlyMap<RelationshipId, RelationshipRecord>;
+
+  /** Canonical lollipop-interface relationship lines stored as class properties. */
+  readonly lollipopInterfaces: ReadonlyMap<LollipopInterfaceId, LollipopInterfaceRecord>;
 
   /** Style lines. */
   readonly classDirectStyles: ReadonlyMap<ClassId, ClassDirectStyleRecord>;

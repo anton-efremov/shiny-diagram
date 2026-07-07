@@ -84,7 +84,11 @@ function detectLineType(raw: string): ParseTokenType {
   if (/^\s*class\s+\w+:::/.test(raw)) return "styleApplication";
   if (/^\s*class\s+\w/.test(raw)) return "classDeclaration";
   if (/^\s*namespace\s+\w/.test(raw)) return "namespace";
-  if (/\w+\s*(?:-->|<\|--|<\|--\|>|\*--|o--|--\(\)|\.\.>|\.\.\|>|\.\.| -- )\s*\w/.test(raw))
+  if (
+    /^\s*\w+(?:\s+"[^"]+")?\s*(?:\(\)|<\||\|>|<|>|\*|o)?(?:--|\.\.)(?:\(\)|<\||\|>|<|>|\*|o)?\s*(?:"[^"]+"\s*)?\w+(?:\s*:\s*.*)?\s*$/.test(
+      raw
+    )
+  )
     return "relationship";
   return "unknown";
 }
