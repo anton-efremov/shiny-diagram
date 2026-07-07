@@ -3,10 +3,11 @@
  * @render Relationship label controls.
  */
 
-import { useEffect, useState } from "react";
-import type { ChangeEvent, KeyboardEvent, ReactElement } from "react";
+import { useState } from "react";
+import type { ReactElement } from "react";
 import type { RelationshipView } from "../../../../../views/schema";
 import { useInteractions } from "./useInteractions";
+import { useStateReconciliation } from "./useStateReconciliation";
 import styles from "./LabelControls.module.css";
 
 type LabelControlsProps = {
@@ -18,37 +19,27 @@ export default function LabelControls({ view }: LabelControlsProps): ReactElemen
   const [draft, setDraft] = useState(view.label ?? "");
 
   // State reconciliation
-  useEffect(() => setDraft(view.label ?? ""), [view.label]);
+  useStateReconciliation({ label: view.label, setDraft });
 
   // Event handler props derivation
-  const { onLabelCommit } = useInteractions(view.relationshipId);
-
-  function onChange(event: ChangeEvent<HTMLInputElement>): void {
-    setDraft(event.currentTarget.value);
-  }
-
-  function onKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
-    if (event.key === "Escape") {
-      setDraft(view.label ?? "");
-      return;
-    }
-    if (event.key !== "Enter") return;
-    const value = draft.trim();
-    onLabelCommit(value === "" ? null : value);
-  }
-
-  function onRemoveLabel(): void {
-    setDraft("");
-    onLabelCommit(null);
-  }
+  const { onInputChange, onInputKeyDown, onLabelRemove } = useInteractions({
+    relationshipId: view.relationshipId,
+    label: view.label,
+    draft,
+    setDraft,
+  });
 
   return (
     <section className={styles.section} aria-label="Relationship label">
       <label className={styles.field}>
         <span>Label</span>
-        <input value={draft} onChange={onChange} onKeyDown={onKeyDown} />
+        <input
+          value={draft}
+          onChange={(event) => onInputChange(event.currentTarget.value)}
+          onKeyDown={(event) => onInputKeyDown(event.key)}
+        />
       </label>
-      <button type="button" onClick={onRemoveLabel}>
+      <button type="button" onClick={onLabelRemove}>
         Remove Label
       </button>
     </section>

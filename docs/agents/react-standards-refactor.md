@@ -20,7 +20,7 @@ Use `COLLABORATORS.md` as orientation only.
 
 Use the current React standards as the source of truth for React component compliance. If current code diverges from the standards, migrate the code toward the standards.
 
-If the component name is ambiguous, missing, or cannot be located under `webview/src/shinyView/**`, stop and report the blocker.
+If the component name is ambiguous, missing, or cannot be located under `webview/src/View/**`, stop and report the blocker.
 
 ## Execution
 

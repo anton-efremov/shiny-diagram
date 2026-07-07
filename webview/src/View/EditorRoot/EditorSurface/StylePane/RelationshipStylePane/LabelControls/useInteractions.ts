@@ -1,26 +1,62 @@
 /**
- * @behavior Relationship label command dispatch handlers.
+ * @behavior Relationship label input semantic handlers and command dispatch.
+ * @state Relationship label draft state updates.
  */
 
 import { useCallback } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import type { RelationshipId } from "../../../../../../shared/ids";
 import { useDispatchTransaction } from "../../../../../contexts";
 import { toRelationshipLabelSetTransaction } from "./transactions";
 
 type Interactions = {
-  readonly onLabelCommit: (label: string | null) => void;
+  readonly onInputChange: (value: string) => void;
+  readonly onInputKeyDown: (key: string) => void;
+  readonly onLabelRemove: () => void;
 };
 
-export function useInteractions(relationshipId: RelationshipId): Interactions {
+type UseInteractionsInput = {
+  readonly relationshipId: RelationshipId;
+  readonly label: string | null | undefined;
+  readonly draft: string;
+  readonly setDraft: Dispatch<SetStateAction<string>>;
+};
+
+export function useInteractions({
+  relationshipId,
+  label,
+  draft,
+  setDraft,
+}: UseInteractionsInput): Interactions {
   const dispatchTransaction = useDispatchTransaction();
 
   // Event handler props derivation
-  const onLabelCommit = useCallback(
-    (label: string | null) => {
-      dispatchTransaction(toRelationshipLabelSetTransaction(relationshipId, label));
+  const onInputChange = useCallback(
+    (value: string) => {
+      setDraft(value);
     },
-    [dispatchTransaction, relationshipId]
+    [setDraft]
   );
 
-  return { onLabelCommit };
+  const onInputKeyDown = useCallback(
+    (key: string) => {
+      if (key === "Escape") {
+        setDraft(label ?? "");
+        return;
+      }
+      if (key !== "Enter") return;
+      const value = draft.trim();
+      dispatchTransaction(
+        toRelationshipLabelSetTransaction(relationshipId, value === "" ? null : value)
+      );
+    },
+    [dispatchTransaction, draft, label, relationshipId, setDraft]
+  );
+
+  const onLabelRemove = useCallback(() => {
+    setDraft("");
+    dispatchTransaction(toRelationshipLabelSetTransaction(relationshipId, null));
+  }, [dispatchTransaction, relationshipId, setDraft]);
+
+  return { onInputChange, onInputKeyDown, onLabelRemove };
 }
