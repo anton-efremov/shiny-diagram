@@ -3,8 +3,8 @@
  */
 
 import type { Node, NodeProps } from "@xyflow/react";
-import type { ClassId } from "../../../../../../shared/ids";
-import type { ClassView } from "../../../../../views/schema";
+import type { ClassId } from "../../../../../../../shared/ids";
+import type { ClassView } from "../../../../../../views/schema";
 import ClassBox from "./ClassBox/ClassBox";
 
 type ClassBoxNodeData = {

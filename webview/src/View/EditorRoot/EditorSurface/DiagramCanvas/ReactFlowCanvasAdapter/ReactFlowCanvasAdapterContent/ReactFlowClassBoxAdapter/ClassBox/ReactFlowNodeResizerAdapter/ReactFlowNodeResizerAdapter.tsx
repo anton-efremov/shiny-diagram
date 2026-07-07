@@ -5,8 +5,8 @@
 import { useCallback } from "react";
 import type { OnResizeEnd } from "@xyflow/react";
 import { NodeResizer } from "@xyflow/react";
-import type { Rect } from "../../../../../../../../shared/geometry";
-import type { ClassId } from "../../../../../../../../shared/ids";
+import type { Rect } from "../../../../../../../../../shared/geometry";
+import type { ClassId } from "../../../../../../../../../shared/ids";
 
 type ReactFlowNodeResizerAdapterProps = {
   readonly nodeId: ClassId;

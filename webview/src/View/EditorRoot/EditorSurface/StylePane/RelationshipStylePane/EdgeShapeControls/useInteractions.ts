@@ -3,10 +3,10 @@
  */
 
 import { useCallback } from "react";
+import { composeRelationshipId } from "../../../../../../shared/ids";
 import type { RelationshipId } from "../../../../../../shared/ids";
 import type { RelationshipEndpointKind, RelationshipLineKind } from "../../../../../../shared/uml";
 import { useDispatchTransaction } from "../../../../../contexts";
-import { toPredictedRelationshipId } from "../../../../../utils/relationshipIdPrediction";
 import type { RelationshipView } from "../../../../../views/schema";
 import {
   toLineKindSetTransaction,
@@ -58,7 +58,7 @@ export function useInteractions(
     if (transaction.length === 0) return;
     dispatchTransaction(transaction);
     onRelationshipSelect(
-      toPredictedRelationshipId(view.relationshipId, view.targetClassId, view.sourceClassId)
+      composeRelationshipId(view.targetClassId, view.sourceClassId, view.ordinal)
     );
   }, [dispatchTransaction, onRelationshipSelect, view]);
 

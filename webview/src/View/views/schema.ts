@@ -73,6 +73,7 @@ export type StyleView = {
 
 export type RelationshipView = {
   readonly relationshipId: RelationshipId;
+  readonly ordinal: number;
   readonly sourceClassId: ClassId;
   readonly targetClassId: ClassId;
   readonly sourceEndpointKind: RelationshipEndpointKind;

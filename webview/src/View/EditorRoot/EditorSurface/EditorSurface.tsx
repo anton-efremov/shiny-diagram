@@ -73,7 +73,7 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
         />
       </div>
       <StylePane
-        view={{ classes: view.classes, relationships: view.relationships, styles: view.styles }}
+        view={view}
         selectionState={selectionState}
         onStyleSelect={onStyleSelect}
         onRelationshipSelect={onRelationshipSelect}

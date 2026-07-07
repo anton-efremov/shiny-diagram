@@ -17,6 +17,7 @@ export function deriveRelationshipViews(model: DiagramGraph): RelationshipView[]
     return [
       {
         relationshipId: rel.id,
+        ordinal: rel.ordinal,
         sourceClassId: rel.source.classId,
         targetClassId: rel.target.classId,
         sourceEndpointKind: rel.source.endpointKind,

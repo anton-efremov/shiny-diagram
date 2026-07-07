@@ -2,7 +2,7 @@
  * @behavior Initial draw origin and draft rectangle state for placement gestures.
  */
 
-import type { Point, Rect } from "../../../../../../shared/geometry";
+import type { Point, Rect } from "../../../../../../../shared/geometry";
 
 export type DrawOrigin = {
   readonly pointerId: number;

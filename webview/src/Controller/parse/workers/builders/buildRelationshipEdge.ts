@@ -2,7 +2,7 @@
  * @fileoverview Builds relationship facts from relationship tokens.
  */
 
-import { toClassId, toRelationshipId } from "../../../../shared/ids";
+import { composeRelationshipId, toClassId } from "../../../../shared/ids";
 import type { RelationshipEdge } from "../../../model/diagramGraph";
 import type { RelationshipEndpointKind, RelationshipLineKind } from "../../../../shared/uml";
 import type { SourceSpan } from "../../../model/sourceEdit";
@@ -65,7 +65,12 @@ export function buildRelationshipEdge(
     location,
     edge: {
       kind: "relationship",
-      id: toRelationshipId(`${parsed.source.name}--${parsed.target.name}--${relationshipIndex}`),
+      id: composeRelationshipId(
+        toClassId(parsed.source.name),
+        toClassId(parsed.target.name),
+        relationshipIndex
+      ),
+      ordinal: relationshipIndex,
       source: {
         classId: toClassId(parsed.source.name),
         multiplicity: parsed.source.multiplicity,

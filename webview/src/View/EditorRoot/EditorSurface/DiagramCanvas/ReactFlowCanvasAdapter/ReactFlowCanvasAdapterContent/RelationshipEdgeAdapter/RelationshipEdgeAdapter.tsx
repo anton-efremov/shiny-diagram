@@ -4,8 +4,8 @@
 
 import type { ReactElement } from "react";
 import { getBezierPath, type Edge as ReactFlowEdge, type EdgeProps } from "@xyflow/react";
-import type { RelationshipId } from "../../../../../../shared/ids";
-import type { RelationshipView } from "../../../../../views/schema";
+import type { RelationshipId } from "../../../../../../../shared/ids";
+import type { RelationshipView } from "../../../../../../views/schema";
 import RelationshipEdge from "./RelationshipEdge/RelationshipEdge";
 
 type RelationshipEdgeData = {

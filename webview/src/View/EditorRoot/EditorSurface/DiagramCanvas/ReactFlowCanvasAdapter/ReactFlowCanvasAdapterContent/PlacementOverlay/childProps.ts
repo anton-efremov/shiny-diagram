@@ -3,7 +3,7 @@
  */
 
 import type { CSSProperties } from "react";
-import type { Rect } from "../../../../../../shared/geometry";
+import type { Rect } from "../../../../../../../shared/geometry";
 
 // UI props derivation
 export function toDraftStyle(draftRect: Rect | null): CSSProperties | undefined {

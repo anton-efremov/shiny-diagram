@@ -2,8 +2,8 @@
  * @behavior Relationship inline edit transaction derivation.
  */
 
-import type { RelationshipId } from "../../../../../../../shared/ids";
-import type { EditorCommandTransaction } from "../../../../../../commands/editorCommands";
+import type { RelationshipId } from "../../../../../../../../shared/ids";
+import type { EditorCommandTransaction } from "../../../../../../../commands/editorCommands";
 
 export function toRelationshipLabelSetTransaction(
   relationshipId: RelationshipId,

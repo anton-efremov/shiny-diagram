@@ -22,10 +22,10 @@ import type {
   SelectionState,
 } from "../../../../../state/editorStates";
 import type { DiagramView } from "../../../../../views/schema";
-import PlacementOverlay from "../PlacementOverlay/PlacementOverlay";
-import ReactFlowClassBoxNodeAdapter from "../ReactFlowClassBoxAdapter/ReactFlowClassBoxAdapter";
-import RelationshipConnectionLineAdapter from "../RelationshipConnectionLineAdapter/RelationshipConnectionLineAdapter";
-import RelationshipEdgeAdapter from "../RelationshipEdgeAdapter/RelationshipEdgeAdapter";
+import PlacementOverlay from "./PlacementOverlay/PlacementOverlay";
+import ReactFlowClassBoxNodeAdapter from "./ReactFlowClassBoxAdapter/ReactFlowClassBoxAdapter";
+import RelationshipConnectionLineAdapter from "./RelationshipConnectionLineAdapter/RelationshipConnectionLineAdapter";
+import RelationshipEdgeAdapter from "./RelationshipEdgeAdapter/RelationshipEdgeAdapter";
 import type {
   ClassBoxNodeDescriptor,
   ClassBoxPlacementChange,

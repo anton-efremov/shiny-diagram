@@ -6,8 +6,8 @@
 
 import { useState } from "react";
 import type { ReactElement, CSSProperties } from "react";
-import type { NodePlacementState } from "../../../../../state/editorStates";
-import { PLACEMENT_OVERLAY_Z_INDEX } from "../../../../../config/editorUiConfig";
+import type { NodePlacementState } from "../../../../../../state/editorStates";
+import { PLACEMENT_OVERLAY_Z_INDEX } from "../../../../../../config/editorUiConfig";
 import { toDraftStyle } from "./childProps";
 import { toInitialDraftRect, toInitialOrigin } from "./state";
 import { useInteractions } from "./useInteractions";

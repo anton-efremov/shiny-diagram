@@ -5,9 +5,9 @@
 
 import { useCallback } from "react";
 import type { MouseEvent } from "react";
-import type { Rect } from "../../../../../../../shared/geometry";
-import type { ClassId } from "../../../../../../../shared/ids";
-import { useDispatchTransaction } from "../../../../../../contexts";
+import type { Rect } from "../../../../../../../../shared/geometry";
+import type { ClassId } from "../../../../../../../../shared/ids";
+import { useDispatchTransaction } from "../../../../../../../contexts";
 import { toClassResizeTransaction } from "./transactions";
 
 type Interactions = {

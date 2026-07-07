@@ -158,6 +158,7 @@ export default function RelationshipTools({
   );
 }
 
+// Private helpers
 function seedsEqual(left: RelationshipSeed | null, right: RelationshipSeed): boolean {
   return (
     left !== null &&

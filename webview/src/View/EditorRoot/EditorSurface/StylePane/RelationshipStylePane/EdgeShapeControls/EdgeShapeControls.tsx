@@ -30,6 +30,7 @@ export default function EdgeShapeControls({
   view,
   onRelationshipSelect,
 }: EdgeShapeControlsProps): ReactElement {
+  // Event handler props derivation
   const { onSourceEndpointKindChange, onLineKindChange, onTargetEndpointKindChange, onReverse } =
     useInteractions(view, onRelationshipSelect);
 
@@ -84,6 +85,7 @@ export default function EdgeShapeControls({
   );
 }
 
+// Private helpers
 function toEndpointLabel(endpointKind: RelationshipEndpointKind): string {
   switch (endpointKind) {
     case "none":

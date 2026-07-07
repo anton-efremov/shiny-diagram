@@ -197,6 +197,7 @@ export type GraphNode = ClassNode | NamespaceNode | StyleDefNode | NoteNode;
 export type RelationshipEdge = {
   readonly kind: "relationship";
   readonly id: RelationshipId;
+  readonly ordinal: number; // position among relationships sharing the same source/target pair
   readonly source: RelationshipEndpoint;
   readonly target: RelationshipEndpoint;
   readonly lineKind: RelationshipLineKind; // Mermaid: `--` or `..`

@@ -5,15 +5,16 @@
 
 import { useState } from "react";
 import type { ReactElement } from "react";
-import type { RelationshipId } from "../../../../../../../shared/ids";
+import type { RelationshipId } from "../../../../../../../../shared/ids";
 import {
   RELATIONSHIP_EDGE_DASH_PATTERN,
   RELATIONSHIP_EDGE_HIT_PATH_STROKE_WIDTH,
   RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION,
-} from "../../../../../../config/editorUiConfig";
-import type { RelationshipView } from "../../../../../../views/schema";
-import RelationshipMarker from "../../../../../../ui/RelationshipMarker/RelationshipMarker";
+} from "../../../../../../../config/editorUiConfig";
+import type { RelationshipView } from "../../../../../../../views/schema";
+import RelationshipMarker from "../../../../../../../ui/RelationshipMarker/RelationshipMarker";
 import EditableText from "./EditableText/EditableText";
+import type { EditTarget } from "./state";
 import { useInteractions } from "./useInteractions";
 import styles from "./RelationshipEdge.module.css";
 
@@ -29,8 +30,6 @@ type RelationshipEdgeProps = {
   readonly targetY: number;
   readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
 };
-
-type EditTarget = "label" | "sourceMultiplicity" | "targetMultiplicity";
 
 export default function RelationshipEdge({
   view,
@@ -49,7 +48,7 @@ export default function RelationshipEdge({
   const [draft, setDraft] = useState("");
 
   // Event handler props derivation
-  const { onEdgeSelect, onTextEditStart, onDraftChange, onDraftKeyDown, onDraftBlur } =
+  const { onEdgeSelect, onEditStart, onDraftChange, onDraftCommit, onDraftDiscard } =
     useInteractions({
       view,
       isSelected,
@@ -59,8 +58,16 @@ export default function RelationshipEdge({
       draft,
       setDraft,
     });
+  const onLabelEditStart = () => onEditStart("label", view.label ?? "");
+  const onSourceMultiplicityEditStart = () =>
+    onEditStart("sourceMultiplicity", view.sourceMultiplicity ?? "");
+  const onTargetMultiplicityEditStart = () =>
+    onEditStart("targetMultiplicity", view.targetMultiplicity ?? "");
 
   // UI props derivation
+  const isLabelEditing = editTarget === "label";
+  const isSourceMultiplicityEditing = editTarget === "sourceMultiplicity";
+  const isTargetMultiplicityEditing = editTarget === "targetMultiplicity";
   const sourceMarkerId = `${view.relationshipId}-source-${view.sourceEndpointKind}`;
   const targetMarkerId = `${view.relationshipId}-target-${view.targetEndpointKind}`;
   const className = [styles.edgePath, isSelected ? styles.selected : ""].filter(Boolean).join(" ");
@@ -74,7 +81,12 @@ export default function RelationshipEdge({
     targetY + (labelY - targetY) * RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION;
 
   return (
-    <g onClick={onEdgeSelect}>
+    <g
+      onClick={(event) => {
+        event.stopPropagation();
+        onEdgeSelect();
+      }}
+    >
       <defs>
         <RelationshipMarker
           id={sourceMarkerId}
@@ -104,47 +116,41 @@ export default function RelationshipEdge({
       />
       {view.sourceMultiplicity ? (
         <EditableText
-          target="sourceMultiplicity"
           x={sourceMultiplicityX}
           y={sourceMultiplicityY}
-          value={view.sourceMultiplicity ?? ""}
-          editTarget={editTarget}
-          draft={draft}
-          isSelected={isSelected}
-          onTextEditStart={onTextEditStart}
+          text={isSourceMultiplicityEditing ? draft : (view.sourceMultiplicity ?? "")}
+          isEditing={isSourceMultiplicityEditing}
+          isEditStartEnabled={isSelected}
+          onEditStart={onSourceMultiplicityEditStart}
           onDraftChange={onDraftChange}
-          onDraftKeyDown={onDraftKeyDown}
-          onDraftBlur={onDraftBlur}
+          onDraftCommit={onDraftCommit}
+          onDraftDiscard={onDraftDiscard}
         />
       ) : null}
       {view.targetMultiplicity ? (
         <EditableText
-          target="targetMultiplicity"
           x={targetMultiplicityX}
           y={targetMultiplicityY}
-          value={view.targetMultiplicity ?? ""}
-          editTarget={editTarget}
-          draft={draft}
-          isSelected={isSelected}
-          onTextEditStart={onTextEditStart}
+          text={isTargetMultiplicityEditing ? draft : (view.targetMultiplicity ?? "")}
+          isEditing={isTargetMultiplicityEditing}
+          isEditStartEnabled={isSelected}
+          onEditStart={onTargetMultiplicityEditStart}
           onDraftChange={onDraftChange}
-          onDraftKeyDown={onDraftKeyDown}
-          onDraftBlur={onDraftBlur}
+          onDraftCommit={onDraftCommit}
+          onDraftDiscard={onDraftDiscard}
         />
       ) : null}
       {view.label ? (
         <EditableText
-          target="label"
           x={labelX}
           y={labelY}
-          value={view.label ?? ""}
-          editTarget={editTarget}
-          draft={draft}
-          isSelected={isSelected}
-          onTextEditStart={onTextEditStart}
+          text={isLabelEditing ? draft : (view.label ?? "")}
+          isEditing={isLabelEditing}
+          isEditStartEnabled={isSelected}
+          onEditStart={onLabelEditStart}
           onDraftChange={onDraftChange}
-          onDraftKeyDown={onDraftKeyDown}
-          onDraftBlur={onDraftBlur}
+          onDraftCommit={onDraftCommit}
+          onDraftDiscard={onDraftDiscard}
         />
       ) : null}
     </g>

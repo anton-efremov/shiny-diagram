@@ -2,9 +2,9 @@
  * @behavior Class resize transaction derivation.
  */
 
-import type { Rect } from "../../../../../../../shared/geometry";
-import type { ClassId } from "../../../../../../../shared/ids";
-import type { EditorCommandTransaction } from "../../../../../../commands/editorCommands";
+import type { Rect } from "../../../../../../../../shared/geometry";
+import type { ClassId } from "../../../../../../../../shared/ids";
+import type { EditorCommandTransaction } from "../../../../../../../commands/editorCommands";
 
 // Implementing interaction through command transaction
 export function toClassResizeTransaction(classId: ClassId, rect: Rect): EditorCommandTransaction {

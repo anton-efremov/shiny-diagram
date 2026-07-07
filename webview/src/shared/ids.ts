@@ -82,3 +82,18 @@ export function toDiagramId(value: string): DiagramId {
 export function toRelationshipId(value: string): RelationshipId {
   return value as RelationshipId;
 }
+
+/**
+ * Composes a relationship identifier from its endpoint classes and its ordinal
+ * among relationships sharing the same source/target pair.
+ *
+ * Single definition point of the relationship-identity shape; no other code may
+ * construct or parse the `${source}--${target}--${ordinal}` form.
+ */
+export function composeRelationshipId(
+  sourceClassId: ClassId,
+  targetClassId: ClassId,
+  ordinal: number
+): RelationshipId {
+  return `${sourceClassId}--${targetClassId}--${ordinal}` as RelationshipId;
+}

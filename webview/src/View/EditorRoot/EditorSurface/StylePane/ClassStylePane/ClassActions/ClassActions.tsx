@@ -14,6 +14,7 @@ type ClassActionsProps = {
 };
 
 export default function ClassActions({ view }: ClassActionsProps): ReactElement {
+  // Event handler props derivation
   const { onDuplicate, onDelete } = useInteractions(view);
 
   useEffect(() => {

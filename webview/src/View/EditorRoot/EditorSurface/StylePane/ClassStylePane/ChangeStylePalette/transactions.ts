@@ -36,6 +36,7 @@ export function toClassStylePropertySetTransaction(
       ]);
 }
 
+// Private helpers
 const EMPTY_STYLE_PROPERTIES: StyleProperties = {
   fill: null,
   stroke: null,

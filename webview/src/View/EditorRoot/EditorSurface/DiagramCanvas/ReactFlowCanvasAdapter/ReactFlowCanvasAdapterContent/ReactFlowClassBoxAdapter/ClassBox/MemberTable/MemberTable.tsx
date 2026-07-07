@@ -4,7 +4,7 @@
  */
 
 import type { ReactElement } from "react";
-import type { ClassMemberView, ClassView } from "../../../../../../../views/schema";
+import type { ClassMemberView, ClassView } from "../../../../../../../../views/schema";
 import styles from "./MemberTable.module.css";
 
 type MemberTableProps = {

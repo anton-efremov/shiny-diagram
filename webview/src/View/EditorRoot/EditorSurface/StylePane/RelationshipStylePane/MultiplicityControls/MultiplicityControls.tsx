@@ -79,6 +79,7 @@ export default function MultiplicityControls({ view }: MultiplicityControlsProps
   );
 }
 
+// Private helpers
 type MultiplicityFieldProps = {
   readonly label: string;
   readonly listId: string;

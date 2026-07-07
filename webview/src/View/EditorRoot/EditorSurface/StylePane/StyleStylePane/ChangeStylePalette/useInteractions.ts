@@ -15,6 +15,7 @@ type Interactions = {
 export function useInteractions(view: StyleView): Interactions {
   const dispatchTransaction = useDispatchTransaction();
 
+  // Event handler props derivation
   const onPropertyChange = useCallback(
     (property: StylePropertyName, value: string | null) => {
       dispatchTransaction(toStylePropertySetTransaction(view, property, value));

@@ -1,52 +1,45 @@
 /**
  * @behavior Relationship placement cursor tracking for the ghost endpoint.
- * @framework React Flow connection line props to relationship ghost rendering.
+ * @render Relationship ghost path and endpoint markers.
  */
 
-import { useCallback, useEffect, useRef } from "react";
-import type { MutableRefObject, ReactElement } from "react";
-import { type ConnectionLineComponentProps, useReactFlow, type XYPosition } from "@xyflow/react";
-import type { RelationshipSeed } from "../../../../../state/editorStates";
-import { RELATIONSHIP_EDGE_DASH_PATTERN } from "../../../../../config/editorUiConfig";
-import RelationshipMarker from "../../../../../ui/RelationshipMarker/RelationshipMarker";
-import styles from "./RelationshipConnectionLineAdapter.module.css";
+import { useEffect, useRef } from "react";
+import type { ReactElement } from "react";
+import type { Point } from "../../../../../../../../shared/geometry";
+import type { RelationshipSeed } from "../../../../../../../state/editorStates";
+import { RELATIONSHIP_EDGE_DASH_PATTERN } from "../../../../../../../config/editorUiConfig";
+import RelationshipMarker from "../../../../../../../ui/RelationshipMarker/RelationshipMarker";
+import styles from "./RelationshipGhostLine.module.css";
 
-type RelationshipConnectionLineAdapterProps = ConnectionLineComponentProps & {
+type RelationshipGhostLineProps = {
   readonly seed: RelationshipSeed;
-  readonly pressPointRef: MutableRefObject<XYPosition | null>;
+  readonly endPoint: Point;
+  readonly getStartPoint: () => Point;
+  readonly toDiagramPoint: (clientX: number, clientY: number) => Point;
 };
 
-export default function RelationshipConnectionLineAdapter({
-  fromX,
-  fromY,
-  toX,
-  toY,
+export default function RelationshipGhostLine({
   seed,
-  pressPointRef,
-}: RelationshipConnectionLineAdapterProps): ReactElement {
+  endPoint,
+  getStartPoint,
+  toDiagramPoint,
+}: RelationshipGhostLineProps): ReactElement {
   // State creation: local ref - rendered ghost path element updated outside React render
   const pathRef = useRef<SVGPathElement | null>(null);
 
-  // Framework prop and event adaptation
-  const { screenToFlowPosition } = useReactFlow();
-  const toStartPoint = useCallback(
-    (): XYPosition => pressPointRef.current ?? { x: fromX, y: fromY },
-    [fromX, fromY, pressPointRef]
-  );
-
   useEffect(() => {
     function onPointerMove(event: PointerEvent): void {
-      const cursorPoint = screenToFlowPosition({ x: event.clientX, y: event.clientY });
-      pathRef.current?.setAttribute("d", toStraightPath(toStartPoint(), cursorPoint));
+      const cursorPoint = toDiagramPoint(event.clientX, event.clientY);
+      pathRef.current?.setAttribute("d", toStraightPath(getStartPoint(), cursorPoint));
     }
 
     window.addEventListener("pointermove", onPointerMove);
     return () => window.removeEventListener("pointermove", onPointerMove);
-  }, [screenToFlowPosition, toStartPoint]);
+  }, [getStartPoint, toDiagramPoint]);
 
   // UI props derivation
-  const startPoint = toStartPoint();
-  const edgePath = toStraightPath(startPoint, { x: toX, y: toY });
+  const startPoint = getStartPoint();
+  const edgePath = toStraightPath(startPoint, endPoint);
   const sourceMarkerId = `relationship-placement-source-${seed.sourceEndpointKind}`;
   const targetMarkerId = `relationship-placement-target-${seed.targetEndpointKind}`;
 
@@ -78,7 +71,7 @@ export default function RelationshipConnectionLineAdapter({
 }
 
 // Private helpers
-function toStraightPath(startPoint: XYPosition, endPoint: XYPosition): string {
+function toStraightPath(startPoint: Point, endPoint: Point): string {
   return `M ${startPoint.x} ${startPoint.y} L ${endPoint.x} ${endPoint.y}`;
 }
 

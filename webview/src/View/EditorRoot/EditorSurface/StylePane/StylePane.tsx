@@ -88,6 +88,7 @@ export default function StylePane({
   );
 }
 
+// Private helpers
 function toStylePaneScenario(
   view: Pick<DiagramView, "classes" | "relationships" | "styles">,
   selectionState: SelectionState

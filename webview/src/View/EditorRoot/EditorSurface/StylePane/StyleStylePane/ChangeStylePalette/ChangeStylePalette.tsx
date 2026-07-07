@@ -14,6 +14,7 @@ type ChangeStylePaletteProps = {
 };
 
 export default function ChangeStylePalette({ view }: ChangeStylePaletteProps): ReactElement {
+  // Event handler props derivation
   const { onPropertyChange } = useInteractions(view);
 
   return (
@@ -32,6 +33,7 @@ export default function ChangeStylePalette({ view }: ChangeStylePaletteProps): R
   );
 }
 
+// Private helpers
 function toInputValue(value: string | null, property: StylePropertyName): string {
   return value ?? (isColorProperty(property) ? "#ffffff" : "");
 }

@@ -2,47 +2,39 @@
  * @render Relationship edge inline text editor.
  */
 
-import type { KeyboardEvent, MouseEvent, ReactElement } from "react";
+import type { ReactElement } from "react";
 import {
   RELATIONSHIP_EDGE_TEXT_BOX_HEIGHT,
   RELATIONSHIP_EDGE_TEXT_BOX_WIDTH,
   RELATIONSHIP_EDGE_TEXT_BOX_X_OFFSET,
   RELATIONSHIP_EDGE_TEXT_BOX_Y_OFFSET,
-} from "../../../../../../../config/editorUiConfig";
+} from "../../../../../../../../config/editorUiConfig";
 import styles from "./EditableText.module.css";
 
-type EditTarget = "label" | "sourceMultiplicity" | "targetMultiplicity";
-
 type EditableTextProps = {
-  readonly target: EditTarget;
   readonly x: number;
   readonly y: number;
-  readonly value: string;
-  readonly editTarget: EditTarget | null;
-  readonly draft: string;
-  readonly isSelected: boolean;
-  readonly onTextEditStart: (target: EditTarget, value: string) => void;
+  readonly text: string;
+  readonly isEditing: boolean;
+  readonly isEditStartEnabled: boolean;
+  readonly onEditStart: () => void;
   readonly onDraftChange: (value: string) => void;
-  readonly onDraftKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
-  readonly onDraftBlur: () => void;
+  readonly onDraftCommit: () => void;
+  readonly onDraftDiscard: () => void;
 };
 
 export default function EditableText({
-  target,
   x,
   y,
-  value,
-  editTarget,
-  draft,
-  isSelected,
-  onTextEditStart,
+  text,
+  isEditing,
+  isEditStartEnabled,
+  onEditStart,
   onDraftChange,
-  onDraftKeyDown,
-  onDraftBlur,
+  onDraftCommit,
+  onDraftDiscard,
 }: EditableTextProps): ReactElement {
-  // UI props derivation
-  const isEditing = editTarget === target;
-  const displayValue = value === "" ? " " : value;
+  const displayText = text === "" ? " " : text;
 
   return (
     <foreignObject
@@ -55,12 +47,15 @@ export default function EditableText({
       {isEditing ? (
         <input
           className={styles.textInput}
-          value={draft}
+          value={text}
           autoFocus
           onClick={(event) => event.stopPropagation()}
           onChange={(event) => onDraftChange(event.target.value)}
-          onKeyDown={onDraftKeyDown}
-          onBlur={onDraftBlur}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") onDraftCommit();
+            if (event.key === "Escape") onDraftDiscard();
+          }}
+          onBlur={() => onDraftDiscard()}
         />
       ) : (
         <button
@@ -68,14 +63,14 @@ export default function EditableText({
           type="button"
           onClick={(event) => {
             event.stopPropagation();
-            if (isSelected) onTextEditStart(target, value);
+            if (isEditStartEnabled) onEditStart();
           }}
-          onDoubleClick={(event: MouseEvent<HTMLButtonElement>) => {
+          onDoubleClick={(event) => {
             event.stopPropagation();
-            onTextEditStart(target, value);
+            onEditStart();
           }}
         >
-          {displayValue}
+          {displayText}
         </button>
       )}
     </foreignObject>

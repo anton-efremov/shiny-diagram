@@ -18,6 +18,7 @@ export default function NamedStyleSelector({
   view,
   styles: styleViews,
 }: NamedStyleSelectorProps): ReactElement {
+  // Event handler props derivation
   const { onStyleChange } = useInteractions(view);
   const selectedValue = toSelectedValue(view);
 
@@ -43,6 +44,7 @@ export default function NamedStyleSelector({
   );
 }
 
+// Private helpers
 function toSelectedValue(classes: readonly ClassView[]): string {
   const first = classes[0]?.appliedStyleId;
   if (classes.every((classView) => classView.appliedStyleId === first)) {

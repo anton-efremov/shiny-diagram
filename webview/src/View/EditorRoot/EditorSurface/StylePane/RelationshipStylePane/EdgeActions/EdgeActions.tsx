@@ -18,6 +18,7 @@ export default function EdgeActions({
   view,
   onRelationshipDuplicate,
 }: EdgeActionsProps): ReactElement {
+  // Event handler props derivation
   const { onDuplicate, onDelete } = useInteractions(view, onRelationshipDuplicate);
 
   return (

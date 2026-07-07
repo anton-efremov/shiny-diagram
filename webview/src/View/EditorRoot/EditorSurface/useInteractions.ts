@@ -5,6 +5,7 @@
 
 import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import { composeRelationshipId } from "../../../shared/ids";
 import type { ClassId, RelationshipId, StyleDefId } from "../../../shared/ids";
 import type {
   NodePlacementState,
@@ -13,7 +14,6 @@ import type {
 } from "../../state/editorStates";
 import type { RelationshipView } from "../../views/schema";
 import { useDispatchTransaction } from "../../contexts";
-import { toPredictedRelationshipId } from "../../utils/relationshipIdPrediction";
 import {
   toRelationshipCreateTransaction,
   toRelationshipReconnectTransaction,
@@ -107,10 +107,10 @@ export function useInteractions({
         selectionState.kind === "relationship" && selectionState.relationshipId === relationshipId
           ? updateSelectedRelationshipId(
               selectionState,
-              toPredictedRelationshipId(
-                relationship.relationshipId,
+              composeRelationshipId(
                 end === "source" ? newClassId : relationship.sourceClassId,
-                end === "target" ? newClassId : relationship.targetClassId
+                end === "target" ? newClassId : relationship.targetClassId,
+                relationship.ordinal
               )
             )
           : selectionState
@@ -175,6 +175,7 @@ export function useInteractions({
   };
 }
 
+// Private helpers
 function updateSelectedRelationshipId(
   selectionState: SelectionState,
   relationshipId: RelationshipId
@@ -184,7 +185,6 @@ function updateSelectedRelationshipId(
     : { kind: "relationship", relationshipId };
 }
 
-// Private helpers
 function updateSelectedClassIds(
   selectionState: SelectionState,
   classId: ClassId,

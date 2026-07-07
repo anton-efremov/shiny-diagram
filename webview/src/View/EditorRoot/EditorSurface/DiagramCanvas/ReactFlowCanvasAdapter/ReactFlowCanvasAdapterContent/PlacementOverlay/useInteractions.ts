@@ -7,9 +7,9 @@
 import { useCallback } from "react";
 import type { Dispatch, PointerEvent, SetStateAction } from "react";
 import { useReactFlow } from "@xyflow/react";
-import type { Point, Rect } from "../../../../../../shared/geometry";
-import { PLACEMENT_OVERLAY_DRAG_THRESHOLD } from "../../../../../config/editorUiConfig";
-import { useDispatchTransaction } from "../../../../../contexts";
+import type { Point, Rect } from "../../../../../../../shared/geometry";
+import { PLACEMENT_OVERLAY_DRAG_THRESHOLD } from "../../../../../../config/editorUiConfig";
+import { useDispatchTransaction } from "../../../../../../contexts";
 import type { DrawOrigin } from "./state";
 import { toClassCreateTransaction } from "./transactions";
 import { toDiagramPoint } from "./frameworkAdapters";

@@ -9,8 +9,8 @@ import ReactFlowConnectionHandlesAdapter from "./ReactFlowConnectionHandlesAdapt
 import ReactFlowNodeResizerAdapter from "./ReactFlowNodeResizerAdapter/ReactFlowNodeResizerAdapter";
 import MemberTable from "./MemberTable/MemberTable";
 import { useInteractions } from "./useInteractions";
-import type { ClassId } from "../../../../../../../shared/ids";
-import type { ClassView } from "../../../../../../views/schema";
+import type { ClassId } from "../../../../../../../../shared/ids";
+import type { ClassView } from "../../../../../../../views/schema";
 import styles from "./ClassBox.module.css";
 
 type ClassBoxProps = {
