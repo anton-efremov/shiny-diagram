@@ -30,6 +30,26 @@ describe("memberText", () => {
     });
   });
 
+  it("uses the last closing parenthesis when parameters contain an empty function type", () => {
+    const display = toDisplayMemberText("+m(f: (), g: int) bool", "method");
+
+    expect(display).toEqual({
+      text: "+m(f:(), g: int) : bool",
+      classifier: null,
+    });
+    expect(toSourceMemberText(display, "method")).toBe("+m(f:(), g: int) bool");
+  });
+
+  it("treats a colon before the last closing parenthesis as parameter text", () => {
+    const display = toDisplayMemberText("+get() : Result)", "method");
+
+    expect(display).toEqual({
+      text: "+get() : Result)",
+      classifier: null,
+    });
+    expect(toSourceMemberText(display, "method")).toBe("+get() : Result)");
+  });
+
   it("pins Mermaid method classifier precedence for adjacent classifiers", () => {
     expect(toDisplayMemberText("+count()$*", "method")).toEqual({
       text: "+count() : *",

@@ -13,6 +13,7 @@ import { toSourceSpan } from "../toSourceSpan";
 export type ParsedClassNode = {
   readonly node: ClassNode;
   readonly location: SourceSpan;
+  readonly annotationLocation: SourceSpan | null;
   readonly memberLocations: ReadonlyMap<
     ClassMember["id"],
     { readonly self: SourceSpan; readonly text: SourceSpan }
@@ -32,13 +33,14 @@ export function buildClassNode(token: ParseToken): ParsedClassNode | null {
 
   const identity = readIdentity(match[1]);
   const id = toClassId(identity);
-  const { attributes, methods, annotation, memberLocations } = parseClassBody(
+  const { attributes, methods, annotation, annotationLocation, memberLocations } = parseClassBody(
     id,
     token.blockTokens ?? []
   );
 
   return {
     location: toSourceSpan(token),
+    annotationLocation,
     memberLocations,
     node: {
       kind: "class",
@@ -65,6 +67,7 @@ function parseClassBody(
   attributes: ClassMember[];
   methods: ClassMember[];
   annotation: string | null;
+  annotationLocation: SourceSpan | null;
   memberLocations: Map<ClassMember["id"], { readonly self: SourceSpan; readonly text: SourceSpan }>;
 } {
   const attributes: ClassMember[] = [];
@@ -74,6 +77,7 @@ function parseClassBody(
     { readonly self: SourceSpan; readonly text: SourceSpan }
   >();
   let annotation: string | null = null;
+  let annotationLocation: SourceSpan | null = null;
 
   for (const token of blockTokens) {
     const trimmed = token.raw.trim();
@@ -82,6 +86,7 @@ function parseClassBody(
     const stereotypeMatch = /^<<(.+)>>$/.exec(trimmed);
     if (stereotypeMatch) {
       annotation = stereotypeMatch[1].trim();
+      annotationLocation = toTrimmedLineSpan(token);
       continue;
     }
 
@@ -97,7 +102,7 @@ function parseClassBody(
     }
   }
 
-  return { attributes, methods, annotation, memberLocations };
+  return { attributes, methods, annotation, annotationLocation, memberLocations };
 }
 
 function parseClassMember(

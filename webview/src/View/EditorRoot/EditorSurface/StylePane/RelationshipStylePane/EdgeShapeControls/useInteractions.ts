@@ -56,7 +56,11 @@ export function useInteractions(
     const transaction = toRelationshipReverseTransaction(view);
     if (transaction.length === 0) return;
     const outcome = dispatchTransaction(transaction);
-    onRelationshipSelect(outcome.relationships.renamed[0]?.to ?? view.relationshipId);
+    onRelationshipSelect(
+      outcome.status === "committed"
+        ? (outcome.outcome.relationships.renamed[0]?.to ?? view.relationshipId)
+        : view.relationshipId
+    );
   }, [dispatchTransaction, onRelationshipSelect, view]);
 
   return {

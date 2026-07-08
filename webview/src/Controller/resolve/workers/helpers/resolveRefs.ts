@@ -90,6 +90,26 @@ export function resolveValueRef(ref: ValueRef, provenance: ProvenanceIndex): Sou
     case "className":
       return requireRecord(provenance.classes.get(ref.classId), `class ${ref.classId}`).fields
         .declaredName;
+    case "classGenericType":
+      return requireRecord(
+        provenance.classes.get(ref.classId)?.fields.genericType,
+        `class generic type ${ref.classId}`
+      );
+    case "classLabel":
+      return requireRecord(
+        provenance.classes.get(ref.classId)?.fields.label,
+        `class label ${ref.classId}`
+      );
+    case "classLabelFull":
+      return requireRecord(
+        provenance.classes.get(ref.classId)?.fields.labelFull,
+        `class label ${ref.classId}`
+      );
+    case "classAnnotation":
+      return requireRecord(
+        provenance.classes.get(ref.classId)?.fields.annotation,
+        `class annotation ${ref.classId}`
+      );
     case "styleDefName":
       return requireRecord(
         provenance.styleDefinitions.get(ref.styleDefId),
@@ -100,6 +120,11 @@ export function resolveValueRef(ref: ValueRef, provenance: ProvenanceIndex): Sou
         provenance.classDirectStyles.get(ref.classId)?.fields.properties[ref.property],
         `direct style property value ${ref.classId}.${ref.property}`
       ).value;
+    case "directStyleTarget":
+      return requireRecord(
+        provenance.classDirectStyles.get(ref.classId),
+        `direct style ${ref.classId}`
+      ).fields.target;
     case "spatialCoord": {
       if (ref.target.kind !== "class") {
         throw new Error(`Unsupported spatial target ${ref.target.kind}`);

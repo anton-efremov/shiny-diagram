@@ -116,7 +116,10 @@ export function useInteractions({
       const outcome = dispatchTransaction(
         toRelationshipReconnectTransaction(relationshipId, end, newClassId)
       );
-      const nextRelationshipId = outcome.relationships.renamed[0]?.to ?? relationshipId;
+      const nextRelationshipId =
+        outcome.status === "committed"
+          ? (outcome.outcome.relationships.renamed[0]?.to ?? relationshipId)
+          : relationshipId;
       setSelectionState((selectionState) =>
         updateSelectedRelationshipId(selectionState, nextRelationshipId)
       );

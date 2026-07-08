@@ -24,6 +24,21 @@ import {
   translateClassDirectStyleSet as translateClassFullDirectStyleSet,
 } from "./workers/translateClassDirectStyleSet";
 import { translateClassDuplicate } from "./workers/translateClassDuplicate";
+import {
+  translateClassAnnotationSet,
+  translateClassLabelSet,
+  translateClassNameSet,
+} from "./workers/translateClassHeader";
+import {
+  translateClassAttributeCreate,
+  translateClassAttributeDelete,
+  translateClassAttributeMove,
+  translateClassAttributeSet,
+  translateClassMethodCreate,
+  translateClassMethodDelete,
+  translateClassMethodMove,
+  translateClassMethodSet,
+} from "./workers/translateClassMember";
 import { translateClassSpatialSet } from "./workers/translateClassSpatialSet";
 import { translateRelationshipCreate } from "./workers/translateRelationshipCreate";
 import { translateRelationshipDelete } from "./workers/translateRelationshipDelete";
@@ -88,6 +103,12 @@ function translateCommand(
       return translateClassDuplicate(command, graph, provenance, sourceText, context);
     case "class.delete":
       return translateClassDelete(command, graph, provenance);
+    case "class.name.set":
+      return translateClassNameSet(command, graph, provenance, context);
+    case "class.label.set":
+      return translateClassLabelSet(command, graph, provenance);
+    case "class.annotation.set":
+      return translateClassAnnotationSet(command, provenance);
     case "class.spatial.set":
       return translateClassSpatialSet(command, graph, provenance);
     case "class.directStyle.property.set":
@@ -98,6 +119,22 @@ function translateCommand(
       return translateClassDirectStyleClear(command, provenance);
     case "class.appliedStyle.set":
       return translateClassAppliedStyleSet(command, graph, provenance);
+    case "class.attribute.create":
+      return translateClassAttributeCreate(command, graph, provenance);
+    case "class.attribute.set":
+      return translateClassAttributeSet(command);
+    case "class.attribute.delete":
+      return translateClassAttributeDelete(command, provenance);
+    case "class.attribute.move":
+      return translateClassAttributeMove(command, graph, provenance, sourceText);
+    case "class.method.create":
+      return translateClassMethodCreate(command, graph, provenance);
+    case "class.method.set":
+      return translateClassMethodSet(command);
+    case "class.method.delete":
+      return translateClassMethodDelete(command, provenance);
+    case "class.method.move":
+      return translateClassMethodMove(command, graph, provenance, sourceText);
     case "relationship.create":
       return translateRelationshipCreate(command, graph, provenance, context);
     case "relationship.delete":

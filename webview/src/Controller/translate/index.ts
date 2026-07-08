@@ -3,6 +3,7 @@
  */
 
 export { translateCommands } from "./translateCommands";
+export { validateTransaction } from "./validateTransaction";
 export type {
   BlockRef,
   EntryAnchor,

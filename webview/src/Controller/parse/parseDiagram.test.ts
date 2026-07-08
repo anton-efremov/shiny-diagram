@@ -10,6 +10,7 @@ class User {
   +List~T~ items*
   +find(List~T~ input) Result~T~$
   +compare(a: int, b: List~T~) bool
+  +m(f: (), g: int) bool
 }
 User : +shortMethod() void*
 %% @spatial:User x=10 y=20 w=220 h=160
@@ -43,7 +44,12 @@ User : +shortMethod() void*
         classifier: null,
       },
       {
-        id: "User:7",
+        id: "User:6",
+        text: "+m(f:(), g: int) : bool",
+        classifier: null,
+      },
+      {
+        id: "User:8",
         text: "+shortMethod() : void",
         classifier: "abstract",
       },
@@ -53,9 +59,9 @@ User : +shortMethod() void*
       start: { line: 3, character: 2 },
       end: { line: 3, character: 17 },
     });
-    expect(result.provenance.shortMembers.get(toMethodId("User:7"))?.fields.text).toEqual({
-      start: { line: 7, character: 7 },
-      end: { line: 7, character: 27 },
+    expect(result.provenance.shortMembers.get(toMethodId("User:8"))?.fields.text).toEqual({
+      start: { line: 8, character: 7 },
+      end: { line: 8, character: 27 },
     });
   });
 

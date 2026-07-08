@@ -121,7 +121,10 @@ function traverseTokens(tokens: readonly ParseToken[], build: MutableGraphBuild)
         const parsed = buildClassNode(token);
         if (parsed) {
           build.classes.set(parsed.node.id, parsed.node);
-          build.provenance.classes.set(parsed.node.id, toClassRecord(token));
+          build.provenance.classes.set(
+            parsed.node.id,
+            toClassRecord(token, parsed.annotationLocation)
+          );
           for (const [memberId, location] of parsed.memberLocations) {
             build.provenance.blockMembers.set(memberId, {
               self: location.self,
@@ -372,16 +375,21 @@ export function toDiagramRecord(tokens: readonly ParseToken[]): ProvenanceIndex[
   };
 }
 
-function toClassRecord(token: ParseToken): ClassRecord {
+function toClassRecord(token: ParseToken, annotation: SourceSpan | null): ClassRecord {
   const isBlock = token.raw.includes("{");
   const label = toClassLabelLocation(token);
+  const labelFull = toClassLabelFullLocation(token);
+  const genericType = toClassGenericTypeLocation(token);
   return {
     self: toSourceSpan(token),
     header: toHeaderLocation(token),
     body: isBlock ? toBodyLocation(token) : null,
     fields: {
       declaredName: toDeclaredNameLocation(token, "class"),
+      ...(genericType ? { genericType } : {}),
       ...(label ? { label } : {}),
+      ...(labelFull ? { labelFull } : {}),
+      ...(annotation ? { annotation } : {}),
     },
   };
 }
@@ -397,6 +405,20 @@ function toClassLabelLocation(token: ParseToken): SourceSpan | null {
   const match = /\["([^"]*)"\]/.exec(token.raw);
   if (!match) return null;
   const start = (match.index ?? 0) + 2;
+  return toLineFieldLocation(token, start, start + match[1].length);
+}
+
+function toClassLabelFullLocation(token: ParseToken): SourceSpan | null {
+  const match = /\["([^"]*)"\]/.exec(token.raw);
+  if (!match) return null;
+  const start = match.index ?? 0;
+  return toLineFieldLocation(token, start, start + match[0].length);
+}
+
+function toClassGenericTypeLocation(token: ParseToken): SourceSpan | null {
+  const match = new RegExp(`^\\s*class\\s+${IDENTITY_PATTERN}(~[^~]*~)`).exec(token.raw);
+  if (!match) return null;
+  const start = token.raw.indexOf(match[1]);
   return toLineFieldLocation(token, start, start + match[1].length);
 }
 

@@ -27,14 +27,9 @@ describe("validateMemberText", () => {
     ).toBe(true);
   });
 
-  it("rejects display method text with a closing parenthesis after the return colon", () => {
-    expect(validateMemberText("+get() : Result)", "method", "User")).toEqual([
-      {
-        ok: false,
-        message:
-          'Method member in class "User" must not contain ")" after the return-type colon: +get() : Result)',
-        verificationStatus: "unverified",
-      },
-    ]);
+  it("accepts the Mermaid interpretation of a colon before the last closing parenthesis", () => {
+    expect(
+      validateMemberText("+get() : Result)", "method", "User").every((verdict) => verdict.ok)
+    ).toBe(true);
   });
 });

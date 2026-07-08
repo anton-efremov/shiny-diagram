@@ -34,8 +34,8 @@ export function toSourceMemberText(member: DisplayMemberText, kind: MemberKind):
 }
 
 export function getMethodReturnTypeColonIndex(displayText: string): number {
-  const closingParen = displayText.indexOf(")");
-  return closingParen === -1 ? -1 : displayText.indexOf(":", closingParen + 1);
+  const split = splitMethodTextAtReturnAnchor(displayText);
+  return split === null ? -1 : displayText.indexOf(":", split.anchorIndex + 1);
 }
 
 function toDisplayMethodMemberText(sourceText: string): DisplayMemberText {
@@ -69,13 +69,18 @@ type ParsedSourceMember = {
 };
 
 function parseSourceMethodMember(sourceText: string): ParsedSourceMember | null {
-  const methodRegEx = /([#+~-])?(.+)\((.*)\)([\s$*])?(.*)([$*])?/;
-  const match = methodRegEx.exec(sourceText);
-  if (!match) return null;
+  const split = splitMethodTextAtReturnAnchor(sourceText);
+  if (split === null) return null;
 
-  const visibility = isVisibility(match[1]?.trim() ?? "") ? (match[1]?.trim() ?? "") : "";
-  const potentialClassifier = match[4]?.trim() ?? "";
-  let returnType = match[5]?.trim() ?? "";
+  const signature = split.beforeAnchor;
+  const openingParen = signature.indexOf("(");
+  if (openingParen === -1) return null;
+
+  const visibilityCandidate = signature.substring(0, 1);
+  const visibility = isVisibility(visibilityCandidate) ? visibilityCandidate : "";
+  const idStart = visibility === "" ? 0 : 1;
+  const potentialClassifier = split.afterAnchor.substring(0, 1).trim();
+  let returnType = split.afterAnchor.slice(potentialClassifier === "" ? 0 : 1).trim();
   let classifier = toClassifier(potentialClassifier);
 
   if (classifier === null) {
@@ -88,8 +93,8 @@ function parseSourceMethodMember(sourceText: string): ParsedSourceMember | null 
 
   return {
     visibility,
-    id: normalizeMermaidMemberId(match[2] ?? ""),
-    parameters: match[3]?.trim() ?? "",
+    id: normalizeMermaidMemberId(signature.slice(idStart, openingParen)),
+    parameters: normalizeMermaidParameters(signature.slice(openingParen + 1)),
     returnType,
     classifier,
   };
@@ -116,6 +121,10 @@ function parseSourceFieldMember(sourceText: string): ParsedSourceMember {
 
 function normalizeMermaidMemberId(id: string): string {
   return id.startsWith(" ") ? ` ${id.trim()}` : id.trim();
+}
+
+function normalizeMermaidParameters(parameters: string): string {
+  return parameters.trim().replaceAll(/:\s+\(\)/g, ":()");
 }
 
 function isVisibility(value: string): boolean {
@@ -145,17 +154,31 @@ function toSourceClassifier(classifier: MemberClassifier | null): string {
 }
 
 function toSourceMethodText(displayText: string): string {
-  const closingParen = displayText.lastIndexOf(")");
-  if (closingParen === -1) return toSourceGenericTypes(displayText).trim();
-
-  const signature = displayText.slice(0, closingParen + 1);
   const colon = getMethodReturnTypeColonIndex(displayText);
   if (colon === -1) return toSourceGenericTypes(displayText).trim();
 
+  const split = splitMethodTextAtReturnAnchor(displayText);
+  if (split === null) return toSourceGenericTypes(displayText).trim();
+
+  const signature = displayText.slice(0, split.anchorIndex + 1);
   const returnType = displayText.slice(colon + 1).trim();
   const sourceSignature = toSourceGenericTypes(signature).trim();
   const sourceReturnType = toSourceGenericTypes(returnType).trim();
   return sourceReturnType ? `${sourceSignature} ${sourceReturnType}` : sourceSignature;
+}
+
+function splitMethodTextAtReturnAnchor(text: string): {
+  readonly beforeAnchor: string;
+  readonly afterAnchor: string;
+  readonly anchorIndex: number;
+} | null {
+  const anchorIndex = text.lastIndexOf(")");
+  if (anchorIndex === -1) return null;
+  return {
+    beforeAnchor: text.slice(0, anchorIndex),
+    afterAnchor: text.slice(anchorIndex + 1),
+    anchorIndex,
+  };
 }
 
 export function parseGenericTypes(input: string): string {

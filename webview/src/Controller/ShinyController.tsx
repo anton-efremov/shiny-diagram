@@ -7,12 +7,11 @@ import type { ReactElement } from "react";
 import { parseDiagram } from "./parse";
 import { deriveDiagramView } from "./deriveViews";
 import { resolveIntents } from "./resolve";
-import { translateCommands } from "./translate";
+import { translateCommands, validateTransaction } from "./translate";
 import type { DiagramGraph } from "./model/diagramGraph";
 import type { ProvenanceIndex } from "./model/provenanceIndex";
 import type { SourceEdit } from "./model/sourceEdit";
 import { EditorView } from "../View/EditorRoot";
-import { EMPTY_TRANSACTION_OUTCOME } from "../View/commands";
 import type { EditorDispatch } from "../View/commands";
 import type { DiagramView, EditorViewModel } from "../View/views";
 
@@ -90,19 +89,37 @@ export default function ShinyController({
 
   const dispatch: EditorDispatch = useCallback((transaction) => {
     const { context, onApplyEdits: applyEdits } = commandExecutionInputsRef.current;
-    if (!context) return EMPTY_TRANSACTION_OUTCOME;
+    if (!context)
+      return { status: "rejected", errors: [{ message: "Invalid syntax", commandIndex: 0 }] };
 
-    const { intents, outcome } = translateCommands(
-      transaction,
-      context.graph,
-      context.provenance,
-      context.sourceText
-    );
-    const edits = resolveIntents(intents, context.provenance, context.sourceText);
+    const errors = validateTransaction(transaction, context.graph);
+    if (errors.length > 0) return { status: "rejected", errors };
+
+    let translated: ReturnType<typeof translateCommands>;
+    let edits: SourceEdit[];
+    try {
+      translated = translateCommands(
+        transaction,
+        context.graph,
+        context.provenance,
+        context.sourceText
+      );
+      edits = resolveIntents(translated.intents, context.provenance, context.sourceText);
+    } catch (error) {
+      return {
+        status: "rejected",
+        errors: [
+          {
+            message: error instanceof Error ? error.message : "Unable to translate transaction",
+            commandIndex: 0,
+          },
+        ],
+      };
+    }
     if (edits.length > 0) {
       applyEdits(edits);
     }
-    return outcome;
+    return { status: "committed", outcome: translated.outcome };
   }, []);
 
   commandExecutionInputsRef.current = commandExecutionInputs;

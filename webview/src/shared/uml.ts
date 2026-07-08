@@ -1,5 +1,5 @@
 /**
- * @fileoverview UML class-diagram notation: member, visibility, and relationship vocabulary shared by Controller and View.
+ * @fileoverview UML class-diagram notation shared by Controller and View.
  */
 
 import type { ClassId } from "./ids";
@@ -7,10 +7,6 @@ import type { ClassId } from "./ids";
 export type MemberKind = "field" | "method";
 
 export type MemberClassifier = "static" | "abstract";
-
-export type MemberPrefix = "+" | "-" | "#" | "~";
-
-export type Visibility = MemberPrefix;
 
 export type ClassAnnotation = string;
 
