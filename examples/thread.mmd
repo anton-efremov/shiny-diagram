@@ -9,11 +9,11 @@ direction TB
     }
     class ConversationThread_2 {
     	    <<interfac>>
-    	    +UUID idd
-    	    +List~TextMessage~ messages*
     	    +List~UserContact~ participants
-    	    addMessage(TextMessage message) void
+    	    +List~TextMessage~ messages*
+    	    +UUID idd
     	    +addParticipant(UserContact participant) void
+    	    addMessage(TextMessage message) void
     }
     class ConversationThread_1 {
     	    +UUID id
@@ -36,8 +36,8 @@ direction TB
     }
     class UserContact_1 {
     	    +UUID id
-    	    +String name
     	    +String emailAddress
+    	    +String name
     	    +List~CommunicationChannel~ preferredChannels
     	    +addCommunicationChannel(CommunicationChannel channel) void
     	    +removeCommunicationChannel(UUID channelId) void
@@ -48,6 +48,7 @@ direction TB
 
 	ConversationThread_1 ..> UserContact_1
 	ConversationThread_1 --> UserContact
+	ConversationThread_2 ..> UserContact_1
 
 
     %% Native Style Applications
@@ -66,10 +67,10 @@ direction TB
 
 
     %% @spatial:ConversationThread x=-362 y=-114 w=276 h=179
-    %% @spatial:ConversationThread_2 x=80 y=170 w=244 h=215
-    %% @spatial:ConversationThread_1 x=-346 y=204 w=228 h=210
-    %% @spatial:UserContact x=-87 y=424 w=236 h=281
-    %% @spatial:UserContact_1 x=7 y=-256 w=342 h=259
+    %% @spatial:ConversationThread_2 x=99 y=157 w=244 h=215
+    %% @spatial:ConversationThread_1 x=-364 y=241 w=228 h=210
+    %% @spatial:UserContact x=7 y=406 w=236 h=281
+    %% @spatial:UserContact_1 x=14 y=-235 w=342 h=259
 
 
 

@@ -5,6 +5,7 @@
 import type { AttributeId, ClassId, MethodId } from "../../../../../../../../shared/ids";
 import type { MemberClassifier, MemberKind } from "../../../../../../../../shared/uml";
 import type { EditorCommandTransaction } from "../../../../../../../commands/editorCommands";
+import type { ClassMemberView } from "../../../../../../../views/schema";
 
 export function toMemberCommitTransaction(
   classId: ClassId,
@@ -50,6 +51,43 @@ export function toMemberCreateTransaction(
           text,
           classifier,
           beforeMethodId: null,
+        },
+      ];
+}
+
+export function toMemberMoveTransaction(
+  classId: ClassId,
+  memberKind: MemberKind,
+  members: readonly ClassMemberView[],
+  draggedMemberId: AttributeId | MethodId,
+  dropGap: number
+): EditorCommandTransaction {
+  const orderedMembers = members.filter((member) => member.kind === memberKind);
+  const draggedIndex = orderedMembers.findIndex((member) => member.memberId === draggedMemberId);
+  if (draggedIndex === -1) return [];
+
+  const remainingMembers = orderedMembers.filter((member) => member.memberId !== draggedMemberId);
+  const beforeMember = remainingMembers[dropGap] ?? null;
+  const nextIndex = beforeMember
+    ? orderedMembers.findIndex((member) => member.memberId === beforeMember.memberId)
+    : orderedMembers.length;
+  if (nextIndex === draggedIndex || nextIndex === draggedIndex + 1) return [];
+
+  return memberKind === "field"
+    ? [
+        {
+          type: "class.attribute.move",
+          attributeId: draggedMemberId as AttributeId,
+          classId,
+          beforeAttributeId: (beforeMember?.memberId as AttributeId | undefined) ?? null,
+        },
+      ]
+    : [
+        {
+          type: "class.method.move",
+          methodId: draggedMemberId as MethodId,
+          classId,
+          beforeMethodId: (beforeMember?.memberId as MethodId | undefined) ?? null,
         },
       ];
 }

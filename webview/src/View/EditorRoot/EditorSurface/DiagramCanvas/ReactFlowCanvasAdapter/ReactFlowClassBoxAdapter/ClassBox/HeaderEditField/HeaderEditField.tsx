@@ -1,5 +1,5 @@
 /**
- * @behavior Local class header draft and commit/cancel keyboard adapters.
+ * @behavior Local class header draft, commit/cancel keyboard adapters, and blur exit handling.
  * @render Class header direct-edit input.
  */
 
@@ -12,14 +12,17 @@ type HeaderEditFieldProps = {
   readonly initialText: string;
   readonly onCommit: (text: string) => readonly string[];
   readonly onCancel: () => void;
+  readonly onEditDiscard: (messages: readonly string[]) => void;
 };
 
 export default function HeaderEditField({
   initialText,
   onCommit,
   onCancel,
+  onEditDiscard,
 }: HeaderEditFieldProps): ReactElement {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const settledRef = useRef(false);
   const [draftText, setDraftText] = useState(initialText);
   const [errors, setErrors] = useState<readonly string[]>([]);
 
@@ -28,12 +31,25 @@ export default function HeaderEditField({
   }, []);
 
   const onEditCommit = (): void => {
-    setErrors(onCommit(draftText.trim()));
+    const nextErrors = onCommit(draftText.trim());
+    if (nextErrors.length === 0) {
+      settledRef.current = true;
+      return;
+    }
+    setErrors(nextErrors);
   };
 
   const onEditorBlur = (event: FocusEvent<HTMLSpanElement>): void => {
+    if (settledRef.current) return;
     if (event.currentTarget.contains(event.relatedTarget)) return;
-    onEditCommit();
+    const nextErrors = onCommit(draftText.trim());
+    settledRef.current = true;
+    if (nextErrors.length > 0) onEditDiscard(nextErrors);
+  };
+
+  const onEditCancel = (): void => {
+    settledRef.current = true;
+    onCancel();
   };
 
   return (
@@ -41,13 +57,10 @@ export default function HeaderEditField({
       className={styles.editor}
       onPointerDown={(event) => {
         event.stopPropagation();
-        event.currentTarget.setPointerCapture(event.pointerId);
       }}
+      onPointerMove={(event) => event.stopPropagation()}
       onPointerUp={(event) => {
         event.stopPropagation();
-        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        }
       }}
       onMouseDown={(event) => event.stopPropagation()}
       onClick={(event) => event.stopPropagation()}
@@ -65,7 +78,7 @@ export default function HeaderEditField({
           }
           if (event.key === "Escape") {
             event.preventDefault();
-            onCancel();
+            onEditCancel();
           }
         }}
       />

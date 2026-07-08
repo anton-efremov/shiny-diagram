@@ -1,5 +1,5 @@
 /**
- * @behavior Local member draft text, classifier toggles, and commit/cancel keyboard adapters.
+ * @behavior Local member draft text, classifier toggles, commit/cancel keyboard adapters, and blur exit handling.
  * @render Member direct-edit row.
  */
 
@@ -14,6 +14,7 @@ type MemberEditFieldProps = {
   readonly initialClassifier: MemberClassifier | null;
   readonly onCommit: (text: string, classifier: MemberClassifier | null) => readonly string[];
   readonly onCancel: () => void;
+  readonly onEditDiscard: (messages: readonly string[]) => void;
 };
 
 export default function MemberEditField({
@@ -21,8 +22,10 @@ export default function MemberEditField({
   initialClassifier,
   onCommit,
   onCancel,
+  onEditDiscard,
 }: MemberEditFieldProps): ReactElement {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const settledRef = useRef(false);
   const [draftText, setDraftText] = useState(initialText);
   const [draftClassifier, setDraftClassifier] = useState<MemberClassifier | null>(
     initialClassifier
@@ -36,12 +39,24 @@ export default function MemberEditField({
   const onEditCommit = (): void => {
     const nextText = draftText.trim();
     const nextErrors = onCommit(nextText, draftClassifier);
+    if (nextErrors.length === 0) {
+      settledRef.current = true;
+      return;
+    }
     setErrors(nextErrors);
   };
 
   const onEditorBlur = (event: FocusEvent<HTMLDivElement>): void => {
+    if (settledRef.current) return;
     if (event.currentTarget.contains(event.relatedTarget)) return;
-    onEditCommit();
+    const nextErrors = onCommit(draftText.trim(), draftClassifier);
+    settledRef.current = true;
+    if (nextErrors.length > 0) onEditDiscard(nextErrors);
+  };
+
+  const onEditCancel = (): void => {
+    settledRef.current = true;
+    onCancel();
   };
 
   const onStaticToggle = (): void => {
@@ -57,13 +72,10 @@ export default function MemberEditField({
       className={styles.editor}
       onPointerDown={(event) => {
         event.stopPropagation();
-        event.currentTarget.setPointerCapture(event.pointerId);
       }}
+      onPointerMove={(event) => event.stopPropagation()}
       onPointerUp={(event) => {
         event.stopPropagation();
-        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        }
       }}
       onMouseDown={(event) => event.stopPropagation()}
       onClick={(event) => event.stopPropagation()}
@@ -99,7 +111,7 @@ export default function MemberEditField({
           }
           if (event.key === "Escape") {
             event.preventDefault();
-            onCancel();
+            onEditCancel();
           }
         }}
       />

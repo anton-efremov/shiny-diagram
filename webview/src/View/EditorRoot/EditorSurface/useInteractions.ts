@@ -1,6 +1,5 @@
 /**
- * @behavior Ready editor selection, placement, relationship placement, and text edit semantic handlers.
- * @state SelectionState, NodePlacementState, and EditingState updates.
+ * @behavior Ready editor selection, placement, relationship placement, text edit semantic handlers, and SelectionState, NodePlacementState, and EditingState updates.
  */
 
 import { useCallback } from "react";

@@ -1,6 +1,5 @@
 /**
- * @behavior Class member edit, create, and delete semantic handlers.
- * @state EditingState updates requested after committed or cancelled member edits.
+ * @behavior Class member edit, create, delete, move, and edit-state cancellation semantic handlers.
  */
 
 import { useCallback } from "react";
@@ -11,7 +10,9 @@ import {
   toMemberCommitTransaction,
   toMemberCreateTransaction,
   toMemberDeleteTransaction,
+  toMemberMoveTransaction,
 } from "./transactions";
+import type { ClassMemberView } from "../../../../../../../views/schema";
 
 type Interactions = {
   readonly onMemberCommit: (
@@ -29,6 +30,12 @@ type Interactions = {
     text: string,
     classifier: MemberClassifier | null
   ) => readonly string[];
+  readonly onMemberMove: (
+    memberKind: MemberKind,
+    members: readonly ClassMemberView[],
+    draggedMemberId: AttributeId | MethodId,
+    dropGap: number
+  ) => void;
 };
 
 export function useInteractions(classId: ClassId, onTextBlockEditCancel: () => void): Interactions {
@@ -73,5 +80,25 @@ export function useInteractions(classId: ClassId, onTextBlockEditCancel: () => v
     [classId, dispatchTransaction, onTextBlockEditCancel]
   );
 
-  return { onMemberCommit, onMemberDelete, onMemberCreate };
+  const onMemberMove = useCallback(
+    (
+      memberKind: MemberKind,
+      members: readonly ClassMemberView[],
+      draggedMemberId: AttributeId | MethodId,
+      dropGap: number
+    ) => {
+      const transaction = toMemberMoveTransaction(
+        classId,
+        memberKind,
+        members,
+        draggedMemberId,
+        dropGap
+      );
+      if (transaction.length === 0) return;
+      dispatchTransaction(transaction);
+    },
+    [classId, dispatchTransaction]
+  );
+
+  return { onMemberCommit, onMemberDelete, onMemberCreate, onMemberMove };
 }

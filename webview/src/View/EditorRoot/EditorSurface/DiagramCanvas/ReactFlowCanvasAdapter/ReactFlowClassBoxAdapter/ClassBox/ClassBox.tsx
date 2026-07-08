@@ -1,9 +1,10 @@
 /**
- * @behavior Class resize command dispatch.
+ * @behavior Class resize command dispatch and header blur-discard popup state.
  * @render Class-box node.
  */
 
 import type { ReactElement } from "react";
+import { useState } from "react";
 import type { CSSProperties } from "react";
 import ReactFlowConnectionHandlesAdapter from "./ReactFlowConnectionHandlesAdapter/ReactFlowConnectionHandlesAdapter";
 import ReactFlowNodeResizerAdapter from "./ReactFlowNodeResizerAdapter/ReactFlowNodeResizerAdapter";
@@ -13,6 +14,7 @@ import { useInteractions } from "./useInteractions";
 import type { ClassId } from "../../../../../../../shared/ids";
 import type { EditingState } from "../../../../../../state/editorStates";
 import type { ClassView } from "../../../../../../views/schema";
+import ValidationPopup from "../../../../../../ui/ValidationPopup/ValidationPopup";
 import styles from "./ClassBox.module.css";
 
 type ClassBoxProps = {
@@ -57,6 +59,9 @@ export default function ClassBox({
   onTextBlockEditStart,
   onTextBlockEditCancel,
 }: ClassBoxProps): ReactElement {
+  // State creation: local state - blur-discard validation messages for header direct edits
+  const [headerDiscardErrors, setHeaderDiscardErrors] = useState<readonly string[]>([]);
+
   // Event handler props derivation
   const { onClassBoxClick, onResizeEnd, onHeaderCommit } = useInteractions(
     view.classId,
@@ -100,6 +105,12 @@ export default function ClassBox({
         isConnectSourceEnabled={isConnectSourceEnabled}
       />
       <header className={styles.header}>
+        {headerDiscardErrors.length > 0 ? (
+          <ValidationPopup
+            messages={headerDiscardErrors}
+            onDismiss={() => setHeaderDiscardErrors([])}
+          />
+        ) : null}
         {view.header.stereotype ? (
           isHeaderEditing(editingState, view.classId, "annotation") ? (
             <HeaderEditField
@@ -110,6 +121,10 @@ export default function ClassBox({
                 return errors;
               }}
               onCancel={onTextBlockEditCancel}
+              onEditDiscard={(messages) => {
+                setHeaderDiscardErrors(messages);
+                onTextBlockEditCancel();
+              }}
             />
           ) : (
             <div
@@ -149,6 +164,10 @@ export default function ClassBox({
               return errors;
             }}
             onCancel={onTextBlockEditCancel}
+            onEditDiscard={(messages) => {
+              setHeaderDiscardErrors(messages);
+              onTextBlockEditCancel();
+            }}
           />
         ) : (
           <div
@@ -180,6 +199,10 @@ export default function ClassBox({
                 return errors;
               }}
               onCancel={onTextBlockEditCancel}
+              onEditDiscard={(messages) => {
+                setHeaderDiscardErrors(messages);
+                onTextBlockEditCancel();
+              }}
             />
           ) : (
             <div

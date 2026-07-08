@@ -1,6 +1,5 @@
 /**
- * @behavior Relationship multiplicity preset and draft semantic handlers with command dispatch.
- * @state Relationship multiplicity draft and custom mode state updates.
+ * @behavior Relationship multiplicity preset and draft semantic handlers with command dispatch, relationship multiplicity draft, and custom mode state updates.
  */
 
 import { useCallback } from "react";
