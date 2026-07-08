@@ -52,11 +52,13 @@ type SourceEdit     = { start: SourcePosition; end: SourcePosition; replacementT
 
 | Grammar unit | Meaning | Operations |
 |---|---|---|
-| **statement** | a self-contained line or block (class, namespace, member, relationship, style line, spatial annotation, note) | `insertStatement`, `deleteStatement` |
+| **statement** | a self-contained line or block (class, namespace, member, relationship, style line, identity-bound spatial annotation, note, statement-bound note annotation) | `insertStatement`, `deleteStatement` |
 | **entry** | a `key:value` pair inside a list (a style property) | `insertEntry`, `deleteEntry` |
 | **value** | a single overwrite-able span (a name, endpoint, coordinate, property value) | `replaceValue` |
 
 Rule: standalone units (statement, entry) can be inserted or deleted; a value can only be replaced — it cannot exist without its key nor be removed without removing its entry. There is **no** `replaceStatement`.
+
+Pairing invariant: a statement-bound annotation (`@note:`) binds to the statement on the immediately following line and is written, moved, and deleted **as a pair** with it — translate emits both statement operations in the same transaction, and no operation may separate the pair.
 
 The five intents:
 

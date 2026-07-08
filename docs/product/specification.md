@@ -68,7 +68,7 @@ direction TB
     ConversationThread --> "*" TextMessage : contains
     note for ConversationThread "Persists all messages"
 
-    %% @note-id:SystemBoundary
+    %% @note: x=420 y=180 w=220 h=96
     note "External system boundary"
 
     %% Native style definitions
@@ -82,7 +82,6 @@ direction TB
     %% --- SHINY ANNOTATIONS ---
     %% @spatial:ConversationThread x=100 y=150 w=320 h=210
     %% @spatial:TextMessage x=500 y=150 w=300 h=250
-    %% @spatial:SystemBoundary x=420 y=180 w=220 h=96
     %% @style:Messaging fill=#E8F0FF stroke=#6699CC color=#003366 strokeWidth=1px strokeDasharray=none
 ```
 
@@ -94,19 +93,23 @@ Shiny uses existing Mermaid IDs whenever Mermaid exposes a stable ID.
 - **Generic class ID** — the Mermaid base class name, e.g. `Repository` for `Repository~Entity~`.
 - **Namespace ID** — the Mermaid namespace name; nested namespaces use the fully qualified name, e.g. `Backend.Services`.
 - **Display label** — user-facing text, not an ID.
-- **Elements without Mermaid IDs** — Shiny assigns an explicit element ID with an element-specific comment immediately before the Mermaid element.
+- **Elements without Mermaid IDs** — Shiny never assigns persisten IDs (written in source file). Anonymous elements are addressed by a **statement-bound** annotation placed on the line immediately above the Mermaid statement it describes.
+
+An annotation is therefore either **identity-bound** (`@spatial:<identity>`, `@style:<identity>`) or **statement-bound** (`@note:`):
+
+- a statement-bound annotation binds to the statement on the immediately following line; no blank lines or other statements may intervene
+- at most one statement-bound annotation per statement
+- a statement-bound annotation not followed by a statement of the matching kind is orphaned (diagnostic)
+- statement-bound binding is reserved for anonymous statement kinds; anything nameable stays identity-bound
 
 Example:
 
 ```
-%% @note-id:MessagePersistence
+%% @note: x=420 y=180 w=220 h=96
 note for ConversationThread "Persists all messages"
-
-%% --- SHINY ANNOTATIONS ---
-%% @spatial:MessagePersistence x=420 y=180 w=220 h=96
 ```
 
-The assigned ID is a Shiny annotation target. It does not change Mermaid semantics.
+Binding by adjacency does not change Mermaid semantics; no identity is ever persisted in the file for anonymous elements.
 
 ### 3.3 Class box annotations
 
@@ -122,7 +125,7 @@ The assigned ID is a Shiny annotation target. It does not change Mermaid semanti
 - required keys: `x`, `y`, `w`, `h` — all numeric, in canvas units
 - styling of class boxes belongs to Mermaid-native `classDef`/`:::StyleName` — not to `@spatial`
 - unknown keys are ignored (forward compatibility)
-- annotations anywhere are valid but canonical placement is: grouped under `%% --- SHINY ANNOTATIONS ---` near the bottom of the file, close to native style declarations
+- annotations anywhere are valid but canonical placement is: grouped under `%% --- SHINY ANNOTATIONS ---` near the bottom of the file, close to native style declarations. Exception: statement-bound annotations (`@note:`) always sit on the line immediately above their statement and are never grouped
 
 ### 3.4 Namespace annotations
 
@@ -152,39 +155,33 @@ note for ConversationThread "Attached note"
 
 #### Positioned notes
 
-Notes do not expose stable Mermaid IDs. If a note needs persistent Shiny metadata, Shiny assigns a note ID immediately before the note line.
+Notes do not expose stable Mermaid IDs, so their placement uses the statement-bound `@note:` annotation (see 3.2) on the line immediately above the note statement.
 
 ```
-%% @note-id:SystemBoundary
+%% @note: x=420 y=180 w=220 h=96
 note "External system boundary"
-
-%% --- SHINY ANNOTATIONS ---
-%% @spatial:SystemBoundary x=420 y=180 w=220 h=96
 ```
 
 Rules:
 
-- `@note-id:<NoteId>` binds to the immediately following Mermaid `note` line
-- `@spatial:<NoteId>` stores persistent placement for that note
-- required keys for positioned notes: `x`, `y`
-- optional keys for positioned notes: `w`, `h`
-- if `w`/`h` are absent, Shiny auto-sizes the note from text
-- Shiny writes note spatial annotations for free-floating notes
-- class-attached notes use default placement near the target class and are not annotated by default
-- if source already contains `@note-id` + `@spatial` for an attached note, Shiny preserves and honors it
+- `@note:` + key=value pairs on a single comment line, immediately above the note statement it positions
+- required keys: `x`, `y`, `w`, `h` — all numeric, in canvas units (matching `@spatial`)
+- the same payload applies to free and attached notes — attachment is semantic (`note for <ClassId>`) and never changes position; attach/detach rewrites the statement only
+- Shiny writes, moves, and deletes the annotation and its note statement as a pair
+- a note statement without an annotation (e.g. hand- or agent-added) enters the missing-annotation flow; existing notes are unaffected
+- runtime note identity is session-scoped and derived from position at parse time; no note identity is ever persisted in the file
 
 ### 3.6 Annotation robustness
 
 The parser handles all annotation states without destructive rewrites:
 
 - **Missing class annotations** — if one or more classes lack a valid `@spatial`, the editor shows the affected class IDs and offers Generate to compute and write positions for them. The canvas does not render until all classes are positioned.
-- **Missing note annotations** — a free note without `@note-id`/`@spatial` is placed by default until Generate writes persistent metadata or the user moves it.
+- **Missing note annotations** — a note without a preceding `@note:` is placed by default until Generate writes the annotation or the user moves it.
 - **Malformed annotation** — the affected element is treated as missing; its source line is preserved and offered for replacement by Generate.
 - **Unknown keys** — silently ignored.
 - **Reordered or whitespace-varied annotations** — accepted without normalisation until Shiny writes them back.
-- **Orphaned annotation** — references a missing class, namespace, or Shiny-assigned element ID; preserved in source and surfaced as a diagnostic.
-- **Duplicate annotations** for the same target — last annotation wins; a warning is surfaced.
-- **Duplicate assigned IDs** — last ID binding wins; a warning is surfaced.
+- **Orphaned annotation** — an identity-bound annotation referencing a missing class or namespace, or a statement-bound annotation not immediately followed by a statement of the matching kind; preserved in source and surfaced as a diagnostic.
+- **Duplicate annotations** for the same target — last annotation wins; a warning is surfaced. For statement-bound annotations, more than one annotation above the same statement is malformed; the nearest one wins and a warning is surfaced.
 
 ---
 
@@ -237,7 +234,7 @@ The core product experience. Gives humans direct manipulation while preserving M
 #### 4.3.1 Canvas
 
 - renders one box per class and one edge per relationship, positioned from each class's `@spatial` annotation
-- renders free notes from note `@spatial`; renders attached notes using default placement near the target class
+- renders free and attached notes from their statement-bound `@note:` annotation; attached notes additionally render a dashed link to their class
 - renders lollipop interfaces as relationship-like elements
 - namespaces render as derived bounding boxes around their member classes, styled from `@style` annotation if present
 - nested namespaces render recursively from member and descendant-member class positions
@@ -289,12 +286,12 @@ Actions:
 
 Actions:
 
-- **Create free note** — writes a Mermaid `note` line, `@note-id`, and `@spatial`
-- **Create attached note** — writes a Mermaid `note for <ClassId>` line; no spatial annotation by default
-- **Move free note** — updates `x`/`y` in `@spatial`
-- **Resize free note** — writes or updates optional `w`/`h` in `@spatial`
+- **Create note** — writes a Mermaid `note` statement and its `@note:` annotation as a pair
+- **Attach / detach** — rewrites the statement between `note "..."` and `note for <ClassId> "..."`; the `@note:` annotation and position are unchanged
+- **Move note** — updates `x`/`y` in `@note:`
+- **Resize note** — updates `w`/`h` in `@note:`
 - **Edit text** — updates native Mermaid note text
-- **Delete note** — removes the note and its Shiny annotations, if any
+- **Delete note** — removes the note statement and its `@note:` annotation as a pair
 
 #### 4.3.1.d Relationship
 
@@ -420,15 +417,14 @@ For a **note**:
 - Shiny treats it identically to a manual source edit — debounce, re-parse, re-render
 - existing annotated layout is preserved where possible
 - if AI adds a new class without `@spatial`, it appears in the missing class list; Generate resolves it
-- if AI adds a free note without `@note-id`/`@spatial`, Generate can assign persistent metadata
+- if AI adds a note without a preceding `@note:` annotation, it is placed by default and Generate writes the annotation; existing notes are unaffected — adjacency binding means no renumbering or rebinding ever occurs
 - outcome: AI can modify diagram semantics without destroying manual visual layout
 
 ### 5.5 Review in Git
 
 - semantic changes: modified classes, relationships, labels, fields, methods, notes, namespaces
 - style changes: modified `classDef`, `:::StyleName`, or namespace `@style` lines
-- layout changes: modified `@spatial` coordinates
-- identity annotations: added or modified Shiny-assigned IDs such as `@note-id`
+- layout changes: modified `@spatial` or `@note:` coordinates
 - outcome: reviewers can distinguish semantic, styling, and layout-only changes at a glance
 
 ### 5.6 Handle invalid input
