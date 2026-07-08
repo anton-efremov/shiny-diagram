@@ -6,6 +6,7 @@ import type { ParseResult } from "./parseResult";
 import { buildSpatiallyUnawareDiagramGraph } from "./workers/buildDiagramGraph";
 import { attachSpatial, parseSpatialAnnotations } from "./workers/spatialAnnotations";
 import { tokenize } from "./workers/tokenizer";
+import { validateTextBlocks } from "./workers/validateTextBlocks";
 
 /**
  * Parses Mermaid class-diagram source into a Controller model and parse status.
@@ -27,6 +28,10 @@ export function parseDiagram(source: string): ParseResult {
       spatiallyUnaware.provenance,
       valid
     );
+    const validationDiagnostics = validateTextBlocks(graph);
+    if (validationDiagnostics.length > 0) {
+      return { status: "invalidSyntax", diagnostics: validationDiagnostics };
+    }
 
     const missingIds = [...graph.classes.values()]
       .filter((node) => !node.spatial)

@@ -17,7 +17,14 @@
   color: var(--shiny-text-muted);
 }
 
-.errorMessage {
+.errorList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   margin: 0;
+  padding-left: 18px;
+}
+
+.errorMessage {
   color: var(--shiny-text-error);
 }

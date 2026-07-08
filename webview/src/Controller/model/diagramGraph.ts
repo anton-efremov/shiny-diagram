@@ -67,7 +67,6 @@ import type {
   DiagramDirection,
   RelationshipEndpoint,
   RelationshipLineKind,
-  Visibility,
 } from "../../shared/uml";
 
 // ============================================================================
@@ -116,8 +115,8 @@ export type ClassNode = {
   // Shiny: `%% @spatial:User x=... y=... w=... h=...`
   readonly spatial: SpatialAttachment | null;
 
-  readonly attributes: readonly ClassAttribute[];
-  readonly methods: readonly ClassMethod[];
+  readonly attributes: readonly ClassMember[];
+  readonly methods: readonly ClassMember[];
   readonly lollipopInterfaces: readonly LollipopInterface[];
 
   // Mermaid: `style User fill:#f9f,stroke:#333,stroke-width:4px,font-size:12pt`
@@ -128,23 +127,12 @@ export type ClassNode = {
 };
 
 // Owned collection of `ClassNode`.
-// Mermaid: `class User { +string name$ }` OR `User : +string name$`
-export type ClassAttribute = {
-  readonly id: AttributeId;
-  readonly name: string;
-  readonly visibility: Visibility | null;
-  readonly attributeType: string | null;
-  readonly isStatic: boolean;
-};
-
-// Owned collection of `ClassNode`.
-// Mermaid: `class User { +login(email) bool$ }` OR `User : +login(email) bool*`
-export type ClassMethod = {
-  readonly id: MethodId;
-  readonly name: string;
-  readonly visibility: Visibility | null;
-  readonly parameters: string;
-  readonly returnType: string | null;
+// Mermaid: `class User { +string name$ }`, `+login(email) bool*`, or `User : +id`
+// Graph text stores display Mermaid syntax: classifiers stripped, generics as
+// angle brackets, and method return types after a colon.
+export type ClassMember = {
+  readonly id: AttributeId | MethodId;
+  readonly text: string;
   readonly isStatic: boolean;
   readonly isAbstract: boolean;
 };

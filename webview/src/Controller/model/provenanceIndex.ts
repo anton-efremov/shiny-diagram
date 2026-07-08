@@ -89,7 +89,7 @@ export type NamespaceRecord = {
 export type BlockMemberRecord = {
   readonly self: SourceSpan;
   readonly fields: {
-    readonly name: SourceSpan;
+    readonly text: SourceSpan;
   };
 };
 
@@ -98,7 +98,7 @@ export type ShortMemberRecord = {
   readonly self: SourceSpan;
   readonly fields: {
     readonly owner: SourceSpan; // `User` in `User : ...`
-    readonly name: SourceSpan;
+    readonly text: SourceSpan;
   };
 };
 

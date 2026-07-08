@@ -41,6 +41,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint extension-host webview/src",
+    "test": "vitest run",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run check:boundaries",
     "prepare": "git config core.hooksPath .githooks"
   },
@@ -58,7 +59,8 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "prettier": "^3.8.4",
     "typescript": "^5.5.2",
-    "vite": "^8.0.16"
+    "vite": "^8.0.16",
+    "vitest": "^4.1.10"
   },
   "dependencies": {
     "@xyflow/react": "^12.11.0",

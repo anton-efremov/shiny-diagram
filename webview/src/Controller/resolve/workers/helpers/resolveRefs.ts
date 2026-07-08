@@ -163,7 +163,7 @@ export function resolveValueRef(ref: ValueRef, provenance: ProvenanceIndex): Sou
       return requireRecord(
         provenance.blockMembers.get(ref.memberId) ?? provenance.shortMembers.get(ref.memberId),
         `member ${ref.memberId}`
-      ).fields.name;
+      ).fields.text;
     case "memberOwner":
       return requireRecord(provenance.shortMembers.get(ref.memberId), `member ${ref.memberId}`)
         .fields.owner;

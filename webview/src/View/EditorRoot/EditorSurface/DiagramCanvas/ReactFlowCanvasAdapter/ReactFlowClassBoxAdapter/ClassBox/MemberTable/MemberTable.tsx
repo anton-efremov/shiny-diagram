@@ -40,13 +40,20 @@ function MemberList({
       {members.map((member) => (
         <div
           key={member.memberId}
-          className={isSelected ? `${styles.memberRow} nodrag` : styles.memberRow}
-          title={`${member.prefix ?? ""} ${member.text}`.trim()}
+          className={toMemberClassName(member, isSelected)}
+          title={member.text}
         >
-          {member.prefix ? `${member.prefix} ` : ""}
           {member.text}
         </div>
       ))}
     </div>
   );
+}
+
+function toMemberClassName(member: ClassMemberView, isSelected: boolean): string {
+  const classNames = [styles.memberRow];
+  if (isSelected) classNames.push("nodrag");
+  if (member.isStatic) classNames.push(styles.isStatic);
+  if (member.isAbstract) classNames.push(styles.isAbstract);
+  return classNames.join(" ");
 }

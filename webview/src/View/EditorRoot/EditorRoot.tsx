@@ -23,7 +23,7 @@ export default function EditorRoot({ view, onTransactionDispatch }: EditorRootPr
       break;
     }
     case "invalidSyntax": {
-      editorInterface = <ErrorSurface message={view.message} />;
+      editorInterface = <ErrorSurface errors={view.errors} />;
       break;
     }
     case "missingAnnotations": {

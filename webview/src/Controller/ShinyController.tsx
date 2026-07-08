@@ -53,7 +53,10 @@ export default function ShinyController({
     if (parseResult.status === "invalidSyntax") {
       return {
         status: "invalidSyntax",
-        message: parseResult.diagnostics[0]?.message ?? "Invalid syntax",
+        errors:
+          parseResult.diagnostics.length > 0
+            ? parseResult.diagnostics.map((diagnostic) => diagnostic.message)
+            : ["Invalid syntax"],
       };
     }
 

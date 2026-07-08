@@ -4,6 +4,7 @@
 
 export type ParseTokenType =
   | "classDeclaration"
+  | "classMember"
   | "relationship"
   | "styleDef"
   | "classDirectStyle"
@@ -83,6 +84,7 @@ function detectLineType(raw: string): ParseTokenType {
   if (/^\s*style\s+\w+\s+/.test(raw)) return "classDirectStyle";
   if (/^\s*class\s+\w+:::/.test(raw)) return "styleApplication";
   if (/^\s*class\s+\w/.test(raw)) return "classDeclaration";
+  if (/^\s*\w+\s*:\s*.+$/.test(raw)) return "classMember";
   if (/^\s*namespace\s+\w/.test(raw)) return "namespace";
   if (
     /^\s*\w+(?:\s+"[^"]+")?\s*(?:\(\)|<\||\|>|<|>|\*|o)?(?:--|\.\.)(?:\(\)|<\||\|>|<|>|\*|o)?\s*(?:"[^"]+"\s*)?\w+(?:\s*:\s*.*)?\s*$/.test(

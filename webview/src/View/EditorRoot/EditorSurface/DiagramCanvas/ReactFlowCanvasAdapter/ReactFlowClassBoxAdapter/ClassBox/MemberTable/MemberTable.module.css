@@ -35,6 +35,14 @@
   background: var(--shiny-overlay-faint);
 }
 
+.isStatic {
+  text-decoration: underline;
+}
+
+.isAbstract {
+  font-style: italic;
+}
+
 .memberDivider {
   flex: 0 0 auto;
   margin: 5px 0;

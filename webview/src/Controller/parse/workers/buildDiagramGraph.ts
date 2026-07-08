@@ -33,7 +33,7 @@ import type {
 } from "../../model/provenanceIndex";
 import type { SourceSpan } from "../../model/sourceEdit";
 import { buildAppliesStyleEdge } from "./builders/buildAppliesStyleEdge";
-import { buildClassNode } from "./builders/buildClassNode";
+import { buildClassNode, buildShortClassMember } from "./builders/buildClassNode";
 import { buildInNamespaceEdges, type InNamespaceEdge } from "./builders/buildInNamespaceEdge";
 import { buildNamespaceNode } from "./builders/buildNamespaceNode";
 import { buildRelationshipEdge } from "./builders/buildRelationshipEdge";
@@ -123,10 +123,26 @@ function traverseTokens(tokens: readonly ParseToken[], build: MutableGraphBuild)
           build.provenance.classes.set(parsed.node.id, toClassRecord(token));
           for (const [memberId, location] of parsed.memberLocations) {
             build.provenance.blockMembers.set(memberId, {
-              self: location,
-              fields: { name: location },
+              self: location.self,
+              fields: { text: location.text },
             });
           }
+        }
+        break;
+      }
+      case "classMember": {
+        const parsed = buildShortClassMember(token);
+        if (parsed) {
+          const existing = build.classes.get(parsed.classId) ?? toImplicitClassNode(parsed.classId);
+          const nextNode =
+            parsed.kind === "method"
+              ? { ...existing, methods: [...existing.methods, parsed.member] }
+              : { ...existing, attributes: [...existing.attributes, parsed.member] };
+          build.classes.set(parsed.classId, nextNode);
+          build.provenance.shortMembers.set(parsed.member.id, {
+            self: toSourceSpan(token),
+            fields: { owner: parsed.ownerLocation, text: parsed.textLocation },
+          });
         }
         break;
       }
