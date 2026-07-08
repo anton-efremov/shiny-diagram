@@ -5,7 +5,12 @@
 import { useEffect } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { ClassId } from "../../../shared/ids";
-import type { EditingState, NoteAttachState, SelectionState } from "../../state/editorStates";
+import type {
+  EditingState,
+  NamespaceGestureState,
+  NoteAttachState,
+  SelectionState,
+} from "../../state/editorStates";
 import type { ClassMemberView, DiagramView } from "../../views/schema";
 
 type StateReconciliationInput = {
@@ -13,6 +18,7 @@ type StateReconciliationInput = {
   readonly setSelectionState: Dispatch<SetStateAction<SelectionState>>;
   readonly setEditingState: Dispatch<SetStateAction<EditingState>>;
   readonly setNoteAttachState: Dispatch<SetStateAction<NoteAttachState>>;
+  readonly setNamespaceGestureState: Dispatch<SetStateAction<NamespaceGestureState>>;
 };
 
 // State reconciliation
@@ -21,12 +27,14 @@ export function useStateReconciliation({
   setSelectionState,
   setEditingState,
   setNoteAttachState,
+  setNamespaceGestureState,
 }: StateReconciliationInput): void {
   useEffect(() => {
     setSelectionState((state) => reconcileSelectionStateWithElements(state, view));
     setEditingState((state) => reconcileEditingStateWithElements(state, view));
     setNoteAttachState((state) => reconcileNoteAttachStateWithElements(state, view));
-  }, [view, setEditingState, setNoteAttachState, setSelectionState]);
+    setNamespaceGestureState((state) => reconcileNamespaceGestureStateWithElements(state, view));
+  }, [view, setEditingState, setNamespaceGestureState, setNoteAttachState, setSelectionState]);
 }
 
 // Private helpers
@@ -55,6 +63,12 @@ function reconcileSelectionStateWithElements(
         : { kind: "none" };
     case "note":
       return diagram.notes.some((noteView) => noteView.noteId === selectionState.noteId)
+        ? selectionState
+        : { kind: "none" };
+    case "namespace":
+      return diagram.namespaces.some(
+        (namespaceView) => namespaceView.namespaceId === selectionState.namespaceId
+      )
         ? selectionState
         : { kind: "none" };
   }
@@ -104,6 +118,18 @@ function reconcileNoteAttachStateWithElements(
   if (noteAttachState.kind === "none") return noteAttachState;
   return diagram.notes.some((noteView) => noteView.noteId === noteAttachState.noteId)
     ? noteAttachState
+    : { kind: "none" };
+}
+
+function reconcileNamespaceGestureStateWithElements(
+  namespaceGestureState: NamespaceGestureState,
+  diagram: DiagramView
+): NamespaceGestureState {
+  if (namespaceGestureState.kind !== "resizing") return namespaceGestureState;
+  return diagram.namespaces.some(
+    (namespaceView) => namespaceView.namespaceId === namespaceGestureState.namespaceId
+  )
+    ? namespaceGestureState
     : { kind: "none" };
 }
 

@@ -234,9 +234,6 @@ export type EditorCommand =
   // ==========================================================================
   | {
       readonly type: "namespace.create";
-      readonly name: string;
-      readonly parentNamespaceId: NamespaceId | null;
-      readonly spatial: SpatialAttachment;
       readonly initialClassIds: readonly ClassId[];
       readonly initialNamespaceIds: readonly NamespaceId[];
     }
@@ -255,14 +252,14 @@ export type EditorCommand =
       readonly label: string;
     }
   | {
+      readonly type: "namespace.style.set";
+      readonly namespaceId: NamespaceId;
+      readonly style: StyleProperties | null;
+    }
+  | {
       readonly type: "namespace.parentNamespace.set";
       readonly namespaceId: NamespaceId;
       readonly parentNamespaceId: NamespaceId | null;
-    }
-  | {
-      readonly type: "namespace.spatial.set";
-      readonly namespaceId: NamespaceId;
-      readonly spatial: SpatialAttachment | null;
     }
 
   // ==========================================================================

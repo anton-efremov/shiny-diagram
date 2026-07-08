@@ -15,6 +15,7 @@ import type { ProvenanceIndex } from "../model/provenanceIndex";
 import { createTranslateContext } from "./translateContext";
 import type { TranslateContext } from "./translateContext";
 import type { WriteIntent } from "./writeIntent";
+import { applyVacancyPostPass } from "./vacancyPostPass";
 import { translateClassCreate } from "./workers/translateClassCreate";
 import { translateClassAppliedStyleSet } from "./workers/translateClassAppliedStyleSet";
 import { translateClassDelete } from "./workers/translateClassDelete";
@@ -40,6 +41,10 @@ import {
   translateClassMethodSet,
 } from "./workers/translateClassMember";
 import { translateClassSpatialSet } from "./workers/translateClassSpatialSet";
+import {
+  translateClassParentNamespaceSet,
+  translateNamespaceParentNamespaceSet,
+} from "./workers/translateParentNamespaceSet";
 import { translateRelationshipCreate } from "./workers/translateRelationshipCreate";
 import { translateRelationshipDelete } from "./workers/translateRelationshipDelete";
 import { translateRelationshipEndpointsPatch } from "./workers/translateRelationshipEndpointsPatch";
@@ -58,6 +63,12 @@ import { translateNoteDelete } from "./workers/translateNoteDelete";
 import { translateNoteDuplicate } from "./workers/translateNoteDuplicate";
 import { translateNoteSpatialSet } from "./workers/translateNoteSpatialSet";
 import { translateNoteTextSet } from "./workers/translateNoteTextSet";
+import { translateNamespaceCreate } from "./workers/translateNamespaceCreate";
+import {
+  translateNamespaceDelete,
+  translateNamespaceNameSet,
+  translateNamespaceStyleSet,
+} from "./workers/translateNamespaceProperties";
 import {
   translateStyleDefinitionCreate,
   translateStyleDefinitionDelete,
@@ -75,7 +86,7 @@ export function translateCommands(
   const operatorPatchBatch = collectRelationshipOperatorPatches(transaction, graph);
   const endpointsPatchBatch = collectRelationshipEndpointsPatches(transaction);
 
-  const intents = transaction.flatMap((command, index) => {
+  const translatedIntents = transaction.flatMap((command, index) => {
     const batchedIntents = operatorPatchBatch.intentsByIndex.get(index);
     if (batchedIntents) return batchedIntents;
     if (operatorPatchBatch.skippedIndexes.has(index)) return [];
@@ -91,6 +102,8 @@ export function translateCommands(
     if (endpointsPatchBatch.skippedIndexes.has(index)) return [];
     return translateCommand(command, graph, provenance, sourceText, context);
   });
+
+  const intents = applyVacancyPostPass(translatedIntents, transaction, graph, provenance);
 
   return { intents, outcome: context.toTransactionOutcome() };
 }
@@ -117,6 +130,8 @@ function translateCommand(
       return translateClassAnnotationSet(command, provenance, sourceText);
     case "class.spatial.set":
       return translateClassSpatialSet(command, graph, provenance);
+    case "class.parentNamespace.set":
+      return translateClassParentNamespaceSet(command, graph, provenance, sourceText);
     case "class.directStyle.property.set":
       return translateClassDirectStyleSet(command, graph, provenance);
     case "class.directStyle.set":
@@ -173,6 +188,16 @@ function translateCommand(
       return translateNoteAttachmentSet(command, graph, provenance);
     case "note.duplicate":
       return translateNoteDuplicate(command, graph, provenance, context);
+    case "namespace.create":
+      return translateNamespaceCreate(command, provenance, sourceText, context);
+    case "namespace.delete":
+      return translateNamespaceDelete(command, graph, provenance, sourceText);
+    case "namespace.name.set":
+      return translateNamespaceNameSet(command, graph, provenance, sourceText, context);
+    case "namespace.style.set":
+      return translateNamespaceStyleSet(command, graph, provenance);
+    case "namespace.parentNamespace.set":
+      return translateNamespaceParentNamespaceSet(command, graph, provenance, sourceText);
     case "style.definition.create":
       return translateStyleDefinitionCreate(command, graph, provenance);
     case "style.definition.delete":

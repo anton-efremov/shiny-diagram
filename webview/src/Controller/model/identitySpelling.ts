@@ -7,7 +7,7 @@
  * the identity.
  */
 
-export const IDENTITY_PATTERN = String.raw`(?:\`[^\`]+\`|\w+)`;
+export const IDENTITY_PATTERN = String.raw`(?:\`[^\`]+\`|\w+(?:\.\w+)*)`;
 export const PLAIN_IDENTITY_PATTERN = /^\w+$/;
 
 export function readIdentity(spelled: string): string {

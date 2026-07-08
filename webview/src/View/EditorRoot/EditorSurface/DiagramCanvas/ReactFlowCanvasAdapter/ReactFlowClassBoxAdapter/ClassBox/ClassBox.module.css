@@ -23,6 +23,20 @@
   border-color: var(--shiny-accent);
 }
 
+.namespaceHalo {
+  position: absolute;
+  inset: calc(-1 * var(--namespace-halo-padding));
+  z-index: -1;
+  border-radius: var(--namespace-halo-border-radius);
+  background: var(--namespace-halo-color);
+  pointer-events: none;
+}
+
+.pendingMember {
+  outline: var(--namespace-pending-stroke-width) solid var(--namespace-pending-stroke);
+  outline-offset: var(--namespace-pending-outline-offset);
+}
+
 .selected {
   border-color: var(--shiny-accent);
   box-shadow: 0 0 0 1px var(--shiny-accent);

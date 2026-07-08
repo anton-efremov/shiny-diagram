@@ -43,6 +43,7 @@ function toProvenance(): ProvenanceIndex {
       ],
     ]),
     namespaces: new Map(),
+    namespaceStyles: new Map(),
     blockMembers: new Map(),
     shortMembers: new Map(),
     relationships: new Map(),
@@ -51,7 +52,6 @@ function toProvenance(): ProvenanceIndex {
     styleDefinitions: new Map(),
     styleApplications: new Map(),
     classSpatial: new Map(),
-    namespaceSpatial: new Map(),
     noteAnnotations: new Map(),
     notes: new Map(),
   };

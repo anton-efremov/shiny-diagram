@@ -8,23 +8,39 @@ import type {
   Node as ReactFlowNode,
   NodeChange as ReactFlowNodeChange,
 } from "@xyflow/react";
-import type { Rect } from "../../../../../shared/geometry";
-import type { ClassId, RelationshipId } from "../../../../../shared/ids";
+import type { Point, Rect } from "../../../../../shared/geometry";
+import type { ClassId, NamespaceId, RelationshipId } from "../../../../../shared/ids";
 import { toClassId } from "../../../../../shared/ids";
 import type {
   ClassBoxPlacementState,
   EditingState,
+  NamespaceGestureState,
   NoteAttachState,
   NoteBoxPlacementState,
   SelectionState,
 } from "../../../../state/editorStates";
-import type { ClassView, DiagramView, NoteView, RelationshipView } from "../../../../views/schema";
+import type {
+  ClassView,
+  DiagramView,
+  NamespaceView,
+  NoteView,
+  RelationshipView,
+} from "../../../../views/schema";
+import {
+  CLASS_NODE_Z_INDEX,
+  NAMESPACE_LABEL_BAND_HEIGHT,
+  NAMESPACE_MARGIN,
+  NAMESPACE_NODE_Z_INDEX,
+  NOTE_NODE_Z_INDEX,
+} from "../../../../config/editorUiConfig";
 
 export type ClassBoxNodeData = {
   readonly view: ClassView;
   readonly isSelected: boolean;
   readonly isResizeVisible: boolean;
   readonly isConnectSourceEnabled: boolean;
+  readonly isPendingMember: boolean;
+  readonly haloColor: string | null;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
   readonly editingState: EditingState;
   readonly onTextBlockEditStart: (
@@ -34,6 +50,22 @@ export type ClassBoxNodeData = {
 };
 
 export type ClassBoxNodeDescriptor = ReactFlowNode<ClassBoxNodeData, "classBox">;
+export type NamespaceNodeData = {
+  readonly view: NamespaceView;
+  readonly bounds: Rect;
+  readonly isSelected: boolean;
+  readonly isPendingMember: boolean;
+  readonly onNamespaceSelect: (namespaceId: NamespaceId) => void;
+  readonly onNamespaceResizeHandlePress: (
+    namespaceId: NamespaceId,
+    bounds: Rect,
+    handle: NamespaceResizeHandle,
+    screenPoint: Point
+  ) => void;
+};
+
+export type NamespaceNodeDescriptor = ReactFlowNode<NamespaceNodeData, "namespaceBox">;
+export type NamespaceResizeHandle = "nw" | "ne" | "sw" | "se";
 export type NoteBoxNodeData = {
   readonly view: NoteView;
   readonly isSelected: boolean;
@@ -79,6 +111,11 @@ export type NoteBoxPlacementChange = {
   readonly h?: number;
 };
 
+export type NamespaceDragState = {
+  readonly namespaceId: NamespaceId;
+  readonly delta: Point;
+};
+
 export type RelationshipConnection = {
   readonly sourceClassId: ClassId;
   readonly targetClassId: ClassId;
@@ -95,6 +132,7 @@ export function toClassBoxNodeDescriptors(
   classes: readonly ClassView[],
   selectedClassIds: readonly ClassId[],
   classBoxPlacementState: ClassBoxPlacementState,
+  namespaceGeometry: NamespaceGeometry,
   isConnectSourceEnabled: boolean,
   onClassSelect: (classId: ClassId, additive: boolean) => void,
   editingState: EditingState,
@@ -116,6 +154,8 @@ export function toClassBoxNodeDescriptors(
           isSelected: selected.has(classView.classId),
           isResizeVisible: selected.size === 1 && selected.has(classView.classId),
           isConnectSourceEnabled,
+          isPendingMember: namespaceGeometry.pendingClassIds.has(classView.classId),
+          haloColor: namespaceGeometry.haloColorByClassId.get(classView.classId) ?? null,
           onClassSelect,
           editingState,
           onTextBlockEditStart,
@@ -123,9 +163,179 @@ export function toClassBoxNodeDescriptors(
         },
         selectable: false,
         focusable: false,
+        zIndex: CLASS_NODE_Z_INDEX,
         width: placement.w,
         height: placement.h,
         style: { width: placement.w, height: placement.h },
+      },
+    ];
+  });
+}
+
+export function toNamespaceDragClassBoxPlacementState(
+  view: Pick<DiagramView, "classes" | "namespaces">,
+  classBoxPlacementState: ClassBoxPlacementState,
+  namespaceDragState: NamespaceDragState | null
+): ClassBoxPlacementState {
+  if (!namespaceDragState) return classBoxPlacementState;
+  const memberClassIds = new Set(
+    toTransitiveMemberClassIds(namespaceDragState.namespaceId, view.namespaces)
+  );
+  if (memberClassIds.size === 0) return classBoxPlacementState;
+
+  const rectByClassId = new Map(classBoxPlacementState.rectByClassId);
+  for (const classId of memberClassIds) {
+    const rect = rectByClassId.get(classId);
+    if (!rect) continue;
+    rectByClassId.set(classId, {
+      ...rect,
+      x: rect.x + namespaceDragState.delta.x,
+      y: rect.y + namespaceDragState.delta.y,
+    });
+  }
+  return { rectByClassId };
+}
+
+export function toNamespaceDragBoundsState(
+  boundsByNamespaceId: ReadonlyMap<NamespaceId, Rect>,
+  namespaces: readonly NamespaceView[],
+  namespaceDragState: NamespaceDragState
+): ReadonlyMap<NamespaceId, Rect> {
+  const movedNamespaceIds = new Set([
+    namespaceDragState.namespaceId,
+    ...toDescendantNamespaceIds(namespaceDragState.namespaceId, namespaces),
+  ]);
+  const next = new Map(boundsByNamespaceId);
+  for (const namespaceId of movedNamespaceIds) {
+    const bounds = next.get(namespaceId);
+    if (!bounds) continue;
+    next.set(namespaceId, {
+      ...bounds,
+      x: bounds.x + namespaceDragState.delta.x,
+      y: bounds.y + namespaceDragState.delta.y,
+    });
+  }
+  return next;
+}
+
+export type NamespaceGeometry = {
+  readonly boundsByNamespaceId: ReadonlyMap<NamespaceId, Rect>;
+  readonly pendingClassIds: ReadonlySet<ClassId>;
+  readonly pendingNamespaceIds: ReadonlySet<NamespaceId>;
+  readonly haloColorByClassId: ReadonlyMap<ClassId, string>;
+  readonly pendingParentNamespaceId: NamespaceId | null;
+};
+
+export function toNamespaceGeometry(
+  view: Pick<DiagramView, "classes" | "namespaces">,
+  classBoxPlacementState: ClassBoxPlacementState,
+  namespaceGestureState: NamespaceGestureState
+): NamespaceGeometry {
+  const boundsByNamespaceId = new Map(toNamespaceBounds(view.namespaces, classBoxPlacementState));
+  const gestureRect =
+    namespaceGestureState.kind === "creating" || namespaceGestureState.kind === "resizing"
+      ? namespaceGestureState.rect
+      : null;
+  const pendingClassIds = new Set<ClassId>();
+  const pendingNamespaceIds = new Set<NamespaceId>();
+  if (
+    gestureRect &&
+    gestureRect.w > 0 &&
+    gestureRect.h > 0 &&
+    namespaceGestureState.kind === "creating"
+  ) {
+    for (const classView of view.classes) {
+      const rect = classBoxPlacementState.rectByClassId.get(classView.classId);
+      if (classView.parentNamespaceId === null && rect && overlaps(gestureRect, rect)) {
+        pendingClassIds.add(classView.classId);
+      }
+    }
+    for (const namespaceView of view.namespaces) {
+      const rect = boundsByNamespaceId.get(namespaceView.namespaceId);
+      if (namespaceView.parentNamespaceId === null && rect && overlaps(gestureRect, rect)) {
+        pendingNamespaceIds.add(namespaceView.namespaceId);
+      }
+    }
+  }
+  if (
+    gestureRect &&
+    gestureRect.w > 0 &&
+    gestureRect.h > 0 &&
+    namespaceGestureState.kind === "resizing"
+  ) {
+    const namespaceView = view.namespaces.find(
+      (candidate) => candidate.namespaceId === namespaceGestureState.namespaceId
+    );
+    if (namespaceView) {
+      for (const classId of namespaceView.memberClassIds) {
+        const rect = classBoxPlacementState.rectByClassId.get(classId);
+        if (rect && overlaps(gestureRect, rect)) pendingClassIds.add(classId);
+      }
+      for (const namespaceId of namespaceView.childNamespaceIds) {
+        const rect = boundsByNamespaceId.get(namespaceId);
+        if (rect && overlaps(gestureRect, rect)) pendingNamespaceIds.add(namespaceId);
+      }
+      for (const classView of view.classes) {
+        const rect = classBoxPlacementState.rectByClassId.get(classView.classId);
+        if (classView.parentNamespaceId === null && rect && overlaps(gestureRect, rect)) {
+          pendingClassIds.add(classView.classId);
+        }
+      }
+      for (const candidate of view.namespaces) {
+        const rect = boundsByNamespaceId.get(candidate.namespaceId);
+        if (
+          candidate.parentNamespaceId === null &&
+          candidate.namespaceId !== namespaceView.namespaceId &&
+          rect &&
+          overlaps(gestureRect, rect)
+        ) {
+          pendingNamespaceIds.add(candidate.namespaceId);
+        }
+      }
+      boundsByNamespaceId.set(namespaceView.namespaceId, gestureRect);
+    }
+  }
+  return {
+    boundsByNamespaceId,
+    pendingClassIds,
+    pendingNamespaceIds,
+    haloColorByClassId: toHaloColorByClassId(view, classBoxPlacementState, boundsByNamespaceId),
+    pendingParentNamespaceId: null,
+  };
+}
+
+export function toNamespaceNodeDescriptors(
+  namespaces: readonly NamespaceView[],
+  namespaceGeometry: NamespaceGeometry,
+  selectionState: SelectionState,
+  onNamespaceSelect: (namespaceId: NamespaceId) => void,
+  onNamespaceResizeHandlePress: NamespaceNodeData["onNamespaceResizeHandlePress"]
+): NamespaceNodeDescriptor[] {
+  return namespaces.flatMap((namespaceView) => {
+    const bounds = namespaceGeometry.boundsByNamespaceId.get(namespaceView.namespaceId);
+    if (!bounds) return [];
+    return [
+      {
+        id: `namespace:${namespaceView.namespaceId}`,
+        type: "namespaceBox" as const,
+        position: { x: bounds.x, y: bounds.y },
+        data: {
+          view: namespaceView,
+          bounds,
+          isSelected:
+            selectionState.kind === "namespace" &&
+            selectionState.namespaceId === namespaceView.namespaceId,
+          isPendingMember: namespaceGeometry.pendingNamespaceIds.has(namespaceView.namespaceId),
+          onNamespaceSelect,
+          onNamespaceResizeHandlePress,
+        },
+        selectable: false,
+        focusable: false,
+        draggable: true,
+        zIndex: NAMESPACE_NODE_Z_INDEX,
+        width: bounds.w,
+        height: bounds.h,
+        style: { width: bounds.w, height: bounds.h },
       },
     ];
   });
@@ -163,6 +373,7 @@ export function toNoteBoxNodeDescriptors(
         },
         selectable: false,
         focusable: false,
+        zIndex: NOTE_NODE_Z_INDEX,
         width: placement.w,
         height: placement.h,
         style: { width: placement.w, height: placement.h },
@@ -308,17 +519,19 @@ export function normalizePositionChanges(
 
 // Framework prop and event adaptation
 export function toClassBoxPlacementChanges(
-  changes: readonly ReactFlowNodeChange<ClassBoxNodeDescriptor | NoteBoxNodeDescriptor>[]
+  changes: readonly ReactFlowNodeChange<
+    ClassBoxNodeDescriptor | NamespaceNodeDescriptor | NoteBoxNodeDescriptor
+  >[]
 ): ClassBoxPlacementChange[] {
   return changes.flatMap((change): ClassBoxPlacementChange[] => {
     switch (change.type) {
       case "position":
-        if (change.id.startsWith("note:")) return [];
+        if (change.id.startsWith("note:") || change.id.startsWith("namespace:")) return [];
         return change.position === undefined
           ? []
           : [{ classId: toClassId(change.id), x: change.position.x, y: change.position.y }];
       case "dimensions":
-        if (change.id.startsWith("note:")) return [];
+        if (change.id.startsWith("note:") || change.id.startsWith("namespace:")) return [];
         return change.dimensions === undefined
           ? []
           : [
@@ -336,7 +549,9 @@ export function toClassBoxPlacementChanges(
 
 // Framework prop and event adaptation
 export function toNoteBoxPlacementChanges(
-  changes: readonly ReactFlowNodeChange<ClassBoxNodeDescriptor | NoteBoxNodeDescriptor>[]
+  changes: readonly ReactFlowNodeChange<
+    ClassBoxNodeDescriptor | NamespaceNodeDescriptor | NoteBoxNodeDescriptor
+  >[]
 ): NoteBoxPlacementChange[] {
   return changes.flatMap((change): NoteBoxPlacementChange[] => {
     if (!("id" in change)) return [];
@@ -396,4 +611,158 @@ function oppositeSide(side: BoxSide): BoxSide {
     case "left":
       return "right";
   }
+}
+
+function toNamespaceBounds(
+  namespaces: readonly NamespaceView[],
+  classBoxPlacementState: ClassBoxPlacementState
+): ReadonlyMap<NamespaceId, Rect> {
+  const byId = new Map(
+    namespaces.map((namespaceView) => [namespaceView.namespaceId, namespaceView])
+  );
+  const bounds = new Map<NamespaceId, Rect>();
+  for (const namespaceView of namespaces) {
+    toNamespaceBoundsFor(namespaceView, byId, classBoxPlacementState, bounds);
+  }
+  return bounds;
+}
+
+function toTransitiveMemberClassIds(
+  namespaceId: NamespaceId,
+  namespaces: readonly NamespaceView[]
+): readonly ClassId[] {
+  const namespaceView = namespaces.find((candidate) => candidate.namespaceId === namespaceId);
+  if (!namespaceView) return [];
+  return [
+    ...namespaceView.memberClassIds,
+    ...namespaceView.childNamespaceIds.flatMap((childNamespaceId) =>
+      toTransitiveMemberClassIds(childNamespaceId, namespaces)
+    ),
+  ];
+}
+
+function toDescendantNamespaceIds(
+  namespaceId: NamespaceId,
+  namespaces: readonly NamespaceView[]
+): readonly NamespaceId[] {
+  const namespaceView = namespaces.find((candidate) => candidate.namespaceId === namespaceId);
+  if (!namespaceView) return [];
+  return namespaceView.childNamespaceIds.flatMap((childNamespaceId) => [
+    childNamespaceId,
+    ...toDescendantNamespaceIds(childNamespaceId, namespaces),
+  ]);
+}
+
+function toNamespaceBoundsFor(
+  namespaceView: NamespaceView,
+  namespacesById: ReadonlyMap<NamespaceId, NamespaceView>,
+  classBoxPlacementState: ClassBoxPlacementState,
+  boundsByNamespaceId: Map<NamespaceId, Rect>
+): Rect | null {
+  const existing = boundsByNamespaceId.get(namespaceView.namespaceId);
+  if (existing) return existing;
+
+  const childRects = [
+    ...namespaceView.memberClassIds.flatMap((classId) => {
+      const rect = classBoxPlacementState.rectByClassId.get(classId);
+      return rect ? [rect] : [];
+    }),
+    ...namespaceView.childNamespaceIds.flatMap((namespaceId) => {
+      const child = namespacesById.get(namespaceId);
+      if (!child) return [];
+      const rect = toNamespaceBoundsFor(
+        child,
+        namespacesById,
+        classBoxPlacementState,
+        boundsByNamespaceId
+      );
+      return rect ? [rect] : [];
+    }),
+  ];
+  if (childRects.length === 0) return null;
+
+  const bounds = expandRect(unionRects(childRects), NAMESPACE_MARGIN, NAMESPACE_LABEL_BAND_HEIGHT);
+  boundsByNamespaceId.set(namespaceView.namespaceId, bounds);
+  return bounds;
+}
+
+function unionRects(rects: readonly Rect[]): Rect {
+  const minX = Math.min(...rects.map((rect) => rect.x));
+  const minY = Math.min(...rects.map((rect) => rect.y));
+  const maxX = Math.max(...rects.map((rect) => rect.x + rect.w));
+  const maxY = Math.max(...rects.map((rect) => rect.y + rect.h));
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+
+function expandRect(rect: Rect, margin: number, labelBandHeight: number): Rect {
+  return {
+    x: rect.x - margin,
+    y: rect.y - margin - labelBandHeight,
+    w: rect.w + margin * 2,
+    h: rect.h + margin * 2 + labelBandHeight,
+  };
+}
+
+export function overlaps(left: Rect, right: Rect): boolean {
+  return (
+    left.x <= right.x + right.w &&
+    left.x + left.w >= right.x &&
+    left.y <= right.y + right.h &&
+    left.y + left.h >= right.y
+  );
+}
+
+function toHaloColorByClassId(
+  view: Pick<DiagramView, "classes" | "namespaces">,
+  classBoxPlacementState: ClassBoxPlacementState,
+  boundsByNamespaceId: ReadonlyMap<NamespaceId, Rect>
+): ReadonlyMap<ClassId, string> {
+  const haloColors = new Map<ClassId, string>();
+  for (const classView of view.classes) {
+    const rect = classBoxPlacementState.rectByClassId.get(classView.classId);
+    if (!rect) continue;
+    const containingNamespace = view.namespaces.find((namespaceView) => {
+      const bounds = boundsByNamespaceId.get(namespaceView.namespaceId);
+      return bounds ? overlaps(bounds, rect) : false;
+    });
+    if (!containingNamespace) continue;
+    if (
+      isClassTransitiveMember(classView.classId, containingNamespace, view.namespaces, view.classes)
+    ) {
+      continue;
+    }
+    haloColors.set(
+      classView.classId,
+      toNamespaceHaloColor(classView.parentNamespaceId, view.namespaces)
+    );
+  }
+  return haloColors;
+}
+
+function isClassTransitiveMember(
+  classId: ClassId,
+  namespaceView: NamespaceView,
+  namespaces: readonly NamespaceView[],
+  classes: readonly ClassView[]
+): boolean {
+  const classView = classes.find((candidate) => candidate.classId === classId);
+  let namespaceId = classView?.parentNamespaceId ?? null;
+  while (namespaceId) {
+    if (namespaceId === namespaceView.namespaceId) return true;
+    namespaceId =
+      namespaces.find((candidate) => candidate.namespaceId === namespaceId)?.parentNamespaceId ??
+      null;
+  }
+  return false;
+}
+
+function toNamespaceHaloColor(
+  parentNamespaceId: NamespaceId | null,
+  namespaces: readonly NamespaceView[]
+): string {
+  if (!parentNamespaceId) return "var(--shiny-page-bg)";
+  const parent = namespaces.find(
+    (namespaceView) => namespaceView.namespaceId === parentNamespaceId
+  );
+  return parent?.style?.fill ?? "var(--shiny-overlay-faint)";
 }

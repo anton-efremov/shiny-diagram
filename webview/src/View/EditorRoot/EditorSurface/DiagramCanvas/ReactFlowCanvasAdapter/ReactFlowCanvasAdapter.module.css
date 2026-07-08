@@ -14,3 +14,14 @@
 :global(.react-flow__node-noteBox) {
   overflow: visible;
 }
+
+:global(.react-flow__node-namespaceBox) {
+  pointer-events: auto;
+}
+
+.namespaceDraft {
+  box-sizing: border-box;
+  border: var(--namespace-draft-stroke-width) solid var(--namespace-draft-stroke);
+  background: var(--shiny-overlay-faint);
+  pointer-events: none;
+}

@@ -11,19 +11,24 @@
  *   automatically as a side effect of the allocator methods.
  * - Relationship IDs are positional, so the relationship translate workers
  *   record renames and creates explicitly through the recorder methods.
+ * - Namespace creates are Controller-allocated. Namespace renames are recorded
+ *   by the rename worker because parent renames can cascade through descendants.
  * - No current command renames or creates styles through a Controller-allocated
  *   ID that View consumes, so the `styles` delta stays empty.
  */
 
-import type { ClassId, NoteId, RelationshipId } from "../../shared/ids";
+import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../shared/ids";
 import type { TransactionOutcome } from "../../View/commands";
 import type { DiagramGraph } from "../model/diagramGraph";
 import { allocateClassId, generateDuplicateClassId } from "./classIdentity";
+import { allocateNamespaceId } from "./namespaceIdentity";
 
 export type TranslateContext = {
   readonly allocateClassId: (requestedName: string | null) => ClassId;
   readonly allocateDuplicateId: (sourceClassId: ClassId) => ClassId;
+  readonly allocateNamespaceId: () => NamespaceId;
   readonly recordClassRenamed: (from: ClassId, to: ClassId) => void;
+  readonly recordNamespaceRenamed: (from: NamespaceId, to: NamespaceId) => void;
   readonly recordRelationshipRenamed: (from: RelationshipId, to: RelationshipId) => void;
   readonly recordRelationshipCreated: (id: RelationshipId) => void;
   readonly recordNoteCreated: (id: NoteId) => void;
@@ -37,11 +42,13 @@ export type TranslateContext = {
 export function createTranslateContext(graph: DiagramGraph): TranslateContext {
   const reserved = new Set<ClassId>();
   const createdClassIds: ClassId[] = [];
+  const createdNamespaceIds: NamespaceId[] = [];
   const renamedRelationships: Array<{
     readonly from: RelationshipId;
     readonly to: RelationshipId;
   }> = [];
   const renamedClassIds: Array<{ readonly from: ClassId; readonly to: ClassId }> = [];
+  const renamedNamespaceIds: Array<{ readonly from: NamespaceId; readonly to: NamespaceId }> = [];
   const createdRelationshipIds: RelationshipId[] = [];
   const createdNoteIds: NoteId[] = [];
 
@@ -57,8 +64,16 @@ export function createTranslateContext(graph: DiagramGraph): TranslateContext {
       createdClassIds.push(id);
       return id;
     },
+    allocateNamespaceId() {
+      const id = allocateNamespaceId(graph, new Set(createdNamespaceIds));
+      createdNamespaceIds.push(id);
+      return id;
+    },
     recordClassRenamed(from, to) {
       renamedClassIds.push({ from, to });
+    },
+    recordNamespaceRenamed(from, to) {
+      renamedNamespaceIds.push({ from, to });
     },
     recordRelationshipRenamed(from, to) {
       renamedRelationships.push({ from, to });
@@ -78,6 +93,7 @@ export function createTranslateContext(graph: DiagramGraph): TranslateContext {
     toTransactionOutcome() {
       return {
         classes: { renamed: renamedClassIds, created: createdClassIds },
+        namespaces: { renamed: renamedNamespaceIds, created: createdNamespaceIds },
         relationships: { renamed: renamedRelationships, created: createdRelationshipIds },
         notes: { renamed: [], created: createdNoteIds },
         styles: { renamed: [], created: [] },

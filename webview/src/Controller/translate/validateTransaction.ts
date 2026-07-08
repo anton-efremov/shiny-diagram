@@ -7,7 +7,9 @@ import type {
   EditorCommandTransaction,
   TransactionError,
 } from "../../View/commands";
-import type { AttributeId, ClassId, MethodId } from "../../shared/ids";
+import type { AttributeId, ClassId, MethodId, NamespaceId } from "../../shared/ids";
+import { toNamespaceId } from "../../shared/ids";
+import { STYLE_PROPERTIES, type StyleProperties } from "../../shared/style";
 import type { MemberClassifier, MemberKind } from "../../shared/uml";
 import type { DiagramGraph } from "../model/diagramGraph";
 import { spellIdentity } from "../model/identitySpelling";
@@ -68,9 +70,162 @@ function validateCommand(command: EditorCommand, graph: DiagramGraph): readonly 
       return validateNoteText(command.text);
     case "note.attachment.set":
       return validateNoteAttachmentTarget(command.attachedToClassId, graph);
+    case "namespace.create":
+      return validateNamespaceCreateCommand(command, graph);
+    case "namespace.name.set":
+      return validateNamespaceNameSetCommand(command.namespaceId, command.name, graph);
+    case "namespace.style.set":
+      return validateNamespaceStyleSetCommand(command.namespaceId, command.style, graph);
+    case "namespace.delete":
+      return graph.namespaces.has(command.namespaceId)
+        ? []
+        : [`Namespace "${command.namespaceId}" does not exist`];
+    case "class.parentNamespace.set":
+      return validateClassParentNamespaceSetCommand(
+        command.classId,
+        command.parentNamespaceId,
+        graph
+      );
+    case "namespace.parentNamespace.set":
+      return validateNamespaceParentNamespaceSetCommand(
+        command.namespaceId,
+        command.parentNamespaceId,
+        graph
+      );
     default:
       return [];
   }
+}
+
+function validateNamespaceNameSetCommand(
+  namespaceId: NamespaceId,
+  name: string,
+  graph: DiagramGraph
+): readonly string[] {
+  const errors: string[] = [];
+  const node = graph.namespaces.get(namespaceId);
+  if (!node) errors.push(`Namespace "${namespaceId}" does not exist`);
+  const localName = name.trim();
+  if (localName === "") errors.push("Namespace name must not be empty");
+  if (localName.includes("`")) {
+    errors.push(`Namespace name must not contain backticks: ${name}`);
+  }
+  if (!node || localName === "" || localName.includes("`")) return errors;
+
+  const nextId = toNamespaceId(
+    node.parentNamespaceId ? `${node.parentNamespaceId}.${localName}` : localName
+  );
+  const renamedNamespaceIds = new Set(
+    [...graph.namespaces.keys()].filter(
+      (candidateId) => candidateId === namespaceId || candidateId.startsWith(`${namespaceId}.`)
+    )
+  );
+  for (const candidateId of renamedNamespaceIds) {
+    const renamedId = toNamespaceId(`${nextId}${candidateId.slice(namespaceId.length)}`);
+    if (
+      renamedId !== candidateId &&
+      !renamedNamespaceIds.has(renamedId) &&
+      graph.namespaces.has(renamedId)
+    ) {
+      errors.push(`Namespace "${renamedId}" already exists`);
+    }
+  }
+  return errors;
+}
+
+function validateNamespaceStyleSetCommand(
+  namespaceId: NamespaceId,
+  style: StyleProperties | null,
+  graph: DiagramGraph
+): readonly string[] {
+  const errors: string[] = [];
+  if (!graph.namespaces.has(namespaceId)) errors.push(`Namespace "${namespaceId}" does not exist`);
+  if (style === null) return errors;
+
+  const known: ReadonlySet<string> = new Set(STYLE_PROPERTIES.map(({ name }) => name));
+  for (const property of Object.keys(style)) {
+    if (!known.has(property))
+      errors.push(`Namespace style property "${property}" is not supported`);
+  }
+  return errors;
+}
+
+function validateClassParentNamespaceSetCommand(
+  classId: ClassId,
+  parentNamespaceId: NamespaceId | null,
+  graph: DiagramGraph
+): readonly string[] {
+  const errors: string[] = [];
+  if (!graph.classes.has(classId)) errors.push(`Class "${classId}" does not exist`);
+  if (parentNamespaceId !== null && !graph.namespaces.has(parentNamespaceId)) {
+    errors.push(`Namespace "${parentNamespaceId}" does not exist`);
+  }
+  return errors;
+}
+
+function validateNamespaceParentNamespaceSetCommand(
+  namespaceId: NamespaceId,
+  parentNamespaceId: NamespaceId | null,
+  graph: DiagramGraph
+): readonly string[] {
+  const errors: string[] = [];
+  if (!graph.namespaces.has(namespaceId)) errors.push(`Namespace "${namespaceId}" does not exist`);
+  if (parentNamespaceId !== null && !graph.namespaces.has(parentNamespaceId)) {
+    errors.push(`Namespace "${parentNamespaceId}" does not exist`);
+  }
+  if (
+    parentNamespaceId !== null &&
+    isNamespaceDescendantOrSelf(parentNamespaceId, namespaceId, graph)
+  ) {
+    errors.push(
+      `Namespace "${namespaceId}" cannot be moved into itself or its descendant "${parentNamespaceId}"`
+    );
+  }
+  return errors;
+}
+
+function isNamespaceDescendantOrSelf(
+  candidateId: NamespaceId,
+  namespaceId: NamespaceId,
+  graph: DiagramGraph
+): boolean {
+  let current: NamespaceId | null = candidateId;
+  while (current) {
+    if (current === namespaceId) return true;
+    current = graph.namespaces.get(current)?.parentNamespaceId ?? null;
+  }
+  return false;
+}
+
+function validateNamespaceCreateCommand(
+  command: Extract<EditorCommand, { readonly type: "namespace.create" }>,
+  graph: DiagramGraph
+): readonly string[] {
+  const errors: string[] = [];
+  if (command.initialClassIds.length + command.initialNamespaceIds.length === 0) {
+    errors.push("Namespace must contain at least one member");
+  }
+  for (const classId of command.initialClassIds) {
+    const classNode = graph.classes.get(classId);
+    if (!classNode) {
+      errors.push(`Class "${classId}" does not exist`);
+    } else if (classNode.parentNamespaceId !== null) {
+      errors.push(
+        `Class "${classId}" is already inside namespace "${classNode.parentNamespaceId}"`
+      );
+    }
+  }
+  for (const namespaceId of command.initialNamespaceIds) {
+    const namespaceNode = graph.namespaces.get(namespaceId);
+    if (!namespaceNode) {
+      errors.push(`Namespace "${namespaceId}" does not exist`);
+    } else if (namespaceNode.parentNamespaceId !== null) {
+      errors.push(
+        `Namespace "${namespaceId}" is already inside namespace "${namespaceNode.parentNamespaceId}"`
+      );
+    }
+  }
+  return errors;
 }
 
 function validateMemberCommand(

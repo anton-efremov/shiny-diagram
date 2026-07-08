@@ -12,6 +12,7 @@ import type {
   AttributeId,
   ClassId,
   MethodId,
+  NamespaceId,
   NoteId,
   RelationshipId,
   StyleDefId,
@@ -44,6 +45,10 @@ export type SelectionState =
   | {
       readonly kind: "style";
       readonly styleDefId: StyleDefId;
+    }
+  | {
+      readonly kind: "namespace";
+      readonly namespaceId: NamespaceId;
     };
 
 /*
@@ -92,6 +97,17 @@ export type EditingState =
 export type NoteAttachState =
   | { readonly kind: "none" }
   | { readonly kind: "attaching"; readonly noteId: NoteId };
+
+/*
+ * Owned by: EditorSurface.
+ *
+ * Transient namespace gesture state. The rectangle is framework-neutral diagram
+ * geometry and references no view entity, so it survives view pushes.
+ */
+export type NamespaceGestureState =
+  | { readonly kind: "none" }
+  | { readonly kind: "creating"; readonly rect: Rect }
+  | { readonly kind: "resizing"; readonly namespaceId: NamespaceId; readonly rect: Rect };
 
 export type RelationshipSeed = {
   readonly sourceEndpointKind: RelationshipEndpointKind;

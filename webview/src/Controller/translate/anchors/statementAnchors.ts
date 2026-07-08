@@ -33,9 +33,9 @@ export const STATEMENT_KINDS: readonly StatementKind[] = [
   "lollipopInterface",
   "styleDefinition",
   "classDirectStyle",
+  "namespaceStyle",
   "styleApplication",
   "classSpatial",
-  "namespaceSpatial",
   "note",
   "noteAnnotation",
 ];
@@ -60,6 +60,33 @@ export function anchorAfterKindList(
   for (const kind of statementKinds) {
     for (const { ref, location } of anchorCandidatesOfKind(kind, provenance)) {
       if (!sameBlock(blockOf(graph, ref), container)) {
+        continue;
+      }
+      if (latest === null || compareLocations(location, latest.location) > 0) {
+        latest = { ref, location };
+      }
+    }
+  }
+
+  return latest?.ref ?? null;
+}
+
+/**
+ * The latest explicit statement of any listed kind inside `container` whose
+ * source span starts before `before`, or `null`.
+ */
+export function anchorBeforeKindList(
+  graph: DiagramGraph,
+  provenance: ProvenanceIndex,
+  container: BlockRef,
+  before: SourceSpan,
+  statementKinds: readonly StatementKind[]
+): StatementRef | null {
+  let latest: AnchorCandidate | null = null;
+
+  for (const kind of statementKinds) {
+    for (const { ref, location } of anchorCandidatesOfKind(kind, provenance)) {
+      if (!sameBlock(blockOf(graph, ref), container) || compareLocations(location, before) >= 0) {
         continue;
       }
       if (latest === null || compareLocations(location, latest.location) > 0) {
@@ -118,7 +145,7 @@ function blockOf(graph: DiagramGraph, ref: StatementRef): BlockRef {
       return { kind: "diagram" };
     default:
       // relationship, styleDefinition, classDirectStyle, styleApplication,
-      // classSpatial, namespaceSpatial, note, noteAnnotation: only ever written at diagram level.
+      // namespaceStyle, classSpatial, note, noteAnnotation: only ever written at diagram level.
       return { kind: "diagram" };
   }
 }
@@ -187,6 +214,8 @@ function anchorCandidatesOfKind(
       return candidatesFrom(provenance.styleDefinitions, (styleDefId) => ({ kind, styleDefId }));
     case "classDirectStyle":
       return candidatesFrom(provenance.classDirectStyles, (classId) => ({ kind, classId }));
+    case "namespaceStyle":
+      return candidatesFrom(provenance.namespaceStyles, (namespaceId) => ({ kind, namespaceId }));
     case "styleApplication":
       return candidatesFrom(provenance.styleApplications, (styleApplicationId) => ({
         kind,
@@ -194,8 +223,6 @@ function anchorCandidatesOfKind(
       }));
     case "classSpatial":
       return candidatesFrom(provenance.classSpatial, (classId) => ({ kind, classId }));
-    case "namespaceSpatial":
-      return candidatesFrom(provenance.namespaceSpatial, (namespaceId) => ({ kind, namespaceId }));
     case "note":
       return candidatesFrom(provenance.notes, (noteId) => ({ kind, noteId }));
     case "noteAnnotation":
@@ -233,12 +260,12 @@ function hasStatementRecord(provenance: ProvenanceIndex, statement: StatementRef
       return provenance.styleDefinitions.has(statement.styleDefId);
     case "classDirectStyle":
       return provenance.classDirectStyles.has(statement.classId);
+    case "namespaceStyle":
+      return provenance.namespaceStyles.has(statement.namespaceId);
     case "styleApplication":
       return provenance.styleApplications.has(statement.styleApplicationId);
     case "classSpatial":
       return provenance.classSpatial.has(statement.classId);
-    case "namespaceSpatial":
-      return provenance.namespaceSpatial.has(statement.namespaceId);
     case "note":
       return provenance.notes.has(statement.noteId);
     case "noteAnnotation":

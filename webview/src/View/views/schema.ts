@@ -17,13 +17,13 @@
  */
 
 import type { StyleProperties } from "../../shared/style";
+import type { Rect } from "../../shared/geometry";
 import type {
   MemberClassifier,
   MemberKind,
   RelationshipEndpointKind,
   RelationshipLineKind,
 } from "../../shared/uml";
-import type { Rect } from "../../shared/geometry";
 import type {
   AttributeId,
   ClassId,
@@ -53,6 +53,7 @@ export type ClassMemberView = {
 
 export type ClassView = {
   readonly classId: ClassId;
+  readonly parentNamespaceId: NamespaceId | null;
   readonly bounds: Rect;
   readonly header: ClassHeaderView;
   readonly members: readonly ClassMemberView[];
@@ -62,8 +63,10 @@ export type ClassView = {
 
 export type NamespaceView = {
   readonly namespaceId: NamespaceId;
-  readonly bounds: Rect;
   readonly label: string;
+  readonly parentNamespaceId: NamespaceId | null;
+  readonly memberClassIds: readonly ClassId[];
+  readonly childNamespaceIds: readonly NamespaceId[];
   readonly style?: StyleProperties;
 };
 

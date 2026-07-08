@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { EditorCommandTransaction } from "../../View/commands";
-import { toAttributeId, toClassId, toDiagramId, toMethodId } from "../../shared/ids";
-import type { ClassMember, ClassNode, DiagramGraph, NoteNode } from "../model/diagramGraph";
+import { toAttributeId, toClassId, toDiagramId, toMethodId, toNamespaceId } from "../../shared/ids";
+import type {
+  ClassMember,
+  ClassNode,
+  DiagramGraph,
+  NamespaceNode,
+  NoteNode,
+} from "../model/diagramGraph";
 import { validateTransaction } from "./validateTransaction";
 
 describe("validateTransaction", () => {
@@ -170,6 +176,31 @@ describe("validateTransaction", () => {
 
     expect(errors).toEqual([{ commandIndex: 0, message: 'Class "Missing" does not exist' }]);
   });
+
+  it("rejects moving a namespace into its own descendant", () => {
+    const graph = graphWithNamespaces([
+      namespaceNode("Root", null),
+      namespaceNode("Root.Child", "Root"),
+    ]);
+
+    expect(
+      validateTransaction(
+        [
+          {
+            type: "namespace.parentNamespace.set",
+            namespaceId: toNamespaceId("Root"),
+            parentNamespaceId: toNamespaceId("Root.Child"),
+          },
+        ],
+        graph
+      )
+    ).toEqual([
+      {
+        commandIndex: 0,
+        message: 'Namespace "Root" cannot be moved into itself or its descendant "Root.Child"',
+      },
+    ]);
+  });
 });
 
 function graphWithClasses(classes: readonly ClassNode[]): DiagramGraph {
@@ -186,6 +217,24 @@ function graphWithClasses(classes: readonly ClassNode[]): DiagramGraph {
     notes: new Map(),
     styleDefinitions: new Map(),
     styleApplications: new Map(),
+  };
+}
+
+function graphWithNamespaces(namespaces: readonly NamespaceNode[]): DiagramGraph {
+  return {
+    ...graphWithClasses([]),
+    namespaces: new Map(namespaces.map((node) => [node.id, node])),
+  };
+}
+
+function namespaceNode(name: string, parentNamespaceName: string | null): NamespaceNode {
+  return {
+    kind: "namespace",
+    id: toNamespaceId(name),
+    name,
+    label: name,
+    parentNamespaceId: parentNamespaceName ? toNamespaceId(parentNamespaceName) : null,
+    style: null,
   };
 }
 

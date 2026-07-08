@@ -13,6 +13,7 @@ export type EditorDiagnostic = {
     | "duplicateAnnotation"
     | "missingAnnotation"
     | "malformedAnnotation"
+    | "duplicateClassDeclaration"
     | "syntaxError";
   readonly message: string;
   readonly elementId?: string;

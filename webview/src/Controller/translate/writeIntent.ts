@@ -52,9 +52,9 @@ export type StatementRef =
   | { readonly kind: "lollipopInterface"; readonly lollipopInterfaceId: LollipopInterfaceId }
   | { readonly kind: "styleDefinition"; readonly styleDefId: StyleDefId }
   | { readonly kind: "classDirectStyle"; readonly classId: ClassId }
+  | { readonly kind: "namespaceStyle"; readonly namespaceId: NamespaceId }
   | { readonly kind: "styleApplication"; readonly styleApplicationId: StyleApplicationId }
   | { readonly kind: "classSpatial"; readonly classId: ClassId }
-  | { readonly kind: "namespaceSpatial"; readonly namespaceId: NamespaceId }
   | { readonly kind: "note"; readonly noteId: NoteId }
   | { readonly kind: "noteAnnotation"; readonly noteId: NoteId };
 
@@ -114,6 +114,8 @@ export type ValueRef =
     }
   | { readonly kind: "styleApplicationTarget"; readonly styleApplicationId: StyleApplicationId }
   | { readonly kind: "styleApplicationName"; readonly styleApplicationId: StyleApplicationId }
+  | { readonly kind: "namespaceStyleTarget"; readonly namespaceId: NamespaceId }
+  | { readonly kind: "namespaceStyleProperties"; readonly namespaceId: NamespaceId }
   | { readonly kind: "spatialTarget"; readonly target: BlockRef }
   | {
       readonly kind: "spatialCoord";

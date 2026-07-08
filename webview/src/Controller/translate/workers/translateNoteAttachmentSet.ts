@@ -68,7 +68,6 @@ function findPreviousStatement(
     ...entries(provenance.classDirectStyles, "classDirectStyle", "classId"),
     ...entries(provenance.styleApplications, "styleApplication", "styleApplicationId"),
     ...entries(provenance.classSpatial, "classSpatial", "classId"),
-    ...entries(provenance.namespaceSpatial, "namespaceSpatial", "namespaceId"),
     ...entries(provenance.noteAnnotations, "noteAnnotation", "noteId"),
     ...entries(provenance.notes, "note", "noteId"),
   ].filter((candidate) => compareSpans(candidate.span, before) < 0);

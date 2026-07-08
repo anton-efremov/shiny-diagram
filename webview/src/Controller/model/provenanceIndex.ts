@@ -85,6 +85,15 @@ export type NamespaceRecord = {
   };
 };
 
+/** A namespace style annotation line: `%% @style:Domain fill=...`. */
+export type NamespaceStyleRecord = {
+  readonly self: SourceSpan;
+  readonly fields: {
+    readonly target: SourceSpan;
+    readonly propertyList: SourceSpan;
+  };
+};
+
 // ============================================================================
 // Members (attributes, methods)
 // ============================================================================
@@ -213,6 +222,9 @@ export type ProvenanceIndex = {
   /** Namespace blocks. */
   readonly namespaces: ReadonlyMap<NamespaceId, NamespaceRecord>;
 
+  /** Namespace style annotation lines. */
+  readonly namespaceStyles: ReadonlyMap<NamespaceId, NamespaceStyleRecord>;
+
   /** Attribute and method lines inside a class block. */
   readonly blockMembers: ReadonlyMap<AttributeId | MethodId, BlockMemberRecord>;
 
@@ -232,7 +244,6 @@ export type ProvenanceIndex = {
 
   /** Spatial annotation lines. */
   readonly classSpatial: ReadonlyMap<ClassId, SpatialRecord>;
-  readonly namespaceSpatial: ReadonlyMap<NamespaceId, SpatialRecord>;
   readonly noteAnnotations: ReadonlyMap<NoteId, SpatialRecord>;
 
   /** Note lines/blocks. */

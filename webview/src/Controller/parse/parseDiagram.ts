@@ -4,6 +4,8 @@
 
 import type { ParseResult } from "./parseResult";
 import type { EditorDiagnostic } from "./parseResult";
+import type { DiagramGraph } from "../model/diagramGraph";
+import { toNamespaceId, type ClassId } from "../../shared/ids";
 import { buildSpatiallyUnawareDiagramGraph } from "./workers/buildDiagramGraph";
 import { attachNoteAnnotations } from "./workers/noteAnnotations";
 import { attachSpatial, parseSpatialAnnotations } from "./workers/spatialAnnotations";
@@ -23,13 +25,21 @@ export function parseDiagram(source: string): ParseResult {
     }
 
     const tokens = tokenize(source);
-    const unrecognizedDiagnostics = collectUnrecognizedDiagnostics(tokens);
-    if (unrecognizedDiagnostics.length > 0) {
-      return { status: "invalidSyntax", diagnostics: unrecognizedDiagnostics };
+    const syntaxDiagnostics = [
+      ...collectUnrecognizedDiagnostics(tokens),
+      ...collectInvalidClassBodyDiagnostics(tokens),
+      ...collectEmptyNamespaceDiagnostics(tokens),
+    ];
+    if (syntaxDiagnostics.length > 0) {
+      return { status: "invalidSyntax", diagnostics: syntaxDiagnostics };
     }
 
     const spatiallyUnaware = buildSpatiallyUnawareDiagramGraph(tokens);
     const { valid, malformed } = parseSpatialAnnotations(tokens);
+    const namespaceSpatialDiagnostics = collectNamespaceSpatialDiagnostics(
+      spatiallyUnaware.graph,
+      valid
+    );
     const spatiallyAware = attachSpatial(
       spatiallyUnaware.graph,
       spatiallyUnaware.provenance,
@@ -57,17 +67,127 @@ export function parseDiagram(source: string): ParseResult {
         status: "missingAnnotations",
         graph,
         provenance,
-        diagnostics: noteDiagnostics,
+        diagnostics: [
+          ...spatiallyUnaware.diagnostics,
+          ...noteDiagnostics,
+          ...namespaceSpatialDiagnostics,
+        ],
         missingIds,
         malformedAnnotations,
       };
     }
 
-    return { status: "ready", graph, provenance, diagnostics: noteDiagnostics };
+    return {
+      status: "ready",
+      graph,
+      provenance,
+      diagnostics: [
+        ...spatiallyUnaware.diagnostics,
+        ...noteDiagnostics,
+        ...namespaceSpatialDiagnostics,
+      ],
+    };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown parse error";
     return { status: "invalidSyntax", diagnostics: [{ kind: "syntaxError", message }] };
   }
+}
+
+function collectInvalidClassBodyDiagnostics(tokens: readonly ParseToken[]): EditorDiagnostic[] {
+  const diagnostics: EditorDiagnostic[] = [];
+  collectInvalidClassBodyDiagnosticsInto(tokens, diagnostics);
+  return diagnostics;
+}
+
+function collectInvalidClassBodyDiagnosticsInto(
+  tokens: readonly ParseToken[],
+  diagnostics: EditorDiagnostic[]
+): void {
+  for (const token of tokens) {
+    if (token.type === "classDeclaration") {
+      for (const bodyToken of token.blockTokens ?? []) {
+        if (isInvalidClassBodyStatement(bodyToken)) {
+          diagnostics.push({
+            kind: "syntaxError",
+            message: `Invalid statement inside class block at line ${
+              bodyToken.lineNumber + 1
+            }: ${bodyToken.raw.trim()}`,
+          });
+        }
+      }
+      continue;
+    }
+
+    if (token.blockTokens) {
+      collectInvalidClassBodyDiagnosticsInto(token.blockTokens, diagnostics);
+    }
+  }
+}
+
+function isInvalidClassBodyStatement(token: ParseToken): boolean {
+  switch (token.type) {
+    case "diagramHeader":
+    case "classDeclaration":
+    case "relationship":
+    case "styleDef":
+    case "classDirectStyle":
+    case "styleApplication":
+    case "spatialAnnotation":
+    case "noteAnnotation":
+    case "namespaceStyleAnnotation":
+    case "noteStatement":
+    case "namespace":
+    case "knownIgnored":
+      return true;
+    case "classMember":
+    case "directive":
+    case "blank":
+    case "unrecognized":
+      return false;
+  }
+}
+
+function collectEmptyNamespaceDiagnostics(tokens: readonly ParseToken[]): EditorDiagnostic[] {
+  const diagnostics: EditorDiagnostic[] = [];
+  collectEmptyNamespaceDiagnosticsInto(tokens, diagnostics);
+  return diagnostics;
+}
+
+function collectEmptyNamespaceDiagnosticsInto(
+  tokens: readonly ParseToken[],
+  diagnostics: EditorDiagnostic[]
+): void {
+  for (const token of tokens) {
+    if (token.type === "namespace" && (token.blockTokens?.length ?? 0) === 0) {
+      diagnostics.push({
+        kind: "syntaxError",
+        message: `Empty namespace block at line ${token.lineNumber + 1} is not valid Mermaid`,
+      });
+    }
+    if (token.blockTokens) {
+      collectEmptyNamespaceDiagnosticsInto(token.blockTokens, diagnostics);
+    }
+  }
+}
+
+function collectNamespaceSpatialDiagnostics(
+  graph: DiagramGraph,
+  spatialEntries: readonly {
+    readonly classId: ClassId;
+    readonly location: { readonly start: { readonly line: number } };
+  }[]
+): EditorDiagnostic[] {
+  return spatialEntries.flatMap((entry) =>
+    graph.namespaces.has(toNamespaceId(entry.classId)) && !graph.classes.has(entry.classId)
+      ? [
+          {
+            kind: "orphanedAnnotation" as const,
+            elementId: entry.classId,
+            message: `Orphaned namespace @spatial annotation at line ${entry.location.start.line + 1}`,
+          },
+        ]
+      : []
+  );
 }
 
 function collectUnrecognizedDiagnostics(tokens: readonly ParseToken[]): EditorDiagnostic[] {
