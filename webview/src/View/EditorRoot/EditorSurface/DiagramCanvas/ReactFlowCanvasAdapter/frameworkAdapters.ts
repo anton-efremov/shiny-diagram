@@ -14,9 +14,11 @@ import { toClassId } from "../../../../../shared/ids";
 import type {
   ClassBoxPlacementState,
   EditingState,
+  NoteAttachState,
+  NoteBoxPlacementState,
   SelectionState,
 } from "../../../../state/editorStates";
-import type { ClassView, DiagramView, RelationshipView } from "../../../../views/schema";
+import type { ClassView, DiagramView, NoteView, RelationshipView } from "../../../../views/schema";
 
 export type ClassBoxNodeData = {
   readonly view: ClassView;
@@ -32,6 +34,21 @@ export type ClassBoxNodeData = {
 };
 
 export type ClassBoxNodeDescriptor = ReactFlowNode<ClassBoxNodeData, "classBox">;
+export type NoteBoxNodeData = {
+  readonly view: NoteView;
+  readonly isSelected: boolean;
+  readonly isResizeVisible: boolean;
+  readonly editingState: EditingState;
+  readonly onNoteSelect: (noteId: NoteView["noteId"]) => void;
+  readonly onNoteResizeEnd: (change: NoteBoxPlacementChange) => void;
+  readonly onTextBlockEditStart: (
+    editingState: Exclude<EditingState, { readonly kind: "none" }>
+  ) => void;
+  readonly onTextBlockEditCancel: () => void;
+};
+
+export type NoteBoxNodeDescriptor = ReactFlowNode<NoteBoxNodeData, "noteBox">;
+
 export type RelationshipEdgeData = {
   readonly view: RelationshipView;
   readonly isSelected: boolean;
@@ -40,8 +57,22 @@ export type RelationshipEdgeData = {
 
 export type RelationshipEdgeDescriptor = ReactFlowEdge<RelationshipEdgeData, "relationship">;
 
+export type NoteAttachmentEdgeData = {
+  readonly isActive: boolean;
+};
+
+export type NoteAttachmentEdgeDescriptor = ReactFlowEdge<NoteAttachmentEdgeData, "noteAttachment">;
+
 export type ClassBoxPlacementChange = {
   readonly classId: ClassId;
+  readonly x?: number;
+  readonly y?: number;
+  readonly w?: number;
+  readonly h?: number;
+};
+
+export type NoteBoxPlacementChange = {
+  readonly noteId: NoteView["noteId"];
   readonly x?: number;
   readonly y?: number;
   readonly w?: number;
@@ -87,6 +118,46 @@ export function toClassBoxNodeDescriptors(
           isConnectSourceEnabled,
           onClassSelect,
           editingState,
+          onTextBlockEditStart,
+          onTextBlockEditCancel,
+        },
+        selectable: false,
+        focusable: false,
+        width: placement.w,
+        height: placement.h,
+        style: { width: placement.w, height: placement.h },
+      },
+    ];
+  });
+}
+
+// Framework prop and event adaptation
+export function toNoteBoxNodeDescriptors(
+  notes: readonly NoteView[],
+  selectionState: SelectionState,
+  editingState: EditingState,
+  noteBoxPlacementState: NoteBoxPlacementState,
+  onNoteSelect: (noteId: NoteView["noteId"]) => void,
+  onNoteResizeEnd: (change: NoteBoxPlacementChange) => void,
+  onTextBlockEditStart: (editingState: Exclude<EditingState, { readonly kind: "none" }>) => void,
+  onTextBlockEditCancel: () => void
+): NoteBoxNodeDescriptor[] {
+  return notes.flatMap((noteView) => {
+    const placement = noteBoxPlacementState.rectByNoteId.get(noteView.noteId);
+    if (!placement) return [];
+    const isSelected = selectionState.kind === "note" && selectionState.noteId === noteView.noteId;
+    return [
+      {
+        id: noteView.noteId,
+        type: "noteBox" as const,
+        position: { x: placement.x, y: placement.y },
+        data: {
+          view: noteView,
+          isSelected,
+          isResizeVisible: isSelected,
+          editingState,
+          onNoteSelect,
+          onNoteResizeEnd,
           onTextBlockEditStart,
           onTextBlockEditCancel,
         },
@@ -184,6 +255,46 @@ export function toRelationshipEdgeDescriptors(
 }
 
 // Framework prop and event adaptation
+export function toNoteAttachmentEdgeDescriptors(
+  notes: readonly NoteView[],
+  classes: readonly ClassView[],
+  classBoxPlacementState: ClassBoxPlacementState,
+  noteBoxPlacementState: NoteBoxPlacementState,
+  noteAttachState: NoteAttachState
+): NoteAttachmentEdgeDescriptor[] {
+  const classRects = new Map(
+    classes.flatMap((classView) => {
+      const placement = classBoxPlacementState.rectByClassId.get(classView.classId);
+      return placement ? [[classView.classId, placement] as const] : [];
+    })
+  );
+  return notes.flatMap((noteView) => {
+    if (!noteView.attachedToClassId) return [];
+    const noteRect = noteBoxPlacementState.rectByNoteId.get(noteView.noteId);
+    const classRect = classRects.get(noteView.attachedToClassId);
+    if (!noteRect || !classRect) return [];
+    const sourceSide = chooseSourceSide(noteRect, classRect);
+    const targetSide = oppositeSide(sourceSide);
+    return [
+      {
+        id: `${noteView.noteId}->${noteView.attachedToClassId}`,
+        source: noteView.noteId,
+        target: noteView.attachedToClassId,
+        sourceHandle: sourceSide,
+        targetHandle: `target-${targetSide}`,
+        data: {
+          isActive:
+            noteAttachState.kind === "attaching" && noteAttachState.noteId === noteView.noteId,
+        },
+        type: "noteAttachment",
+        selectable: false,
+        focusable: false,
+      },
+    ];
+  });
+}
+
+// Framework prop and event adaptation
 export function normalizePositionChanges(
   view: Pick<DiagramView, "classes">,
   rfNodes: ClassBoxNodeDescriptor[]
@@ -197,20 +308,56 @@ export function normalizePositionChanges(
 
 // Framework prop and event adaptation
 export function toClassBoxPlacementChanges(
-  changes: readonly ReactFlowNodeChange<ClassBoxNodeDescriptor>[]
+  changes: readonly ReactFlowNodeChange<ClassBoxNodeDescriptor | NoteBoxNodeDescriptor>[]
 ): ClassBoxPlacementChange[] {
   return changes.flatMap((change): ClassBoxPlacementChange[] => {
     switch (change.type) {
       case "position":
+        if (change.id.startsWith("note:")) return [];
         return change.position === undefined
           ? []
           : [{ classId: toClassId(change.id), x: change.position.x, y: change.position.y }];
       case "dimensions":
+        if (change.id.startsWith("note:")) return [];
         return change.dimensions === undefined
           ? []
           : [
               {
                 classId: toClassId(change.id),
+                w: change.dimensions.width,
+                h: change.dimensions.height,
+              },
+            ];
+      default:
+        return [];
+    }
+  });
+}
+
+// Framework prop and event adaptation
+export function toNoteBoxPlacementChanges(
+  changes: readonly ReactFlowNodeChange<ClassBoxNodeDescriptor | NoteBoxNodeDescriptor>[]
+): NoteBoxPlacementChange[] {
+  return changes.flatMap((change): NoteBoxPlacementChange[] => {
+    if (!("id" in change)) return [];
+    if (!change.id.startsWith("note:")) return [];
+    switch (change.type) {
+      case "position":
+        return change.position === undefined
+          ? []
+          : [
+              {
+                noteId: change.id as NoteView["noteId"],
+                x: change.position.x,
+                y: change.position.y,
+              },
+            ];
+      case "dimensions":
+        return change.dimensions === undefined
+          ? []
+          : [
+              {
+                noteId: change.id as NoteView["noteId"],
                 w: change.dimensions.width,
                 h: change.dimensions.height,
               },

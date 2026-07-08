@@ -7,10 +7,12 @@ import { useCallback } from "react";
 import type { Dispatch, PointerEvent, SetStateAction } from "react";
 import { useReactFlow } from "@xyflow/react";
 import type { Point, Rect } from "../../../../../../shared/geometry";
+import type { TransactionResult } from "../../../../../commands/editorCommands";
 import { PLACEMENT_OVERLAY_DRAG_THRESHOLD } from "../../../../../config/editorUiConfig";
 import { useDispatchTransaction } from "../../../../../contexts";
+import type { NodePlacementState } from "../../../../../state/editorStates";
 import type { DrawOrigin } from "./state";
-import { toClassCreateTransaction } from "./transactions";
+import { toClassCreateTransaction, toNoteCreateTransaction } from "./transactions";
 import { toDiagramPoint } from "./frameworkAdapters";
 
 type Interactions = {
@@ -20,13 +22,15 @@ type Interactions = {
 };
 
 type UseInteractionsInput = {
+  readonly nodePlacementState: NodePlacementState;
   readonly origin: DrawOrigin | null;
   readonly setOrigin: Dispatch<SetStateAction<DrawOrigin | null>>;
   readonly setDraftRect: Dispatch<SetStateAction<Rect | null>>;
-  readonly onPlacementComplete: () => void;
+  readonly onPlacementComplete: (result: TransactionResult | null) => void;
 };
 
 export function useInteractions({
+  nodePlacementState,
   origin,
   setOrigin,
   setDraftRect,
@@ -89,11 +93,23 @@ export function useInteractions({
       if (!isMeaningfulDrag) return;
 
       // Implementing interaction through command transaction
-      const transaction = toClassCreateTransaction(normalizeRect(origin.diagram, endDiagramPoint));
-      dispatchCommand(transaction);
-      onPlacementComplete();
+      const result =
+        nodePlacementState?.kind === "note"
+          ? dispatchCommand(toNoteCreateTransaction(origin.diagram))
+          : dispatchCommand(
+              toClassCreateTransaction(normalizeRect(origin.diagram, endDiagramPoint))
+            );
+      onPlacementComplete(result);
     },
-    [dispatchCommand, onPlacementComplete, origin, screenToFlowPosition, setDraftRect, setOrigin]
+    [
+      dispatchCommand,
+      nodePlacementState,
+      onPlacementComplete,
+      origin,
+      screenToFlowPosition,
+      setDraftRect,
+      setOrigin,
+    ]
   );
 
   return { onPointerDown, onPointerMove, onPointerUp };

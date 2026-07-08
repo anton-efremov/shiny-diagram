@@ -15,7 +15,7 @@
  *   ID that View consumes, so the `styles` delta stays empty.
  */
 
-import type { ClassId, RelationshipId } from "../../shared/ids";
+import type { ClassId, NoteId, RelationshipId } from "../../shared/ids";
 import type { TransactionOutcome } from "../../View/commands";
 import type { DiagramGraph } from "../model/diagramGraph";
 import { allocateClassId, generateDuplicateClassId } from "./classIdentity";
@@ -26,8 +26,11 @@ export type TranslateContext = {
   readonly recordClassRenamed: (from: ClassId, to: ClassId) => void;
   readonly recordRelationshipRenamed: (from: RelationshipId, to: RelationshipId) => void;
   readonly recordRelationshipCreated: (id: RelationshipId) => void;
+  readonly recordNoteCreated: (id: NoteId) => void;
   /** Relationship creates recorded so far in this transaction, for ordinal math. */
   readonly relationshipCreateCount: () => number;
+  /** Note creates recorded so far in this transaction, for ordinal math. */
+  readonly noteCreateCount: () => number;
   readonly toTransactionOutcome: () => TransactionOutcome;
 };
 
@@ -40,6 +43,7 @@ export function createTranslateContext(graph: DiagramGraph): TranslateContext {
   }> = [];
   const renamedClassIds: Array<{ readonly from: ClassId; readonly to: ClassId }> = [];
   const createdRelationshipIds: RelationshipId[] = [];
+  const createdNoteIds: NoteId[] = [];
 
   return {
     allocateClassId(requestedName) {
@@ -62,13 +66,20 @@ export function createTranslateContext(graph: DiagramGraph): TranslateContext {
     recordRelationshipCreated(id) {
       createdRelationshipIds.push(id);
     },
+    recordNoteCreated(id) {
+      createdNoteIds.push(id);
+    },
     relationshipCreateCount() {
       return createdRelationshipIds.length;
+    },
+    noteCreateCount() {
+      return createdNoteIds.length;
     },
     toTransactionOutcome() {
       return {
         classes: { renamed: renamedClassIds, created: createdClassIds },
         relationships: { renamed: renamedRelationships, created: createdRelationshipIds },
+        notes: { renamed: [], created: createdNoteIds },
         styles: { renamed: [], created: [] },
       };
     },

@@ -1,0 +1,8 @@
+/**
+ * @render Note attachment edge path.
+ */
+
+.edge {
+  fill: none;
+  pointer-events: none;
+}

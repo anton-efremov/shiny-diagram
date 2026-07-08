@@ -8,7 +8,14 @@
  * State annotations identify the View component that owns runtime storage.
  */
 
-import type { AttributeId, ClassId, MethodId, RelationshipId, StyleDefId } from "../../shared/ids";
+import type {
+  AttributeId,
+  ClassId,
+  MethodId,
+  NoteId,
+  RelationshipId,
+  StyleDefId,
+} from "../../shared/ids";
 import type { Rect } from "../../shared/geometry";
 import type { MemberKind, RelationshipEndpointKind, RelationshipLineKind } from "../../shared/uml";
 /*
@@ -31,6 +38,10 @@ export type SelectionState =
       readonly relationshipId: RelationshipId;
     }
   | {
+      readonly kind: "note";
+      readonly noteId: NoteId;
+    }
+  | {
       readonly kind: "style";
       readonly styleDefId: StyleDefId;
     };
@@ -43,6 +54,7 @@ export type SelectionState =
 export type NodePlacementState =
   | null
   | { readonly kind: "class" }
+  | { readonly kind: "note" }
   | {
       readonly kind: "relationship";
       readonly seed: RelationshipSeed;
@@ -67,7 +79,19 @@ export type EditingState =
       readonly memberKind: MemberKind;
       readonly memberId: AttributeId | MethodId;
     }
-  | { readonly kind: "newMember"; readonly classId: ClassId; readonly memberKind: MemberKind };
+  | { readonly kind: "newMember"; readonly classId: ClassId; readonly memberKind: MemberKind }
+  | { readonly kind: "noteText"; readonly noteId: NoteId };
+
+/*
+ * Owned by: EditorSurface.
+ *
+ * Pending note-to-class attachment mode. The note remains selected while a
+ * ghost line follows the pointer until a class target is chosen or the mode is
+ * cancelled.
+ */
+export type NoteAttachState =
+  | { readonly kind: "none" }
+  | { readonly kind: "attaching"; readonly noteId: NoteId };
 
 export type RelationshipSeed = {
   readonly sourceEndpointKind: RelationshipEndpointKind;
@@ -87,4 +111,15 @@ export type RelationshipSeed = {
  */
 export type ClassBoxPlacementState = {
   readonly rectByClassId: ReadonlyMap<ClassId, Rect>;
+};
+
+/*
+ * Owned by: DiagramCanvas.
+ *
+ * Framework-neutral transient note-box placement. It includes View-assigned
+ * default rectangles for unannotated notes and persisted rectangles for
+ * annotated notes while React Flow interactions are in progress.
+ */
+export type NoteBoxPlacementState = {
+  readonly rectByNoteId: ReadonlyMap<NoteId, Rect>;
 };

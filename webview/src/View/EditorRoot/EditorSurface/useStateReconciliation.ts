@@ -5,13 +5,14 @@
 import { useEffect } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { ClassId } from "../../../shared/ids";
-import type { EditingState, SelectionState } from "../../state/editorStates";
-import type { ClassMemberView, ClassView, DiagramView } from "../../views/schema";
+import type { EditingState, NoteAttachState, SelectionState } from "../../state/editorStates";
+import type { ClassMemberView, DiagramView } from "../../views/schema";
 
 type StateReconciliationInput = {
   readonly view: DiagramView;
   readonly setSelectionState: Dispatch<SetStateAction<SelectionState>>;
   readonly setEditingState: Dispatch<SetStateAction<EditingState>>;
+  readonly setNoteAttachState: Dispatch<SetStateAction<NoteAttachState>>;
 };
 
 // State reconciliation
@@ -19,11 +20,13 @@ export function useStateReconciliation({
   view,
   setSelectionState,
   setEditingState,
+  setNoteAttachState,
 }: StateReconciliationInput): void {
   useEffect(() => {
     setSelectionState((state) => reconcileSelectionStateWithElements(state, view));
-    setEditingState((state) => reconcileEditingStateWithElements(state, view.classes));
-  }, [view, setEditingState, setSelectionState]);
+    setEditingState((state) => reconcileEditingStateWithElements(state, view));
+    setNoteAttachState((state) => reconcileNoteAttachStateWithElements(state, view));
+  }, [view, setEditingState, setNoteAttachState, setSelectionState]);
 }
 
 // Private helpers
@@ -48,6 +51,10 @@ function reconcileSelectionStateWithElements(
       return diagram.relationships.some(
         (relationshipView) => relationshipView.relationshipId === selectionState.relationshipId
       )
+        ? selectionState
+        : { kind: "none" };
+    case "note":
+      return diagram.notes.some((noteView) => noteView.noteId === selectionState.noteId)
         ? selectionState
         : { kind: "none" };
   }
@@ -76,13 +83,28 @@ function toClassSelectionState(classIds: readonly ClassId[]): SelectionState {
 
 function reconcileEditingStateWithElements(
   editingState: EditingState,
-  classes: readonly ClassView[]
+  diagram: DiagramView
 ): EditingState {
   if (editingState.kind === "none") return editingState;
-  const classView = classes.find((candidate) => candidate.classId === editingState.classId);
+  if (editingState.kind === "noteText") {
+    return diagram.notes.some((noteView) => noteView.noteId === editingState.noteId)
+      ? editingState
+      : { kind: "none" };
+  }
+  const classView = diagram.classes.find((candidate) => candidate.classId === editingState.classId);
   if (!classView) return { kind: "none" };
   if (editingState.kind === "header" || editingState.kind === "newMember") return editingState;
   return hasMember(classView.members, editingState) ? editingState : { kind: "none" };
+}
+
+function reconcileNoteAttachStateWithElements(
+  noteAttachState: NoteAttachState,
+  diagram: DiagramView
+): NoteAttachState {
+  if (noteAttachState.kind === "none") return noteAttachState;
+  return diagram.notes.some((noteView) => noteView.noteId === noteAttachState.noteId)
+    ? noteAttachState
+    : { kind: "none" };
 }
 
 function hasMember(

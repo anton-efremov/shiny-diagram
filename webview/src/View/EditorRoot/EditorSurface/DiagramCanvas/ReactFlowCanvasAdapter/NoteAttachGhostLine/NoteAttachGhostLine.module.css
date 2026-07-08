@@ -1,0 +1,13 @@
+/**
+ * @render Note attachment ghost line.
+ */
+
+.layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.line {
+  fill: none;
+}

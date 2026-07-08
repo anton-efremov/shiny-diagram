@@ -15,6 +15,7 @@ import { toDisplayMemberText, toSourceGenericTypes, toSourceMemberText } from ".
 import { validateAnnotation } from "../model/validation/annotation";
 import { validateClassGenericType } from "../model/validation/className";
 import { validateMemberText } from "../model/validation/memberText";
+import { escapeNoteText, unescapeNoteText } from "./syntax/noteSyntax";
 
 export function validateTransaction(
   transaction: EditorCommandTransaction,
@@ -59,6 +60,15 @@ function validateCommand(command: EditorCommand, graph: DiagramGraph): readonly 
       return command.label === ""
         ? [`Class "${command.classId}" label must use null to clear`]
         : [];
+    case "note.create":
+      return [
+        ...validateNoteText(command.text),
+        ...validateNoteAttachmentTarget(command.attachedToClassId, graph),
+      ];
+    case "note.text.set":
+      return validateNoteText(command.text);
+    case "note.attachment.set":
+      return validateNoteAttachmentTarget(command.attachedToClassId, graph);
     default:
       return [];
   }
@@ -141,6 +151,21 @@ function validateAnnotationCommand(
   return validateAnnotation(annotation, className).flatMap((verdict) =>
     verdict.ok || verdict.message === null ? [] : [verdict.message]
   );
+}
+
+function validateNoteText(text: string): readonly string[] {
+  if (text === "") return ["Note text must not be empty"];
+  const roundTrip = unescapeNoteText(escapeNoteText(text));
+  return roundTrip === text ? [] : [`Note text would be reinterpreted as "${roundTrip}"`];
+}
+
+function validateNoteAttachmentTarget(
+  classId: ClassId | null,
+  graph: DiagramGraph
+): readonly string[] {
+  return classId !== null && !graph.classes.has(classId)
+    ? [`Class "${classId}" does not exist`]
+    : [];
 }
 
 function findClassOwningMember(

@@ -1,4 +1,5 @@
 /**
+ * @behavior Class and note placement tool button state and event routing.
  * @render Class element creation tools.
  */
 
@@ -9,33 +10,39 @@ import styles from "./ClassTools.module.css";
 
 type ClassToolsProps = {
   readonly isClassPlacementActive: boolean;
+  readonly isNotePlacementActive: boolean;
   readonly onPlacementStart: () => void;
+  readonly onNotePlacementStart: () => void;
 };
 
 type ToolPaneItem = {
   readonly icon: string;
   readonly name: string;
+  readonly kind: "class" | "note" | "disabled";
 };
 
 const classTools: readonly ToolPaneItem[] = [
-  { icon: "[C]", name: "Class" },
-  { icon: "<<I>>", name: "Interface" },
-  { icon: "<<A>>", name: "Abstract class" },
-  { icon: "<<E>>", name: "Enumeration" },
-  { icon: "<<S>>", name: "Service" },
-  { icon: "<<*>>", name: "Custom annotation" },
-  { icon: "[N]", name: "Namespace/group" },
-  { icon: "[#]", name: "Note/comment object" },
+  { icon: "[C]", name: "Class", kind: "class" },
+  { icon: "<<I>>", name: "Interface", kind: "disabled" },
+  { icon: "<<A>>", name: "Abstract class", kind: "disabled" },
+  { icon: "<<E>>", name: "Enumeration", kind: "disabled" },
+  { icon: "<<S>>", name: "Service", kind: "disabled" },
+  { icon: "<<*>>", name: "Custom annotation", kind: "disabled" },
+  { icon: "[N]", name: "Namespace/group", kind: "disabled" },
+  { icon: "[#]", name: "Note/comment object", kind: "note" },
 ];
 
 export default function ClassTools({
   isClassPlacementActive,
+  isNotePlacementActive,
   onPlacementStart,
+  onNotePlacementStart,
 }: ClassToolsProps): ReactElement {
   return (
     <div className={styles.toolGroup} aria-label="Class elements">
-      {classTools.map((tool, index) => {
-        const isClassTool = index === 0;
+      {classTools.map((tool) => {
+        const isClassTool = tool.kind === "class";
+        const isNoteTool = tool.kind === "note";
         return (
           <ControlButton
             key={tool.name}
@@ -51,11 +58,15 @@ export default function ClassTools({
               )
             }
             aria-label={tool.name}
-            disabled={!isClassTool}
-            active={isClassTool && isClassPlacementActive}
-            pressed={isClassTool ? isClassPlacementActive : undefined}
+            disabled={!isClassTool && !isNoteTool}
+            active={
+              (isClassTool && isClassPlacementActive) || (isNoteTool && isNotePlacementActive)
+            }
+            pressed={
+              isClassTool ? isClassPlacementActive : isNoteTool ? isNotePlacementActive : undefined
+            }
             title={tool.name}
-            onClick={isClassTool ? onPlacementStart : undefined}
+            onClick={isClassTool ? onPlacementStart : isNoteTool ? onNotePlacementStart : undefined}
           />
         );
       })}

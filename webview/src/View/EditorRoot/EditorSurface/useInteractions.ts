@@ -4,25 +4,34 @@
 
 import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import type { ClassId, RelationshipId, StyleDefId } from "../../../shared/ids";
+import type { ClassId, NoteId, RelationshipId, StyleDefId } from "../../../shared/ids";
 import type {
   EditingState,
   NodePlacementState,
+  NoteAttachState,
   RelationshipSeed,
   SelectionState,
 } from "../../state/editorStates";
 import type { RelationshipView } from "../../views/schema";
+import type { TransactionResult } from "../../commands/editorCommands";
 import { useDispatchTransaction } from "../../contexts";
 import {
+  toNoteAttachmentSetTransaction,
   toRelationshipCreateTransaction,
   toRelationshipReconnectTransaction,
 } from "./transactions";
 
 type Interactions = {
   readonly onClassPlacementStart: () => void;
+  readonly onNotePlacementStart: () => void;
   readonly onRelationshipPlacementStart: (seed: RelationshipSeed) => void;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
   readonly onClassMoved: (classId: ClassId) => void;
+  readonly onNoteSelect: (noteId: NoteId) => void;
+  readonly onNoteMoved: (noteId: NoteId) => void;
+  readonly onNoteAttachStart: (noteId: NoteId) => void;
+  readonly onNoteAttachCancel: () => void;
+  readonly onNoteDuplicateCommitted: (result: TransactionResult) => void;
   readonly onRelationshipConnect: (sourceClassId: ClassId, targetClassId: ClassId) => void;
   readonly onRelationshipReconnect: (
     relationshipId: RelationshipId,
@@ -34,7 +43,7 @@ type Interactions = {
   readonly onStyleSelect: (styleDefId: StyleDefId) => void;
   readonly onBackgroundClick: () => void;
   readonly onConnectAborted: () => void;
-  readonly onPlacementComplete: () => void;
+  readonly onPlacementComplete: (result: TransactionResult | null) => void;
   readonly onTextBlockEditStart: (
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
@@ -45,24 +54,32 @@ type UseInteractionsInput = {
   readonly relationships: readonly RelationshipView[];
   readonly editingState: EditingState;
   readonly nodePlacementState: NodePlacementState;
+  readonly noteAttachState: NoteAttachState;
   readonly setSelectionState: Dispatch<SetStateAction<SelectionState>>;
   readonly setNodePlacementState: Dispatch<SetStateAction<NodePlacementState>>;
   readonly setEditingState: Dispatch<SetStateAction<EditingState>>;
+  readonly setNoteAttachState: Dispatch<SetStateAction<NoteAttachState>>;
 };
 
 export function useInteractions({
   relationships,
   editingState,
   nodePlacementState,
+  noteAttachState,
   setSelectionState,
   setNodePlacementState,
   setEditingState,
+  setNoteAttachState,
 }: UseInteractionsInput): Interactions {
   const dispatchTransaction = useDispatchTransaction();
 
   // Event handler props derivation
   const onClassPlacementStart = useCallback(() => {
     setNodePlacementState((state) => updateNodePlacementState(state, { kind: "class" }));
+  }, [setNodePlacementState]);
+
+  const onNotePlacementStart = useCallback(() => {
+    setNodePlacementState((state) => updateNodePlacementState(state, { kind: "note" }));
   }, [setNodePlacementState]);
 
   const onRelationshipPlacementStart = useCallback(
@@ -79,11 +96,23 @@ export function useInteractions({
   const onClassSelect = useCallback(
     (classId: ClassId, additive: boolean) => {
       if (nodePlacementState?.kind === "relationship") return;
+      if (noteAttachState.kind === "attaching") {
+        dispatchTransaction(toNoteAttachmentSetTransaction(noteAttachState.noteId, classId));
+        setNoteAttachState({ kind: "none" });
+        setSelectionState({ kind: "note", noteId: noteAttachState.noteId });
+        return;
+      }
       setSelectionState((selectionState) =>
         updateSelectedClassIds(selectionState, classId, additive)
       );
     },
-    [nodePlacementState, setSelectionState]
+    [
+      dispatchTransaction,
+      nodePlacementState,
+      noteAttachState,
+      setNoteAttachState,
+      setSelectionState,
+    ]
   );
 
   const onClassMoved = useCallback(
@@ -93,6 +122,46 @@ export function useInteractions({
           ? selectionState
           : { kind: "classes", classIds: [classId] }
       );
+    },
+    [setSelectionState]
+  );
+
+  const onNoteSelect = useCallback(
+    (noteId: NoteId) => {
+      if (noteAttachState.kind === "attaching") {
+        setNoteAttachState({ kind: "none" });
+        return;
+      }
+      setSelectionState((selectionState) => updateSelectedNoteId(selectionState, noteId));
+    },
+    [noteAttachState.kind, setNoteAttachState, setSelectionState]
+  );
+
+  const onNoteMoved = useCallback(
+    (noteId: NoteId) => {
+      setSelectionState((selectionState) => updateSelectedNoteId(selectionState, noteId));
+    },
+    [setSelectionState]
+  );
+
+  const onNoteAttachStart = useCallback(
+    (noteId: NoteId) => {
+      setSelectionState({ kind: "note", noteId });
+      setNoteAttachState({ kind: "attaching", noteId });
+    },
+    [setNoteAttachState, setSelectionState]
+  );
+
+  const onNoteAttachCancel = useCallback(() => {
+    setNoteAttachState({ kind: "none" });
+  }, [setNoteAttachState]);
+
+  const onNoteDuplicateCommitted = useCallback(
+    (result: TransactionResult) => {
+      const createdNoteId =
+        result.status === "committed" ? result.outcome.notes.created.at(-1) : undefined;
+      if (!createdNoteId) return;
+      setSelectionState({ kind: "note", noteId: createdNoteId });
     },
     [setSelectionState]
   );
@@ -137,12 +206,16 @@ export function useInteractions({
 
   const onRelationshipSelect = useCallback(
     (relationshipId: RelationshipId) => {
+      if (noteAttachState.kind === "attaching") {
+        setNoteAttachState({ kind: "none" });
+        return;
+      }
       if (nodePlacementState?.kind === "relationship") return;
       setSelectionState((selectionState) =>
         updateSelectedRelationshipId(selectionState, relationshipId)
       );
     },
-    [nodePlacementState, setSelectionState]
+    [nodePlacementState, noteAttachState.kind, setNoteAttachState, setSelectionState]
   );
 
   const onRelationshipDuplicate = useCallback(
@@ -164,25 +237,49 @@ export function useInteractions({
   );
 
   const onBackgroundClick = useCallback(() => {
+    if (noteAttachState.kind === "attaching") {
+      setNoteAttachState({ kind: "none" });
+      return;
+    }
     if (editingState.kind === "none") {
       setSelectionState((state) => clearSelectionState(state));
     } else {
       setEditingState({ kind: "none" });
     }
     setNodePlacementState((state) => (state?.kind === "relationship" ? null : state));
-  }, [editingState.kind, setEditingState, setNodePlacementState, setSelectionState]);
+  }, [
+    editingState.kind,
+    noteAttachState.kind,
+    setEditingState,
+    setNodePlacementState,
+    setNoteAttachState,
+    setSelectionState,
+  ]);
 
   const onConnectAborted = useCallback(() => {
     setNodePlacementState((state) => (state?.kind === "relationship" ? null : state));
   }, [setNodePlacementState]);
 
-  const onPlacementComplete = useCallback(() => {
-    setNodePlacementState((state) => updateNodePlacementState(state, null));
-  }, [setNodePlacementState]);
+  const onPlacementComplete = useCallback(
+    (result: TransactionResult | null) => {
+      const createdNoteId =
+        result?.status === "committed" ? result.outcome.notes.created.at(-1) : undefined;
+      if (createdNoteId) {
+        setSelectionState({ kind: "note", noteId: createdNoteId });
+        setEditingState({ kind: "noteText", noteId: createdNoteId });
+      }
+      setNodePlacementState((state) => updateNodePlacementState(state, null));
+    },
+    [setEditingState, setNodePlacementState, setSelectionState]
+  );
 
   const onTextBlockEditStart = useCallback(
     (nextEditingState: Exclude<EditingState, { readonly kind: "none" }>) => {
-      setSelectionState({ kind: "classes", classIds: [nextEditingState.classId] });
+      if (nextEditingState.kind === "noteText") {
+        setSelectionState({ kind: "note", noteId: nextEditingState.noteId });
+      } else {
+        setSelectionState({ kind: "classes", classIds: [nextEditingState.classId] });
+      }
       setEditingState(nextEditingState);
     },
     [setEditingState, setSelectionState]
@@ -194,9 +291,15 @@ export function useInteractions({
 
   return {
     onClassPlacementStart,
+    onNotePlacementStart,
     onRelationshipPlacementStart,
     onClassSelect,
     onClassMoved,
+    onNoteSelect,
+    onNoteMoved,
+    onNoteAttachStart,
+    onNoteAttachCancel,
+    onNoteDuplicateCommitted,
     onRelationshipConnect,
     onRelationshipReconnect,
     onRelationshipSelect,
@@ -218,6 +321,12 @@ function updateSelectedRelationshipId(
   return selectionState.kind === "relationship" && selectionState.relationshipId === relationshipId
     ? selectionState
     : { kind: "relationship", relationshipId };
+}
+
+function updateSelectedNoteId(selectionState: SelectionState, noteId: NoteId): SelectionState {
+  return selectionState.kind === "note" && selectionState.noteId === noteId
+    ? selectionState
+    : { kind: "note", noteId };
 }
 
 function updateSelectedClassIds(

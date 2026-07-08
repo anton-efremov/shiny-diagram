@@ -1,8 +1,8 @@
 /**
- * @behavior Relationship creation and reconnect transaction derivation.
+ * @behavior Relationship creation, relationship reconnect, and note attachment transaction derivation.
  */
 
-import type { ClassId, RelationshipId } from "../../../shared/ids";
+import type { ClassId, NoteId, RelationshipId } from "../../../shared/ids";
 import type { EditorCommandTransaction } from "../../commands/editorCommands";
 import type { RelationshipSeed } from "../../state/editorStates";
 
@@ -40,4 +40,11 @@ export function toRelationshipReconnectTransaction(
       ? { type: "relationship.source.class.set", relationshipId, classId: newClassId }
       : { type: "relationship.target.class.set", relationshipId, classId: newClassId },
   ];
+}
+
+export function toNoteAttachmentSetTransaction(
+  noteId: NoteId,
+  attachedToClassId: ClassId | null
+): EditorCommandTransaction {
+  return [{ type: "note.attachment.set", noteId, attachedToClassId }];
 }

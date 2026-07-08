@@ -198,6 +198,9 @@ export type SpatialRecord = {
 /** A note line/block: `note for User "text"`. */
 export type NoteRecord = {
   readonly self: SourceSpan;
+  readonly fields: {
+    readonly text: SourceSpan;
+  };
 };
 
 export type ProvenanceIndex = {
@@ -230,6 +233,7 @@ export type ProvenanceIndex = {
   /** Spatial annotation lines. */
   readonly classSpatial: ReadonlyMap<ClassId, SpatialRecord>;
   readonly namespaceSpatial: ReadonlyMap<NamespaceId, SpatialRecord>;
+  readonly noteAnnotations: ReadonlyMap<NoteId, SpatialRecord>;
 
   /** Note lines/blocks. */
   readonly notes: ReadonlyMap<NoteId, NoteRecord>;

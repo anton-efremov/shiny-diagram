@@ -12,12 +12,14 @@ import styles from "./ToolPane.module.css";
 type ToolPaneProps = {
   readonly nodePlacementState: NodePlacementState;
   readonly onClassPlacementStart: () => void;
+  readonly onNotePlacementStart: () => void;
   readonly onRelationshipPlacementStart: (seed: RelationshipSeed) => void;
 };
 
 export default function ToolPane({
   nodePlacementState,
   onClassPlacementStart,
+  onNotePlacementStart,
   onRelationshipPlacementStart,
 }: ToolPaneProps): ReactElement {
   // View and State slice props derivation
@@ -26,12 +28,15 @@ export default function ToolPane({
 
   // UI props derivation
   const isClassPlacementActive = nodePlacementState?.kind === "class";
+  const isNotePlacementActive = nodePlacementState?.kind === "note";
 
   return (
     <aside className={styles.toolPane} aria-label="Diagram tools">
       <ClassTools
         isClassPlacementActive={isClassPlacementActive}
+        isNotePlacementActive={isNotePlacementActive}
         onPlacementStart={onClassPlacementStart}
+        onNotePlacementStart={onNotePlacementStart}
       />
       <RelationshipTools
         relationshipPlacementState={relationshipPlacementState}

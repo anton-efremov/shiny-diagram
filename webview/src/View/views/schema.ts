@@ -29,6 +29,7 @@ import type {
   ClassId,
   MethodId,
   NamespaceId,
+  NoteId,
   RelationshipId,
   StyleDefId,
 } from "../../shared/ids";
@@ -84,12 +85,20 @@ export type RelationshipView = {
   readonly label?: string;
 };
 
+export type NoteView = {
+  readonly noteId: NoteId;
+  readonly text: string;
+  readonly bounds: Rect | null;
+  readonly attachedToClassId: ClassId | null;
+};
+
 /* ── Diagram tree ────────────────────────────────────────────────────────── */
 
 export type DiagramView = {
   readonly classes: readonly ClassView[];
   readonly namespaces: readonly NamespaceView[];
   readonly relationships: readonly RelationshipView[];
+  readonly notes: readonly NoteView[];
   readonly styles: readonly StyleView[];
 };
 

@@ -52,6 +52,12 @@ import { translateRelationshipSourceMultiplicitySet } from "./workers/translateR
 import { translateRelationshipTargetClassSet } from "./workers/translateRelationshipTargetClassSet";
 import { translateRelationshipTargetEndpointKindSet } from "./workers/translateRelationshipTargetEndpointKindSet";
 import { translateRelationshipTargetMultiplicitySet } from "./workers/translateRelationshipTargetMultiplicitySet";
+import { translateNoteAttachmentSet } from "./workers/translateNoteAttachmentSet";
+import { translateNoteCreate } from "./workers/translateNoteCreate";
+import { translateNoteDelete } from "./workers/translateNoteDelete";
+import { translateNoteDuplicate } from "./workers/translateNoteDuplicate";
+import { translateNoteSpatialSet } from "./workers/translateNoteSpatialSet";
+import { translateNoteTextSet } from "./workers/translateNoteTextSet";
 import {
   translateStyleDefinitionCreate,
   translateStyleDefinitionDelete,
@@ -155,6 +161,18 @@ function translateCommand(
       return translateRelationshipTargetMultiplicitySet(command, graph, provenance);
     case "relationship.label.set":
       return translateRelationshipLabelSet(command, graph, provenance);
+    case "note.create":
+      return translateNoteCreate(command, graph, provenance, context);
+    case "note.delete":
+      return translateNoteDelete(command, provenance);
+    case "note.text.set":
+      return translateNoteTextSet(command);
+    case "note.spatial.set":
+      return translateNoteSpatialSet(command);
+    case "note.attachment.set":
+      return translateNoteAttachmentSet(command, graph, provenance);
+    case "note.duplicate":
+      return translateNoteDuplicate(command, graph, provenance, context);
     case "style.definition.create":
       return translateStyleDefinitionCreate(command, graph, provenance);
     case "style.definition.delete":
