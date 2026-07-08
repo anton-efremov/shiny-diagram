@@ -37,6 +37,11 @@ export function resolveStatementRef(ref: StatementRef, provenance: ProvenanceInd
         provenance.classDirectStyles.get(ref.classId),
         `direct style ${ref.classId}`
       ).self;
+    case "namespaceStyle":
+      return requireRecord(
+        provenance.namespaceStyles.get(ref.namespaceId),
+        `namespace style ${ref.namespaceId}`
+      ).self;
     case "styleApplication":
       return requireRecord(
         provenance.styleApplications.get(ref.styleApplicationId),
@@ -59,11 +64,6 @@ export function resolveStatementRef(ref: StatementRef, provenance: ProvenanceInd
       return requireRecord(
         provenance.styleDefinitions.get(ref.styleDefId),
         `style definition ${ref.styleDefId}`
-      ).self;
-    case "namespaceSpatial":
-      return requireRecord(
-        provenance.namespaceSpatial.get(ref.namespaceId),
-        `namespace spatial ${ref.namespaceId}`
       ).self;
     case "note":
       return requireRecord(provenance.notes.get(ref.noteId), `note ${ref.noteId}`).self;
@@ -191,6 +191,16 @@ export function resolveValueRef(ref: ValueRef, provenance: ProvenanceIndex): Sou
         provenance.styleApplications.get(ref.styleApplicationId),
         `style application ${ref.styleApplicationId}`
       ).fields.styleName;
+    case "namespaceStyleTarget":
+      return requireRecord(
+        provenance.namespaceStyles.get(ref.namespaceId),
+        `namespace style ${ref.namespaceId}`
+      ).fields.target;
+    case "namespaceStyleProperties":
+      return requireRecord(
+        provenance.namespaceStyles.get(ref.namespaceId),
+        `namespace style ${ref.namespaceId}`
+      ).fields.propertyList;
     case "namespaceName":
       return requireRecord(
         provenance.namespaces.get(ref.namespaceId),

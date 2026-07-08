@@ -11,14 +11,16 @@ import styles from "./ClassTools.module.css";
 type ClassToolsProps = {
   readonly isClassPlacementActive: boolean;
   readonly isNotePlacementActive: boolean;
+  readonly isNamespacePlacementActive: boolean;
   readonly onPlacementStart: () => void;
   readonly onNotePlacementStart: () => void;
+  readonly onNamespacePlacementStart: () => void;
 };
 
 type ToolPaneItem = {
   readonly icon: string;
   readonly name: string;
-  readonly kind: "class" | "note" | "disabled";
+  readonly kind: "class" | "note" | "namespace" | "disabled";
 };
 
 const classTools: readonly ToolPaneItem[] = [
@@ -28,21 +30,24 @@ const classTools: readonly ToolPaneItem[] = [
   { icon: "<<E>>", name: "Enumeration", kind: "disabled" },
   { icon: "<<S>>", name: "Service", kind: "disabled" },
   { icon: "<<*>>", name: "Custom annotation", kind: "disabled" },
-  { icon: "[N]", name: "Namespace/group", kind: "disabled" },
+  { icon: "[N]", name: "Namespace/group", kind: "namespace" },
   { icon: "[#]", name: "Note/comment object", kind: "note" },
 ];
 
 export default function ClassTools({
   isClassPlacementActive,
   isNotePlacementActive,
+  isNamespacePlacementActive,
   onPlacementStart,
   onNotePlacementStart,
+  onNamespacePlacementStart,
 }: ClassToolsProps): ReactElement {
   return (
     <div className={styles.toolGroup} aria-label="Class elements">
       {classTools.map((tool) => {
         const isClassTool = tool.kind === "class";
         const isNoteTool = tool.kind === "note";
+        const isNamespaceTool = tool.kind === "namespace";
         return (
           <ControlButton
             key={tool.name}
@@ -58,15 +63,31 @@ export default function ClassTools({
               )
             }
             aria-label={tool.name}
-            disabled={!isClassTool && !isNoteTool}
+            disabled={!isClassTool && !isNoteTool && !isNamespaceTool}
             active={
-              (isClassTool && isClassPlacementActive) || (isNoteTool && isNotePlacementActive)
+              (isClassTool && isClassPlacementActive) ||
+              (isNoteTool && isNotePlacementActive) ||
+              (isNamespaceTool && isNamespacePlacementActive)
             }
             pressed={
-              isClassTool ? isClassPlacementActive : isNoteTool ? isNotePlacementActive : undefined
+              isClassTool
+                ? isClassPlacementActive
+                : isNoteTool
+                  ? isNotePlacementActive
+                  : isNamespaceTool
+                    ? isNamespacePlacementActive
+                    : undefined
             }
             title={tool.name}
-            onClick={isClassTool ? onPlacementStart : isNoteTool ? onNotePlacementStart : undefined}
+            onClick={
+              isClassTool
+                ? onPlacementStart
+                : isNoteTool
+                  ? onNotePlacementStart
+                  : isNamespaceTool
+                    ? onNamespacePlacementStart
+                    : undefined
+            }
           />
         );
       })}

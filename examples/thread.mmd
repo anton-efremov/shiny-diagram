@@ -1,52 +1,48 @@
 classDiagram
+		  namespace NewNamespace {
+		        class ConversationThread {
+		        	+UUID id
+		        	+List~TextMessage~ messages
+		        	+List~UserContact~ participants
+		        	+addMessage(TextMessage message) void
+		        	+addParticipant(UserContact participant) void
+		        }
+		        class UserContact {
+		        	+UUID id
+		        	+String name
+		        	+String emailAddress
+		        	+List~CommunicationChannel~ preferredChannels
+		        	+addCommunicationChannel(CommunicationChannel channel) void
+		        	+removeCommunicationChannel(UUID channelId) void
+		        }
+		        		  class UserContact_1 {
+		        		  		+UUID id
+		        		  		+String emailAddress
+		        		  		+String name
+		        		  		+List~CommunicationChannel~ preferredChannels
+		        		  		+addCommunicationChannel(CommunicationChannel channel) void
+		        		  		+removeCommunicationChannel(UUID channelId) void
+		        		  		}
+		  }
+
+	class ConversationThread_1 {
+		    +UUID id
+		    +List~TextMessage~ messages
+		    +List~UserContact~ participants
+		    +addMessage(TextMessage message) void
+		    +addParticipant(UserContact participant) void
+	}
+			        		  			        		  			        		  		  class ConversationThread_2 {
+			        		  			        		  			        		  		  	<<interfac>>
+			        		  			        		  			        		  		  	+List~UserContact~ participants
+			        		  			        		  			        		  		  	+List~TextMessage~ messages*
+			        		  			        		  			        		  		  	+UUID idd
+			        		  			        		  			        		  		  	+addParticipant(UserContact participant) void
+			        		  			        		  			        		  		  	addMessage(TextMessage message) void
+			        		  			        		  			        		  		  	}
 direction TB
-    class ConversationThread {
-	    +UUID id
-	    +List~TextMessage~ messages
-	    +List~UserContact~ participants
-	    +addMessage(TextMessage message) void
-	    +addParticipant(UserContact participant) void
-    }
-    class ConversationThread_2 {
-    	    <<interfac>>
-    	    +List~UserContact~ participants
-    	    +List~TextMessage~ messages*
-    	    +UUID idd
-    	    +addParticipant(UserContact participant) void
-    	    addMessage(TextMessage message) void
-    }
-    class ConversationThread_1 {
-    	    +UUID id
-    	    +List~TextMessage~ messages
-    	    +List~UserContact~ participants
-    	    +addMessage(TextMessage message) void
-    	    +addParticipant(UserContact participant) void
-    }
 
-    class UserContact {
-	    +UUID id
-	    +String name
-	    +String emailAddress
-	    +List~CommunicationChannel~ preferredChannels
-	    +addCommunicationChannel(CommunicationChannel channel) void
-	    +removeCommunicationChannel(UUID channelId) void
 
-	    ConversationThread_1 "0..1" -- ConversationThread : Hi
-
-    }
-    class UserContact_1 {
-    	    +UUID id
-    	    +String emailAddress
-    	    +String name
-    	    +List~CommunicationChannel~ preferredChannels
-    	    +addCommunicationChannel(CommunicationChannel channel) void
-    	    +removeCommunicationChannel(UUID channelId) void
-
-    	    ConversationThread_1 "0..1" -- ConversationThread_2 : Hi
-
-    }
-
-	ConversationThread_1 ..> UserContact_1
 	ConversationThread_1 --> UserContact
 	ConversationThread_2 ..> UserContact_1
 
@@ -66,16 +62,22 @@ direction TB
 
 
 
-    %% @spatial:ConversationThread x=-362 y=-114 w=276 h=179
-    %% @spatial:ConversationThread_2 x=48 y=132 w=244 h=215
-    %% @spatial:ConversationThread_1 x=-364 y=241 w=228 h=210
-    %% @spatial:UserContact x=7 y=406 w=236 h=281
-    %% @spatial:UserContact_1 x=-21 y=-246 w=342 h=259
+    %% @spatial:ConversationThread x=-333 y=866 w=276 h=179
+    %% @spatial:ConversationThread_2 x=573 y=1210 w=328 h=227
+    %% @spatial:ConversationThread_1 x=-88 y=1362 w=269 h=177
+    %% @spatial:UserContact x=-170 y=1099 w=237 h=184
+    %% @spatial:UserContact_1 x=169 y=736 w=342 h=259
 
-    %% @note: x=-302 y=-328 w=180 h=96
+    %% @style:`NewNamespace.NewNamespace2` fill=#934343
+    %% @style:NewNamespace fill=#9f5b5b
+
+    %% @note: x=-167 y=684 w=180 h=96
     note for ConversationThread "Note"
-    %% @note: x=-595 y=298 w=180 h=96
+    %% @note: x=-319 y=1094 w=180 h=96
     note for ConversationThread_1 "fdsaf"
+
+
+
 
 
 

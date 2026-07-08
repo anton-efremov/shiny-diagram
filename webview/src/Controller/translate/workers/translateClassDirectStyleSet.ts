@@ -91,7 +91,7 @@ function toClassDirectStyleAnchor(
         graph,
         provenance,
         diagramScope,
-        STATEMENT_KINDS.filter((kind) => kind !== "classSpatial" && kind !== "namespaceSpatial")
+        STATEMENT_KINDS.filter((kind) => kind !== "classSpatial")
       )
     ) ??
     anchorBlockOpening(diagramScope)

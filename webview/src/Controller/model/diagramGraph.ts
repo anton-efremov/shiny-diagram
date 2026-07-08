@@ -151,9 +151,7 @@ export type NamespaceNode = {
   readonly name: string; // Mermaid: `namespace Domain`
   readonly label: string; // Mermaid: `namespace Domain["Domain Layer"]` (equals name when no label provided)
   readonly parentNamespaceId: NamespaceId | null; // Mermaid: `namespace Root { namespace Child { ... } }` OR `namespace Root.Child { ... }`
-
-  // Shiny: `%% @spatial:Domain x=... y=... w=... h=...`
-  readonly spatial: SpatialAttachment | null;
+  readonly style: StyleProperties | null; // Shiny: `%% @style:Domain fill=...`
 };
 
 // Mermaid: `note "Standalone note"` OR `note for User "Attached note"`

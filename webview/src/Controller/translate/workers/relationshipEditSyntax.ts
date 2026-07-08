@@ -174,10 +174,6 @@ function statementCandidates(
       ref: { kind: "classSpatial" as const, classId },
       location: record.self,
     })),
-    ...[...provenance.namespaceSpatial.entries()].map(([namespaceId, record]) => ({
-      ref: { kind: "namespaceSpatial" as const, namespaceId },
-      location: record.self,
-    })),
     ...[...provenance.notes.entries()].map(([noteId, record]) => ({
       ref: { kind: "note" as const, noteId },
       location: record.self,

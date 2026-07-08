@@ -4,9 +4,11 @@
 
 import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import type { ClassId, NoteId, RelationshipId, StyleDefId } from "../../../shared/ids";
+import type { ClassId, NamespaceId, NoteId, RelationshipId, StyleDefId } from "../../../shared/ids";
+import type { Rect } from "../../../shared/geometry";
 import type {
   EditingState,
+  NamespaceGestureState,
   NodePlacementState,
   NoteAttachState,
   RelationshipSeed,
@@ -24,6 +26,17 @@ import {
 type Interactions = {
   readonly onClassPlacementStart: () => void;
   readonly onNotePlacementStart: () => void;
+  readonly onNamespacePlacementStart: () => void;
+  readonly onNamespaceGestureCancel: () => void;
+  readonly onNamespaceGestureChange: (rect: Rect) => void;
+  readonly onNamespaceCreateCommitted: (result: TransactionResult | null) => void;
+  readonly onNamespaceResizeStart: (namespaceId: NamespaceId, rect: Rect) => void;
+  readonly onNamespaceResizeCommitted: (result: TransactionResult | null) => void;
+  readonly onNamespaceRenameCommitted: (
+    result: TransactionResult,
+    previousNamespaceId: NamespaceId
+  ) => void;
+  readonly onNamespaceSelect: (namespaceId: NamespaceId) => void;
   readonly onRelationshipPlacementStart: (seed: RelationshipSeed) => void;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
   readonly onClassMoved: (classId: ClassId) => void;
@@ -59,6 +72,7 @@ type UseInteractionsInput = {
   readonly setNodePlacementState: Dispatch<SetStateAction<NodePlacementState>>;
   readonly setEditingState: Dispatch<SetStateAction<EditingState>>;
   readonly setNoteAttachState: Dispatch<SetStateAction<NoteAttachState>>;
+  readonly setNamespaceGestureState: Dispatch<SetStateAction<NamespaceGestureState>>;
 };
 
 export function useInteractions({
@@ -70,6 +84,7 @@ export function useInteractions({
   setNodePlacementState,
   setEditingState,
   setNoteAttachState,
+  setNamespaceGestureState,
 }: UseInteractionsInput): Interactions {
   const dispatchTransaction = useDispatchTransaction();
 
@@ -81,6 +96,33 @@ export function useInteractions({
   const onNotePlacementStart = useCallback(() => {
     setNodePlacementState((state) => updateNodePlacementState(state, { kind: "note" }));
   }, [setNodePlacementState]);
+
+  const onNamespacePlacementStart = useCallback(() => {
+    setSelectionState((state) => clearSelectionState(state));
+    setNodePlacementState(null);
+    setNamespaceGestureState({ kind: "creating", rect: { x: 0, y: 0, w: 0, h: 0 } });
+  }, [setNamespaceGestureState, setNodePlacementState, setSelectionState]);
+
+  const onNamespaceGestureCancel = useCallback(() => {
+    setNamespaceGestureState({ kind: "none" });
+  }, [setNamespaceGestureState]);
+
+  const onNamespaceGestureChange = useCallback(
+    (rect: Rect) => {
+      setNamespaceGestureState((state) =>
+        state.kind === "resizing" ? { ...state, rect } : { kind: "creating", rect }
+      );
+    },
+    [setNamespaceGestureState]
+  );
+
+  const onNamespaceResizeStart = useCallback(
+    (namespaceId: NamespaceId, rect: Rect) => {
+      setSelectionState({ kind: "namespace", namespaceId });
+      setNamespaceGestureState({ kind: "resizing", namespaceId, rect });
+    },
+    [setNamespaceGestureState, setSelectionState]
+  );
 
   const onRelationshipPlacementStart = useCallback(
     (seed: RelationshipSeed) => {
@@ -166,6 +208,40 @@ export function useInteractions({
     [setSelectionState]
   );
 
+  const onNamespaceCreateCommitted = useCallback(
+    (result: TransactionResult | null) => {
+      const createdNamespaceId =
+        result?.status === "committed" ? result.outcome.namespaces.created.at(-1) : undefined;
+      setNamespaceGestureState({ kind: "none" });
+      if (!createdNamespaceId) return;
+      setSelectionState({ kind: "namespace", namespaceId: createdNamespaceId });
+    },
+    [setNamespaceGestureState, setSelectionState]
+  );
+
+  const onNamespaceResizeCommitted = useCallback(
+    (result: TransactionResult | null) => {
+      setNamespaceGestureState({ kind: "none" });
+      if (result?.status !== "committed") return;
+      setSelectionState((selectionState) =>
+        selectionState.kind === "namespace" ? selectionState : { kind: "none" }
+      );
+    },
+    [setNamespaceGestureState, setSelectionState]
+  );
+
+  const onNamespaceRenameCommitted = useCallback(
+    (result: TransactionResult, previousNamespaceId: NamespaceId) => {
+      if (result.status !== "committed") return;
+      const nextNamespaceId = result.outcome.namespaces.renamed.find(
+        (renamed) => renamed.from === previousNamespaceId
+      )?.to;
+      if (!nextNamespaceId) return;
+      setSelectionState({ kind: "namespace", namespaceId: nextNamespaceId });
+    },
+    [setSelectionState]
+  );
+
   const onRelationshipConnect = useCallback(
     (sourceClassId: ClassId, targetClassId: ClassId) => {
       if (nodePlacementState?.kind !== "relationship") return;
@@ -236,6 +312,13 @@ export function useInteractions({
     [setSelectionState]
   );
 
+  const onNamespaceSelect = useCallback(
+    (namespaceId: NamespaceId) => {
+      setSelectionState({ kind: "namespace", namespaceId });
+    },
+    [setSelectionState]
+  );
+
   const onBackgroundClick = useCallback(() => {
     if (noteAttachState.kind === "attaching") {
       setNoteAttachState({ kind: "none" });
@@ -292,6 +375,14 @@ export function useInteractions({
   return {
     onClassPlacementStart,
     onNotePlacementStart,
+    onNamespacePlacementStart,
+    onNamespaceGestureCancel,
+    onNamespaceGestureChange,
+    onNamespaceCreateCommitted,
+    onNamespaceResizeStart,
+    onNamespaceResizeCommitted,
+    onNamespaceRenameCommitted,
+    onNamespaceSelect,
     onRelationshipPlacementStart,
     onClassSelect,
     onClassMoved,

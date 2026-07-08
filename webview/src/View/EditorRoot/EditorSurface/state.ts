@@ -4,6 +4,7 @@
 
 import type {
   EditingState,
+  NamespaceGestureState,
   NodePlacementState,
   NoteAttachState,
   SelectionState,
@@ -23,5 +24,9 @@ export function toInitialEditingState(): EditingState {
 }
 
 export function toInitialNoteAttachState(): NoteAttachState {
+  return { kind: "none" };
+}
+
+export function toInitialNamespaceGestureState(): NamespaceGestureState {
   return { kind: "none" };
 }

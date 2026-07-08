@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toAttributeId, toClassId, toMethodId } from "../../shared/ids";
+import { toAttributeId, toClassId, toMethodId, toNamespaceId } from "../../shared/ids";
 import { composeNoteId } from "../model/noteIdentity";
 import { parseDiagram } from "./parseDiagram";
 
@@ -165,6 +165,45 @@ class Map~K, V~ {
       'Class "Map" annotation must not contain whitespace: domain model',
     ]);
   });
+
+  it("rejects relationship statements inside class blocks", () => {
+    const result = parseDiagram(`classDiagram
+class UserContact {
+  +UUID id
+  ConversationThread_1 "0..1" -- ConversationThread_2 : Hi
+}
+%% @spatial:UserContact x=10 y=20 w=220 h=160
+%% @spatial:ConversationThread_1 x=260 y=20 w=220 h=160
+%% @spatial:ConversationThread_2 x=510 y=20 w=220 h=160
+`);
+
+    expect(result.status).toBe("invalidSyntax");
+    if (result.status !== "invalidSyntax") return;
+
+    expect(result.diagnostics.map((diagnostic) => diagnostic.message)).toEqual([
+      'Invalid statement inside class block at line 4: ConversationThread_1 "0..1" -- ConversationThread_2 : Hi',
+    ]);
+  });
+
+  it("rejects nested class declarations inside class blocks", () => {
+    const result = parseDiagram(`classDiagram
+class UserContact {
+  +UUID id
+  class ConversationThread {
+    +UUID id
+  }
+}
+%% @spatial:UserContact x=10 y=20 w=220 h=160
+%% @spatial:ConversationThread x=260 y=20 w=220 h=160
+`);
+
+    expect(result.status).toBe("invalidSyntax");
+    if (result.status !== "invalidSyntax") return;
+
+    expect(result.diagnostics.map((diagnostic) => diagnostic.message)).toEqual([
+      "Invalid statement inside class block at line 4: class ConversationThread {",
+    ]);
+  });
 });
 
 describe("parseDiagram notes", () => {
@@ -283,5 +322,126 @@ note "Unbound"
 
     expect(result.graph.notes.get(composeNoteId(0))?.spatial).toBeNull();
     expect(result.diagnostics.map((diagnostic) => diagnostic.kind)).toEqual(["orphanedAnnotation"]);
+  });
+});
+
+describe("parseDiagram namespaces", () => {
+  it("parses nested namespace blocks with fully-qualified parent chains", () => {
+    const result = parseDiagram(`classDiagram
+namespace Root {
+  namespace Child {
+    class User
+  }
+}
+%% @spatial:User x=10 y=20 w=220 h=160
+`);
+
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") return;
+
+    expect(result.graph.namespaces.get(toNamespaceId("Root"))?.parentNamespaceId).toBeNull();
+    expect(result.graph.namespaces.get(toNamespaceId("Root.Child"))?.parentNamespaceId).toBe(
+      "Root"
+    );
+    expect(result.graph.classes.get(toClassId("User"))?.parentNamespaceId).toBe("Root.Child");
+  });
+
+  it("maps dotted namespace form to generated ancestor namespaces", () => {
+    const result = parseDiagram(`classDiagram
+namespace Domain.Sub {
+  class User
+}
+%% @spatial:User x=10 y=20 w=220 h=160
+`);
+
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") return;
+
+    expect(result.graph.namespaces.get(toNamespaceId("Domain"))?.parentNamespaceId).toBeNull();
+    expect(result.graph.namespaces.get(toNamespaceId("Domain.Sub"))?.parentNamespaceId).toBe(
+      "Domain"
+    );
+    expect(result.graph.classes.get(toClassId("User"))?.parentNamespaceId).toBe("Domain.Sub");
+  });
+
+  it("accepts backtick namespace identities", () => {
+    const result = parseDiagram(`classDiagram
+namespace \`Domain Layer\` {
+  class User
+}
+%% @spatial:User x=10 y=20 w=220 h=160
+`);
+
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") return;
+
+    expect(result.graph.namespaces.has(toNamespaceId("Domain Layer"))).toBe(true);
+    expect(result.graph.classes.get(toClassId("User"))?.parentNamespaceId).toBe("Domain Layer");
+  });
+
+  it("keeps duplicate class namespace membership last-wins and reports a diagnostic", () => {
+    const result = parseDiagram(`classDiagram
+namespace First {
+  class User
+}
+namespace Second {
+  class User
+}
+%% @spatial:User x=10 y=20 w=220 h=160
+`);
+
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") return;
+
+    expect(result.graph.classes.get(toClassId("User"))?.parentNamespaceId).toBe("Second");
+    expect(result.diagnostics.map((diagnostic) => diagnostic.kind)).toContain(
+      "duplicateClassDeclaration"
+    );
+  });
+
+  it("rejects empty namespace blocks because Mermaid classStatements has no empty production", () => {
+    const result = parseDiagram(`classDiagram
+namespace Empty { }
+`);
+
+    expect(result.status).toBe("invalidSyntax");
+  });
+
+  it("preserves but does not honor legacy namespace spatial annotations", () => {
+    const result = parseDiagram(`classDiagram
+namespace Domain {
+  class User
+}
+%% @spatial:User x=10 y=20 w=220 h=160
+%% @spatial:Domain x=1 y=2 w=3 h=4
+`);
+
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") return;
+
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "orphanedAnnotation",
+          elementId: "Domain",
+        }),
+      ])
+    );
+  });
+
+  it("treats class style applications inside namespace bodies as class membership", () => {
+    const result = parseDiagram(`classDiagram
+classDef Important fill:#f9f
+namespace Domain {
+  class User:::Important
+}
+%% @spatial:User x=10 y=20 w=220 h=160
+`);
+
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") return;
+
+    expect(result.graph.classes.get(toClassId("User"))?.parentNamespaceId).toBe("Domain");
+    expect([...result.graph.styleApplications.values()][0]?.targetId).toBe(toClassId("User"));
   });
 });

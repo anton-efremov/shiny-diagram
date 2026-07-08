@@ -20,6 +20,7 @@ export function deriveClassBoxViews(model: DiagramGraph): ClassView[] {
 
     views.push({
       classId: node.id,
+      parentNamespaceId: node.parentNamespaceId,
       bounds: {
         x: node.spatial.position.x,
         y: node.spatial.position.y,

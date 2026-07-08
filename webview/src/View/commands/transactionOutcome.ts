@@ -17,7 +17,7 @@ Contract rules:
   (see `editorCommands.ts`).
 */
 
-import type { ClassId, NoteId, RelationshipId, StyleDefId } from "../../shared/ids";
+import type { ClassId, NamespaceId, NoteId, RelationshipId, StyleDefId } from "../../shared/ids";
 
 /** Identity changes of one kind reported for one transaction. */
 export type IdentityDelta<Id> = {
@@ -28,6 +28,7 @@ export type IdentityDelta<Id> = {
 /** Identity changes of all source-identity kinds reported for one transaction. */
 export type TransactionOutcome = {
   readonly classes: IdentityDelta<ClassId>;
+  readonly namespaces: IdentityDelta<NamespaceId>;
   readonly relationships: IdentityDelta<RelationshipId>;
   readonly notes: IdentityDelta<NoteId>;
   readonly styles: IdentityDelta<StyleDefId>;
@@ -36,6 +37,7 @@ export type TransactionOutcome = {
 /** Outcome of a transaction with no identity effect. */
 export const EMPTY_TRANSACTION_OUTCOME: TransactionOutcome = {
   classes: { renamed: [], created: [] },
+  namespaces: { renamed: [], created: [] },
   relationships: { renamed: [], created: [] },
   notes: { renamed: [], created: [] },
   styles: { renamed: [], created: [] },

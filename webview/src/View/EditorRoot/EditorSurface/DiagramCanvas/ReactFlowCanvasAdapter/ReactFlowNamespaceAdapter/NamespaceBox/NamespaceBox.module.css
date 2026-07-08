@@ -1,0 +1,78 @@
+/**
+ * @render Namespace hull box styling.
+ */
+
+.namespaceBox {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: var(--namespace-stroke-width) solid var(--namespace-stroke, var(--shiny-border));
+  border-style: var(--namespace-stroke-dasharray, solid);
+  background: var(--namespace-fill, var(--shiny-overlay-faint));
+  color: var(--namespace-color, var(--shiny-text));
+  font-family: var(--shiny-font-family);
+  font-size: var(--namespace-label-font-size);
+  pointer-events: auto;
+}
+
+.resizeHandle {
+  position: absolute;
+  width: var(--namespace-resize-handle-size);
+  height: var(--namespace-resize-handle-size);
+  padding: 0;
+  border: var(--namespace-stroke-width) solid var(--shiny-accent);
+  background: var(--shiny-surface);
+}
+
+.nw {
+  top: calc(-1 * var(--namespace-resize-handle-offset));
+  left: calc(-1 * var(--namespace-resize-handle-offset));
+  cursor: nwse-resize;
+}
+
+.ne {
+  top: calc(-1 * var(--namespace-resize-handle-offset));
+  right: calc(-1 * var(--namespace-resize-handle-offset));
+  cursor: nesw-resize;
+}
+
+.sw {
+  bottom: calc(-1 * var(--namespace-resize-handle-offset));
+  left: calc(-1 * var(--namespace-resize-handle-offset));
+  cursor: nesw-resize;
+}
+
+.se {
+  right: calc(-1 * var(--namespace-resize-handle-offset));
+  bottom: calc(-1 * var(--namespace-resize-handle-offset));
+  cursor: nwse-resize;
+}
+
+.selected {
+  border-color: var(--shiny-accent);
+  box-shadow: inset 0 0 0 var(--namespace-selection-ring-width) var(--shiny-accent);
+}
+
+.pendingMember {
+  outline: var(--namespace-pending-stroke-width) solid var(--namespace-pending-stroke);
+  outline-offset: var(--namespace-pending-outline-offset);
+}
+
+.labelBand {
+  box-sizing: border-box;
+  height: var(--namespace-label-band-height);
+  padding: var(--namespace-label-padding-y) var(--namespace-label-padding-x);
+  overflow: hidden;
+  border-bottom: var(--namespace-stroke-width) solid var(--namespace-stroke, var(--shiny-border));
+  background: color-mix(
+    in srgb,
+    var(--namespace-fill, var(--shiny-surface)) var(--namespace-label-band-fill-mix),
+    transparent
+  );
+  font-weight: var(--namespace-label-font-weight);
+  line-height: var(--namespace-label-line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

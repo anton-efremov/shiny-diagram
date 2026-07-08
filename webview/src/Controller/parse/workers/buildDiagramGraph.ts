@@ -2,7 +2,9 @@
  * @fileoverview Builds the Controller diagram graph and provenance index from parser tokens.
  */
 
-import { toClassId, toDiagramId, toLollipopInterfaceId } from "../../../shared/ids";
+import { toClassId, toDiagramId, toLollipopInterfaceId, toNamespaceId } from "../../../shared/ids";
+import type { NamespaceId } from "../../../shared/ids";
+import type { EditorDiagnostic } from "../parseResult";
 import { IDENTITY_PATTERN, readIdentity } from "../../model/identitySpelling";
 import { composeNoteId } from "../../model/noteIdentity";
 import {
@@ -26,6 +28,7 @@ import type {
   ClassRecord,
   LollipopInterfaceRecord,
   NamespaceRecord,
+  NamespaceStyleRecord,
   NoteRecord,
   ProvenanceIndex,
   RelationshipRecord,
@@ -54,7 +57,9 @@ type MutableGraphBuild = {
   readonly lollipopInterfaces: Map<ClassNode["id"], LollipopInterface[]>;
   readonly styleApplications: Map<StyleApplicationEdge["id"], StyleApplicationEdge>;
   readonly inNamespaceEdges: InNamespaceEdge[];
+  readonly diagnostics: EditorDiagnostic[];
   readonly directStyleProperties: Map<ClassNode["id"], StyleProperties>;
+  readonly namespaceStyleProperties: Map<NamespaceNode["id"], StyleProperties>;
   readonly provenance: {
     readonly classes: Map<ClassNode["id"], ClassRecord>;
     readonly blockMembers: Map<
@@ -66,6 +71,7 @@ type MutableGraphBuild = {
       ShortMemberRecord
     >;
     readonly namespaces: Map<NamespaceNode["id"], NamespaceRecord>;
+    readonly namespaceStyles: Map<NamespaceNode["id"], NamespaceStyleRecord>;
     readonly styleDefinitions: Map<StyleDefNode["id"], StyleDefRecord>;
     readonly relationships: Map<RelationshipEdge["id"], RelationshipRecord>;
     readonly notes: Map<NoteNode["id"], NoteRecord>;
@@ -80,6 +86,7 @@ type MutableGraphBuild = {
 export type GraphBuildResult = {
   readonly graph: DiagramGraph;
   readonly provenance: ProvenanceIndex;
+  readonly diagnostics: readonly EditorDiagnostic[];
 };
 
 export function buildSpatiallyUnawareDiagramGraph(tokens: ParseToken[]): GraphBuildResult {
@@ -92,12 +99,15 @@ export function buildSpatiallyUnawareDiagramGraph(tokens: ParseToken[]): GraphBu
     lollipopInterfaces: new Map(),
     styleApplications: new Map(),
     inNamespaceEdges: [],
+    diagnostics: [],
     directStyleProperties: new Map(),
+    namespaceStyleProperties: new Map(),
     provenance: {
       classes: new Map(),
       blockMembers: new Map(),
       shortMembers: new Map(),
       namespaces: new Map(),
+      namespaceStyles: new Map(),
       styleDefinitions: new Map(),
       relationships: new Map(),
       notes: new Map(),
@@ -109,24 +119,38 @@ export function buildSpatiallyUnawareDiagramGraph(tokens: ParseToken[]): GraphBu
     },
   };
 
-  traverseTokens(tokens, build);
+  traverseTokens(tokens, build, null);
   synthesizeImplicitClassNodes(build);
   attachLollipopInterfaces(build);
   attachDirectStyles(build);
+  attachNamespaceStyles(build);
   attachNamespaceMembership(build);
 
   return {
     graph: toDiagramGraph(build),
     provenance: toProvenanceIndex(tokens, build),
+    diagnostics: build.diagnostics,
   };
 }
 
-function traverseTokens(tokens: readonly ParseToken[], build: MutableGraphBuild): void {
+function traverseTokens(
+  tokens: readonly ParseToken[],
+  build: MutableGraphBuild,
+  parentNamespaceId: NamespaceId | null
+): void {
   for (const token of tokens) {
     switch (token.type) {
       case "classDeclaration": {
         const parsed = buildClassNode(token);
         if (parsed) {
+          const existing = build.classes.get(parsed.node.id);
+          if (existing?.parentNamespaceId && existing.parentNamespaceId !== parentNamespaceId) {
+            build.diagnostics.push({
+              kind: "duplicateClassDeclaration",
+              elementId: parsed.node.id,
+              message: `Class "${parsed.node.id}" is declared in multiple namespaces; the last declaration wins`,
+            });
+          }
           build.classes.set(parsed.node.id, parsed.node);
           build.provenance.classes.set(
             parsed.node.id,
@@ -213,23 +237,35 @@ function traverseTokens(tokens: readonly ParseToken[], build: MutableGraphBuild)
         break;
       }
       case "namespace": {
-        const parsed = buildNamespaceNode(token);
+        const parsed = buildNamespaceNode(token, parentNamespaceId);
         if (parsed) {
-          build.namespaces.set(parsed.node.id, parsed.node);
-          build.provenance.namespaces.set(parsed.node.id, {
+          for (const node of parsed.nodes) {
+            build.namespaces.set(node.id, build.namespaces.get(node.id) ?? node);
+          }
+          build.provenance.namespaces.set(parsed.explicitNode.id, {
             self: parsed.location,
             header: toHeaderLocation(token),
             body: toBodyLocation(token),
             fields: { declaredName: toDeclaredNameLocation(token, "namespace") },
           });
         }
-        build.inNamespaceEdges.push(...buildInNamespaceEdges(token));
+        build.inNamespaceEdges.push(...buildInNamespaceEdges(token, parentNamespaceId));
+        break;
+      }
+      case "namespaceStyleAnnotation": {
+        const parsed = parseNamespaceStyleAnnotation(token);
+        if (parsed) {
+          build.namespaceStyleProperties.set(parsed.namespaceId, parsed.properties);
+          build.provenance.namespaceStyles.set(parsed.namespaceId, parsed.record);
+        }
         break;
       }
     }
 
-    if (token.blockTokens) {
-      traverseTokens(token.blockTokens, build);
+    if (token.blockTokens && token.type !== "classDeclaration") {
+      const parsed =
+        token.type === "namespace" ? buildNamespaceNode(token, parentNamespaceId) : null;
+      traverseTokens(token.blockTokens, build, parsed?.explicitNode.id ?? parentNamespaceId);
     }
   }
 }
@@ -241,6 +277,17 @@ function attachDirectStyles(build: MutableGraphBuild): void {
     build.classes.set(classId, {
       ...node,
       directStyle: properties,
+    });
+  }
+}
+
+function attachNamespaceStyles(build: MutableGraphBuild): void {
+  for (const [namespaceId, properties] of build.namespaceStyleProperties) {
+    const node = build.namespaces.get(namespaceId);
+    if (!node) continue;
+    build.namespaces.set(namespaceId, {
+      ...node,
+      style: properties,
     });
   }
 }
@@ -292,10 +339,23 @@ function toLollipopInterface(classId: ClassNode["id"], label: string): LollipopI
 
 function attachNamespaceMembership(build: MutableGraphBuild): void {
   for (const edge of build.inNamespaceEdges) {
-    const node = build.classes.get(edge.source);
-    if (!node) continue;
-    build.classes.set(edge.source, { ...node, parentNamespaceId: edge.target });
-    build.provenance.namespaceMemberships.set(edge.source, edge.location);
+    if (edge.sourceKind === "class") {
+      const node = build.classes.get(edge.source);
+      if (!node) continue;
+      if (node.parentNamespaceId && node.parentNamespaceId !== edge.target) {
+        build.diagnostics.push({
+          kind: "duplicateClassDeclaration",
+          elementId: edge.source,
+          message: `Class "${edge.source}" is declared in multiple namespaces; the last declaration wins`,
+        });
+      }
+      build.classes.set(edge.source, { ...node, parentNamespaceId: edge.target });
+      build.provenance.namespaceMemberships.set(edge.source, edge.location);
+    } else {
+      const node = build.namespaces.get(edge.source);
+      if (!node) continue;
+      build.namespaces.set(edge.source, { ...node, parentNamespaceId: edge.target });
+    }
   }
 }
 
@@ -345,6 +405,7 @@ function toProvenanceIndex(
     diagram: toDiagramRecord(tokens),
     classes: build.provenance.classes,
     namespaces: build.provenance.namespaces,
+    namespaceStyles: build.provenance.namespaceStyles,
     blockMembers: build.provenance.blockMembers,
     shortMembers: build.provenance.shortMembers,
     relationships: build.provenance.relationships,
@@ -353,7 +414,6 @@ function toProvenanceIndex(
     styleDefinitions: build.provenance.styleDefinitions,
     styleApplications: build.provenance.styleApplications,
     classSpatial: build.provenance.classSpatial,
-    namespaceSpatial: new Map(),
     noteAnnotations: new Map(),
     notes: build.provenance.notes,
   };
@@ -467,6 +527,29 @@ function parseClassDirectStyle(token: ParseToken): {
         target: toLineFieldLocation(token, match[1].length, match[1].length + match[2].length),
         propertyList: toLineFieldLocation(token, listStart, token.raw.length),
         properties: toStylePropertyFields(token, listStart, propertyList),
+      },
+    },
+  };
+}
+
+function parseNamespaceStyleAnnotation(token: ParseToken): {
+  readonly namespaceId: NamespaceNode["id"];
+  readonly properties: StyleProperties;
+  readonly record: NamespaceStyleRecord;
+} | null {
+  const match = new RegExp(`^(\\s*%%\\s+@style:)(${IDENTITY_PATTERN})(\\s+)(.*)$`).exec(token.raw);
+  if (!match) return null;
+
+  const namespaceId = toNamespaceId(readIdentity(match[2]));
+  const propertyListStart = match[1].length + match[2].length + match[3].length;
+  return {
+    namespaceId,
+    properties: parseStyleAnnotationProperties(match[4]),
+    record: {
+      self: toSourceSpan(token),
+      fields: {
+        target: toLineFieldLocation(token, match[1].length, match[1].length + match[2].length),
+        propertyList: toLineFieldLocation(token, propertyListStart, token.raw.length),
       },
     },
   };
@@ -669,6 +752,30 @@ function parseStyleProperties(propertiesStr: string): StyleProperties {
     const key = part.slice(0, colonIdx).trim();
     const value = part.slice(colonIdx + 1).trim();
 
+    const property = STYLE_PROPERTIES.find(
+      (styleProperty) => styleProperty.name === key || styleProperty.source === key
+    );
+    if (property) properties[property.name] = value;
+  }
+
+  return properties;
+}
+
+function parseStyleAnnotationProperties(propertiesStr: string): StyleProperties {
+  const properties: Record<keyof StyleProperties, string | null> = {
+    fill: null,
+    stroke: null,
+    strokeWidth: null,
+    strokeDasharray: null,
+    color: null,
+  };
+
+  for (const part of propertiesStr.split(/\s+/)) {
+    const equalsIdx = part.indexOf("=");
+    if (equalsIdx === -1) continue;
+
+    const key = part.slice(0, equalsIdx).trim();
+    const value = part.slice(equalsIdx + 1).trim();
     const property = STYLE_PROPERTIES.find(
       (styleProperty) => styleProperty.name === key || styleProperty.source === key
     );

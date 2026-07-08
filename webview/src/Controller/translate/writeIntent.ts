@@ -37,6 +37,7 @@ import type {
   StyleDefId,
 } from "../../shared/ids";
 import type { StylePropertyName } from "../../shared/style";
+import type { SourceSpan } from "../model/sourceEdit";
 
 // ============================================================================
 // References — a statement, an entry, a value, or an insertion anchor
@@ -52,9 +53,9 @@ export type StatementRef =
   | { readonly kind: "lollipopInterface"; readonly lollipopInterfaceId: LollipopInterfaceId }
   | { readonly kind: "styleDefinition"; readonly styleDefId: StyleDefId }
   | { readonly kind: "classDirectStyle"; readonly classId: ClassId }
+  | { readonly kind: "namespaceStyle"; readonly namespaceId: NamespaceId }
   | { readonly kind: "styleApplication"; readonly styleApplicationId: StyleApplicationId }
   | { readonly kind: "classSpatial"; readonly classId: ClassId }
-  | { readonly kind: "namespaceSpatial"; readonly namespaceId: NamespaceId }
   | { readonly kind: "note"; readonly noteId: NoteId }
   | { readonly kind: "noteAnnotation"; readonly noteId: NoteId };
 
@@ -114,6 +115,8 @@ export type ValueRef =
     }
   | { readonly kind: "styleApplicationTarget"; readonly styleApplicationId: StyleApplicationId }
   | { readonly kind: "styleApplicationName"; readonly styleApplicationId: StyleApplicationId }
+  | { readonly kind: "namespaceStyleTarget"; readonly namespaceId: NamespaceId }
+  | { readonly kind: "namespaceStyleProperties"; readonly namespaceId: NamespaceId }
   | { readonly kind: "spatialTarget"; readonly target: BlockRef }
   | {
       readonly kind: "spatialCoord";
@@ -179,9 +182,16 @@ export type ReplaceValueIntent = {
   readonly target: ValueRef;
 };
 
+/** Delete an exact source range. Reserved for post-pass structural cleanup. */
+export type DeleteRangeIntent = {
+  readonly kind: "deleteRange";
+  readonly target: SourceSpan;
+};
+
 export type WriteIntent =
   | InsertStatementIntent
   | DeleteStatementIntent
   | InsertEntryIntent
   | DeleteEntryIntent
-  | ReplaceValueIntent;
+  | ReplaceValueIntent
+  | DeleteRangeIntent;

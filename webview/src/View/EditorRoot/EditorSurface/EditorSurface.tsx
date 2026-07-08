@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import type {
   EditingState,
+  NamespaceGestureState,
   NodePlacementState,
   NoteAttachState,
   SelectionState,
@@ -17,6 +18,7 @@ import StylePane from "./StylePane/StylePane";
 import ToolPane from "./ToolPane/ToolPane";
 import {
   toInitialEditingState,
+  toInitialNamespaceGestureState,
   toInitialNodePlacementState,
   toInitialNoteAttachState,
   toInitialSelectionState,
@@ -41,14 +43,31 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
   const [noteAttachState, setNoteAttachState] = useState<NoteAttachState>(() =>
     toInitialNoteAttachState()
   );
+  const [namespaceGestureState, setNamespaceGestureState] = useState<NamespaceGestureState>(() =>
+    toInitialNamespaceGestureState()
+  );
 
   // State reconciliation
-  useStateReconciliation({ view, setSelectionState, setEditingState, setNoteAttachState });
+  useStateReconciliation({
+    view,
+    setSelectionState,
+    setEditingState,
+    setNoteAttachState,
+    setNamespaceGestureState,
+  });
 
   // Event handler props derivation
   const {
     onClassPlacementStart,
     onNotePlacementStart,
+    onNamespacePlacementStart,
+    onNamespaceGestureCancel,
+    onNamespaceGestureChange,
+    onNamespaceCreateCommitted,
+    onNamespaceResizeStart,
+    onNamespaceResizeCommitted,
+    onNamespaceRenameCommitted,
+    onNamespaceSelect,
     onRelationshipPlacementStart,
     onClassSelect,
     onClassMoved,
@@ -76,28 +95,40 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
     setNodePlacementState,
     setEditingState,
     setNoteAttachState,
+    setNamespaceGestureState,
   });
 
   // Keystroke listener registration
   useEffect(() => {
-    if (noteAttachState.kind !== "attaching") return;
+    if (noteAttachState.kind !== "attaching" && namespaceGestureState.kind === "none") return;
 
     function handleKeyDown(event: KeyboardEvent): void {
       if (event.key !== "Escape") return;
       event.preventDefault();
+      if (namespaceGestureState.kind !== "none") {
+        onNamespaceGestureCancel();
+        return;
+      }
       onNoteAttachCancel();
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [noteAttachState.kind, onNoteAttachCancel]);
+  }, [
+    namespaceGestureState.kind,
+    noteAttachState.kind,
+    onNamespaceGestureCancel,
+    onNoteAttachCancel,
+  ]);
 
   return (
     <section className={styles.editorShell} aria-label="Class diagram editor">
       <ToolPane
         nodePlacementState={nodePlacementState}
+        namespaceGestureState={namespaceGestureState}
         onClassPlacementStart={onClassPlacementStart}
         onNotePlacementStart={onNotePlacementStart}
+        onNamespacePlacementStart={onNamespacePlacementStart}
         onRelationshipPlacementStart={onRelationshipPlacementStart}
       />
       <div className={styles.canvasRegion}>
@@ -107,6 +138,7 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
           editingState={editingState}
           nodePlacementState={nodePlacementState}
           noteAttachState={noteAttachState}
+          namespaceGestureState={namespaceGestureState}
           onClassSelect={onClassSelect}
           onClassMoved={onClassMoved}
           onNoteSelect={onNoteSelect}
@@ -118,6 +150,12 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
           onBackgroundClick={onBackgroundClick}
           onConnectAborted={onConnectAborted}
           onPlacementComplete={onPlacementComplete}
+          onNamespaceGestureCancel={onNamespaceGestureCancel}
+          onNamespaceGestureChange={onNamespaceGestureChange}
+          onNamespaceCreateCommitted={onNamespaceCreateCommitted}
+          onNamespaceResizeStart={onNamespaceResizeStart}
+          onNamespaceResizeCommitted={onNamespaceResizeCommitted}
+          onNamespaceSelect={onNamespaceSelect}
           onTextBlockEditStart={onTextBlockEditStart}
           onTextBlockEditCancel={onTextBlockEditCancel}
         />
@@ -128,6 +166,7 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
         onStyleSelect={onStyleSelect}
         onNoteAttachStart={onNoteAttachStart}
         onNoteDuplicateCommitted={onNoteDuplicateCommitted}
+        onNamespaceRenameCommitted={onNamespaceRenameCommitted}
         onRelationshipSelect={onRelationshipSelect}
         onRelationshipDuplicate={onRelationshipDuplicate}
       />

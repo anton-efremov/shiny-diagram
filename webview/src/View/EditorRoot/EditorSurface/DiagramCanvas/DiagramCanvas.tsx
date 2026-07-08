@@ -5,11 +5,13 @@
 
 import { useState } from "react";
 import type { ReactElement } from "react";
-import type { ClassId, NoteId, RelationshipId } from "../../../../shared/ids";
+import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../../../shared/ids";
+import type { Rect } from "../../../../shared/geometry";
 import type { TransactionResult } from "../../../commands/editorCommands";
 import type { DiagramView } from "../../../views/schema";
 import type {
   EditingState,
+  NamespaceGestureState,
   NodePlacementState,
   NoteAttachState,
   SelectionState,
@@ -27,6 +29,7 @@ type DiagramCanvasProps = {
   readonly editingState: EditingState;
   readonly nodePlacementState: NodePlacementState;
   readonly noteAttachState: NoteAttachState;
+  readonly namespaceGestureState: NamespaceGestureState;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
   readonly onClassMoved: (classId: ClassId) => void;
   readonly onNoteSelect: (noteId: NoteId) => void;
@@ -42,6 +45,12 @@ type DiagramCanvasProps = {
   readonly onBackgroundClick: () => void;
   readonly onConnectAborted: () => void;
   readonly onPlacementComplete: (result: TransactionResult | null) => void;
+  readonly onNamespaceGestureCancel: () => void;
+  readonly onNamespaceGestureChange: (rect: Rect) => void;
+  readonly onNamespaceCreateCommitted: (result: TransactionResult | null) => void;
+  readonly onNamespaceResizeStart: (namespaceId: NamespaceId, rect: Rect) => void;
+  readonly onNamespaceResizeCommitted: (result: TransactionResult | null) => void;
+  readonly onNamespaceSelect: (namespaceId: NamespaceId) => void;
   readonly onTextBlockEditStart: (
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
@@ -54,6 +63,7 @@ export default function DiagramCanvas({
   editingState,
   nodePlacementState,
   noteAttachState,
+  namespaceGestureState,
   onClassSelect,
   onClassMoved,
   onNoteSelect,
@@ -65,6 +75,12 @@ export default function DiagramCanvas({
   onBackgroundClick,
   onConnectAborted,
   onPlacementComplete,
+  onNamespaceGestureCancel,
+  onNamespaceGestureChange,
+  onNamespaceCreateCommitted,
+  onNamespaceResizeStart,
+  onNamespaceResizeCommitted,
+  onNamespaceSelect,
   onTextBlockEditStart,
   onTextBlockEditCancel,
 }: DiagramCanvasProps): ReactElement {
@@ -104,6 +120,7 @@ export default function DiagramCanvas({
           editingState={editingState}
           nodePlacementState={nodePlacementState}
           noteAttachState={noteAttachState}
+          namespaceGestureState={namespaceGestureState}
           classBoxPlacementState={classBoxPlacementState}
           noteBoxPlacementState={noteBoxPlacementState}
           onClassBoxPlacementChange={onClassBoxPlacementChange}
@@ -120,6 +137,12 @@ export default function DiagramCanvas({
           onBackgroundClick={onBackgroundClick}
           onConnectAborted={onConnectAborted}
           onPlacementComplete={onPlacementComplete}
+          onNamespaceGestureCancel={onNamespaceGestureCancel}
+          onNamespaceGestureChange={onNamespaceGestureChange}
+          onNamespaceCreateCommitted={onNamespaceCreateCommitted}
+          onNamespaceResizeStart={onNamespaceResizeStart}
+          onNamespaceResizeCommitted={onNamespaceResizeCommitted}
+          onNamespaceSelect={onNamespaceSelect}
           onTextBlockEditStart={onTextBlockEditStart}
           onTextBlockEditCancel={onTextBlockEditCancel}
         />

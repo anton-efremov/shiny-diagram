@@ -9,7 +9,8 @@ import ClassStylePane from "./ClassStylePane/ClassStylePane";
 import NoteStylePane from "./NoteStylePane/NoteStylePane";
 import RelationshipStylePane from "./RelationshipStylePane/RelationshipStylePane";
 import StyleStylePane from "./StyleStylePane/StyleStylePane";
-import type { NoteId, RelationshipId, StyleDefId } from "../../../../shared/ids";
+import NamespaceStylePane from "./NamespaceStylePane/NamespaceStylePane";
+import type { NamespaceId, NoteId, RelationshipId, StyleDefId } from "../../../../shared/ids";
 import type { TransactionResult } from "../../../commands/editorCommands";
 import type { RelationshipSeed } from "../../../state/editorStates";
 import type { SelectionState } from "../../../state/editorStates";
@@ -18,16 +19,21 @@ import type {
   DiagramView,
   NoteView,
   RelationshipView,
+  NamespaceView,
   StyleView,
 } from "../../../views/schema";
 import styles from "./StylePane.module.css";
 
 type StylePaneProps = {
-  readonly view: Pick<DiagramView, "classes" | "relationships" | "notes" | "styles">;
+  readonly view: Pick<DiagramView, "classes" | "relationships" | "notes" | "styles" | "namespaces">;
   readonly selectionState: SelectionState;
   readonly onStyleSelect: (styleDefId: StyleDefId) => void;
   readonly onNoteAttachStart: (noteId: NoteId) => void;
   readonly onNoteDuplicateCommitted: (result: TransactionResult) => void;
+  readonly onNamespaceRenameCommitted: (
+    result: TransactionResult,
+    previousNamespaceId: NamespaceId
+  ) => void;
   readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
   readonly onRelationshipDuplicate: (seed: RelationshipSeed) => void;
 };
@@ -51,6 +57,10 @@ type StylePaneScenario =
   | {
       readonly kind: "note";
       readonly selectedNote: NoteView;
+    }
+  | {
+      readonly kind: "namespace";
+      readonly selectedNamespace: NamespaceView;
     };
 
 export default function StylePane({
@@ -59,6 +69,7 @@ export default function StylePane({
   onStyleSelect,
   onNoteAttachStart,
   onNoteDuplicateCommitted,
+  onNamespaceRenameCommitted,
   onRelationshipSelect,
   onRelationshipDuplicate,
 }: StylePaneProps): ReactElement {
@@ -103,6 +114,14 @@ export default function StylePane({
         />
       );
       break;
+    case "namespace":
+      stylePaneContent = (
+        <NamespaceStylePane
+          view={stylePaneScenario.selectedNamespace}
+          onNamespaceRenameCommitted={onNamespaceRenameCommitted}
+        />
+      );
+      break;
   }
 
   return (
@@ -115,7 +134,7 @@ export default function StylePane({
 
 // Private helpers
 function toStylePaneScenario(
-  view: Pick<DiagramView, "classes" | "relationships" | "notes" | "styles">,
+  view: Pick<DiagramView, "classes" | "relationships" | "notes" | "styles" | "namespaces">,
   selectionState: SelectionState
 ): StylePaneScenario {
   switch (selectionState.kind) {
@@ -145,6 +164,12 @@ function toStylePaneScenario(
     case "note": {
       const selectedNote = view.notes.find((noteView) => noteView.noteId === selectionState.noteId);
       return selectedNote ? { kind: "note", selectedNote } : { kind: "empty" };
+    }
+    case "namespace": {
+      const selectedNamespace = view.namespaces.find(
+        (namespaceView) => namespaceView.namespaceId === selectionState.namespaceId
+      );
+      return selectedNamespace ? { kind: "namespace", selectedNamespace } : { kind: "empty" };
     }
   }
 }

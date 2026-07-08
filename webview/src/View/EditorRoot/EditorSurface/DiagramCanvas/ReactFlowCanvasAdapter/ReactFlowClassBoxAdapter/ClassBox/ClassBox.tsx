@@ -14,6 +14,15 @@ import { useInteractions } from "./useInteractions";
 import type { ClassId } from "../../../../../../../shared/ids";
 import type { EditingState } from "../../../../../../state/editorStates";
 import type { ClassView } from "../../../../../../views/schema";
+import {
+  CLASS_BOX_MIN_HEIGHT,
+  CLASS_BOX_MIN_WIDTH,
+  NAMESPACE_HALO_PADDING,
+  NAMESPACE_HALO_BORDER_RADIUS,
+  NAMESPACE_PENDING_OUTLINE_OFFSET,
+  NAMESPACE_PENDING_STROKE,
+  NAMESPACE_PENDING_STROKE_WIDTH,
+} from "../../../../../../config/editorUiConfig";
 import ValidationPopup from "../../../../../../ui/ValidationPopup/ValidationPopup";
 import styles from "./ClassBox.module.css";
 
@@ -23,6 +32,8 @@ type ClassBoxProps = {
   readonly isDragging: boolean;
   readonly isResizeVisible: boolean;
   readonly isConnectSourceEnabled: boolean;
+  readonly isPendingMember: boolean;
+  readonly haloColor: string | null;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
   readonly editingState: EditingState;
   readonly onTextBlockEditStart: (
@@ -54,6 +65,8 @@ export default function ClassBox({
   isDragging,
   isResizeVisible,
   isConnectSourceEnabled,
+  isPendingMember,
+  haloColor,
   onClassSelect,
   editingState,
   onTextBlockEditStart,
@@ -73,27 +86,33 @@ export default function ClassBox({
     styles.classBox,
     isSelected ? styles.selected : "",
     isDragging ? styles.dragging : "",
+    isPendingMember ? styles.pendingMember : "",
   ]
     .filter(Boolean)
     .join(" ");
 
-  const dynamicVars = view.style
-    ? ({
-        "--class-fill": view.style.fill ?? undefined,
-        "--class-stroke": view.style.stroke ?? undefined,
-        "--class-stroke-width": view.style.strokeWidth ?? undefined,
-        "--class-stroke-dasharray": view.style.strokeDasharray ?? undefined,
-        "--class-color": view.style.color ?? undefined,
-      } as CSSProperties)
-    : undefined;
+  const dynamicVars = {
+    "--class-fill": view.style?.fill ?? undefined,
+    "--class-stroke": view.style?.stroke ?? undefined,
+    "--class-stroke-width": view.style?.strokeWidth ?? undefined,
+    "--class-stroke-dasharray": view.style?.strokeDasharray ?? undefined,
+    "--class-color": view.style?.color ?? undefined,
+    "--namespace-halo-color": haloColor ?? undefined,
+    "--namespace-halo-padding": `${NAMESPACE_HALO_PADDING}px`,
+    "--namespace-halo-border-radius": `${NAMESPACE_HALO_BORDER_RADIUS}px`,
+    "--namespace-pending-stroke-width": `${NAMESPACE_PENDING_STROKE_WIDTH}px`,
+    "--namespace-pending-outline-offset": `${NAMESPACE_PENDING_OUTLINE_OFFSET}px`,
+    "--namespace-pending-stroke": NAMESPACE_PENDING_STROKE,
+  } as CSSProperties;
 
   return (
     <div className={className} style={dynamicVars} title={view.classId} onClick={onClassBoxClick}>
+      {haloColor ? <div className={styles.namespaceHalo} /> : null}
       <ReactFlowNodeResizerAdapter
         nodeId={view.classId}
         isVisible={isResizeVisible}
-        minWidth={80}
-        minHeight={48}
+        minWidth={CLASS_BOX_MIN_WIDTH}
+        minHeight={CLASS_BOX_MIN_HEIGHT}
         handleClassName={styles.resizeHandle}
         lineClassName={styles.resizeLine}
         onResizeEnd={onResizeEnd}

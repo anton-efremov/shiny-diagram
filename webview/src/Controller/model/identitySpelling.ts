@@ -7,8 +7,9 @@
  * the identity.
  */
 
-export const IDENTITY_PATTERN = String.raw`(?:\`[^\`]+\`|\w+)`;
+export const IDENTITY_PATTERN = String.raw`(?:\`[^\`]+\`|\w+(?:\.\w+)*)`;
 export const PLAIN_IDENTITY_PATTERN = /^\w+$/;
+export const PLAIN_NAMESPACE_IDENTITY_PATTERN = /^\w+(?:\.\w+)*$/;
 
 export function readIdentity(spelled: string): string {
   if (spelled.length >= 2 && spelled.startsWith("`") && spelled.endsWith("`")) {
@@ -19,4 +20,8 @@ export function readIdentity(spelled: string): string {
 
 export function spellIdentity(identity: string): string {
   return PLAIN_IDENTITY_PATTERN.test(identity) ? identity : `\`${identity}\``;
+}
+
+export function spellNamespaceIdentity(identity: string): string {
+  return PLAIN_NAMESPACE_IDENTITY_PATTERN.test(identity) ? identity : spellIdentity(identity);
 }
