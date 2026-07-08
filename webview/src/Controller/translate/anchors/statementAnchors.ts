@@ -37,6 +37,7 @@ export const STATEMENT_KINDS: readonly StatementKind[] = [
   "classSpatial",
   "namespaceSpatial",
   "note",
+  "noteAnnotation",
 ];
 
 // ============================================================================
@@ -117,7 +118,7 @@ function blockOf(graph: DiagramGraph, ref: StatementRef): BlockRef {
       return { kind: "diagram" };
     default:
       // relationship, styleDefinition, classDirectStyle, styleApplication,
-      // classSpatial, namespaceSpatial, note: only ever written at diagram level.
+      // classSpatial, namespaceSpatial, note, noteAnnotation: only ever written at diagram level.
       return { kind: "diagram" };
   }
 }
@@ -197,6 +198,8 @@ function anchorCandidatesOfKind(
       return candidatesFrom(provenance.namespaceSpatial, (namespaceId) => ({ kind, namespaceId }));
     case "note":
       return candidatesFrom(provenance.notes, (noteId) => ({ kind, noteId }));
+    case "noteAnnotation":
+      return candidatesFrom(provenance.noteAnnotations, (noteId) => ({ kind, noteId }));
   }
 }
 
@@ -238,6 +241,8 @@ function hasStatementRecord(provenance: ProvenanceIndex, statement: StatementRef
       return provenance.namespaceSpatial.has(statement.namespaceId);
     case "note":
       return provenance.notes.has(statement.noteId);
+    case "noteAnnotation":
+      return provenance.noteAnnotations.has(statement.noteId);
   }
 }
 

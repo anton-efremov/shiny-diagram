@@ -1,23 +1,33 @@
 /**
- * @behavior Selected class view slicing and style pane scenario routing.
+ * @behavior Selected diagram element view slicing and style pane scenario routing.
  * @render Style inspector pane.
  */
 
 import type { ReactElement } from "react";
 import EmptyStylePane from "./EmptyStylePane/EmptyStylePane";
 import ClassStylePane from "./ClassStylePane/ClassStylePane";
+import NoteStylePane from "./NoteStylePane/NoteStylePane";
 import RelationshipStylePane from "./RelationshipStylePane/RelationshipStylePane";
 import StyleStylePane from "./StyleStylePane/StyleStylePane";
-import type { RelationshipId, StyleDefId } from "../../../../shared/ids";
+import type { NoteId, RelationshipId, StyleDefId } from "../../../../shared/ids";
+import type { TransactionResult } from "../../../commands/editorCommands";
 import type { RelationshipSeed } from "../../../state/editorStates";
 import type { SelectionState } from "../../../state/editorStates";
-import type { ClassView, DiagramView, RelationshipView, StyleView } from "../../../views/schema";
+import type {
+  ClassView,
+  DiagramView,
+  NoteView,
+  RelationshipView,
+  StyleView,
+} from "../../../views/schema";
 import styles from "./StylePane.module.css";
 
 type StylePaneProps = {
-  readonly view: Pick<DiagramView, "classes" | "relationships" | "styles">;
+  readonly view: Pick<DiagramView, "classes" | "relationships" | "notes" | "styles">;
   readonly selectionState: SelectionState;
   readonly onStyleSelect: (styleDefId: StyleDefId) => void;
+  readonly onNoteAttachStart: (noteId: NoteId) => void;
+  readonly onNoteDuplicateCommitted: (result: TransactionResult) => void;
   readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
   readonly onRelationshipDuplicate: (seed: RelationshipSeed) => void;
 };
@@ -37,12 +47,18 @@ type StylePaneScenario =
   | {
       readonly kind: "relationship";
       readonly selectedRelationship: RelationshipView;
+    }
+  | {
+      readonly kind: "note";
+      readonly selectedNote: NoteView;
     };
 
 export default function StylePane({
   view,
   selectionState,
   onStyleSelect,
+  onNoteAttachStart,
+  onNoteDuplicateCommitted,
   onRelationshipSelect,
   onRelationshipDuplicate,
 }: StylePaneProps): ReactElement {
@@ -78,6 +94,15 @@ export default function StylePane({
         />
       );
       break;
+    case "note":
+      stylePaneContent = (
+        <NoteStylePane
+          view={stylePaneScenario.selectedNote}
+          onNoteAttachStart={onNoteAttachStart}
+          onNoteDuplicateCommitted={onNoteDuplicateCommitted}
+        />
+      );
+      break;
   }
 
   return (
@@ -90,7 +115,7 @@ export default function StylePane({
 
 // Private helpers
 function toStylePaneScenario(
-  view: Pick<DiagramView, "classes" | "relationships" | "styles">,
+  view: Pick<DiagramView, "classes" | "relationships" | "notes" | "styles">,
   selectionState: SelectionState
 ): StylePaneScenario {
   switch (selectionState.kind) {
@@ -116,6 +141,10 @@ function toStylePaneScenario(
       return selectedRelationship
         ? { kind: "relationship", selectedRelationship }
         : { kind: "empty" };
+    }
+    case "note": {
+      const selectedNote = view.notes.find((noteView) => noteView.noteId === selectionState.noteId);
+      return selectedNote ? { kind: "note", selectedNote } : { kind: "empty" };
     }
   }
 }

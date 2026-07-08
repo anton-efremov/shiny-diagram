@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { toAttributeId, toClassId, toMethodId } from "../../shared/ids";
+import { composeNoteId } from "../model/noteIdentity";
 import { parseDiagram } from "./parseDiagram";
 
 describe("parseDiagram member text blocks", () => {
@@ -163,5 +164,124 @@ class Map~K, V~ {
       'Class "Map" generic type must not contain a comma: K, V',
       'Class "Map" annotation must not contain whitespace: domain model',
     ]);
+  });
+});
+
+describe("parseDiagram notes", () => {
+  it("parses specification 3.1 notes with annotated free spatial and unannotated attached note", () => {
+    const result = parseDiagram(`classDiagram
+direction TB
+
+namespace Messaging {
+    class ConversationThread {
+        +UUID id
+    }
+
+    class TextMessage {
+        +UUID id
+    }
+}
+
+ConversationThread --> "*" TextMessage : contains
+note for ConversationThread "Persists all messages"
+
+%% @note: x=420 y=180 w=220 h=96
+note "External system boundary"
+
+%% @spatial:ConversationThread x=100 y=150 w=320 h=210
+%% @spatial:TextMessage x=500 y=150 w=300 h=250
+`);
+
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") return;
+
+    expect(result.graph.notes.get(composeNoteId(0))).toMatchObject({
+      text: "Persists all messages",
+      attachedToClassId: toClassId("ConversationThread"),
+      spatial: null,
+    });
+    expect(result.graph.notes.get(composeNoteId(1))).toMatchObject({
+      text: "External system boundary",
+      attachedToClassId: null,
+      spatial: { position: { x: 420, y: 180 }, size: { width: 220, height: 96 } },
+    });
+  });
+
+  it("parses free and attached notes, including backtick attachment targets", () => {
+    const result = parseDiagram(`classDiagram
+class \`Animal Class!\`
+%% @spatial:\`Animal Class!\` x=10 y=20 w=220 h=160
+%% @note: x=100 y=120 w=200 h=80
+note for \`Animal Class!\` "Attached"
+note "Free"
+`);
+
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") return;
+
+    expect(result.graph.notes.get(composeNoteId(0))).toMatchObject({
+      text: "Attached",
+      attachedToClassId: toClassId("Animal Class!"),
+      spatial: { position: { x: 100, y: 120 }, size: { width: 200, height: 80 } },
+    });
+    expect(result.graph.notes.get(composeNoteId(1))).toMatchObject({
+      text: "Free",
+      attachedToClassId: null,
+      spatial: null,
+    });
+    expect(result.provenance.notes.get(composeNoteId(0))?.fields.text).toEqual({
+      start: { line: 4, character: 26 },
+      end: { line: 4, character: 34 },
+    });
+  });
+
+  it("keeps backslashes literal in note text", () => {
+    const result = parseDiagram(String.raw`classDiagram
+class User
+%% @spatial:User x=10 y=20 w=220 h=160
+note "Line \n stays literal"
+`);
+
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") return;
+
+    expect(result.graph.notes.get(composeNoteId(0))?.text).toBe(String.raw`Line \n stays literal`);
+  });
+
+  it("records orphan and duplicate note annotation diagnostics without blocking readiness", () => {
+    const result = parseDiagram(`classDiagram
+class User
+%% @spatial:User x=10 y=20 w=220 h=160
+%% @note: x=1 y=2 w=3 h=4
+
+%% @note: x=10 y=20 w=30 h=40
+%% @note: x=50 y=60 w=70 h=80
+note "Nearest wins"
+`);
+
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") return;
+
+    expect(result.graph.notes.get(composeNoteId(0))?.spatial?.position).toEqual({ x: 50, y: 60 });
+    expect(result.diagnostics.map((diagnostic) => diagnostic.kind)).toEqual([
+      "duplicateAnnotation",
+      "orphanedAnnotation",
+    ]);
+  });
+
+  it("does not bind a note annotation across a blank line", () => {
+    const result = parseDiagram(`classDiagram
+class User
+%% @spatial:User x=10 y=20 w=220 h=160
+%% @note: x=10 y=20 w=30 h=40
+
+note "Unbound"
+`);
+
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") return;
+
+    expect(result.graph.notes.get(composeNoteId(0))?.spatial).toBeNull();
+    expect(result.diagnostics.map((diagnostic) => diagnostic.kind)).toEqual(["orphanedAnnotation"]);
   });
 });

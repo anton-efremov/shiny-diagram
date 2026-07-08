@@ -5,6 +5,7 @@
 import type { ParseResult } from "./parseResult";
 import type { EditorDiagnostic } from "./parseResult";
 import { buildSpatiallyUnawareDiagramGraph } from "./workers/buildDiagramGraph";
+import { attachNoteAnnotations } from "./workers/noteAnnotations";
 import { attachSpatial, parseSpatialAnnotations } from "./workers/spatialAnnotations";
 import { tokenize, type ParseToken } from "./workers/tokenizer";
 import { validateTextBlocks } from "./workers/validateTextBlocks";
@@ -29,11 +30,16 @@ export function parseDiagram(source: string): ParseResult {
 
     const spatiallyUnaware = buildSpatiallyUnawareDiagramGraph(tokens);
     const { valid, malformed } = parseSpatialAnnotations(tokens);
-    const { graph, provenance } = attachSpatial(
+    const spatiallyAware = attachSpatial(
       spatiallyUnaware.graph,
       spatiallyUnaware.provenance,
       valid
     );
+    const {
+      graph,
+      provenance,
+      diagnostics: noteDiagnostics,
+    } = attachNoteAnnotations(spatiallyAware.graph, spatiallyAware.provenance, tokens);
     const validationDiagnostics = validateTextBlocks(graph);
     if (validationDiagnostics.length > 0) {
       return { status: "invalidSyntax", diagnostics: validationDiagnostics };
@@ -51,13 +57,13 @@ export function parseDiagram(source: string): ParseResult {
         status: "missingAnnotations",
         graph,
         provenance,
-        diagnostics: [],
+        diagnostics: noteDiagnostics,
         missingIds,
         malformedAnnotations,
       };
     }
 
-    return { status: "ready", graph, provenance, diagnostics: [] };
+    return { status: "ready", graph, provenance, diagnostics: noteDiagnostics };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown parse error";
     return { status: "invalidSyntax", diagnostics: [{ kind: "syntaxError", message }] };

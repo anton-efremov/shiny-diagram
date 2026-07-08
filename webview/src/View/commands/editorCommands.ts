@@ -35,7 +35,6 @@ import type {
 } from "../../shared/ids";
 import type { AttachmentSide, Point, SpatialAttachment } from "../../shared/geometry";
 import type { InteractionAttachment } from "../../shared/interaction";
-import type { NoteSpatial } from "../../shared/notes";
 import type { StyleProperties, StylePropertyName } from "../../shared/style";
 import type {
   ClassAnnotation,
@@ -327,7 +326,8 @@ export type EditorCommand =
   | {
       readonly type: "note.create";
       readonly text: string;
-      readonly spatial: NoteSpatial;
+      readonly spatial: SpatialAttachment;
+      readonly attachedToClassId: ClassId | null;
     }
   | {
       readonly type: "note.delete";
@@ -341,7 +341,16 @@ export type EditorCommand =
   | {
       readonly type: "note.spatial.set";
       readonly noteId: NoteId;
-      readonly spatial: NoteSpatial;
+      readonly spatial: SpatialAttachment;
+    }
+  | {
+      readonly type: "note.attachment.set";
+      readonly noteId: NoteId;
+      readonly attachedToClassId: ClassId | null;
+    }
+  | {
+      readonly type: "note.duplicate";
+      readonly noteId: NoteId;
     }
 
   // ==========================================================================

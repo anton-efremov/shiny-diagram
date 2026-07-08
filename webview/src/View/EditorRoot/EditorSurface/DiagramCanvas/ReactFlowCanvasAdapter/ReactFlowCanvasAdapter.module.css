@@ -10,3 +10,7 @@
 :global(.react-flow__node-classBox) {
   overflow: visible;
 }
+
+:global(.react-flow__node-noteBox) {
+  overflow: visible;
+}

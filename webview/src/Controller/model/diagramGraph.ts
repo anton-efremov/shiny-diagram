@@ -60,7 +60,6 @@ import type {
 } from "../../shared/ids";
 import type { AttachmentSide, SpatialAttachment } from "../../shared/geometry";
 import type { InteractionAttachment } from "../../shared/interaction";
-import type { NoteSpatial } from "../../shared/notes";
 import type { StyleProperties } from "../../shared/style";
 import type {
   ClassAnnotation,
@@ -162,7 +161,8 @@ export type NoteNode = {
   readonly kind: "note";
   readonly id: NoteId;
   readonly text: string; // Mermaid: note body text
-  readonly spatial: NoteSpatial | null;
+  readonly attachedToClassId: ClassId | null; // Mermaid: `note for User`
+  readonly spatial: SpatialAttachment | null;
 };
 
 // Mermaid: `classDef Important fill:#f9f,stroke:#333,stroke-width:4px,font-size:12pt`

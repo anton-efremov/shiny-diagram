@@ -59,7 +59,13 @@ export default function ShinyController({
       };
     }
 
-    const diagram = diagramView ?? { classes: [], namespaces: [], relationships: [], styles: [] };
+    const diagram = diagramView ?? {
+      classes: [],
+      namespaces: [],
+      relationships: [],
+      notes: [],
+      styles: [],
+    };
     if (parseResult.status === "missingAnnotations") {
       return {
         status: "missingAnnotations",

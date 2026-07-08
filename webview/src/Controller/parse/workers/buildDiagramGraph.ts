@@ -4,6 +4,7 @@
 
 import { toClassId, toDiagramId, toLollipopInterfaceId } from "../../../shared/ids";
 import { IDENTITY_PATTERN, readIdentity } from "../../model/identitySpelling";
+import { composeNoteId } from "../../model/noteIdentity";
 import {
   STYLE_PROPERTIES,
   type StyleProperties,
@@ -14,6 +15,7 @@ import type {
   DiagramGraph,
   LollipopInterface,
   NamespaceNode,
+  NoteNode,
   RelationshipEdge,
   StyleApplicationEdge,
   StyleDefNode,
@@ -24,6 +26,7 @@ import type {
   ClassRecord,
   LollipopInterfaceRecord,
   NamespaceRecord,
+  NoteRecord,
   ProvenanceIndex,
   RelationshipRecord,
   ShortMemberRecord,
@@ -47,6 +50,7 @@ type MutableGraphBuild = {
   readonly styleDefinitions: Map<StyleDefNode["id"], StyleDefNode>;
   readonly namespaces: Map<NamespaceNode["id"], NamespaceNode>;
   readonly relationships: Map<RelationshipEdge["id"], RelationshipEdge>;
+  readonly notes: Map<NoteNode["id"], NoteNode>;
   readonly lollipopInterfaces: Map<ClassNode["id"], LollipopInterface[]>;
   readonly styleApplications: Map<StyleApplicationEdge["id"], StyleApplicationEdge>;
   readonly inNamespaceEdges: InNamespaceEdge[];
@@ -64,6 +68,7 @@ type MutableGraphBuild = {
     readonly namespaces: Map<NamespaceNode["id"], NamespaceRecord>;
     readonly styleDefinitions: Map<StyleDefNode["id"], StyleDefRecord>;
     readonly relationships: Map<RelationshipEdge["id"], RelationshipRecord>;
+    readonly notes: Map<NoteNode["id"], NoteRecord>;
     readonly lollipopInterfaces: Map<LollipopInterface["id"], LollipopInterfaceRecord>;
     readonly classDirectStyles: Map<ClassNode["id"], ClassDirectStyleRecord>;
     readonly classSpatial: Map<ClassNode["id"], SpatialRecord>;
@@ -83,6 +88,7 @@ export function buildSpatiallyUnawareDiagramGraph(tokens: ParseToken[]): GraphBu
     styleDefinitions: new Map(),
     namespaces: new Map(),
     relationships: new Map(),
+    notes: new Map(),
     lollipopInterfaces: new Map(),
     styleApplications: new Map(),
     inNamespaceEdges: [],
@@ -94,6 +100,7 @@ export function buildSpatiallyUnawareDiagramGraph(tokens: ParseToken[]): GraphBu
       namespaces: new Map(),
       styleDefinitions: new Map(),
       relationships: new Map(),
+      notes: new Map(),
       lollipopInterfaces: new Map(),
       classDirectStyles: new Map(),
       classSpatial: new Map(),
@@ -194,6 +201,14 @@ function traverseTokens(tokens: readonly ParseToken[], build: MutableGraphBuild)
             self: parsed.location,
             fields: { label: parsed.location },
           });
+        }
+        break;
+      }
+      case "noteStatement": {
+        const parsed = buildNoteNode(token, build.notes.size);
+        if (parsed) {
+          build.notes.set(parsed.node.id, parsed.node);
+          build.provenance.notes.set(parsed.node.id, parsed.record);
         }
         break;
       }
@@ -316,7 +331,7 @@ function toDiagramGraph(build: MutableGraphBuild): DiagramGraph {
     classes: build.classes,
     namespaces: build.namespaces,
     relationships: build.relationships,
-    notes: new Map(),
+    notes: build.notes,
     styleDefinitions: build.styleDefinitions,
     styleApplications: build.styleApplications,
   };
@@ -339,7 +354,8 @@ function toProvenanceIndex(
     styleApplications: build.provenance.styleApplications,
     classSpatial: build.provenance.classSpatial,
     namespaceSpatial: new Map(),
-    notes: new Map(),
+    noteAnnotations: new Map(),
+    notes: build.provenance.notes,
   };
 }
 
@@ -454,6 +470,60 @@ function parseClassDirectStyle(token: ParseToken): {
       },
     },
   };
+}
+
+function buildNoteNode(
+  token: ParseToken,
+  ordinal: number
+): { readonly node: NoteNode; readonly record: NoteRecord } | null {
+  const parsed = parseNoteStatement(token.raw);
+  if (!parsed) return null;
+
+  const id = composeNoteId(ordinal);
+  return {
+    node: {
+      kind: "note",
+      id,
+      text: parsed.text,
+      attachedToClassId: parsed.attachedToClassId,
+      spatial: null,
+    },
+    record: {
+      self: toSourceSpan(token),
+      fields: {
+        text: toLineFieldLocation(token, parsed.textStart, parsed.textEnd),
+      },
+    },
+  };
+}
+
+export function parseNoteStatement(raw: string): {
+  readonly text: string;
+  readonly textStart: number;
+  readonly textEnd: number;
+  readonly attachedToClassId: ClassNode["id"] | null;
+} | null {
+  const match = new RegExp(`^\\s*note\\s+(?:for\\s+(${IDENTITY_PATTERN})\\s+)?`).exec(raw);
+  if (!match) return null;
+
+  const quoteStart = raw.indexOf('"', match[0].length);
+  if (quoteStart === -1) return null;
+  const textEnd = findClosingQuote(raw, quoteStart + 1);
+  if (textEnd === -1) return null;
+
+  return {
+    text: raw.slice(quoteStart + 1, textEnd),
+    textStart: quoteStart + 1,
+    textEnd,
+    attachedToClassId: match[1] ? toClassId(readIdentity(match[1])) : null,
+  };
+}
+
+function findClosingQuote(raw: string, start: number): number {
+  for (let index = start; index < raw.length; index++) {
+    if (raw[index] === '"') return index;
+  }
+  return -1;
 }
 
 function toStyleDefRecord(token: ParseToken): StyleDefRecord {

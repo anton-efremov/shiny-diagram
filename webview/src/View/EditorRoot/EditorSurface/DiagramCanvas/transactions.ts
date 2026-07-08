@@ -1,13 +1,19 @@
 /**
- * @behavior Class move transaction derivation.
+ * @behavior Class and note spatial transaction derivation.
  */
 
 import type { Point, Size } from "../../../../shared/geometry";
-import type { ClassId } from "../../../../shared/ids";
+import type { ClassId, NoteId } from "../../../../shared/ids";
 import type { EditorCommandTransaction } from "../../../commands/editorCommands";
 
 export type ClassMoveEntry = {
   readonly classId: ClassId;
+  readonly position: Point;
+  readonly size: Size;
+};
+
+export type NoteMoveEntry = {
+  readonly noteId: NoteId;
   readonly position: Point;
   readonly size: Size;
 };
@@ -17,6 +23,17 @@ export function toClassMoveTransaction(moves: readonly ClassMoveEntry[]): Editor
   return moves.map((move) => ({
     type: "class.spatial.set",
     classId: move.classId,
+    spatial: {
+      position: move.position,
+      size: move.size,
+    },
+  }));
+}
+
+export function toNoteMoveTransaction(moves: readonly NoteMoveEntry[]): EditorCommandTransaction {
+  return moves.map((move) => ({
+    type: "note.spatial.set",
+    noteId: move.noteId,
     spatial: {
       position: move.position,
       size: move.size,

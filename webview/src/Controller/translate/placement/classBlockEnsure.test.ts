@@ -52,6 +52,7 @@ function toProvenance(): ProvenanceIndex {
     styleApplications: new Map(),
     classSpatial: new Map(),
     namespaceSpatial: new Map(),
+    noteAnnotations: new Map(),
     notes: new Map(),
   };
 }

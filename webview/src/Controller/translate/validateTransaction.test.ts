@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { EditorCommandTransaction } from "../../View/commands";
 import { toAttributeId, toClassId, toDiagramId, toMethodId } from "../../shared/ids";
-import type { ClassMember, ClassNode, DiagramGraph } from "../model/diagramGraph";
+import type { ClassMember, ClassNode, DiagramGraph, NoteNode } from "../model/diagramGraph";
 import { validateTransaction } from "./validateTransaction";
 
 describe("validateTransaction", () => {
@@ -81,6 +81,94 @@ describe("validateTransaction", () => {
     );
 
     expect(errors).toEqual([{ commandIndex: 0, message: 'Class "Account" already exists' }]);
+  });
+
+  it("rejects empty note text", () => {
+    const errors = validateTransaction(
+      [
+        {
+          type: "note.create",
+          text: "",
+          spatial: { position: { x: 0, y: 0 }, size: { width: 100, height: 60 } },
+          attachedToClassId: null,
+        },
+      ],
+      graphWithClasses([])
+    );
+
+    expect(errors).toEqual([{ commandIndex: 0, message: "Note text must not be empty" }]);
+  });
+
+  it("rejects note text that Mermaid would reinterpret at a double quote", () => {
+    const errors = validateTransaction(
+      [
+        {
+          type: "note.text.set",
+          noteId: "note:0" as NoteNode["id"],
+          text: 'quoted " text',
+        },
+      ],
+      graphWithClasses([])
+    );
+
+    expect(errors).toEqual([
+      {
+        commandIndex: 0,
+        message:
+          'Note text "quoted " text" would be reinterpreted by Mermaid because double quotes end note strings',
+      },
+    ]);
+  });
+
+  it("rejects note text with literal newlines", () => {
+    const errors = validateTransaction(
+      [
+        {
+          type: "note.text.set",
+          noteId: "note:0" as NoteNode["id"],
+          text: "line one\nline two",
+        },
+      ],
+      graphWithClasses([])
+    );
+
+    expect(errors).toEqual([
+      {
+        commandIndex: 0,
+        message:
+          'Note text "line one\nline two" would be reinterpreted by Mermaid because literal newlines cannot be represented inside note strings',
+      },
+    ]);
+  });
+
+  it("accepts backslashes as literal note text", () => {
+    const errors = validateTransaction(
+      [
+        {
+          type: "note.text.set",
+          noteId: "note:0" as NoteNode["id"],
+          text: String.raw`line \n stays literal`,
+        },
+      ],
+      graphWithClasses([])
+    );
+
+    expect(errors).toEqual([]);
+  });
+
+  it("rejects note attachment targets that do not exist", () => {
+    const errors = validateTransaction(
+      [
+        {
+          type: "note.attachment.set",
+          noteId: "note:0" as NoteNode["id"],
+          attachedToClassId: toClassId("Missing"),
+        },
+      ],
+      graphWithClasses([classNode("User", [], [])])
+    );
+
+    expect(errors).toEqual([{ commandIndex: 0, message: 'Class "Missing" does not exist' }]);
   });
 });
 

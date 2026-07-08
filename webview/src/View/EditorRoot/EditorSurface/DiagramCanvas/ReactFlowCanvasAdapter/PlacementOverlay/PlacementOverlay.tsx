@@ -4,9 +4,10 @@
  * @framework Translates internal React Flow coordinates into diagram coordinates.
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactElement, CSSProperties } from "react";
 import type { NodePlacementState } from "../../../../../state/editorStates";
+import type { TransactionResult } from "../../../../../commands/editorCommands";
 import { PLACEMENT_OVERLAY_Z_INDEX } from "../../../../../config/editorUiConfig";
 import { toDraftStyle } from "./childProps";
 import { toInitialDraftRect, toInitialOrigin } from "./state";
@@ -15,7 +16,7 @@ import styles from "./PlacementOverlay.module.css";
 
 type PlacementOverlayProps = {
   readonly nodePlacementState: NodePlacementState;
-  readonly onPlacementComplete: () => void;
+  readonly onPlacementComplete: (result: TransactionResult | null) => void;
 };
 
 export default function PlacementOverlay({
@@ -32,14 +33,29 @@ export default function PlacementOverlay({
 
   // Event handler props derivation
   const { onPointerDown, onPointerMove, onPointerUp } = useInteractions({
+    nodePlacementState,
     origin,
     setOrigin,
     setDraftRect,
     onPlacementComplete,
   });
 
+  // Keystroke listener registration
+  useEffect(() => {
+    if (nodePlacementState?.kind !== "class" && nodePlacementState?.kind !== "note") return;
+
+    function handleKeyDown(event: KeyboardEvent): void {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      onPlacementComplete(null);
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [nodePlacementState, onPlacementComplete]);
+
   // Child component routing
-  if (nodePlacementState?.kind !== "class") return null;
+  if (nodePlacementState?.kind !== "class" && nodePlacementState?.kind !== "note") return null;
 
   return (
     <div

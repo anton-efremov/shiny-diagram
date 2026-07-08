@@ -59,6 +59,15 @@ function validateCommand(command: EditorCommand, graph: DiagramGraph): readonly 
       return command.label === ""
         ? [`Class "${command.classId}" label must use null to clear`]
         : [];
+    case "note.create":
+      return [
+        ...validateNoteText(command.text),
+        ...validateNoteAttachmentTarget(command.attachedToClassId, graph),
+      ];
+    case "note.text.set":
+      return validateNoteText(command.text);
+    case "note.attachment.set":
+      return validateNoteAttachmentTarget(command.attachedToClassId, graph);
     default:
       return [];
   }
@@ -141,6 +150,30 @@ function validateAnnotationCommand(
   return validateAnnotation(annotation, className).flatMap((verdict) =>
     verdict.ok || verdict.message === null ? [] : [verdict.message]
   );
+}
+
+function validateNoteText(text: string): readonly string[] {
+  if (text === "") return ["Note text must not be empty"];
+  if (text.includes('"')) {
+    return [
+      `Note text "${text}" would be reinterpreted by Mermaid because double quotes end note strings`,
+    ];
+  }
+  if (text.includes("\n") || text.includes("\r")) {
+    return [
+      `Note text "${text}" would be reinterpreted by Mermaid because literal newlines cannot be represented inside note strings`,
+    ];
+  }
+  return [];
+}
+
+function validateNoteAttachmentTarget(
+  classId: ClassId | null,
+  graph: DiagramGraph
+): readonly string[] {
+  return classId !== null && !graph.classes.has(classId)
+    ? [`Class "${classId}" does not exist`]
+    : [];
 }
 
 function findClassOwningMember(

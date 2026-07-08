@@ -13,6 +13,8 @@ export type ParseTokenType =
   | "classDirectStyle"
   | "styleApplication"
   | "spatialAnnotation"
+  | "noteAnnotation"
+  | "noteStatement"
   | "namespace"
   | "directive"
   | "knownIgnored"
@@ -85,12 +87,15 @@ function detectLineType(raw: string): ParseTokenType {
   if (/^\s*$/.test(raw)) return "blank";
   if (/^\s*classDiagram(?:-v2)?\b/.test(raw)) return "diagramHeader";
   if (/^\s*%%\s+@spatial:/.test(raw)) return "spatialAnnotation";
+  if (/^\s*%%\s+@note:/.test(raw)) return "noteAnnotation";
   if (/^\s*%%/.test(raw)) return "directive";
   if (/^\s*classDef\s+/.test(raw)) return "styleDef";
   if (new RegExp(`^\\s*style\\s+${identity}\\s+`).test(raw)) return "classDirectStyle";
   if (new RegExp(`^\\s*class\\s+${identity}:::`).test(raw)) return "styleApplication";
   if (new RegExp(`^\\s*class\\s+${identity}`).test(raw)) return "classDeclaration";
   if (new RegExp(`^\\s*namespace\\s+${identity}`).test(raw)) return "namespace";
+  if (new RegExp(`^\\s*note\\s+(?:for\\s+${identity}\\s+)?"[^"]*"`).test(raw))
+    return "noteStatement";
   if (isKnownIgnoredStatement(raw, identity)) return "knownIgnored";
   if (new RegExp(`^\\s*${identity}\\s*:\\s*.+$`).test(raw)) return "classMember";
   if (
@@ -106,14 +111,13 @@ function detectLineType(raw: string): ParseTokenType {
 function isKnownIgnoredStatement(raw: string, identity: string): boolean {
   // Valid Mermaid statement forms that Shiny does not model in this read path:
   // direction, accessibility/title, click/callback/link interactions, cssClass,
-  // notes, and top-level annotation shorthand. They remain in source and are
+  // top-level annotation shorthand. They remain in source and are
   // preserved by span-based writes.
   if (/^\s*direction\s+(?:TB|BT|RL|LR)\b/.test(raw)) return true;
   if (/^\s*accTitle\s*:/.test(raw)) return true;
   if (/^\s*accDescr(?:\s*:|\s*\{)/.test(raw)) return true;
   if (/^\s*(?:click|callback|link)\s+/.test(raw)) return true;
   if (/^\s*cssClass\s+/.test(raw)) return true;
-  if (/^\s*note(?:\s+for)?\s+/.test(raw)) return true;
   if (new RegExp(`^\\s*<<[^>]+>>\\s+${identity}\\s*$`).test(raw)) return true;
   return false;
 }

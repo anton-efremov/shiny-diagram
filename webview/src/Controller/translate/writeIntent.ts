@@ -55,7 +55,8 @@ export type StatementRef =
   | { readonly kind: "styleApplication"; readonly styleApplicationId: StyleApplicationId }
   | { readonly kind: "classSpatial"; readonly classId: ClassId }
   | { readonly kind: "namespaceSpatial"; readonly namespaceId: NamespaceId }
-  | { readonly kind: "note"; readonly noteId: NoteId };
+  | { readonly kind: "note"; readonly noteId: NoteId }
+  | { readonly kind: "noteAnnotation"; readonly noteId: NoteId };
 
 /** A block whose opening line a first child inserts under. */
 export type BlockRef =
@@ -99,6 +100,7 @@ export type ValueRef =
     }
   | { readonly kind: "relationshipOperator"; readonly relationshipId: RelationshipId }
   | { readonly kind: "relationshipLabel"; readonly relationshipId: RelationshipId }
+  | { readonly kind: "noteText"; readonly noteId: NoteId }
   | {
       readonly kind: "directStylePropertyValue";
       readonly classId: ClassId;
@@ -116,6 +118,11 @@ export type ValueRef =
   | {
       readonly kind: "spatialCoord";
       readonly target: BlockRef;
+      readonly coord: "x" | "y" | "w" | "h";
+    }
+  | {
+      readonly kind: "noteSpatialCoord";
+      readonly noteId: NoteId;
       readonly coord: "x" | "y" | "w" | "h";
     };
 

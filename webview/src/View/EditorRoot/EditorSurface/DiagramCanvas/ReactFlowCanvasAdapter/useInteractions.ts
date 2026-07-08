@@ -2,8 +2,8 @@
  * @framework React Flow canvas events to View class selection and placement callbacks.
  */
 
-import { useCallback } from "react";
-import type { MutableRefObject } from "react";
+import { useCallback, useEffect } from "react";
+import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import type {
   Connection,
@@ -13,24 +13,34 @@ import type {
   OnNodeDrag,
   XYPosition,
 } from "@xyflow/react";
-import type { RelationshipSeed } from "../../../../state/editorStates";
+import type { NoteAttachState, RelationshipSeed } from "../../../../state/editorStates";
 import type { RelationshipView } from "../../../../views/schema";
 import type {
   ClassBoxNodeDescriptor,
   ClassBoxPlacementChange,
+  NoteBoxNodeDescriptor,
+  NoteBoxPlacementChange,
+  NoteAttachmentEdgeDescriptor,
   RelationshipEdgeDescriptor,
 } from "./frameworkAdapters";
 import {
   toClassBoxPlacementChanges,
+  toNoteBoxPlacementChanges,
   toRelationshipConnection,
   toRelationshipReconnect,
 } from "./frameworkAdapters";
-import type { ClassId, RelationshipId } from "../../../../../shared/ids";
+import type { ClassId, NoteId, RelationshipId } from "../../../../../shared/ids";
+import type { Point } from "../../../../../shared/geometry";
 
 type ReactFlowCanvasAdapterCallbacks = {
   readonly onClassBoxPlacementChange: (changes: readonly ClassBoxPlacementChange[]) => void;
-  readonly onDragComplete: (finalPositions: readonly ClassBoxPlacementChange[]) => void;
+  readonly onNoteBoxPlacementChange: (changes: readonly NoteBoxPlacementChange[]) => void;
+  readonly onDragComplete: (
+    finalPositions: readonly ClassBoxPlacementChange[],
+    finalNotePositions: readonly NoteBoxPlacementChange[]
+  ) => void;
   readonly onClassMoved: (classId: ClassId) => void;
+  readonly onNoteMoved: (noteId: NoteId) => void;
   readonly onRelationshipConnect: (sourceClassId: ClassId, targetClassId: ClassId) => void;
   readonly onRelationshipReconnect: (
     relationshipId: RelationshipId,
@@ -39,61 +49,115 @@ type ReactFlowCanvasAdapterCallbacks = {
   ) => void;
   readonly onBackgroundClick: () => void;
   readonly onConnectAborted: () => void;
+  readonly onNoteAttachCancel: () => void;
 };
 
 type UseInteractionsInput = {
   readonly callbacks: ReactFlowCanvasAdapterCallbacks;
   readonly isRelationshipPlacementArmed: boolean;
+  readonly noteAttachState: NoteAttachState;
+  readonly setNoteAttachCursor: Dispatch<SetStateAction<Point | null>>;
   readonly placementStartPointRef: MutableRefObject<XYPosition | null>;
   readonly reconnectSeedRef: MutableRefObject<RelationshipSeed | null>;
   readonly screenToFlowPosition: (position: XYPosition) => XYPosition;
 };
 
 type Interactions = {
-  readonly onNodesChange: (changes: NodeChange<ClassBoxNodeDescriptor>[]) => void;
-  readonly onNodeDragStop: OnNodeDrag<ClassBoxNodeDescriptor>;
+  readonly onNodesChange: (
+    changes: NodeChange<ClassBoxNodeDescriptor | NoteBoxNodeDescriptor>[]
+  ) => void;
+  readonly onNoteResizeEnd: (change: NoteBoxPlacementChange) => void;
+  readonly onNodeDragStop: OnNodeDrag<ClassBoxNodeDescriptor | NoteBoxNodeDescriptor>;
   readonly onConnect: (connection: Connection) => void;
   readonly onConnectStart: OnConnectStart;
   readonly onConnectEnd: OnConnectEnd;
-  readonly onReconnect: (oldEdge: RelationshipEdgeDescriptor, newConnection: Connection) => void;
+  readonly onReconnect: (
+    oldEdge: RelationshipEdgeDescriptor | NoteAttachmentEdgeDescriptor,
+    newConnection: Connection
+  ) => void;
   readonly onReconnectStart: OnReconnectStart;
+  readonly onCanvasMouseMove: (event: ReactMouseEvent) => void;
   readonly onPaneClick: (event: ReactMouseEvent) => void;
 };
 
 type OnReconnectStart = (
   event: ReactMouseEvent,
-  edge: RelationshipEdgeDescriptor,
+  edge: RelationshipEdgeDescriptor | NoteAttachmentEdgeDescriptor,
   handleType: "source" | "target"
 ) => void;
 
 export function useInteractions({
   callbacks,
   isRelationshipPlacementArmed,
+  noteAttachState,
+  setNoteAttachCursor,
   placementStartPointRef,
   reconnectSeedRef,
   screenToFlowPosition,
 }: UseInteractionsInput): Interactions {
   // Framework prop and event adaptation
+  useEffect(() => {
+    function updatePointerPosition(event: PointerEvent): void {
+      setNoteAttachCursor({ x: event.clientX, y: event.clientY });
+    }
+
+    window.addEventListener("pointerdown", updatePointerPosition);
+    window.addEventListener("pointermove", updatePointerPosition);
+    return () => {
+      window.removeEventListener("pointerdown", updatePointerPosition);
+      window.removeEventListener("pointermove", updatePointerPosition);
+    };
+  }, [setNoteAttachCursor]);
+
+  // Framework prop and event adaptation
   const onNodesChange = useCallback(
-    (changes: NodeChange<ClassBoxNodeDescriptor>[]) => {
+    (changes: NodeChange<ClassBoxNodeDescriptor | NoteBoxNodeDescriptor>[]) => {
       const placementChanges = toClassBoxPlacementChanges(changes);
       if (placementChanges.length > 0) {
         callbacks.onClassBoxPlacementChange(placementChanges);
+      }
+      const notePlacementChanges = toNoteBoxPlacementChanges(changes);
+      if (notePlacementChanges.length > 0) {
+        callbacks.onNoteBoxPlacementChange(notePlacementChanges);
       }
     },
     [callbacks]
   );
 
   // Framework prop and event adaptation
-  const onNodeDragStop = useCallback<OnNodeDrag<ClassBoxNodeDescriptor>>(
+  const onNoteResizeEnd = useCallback(
+    (change: NoteBoxPlacementChange) => {
+      callbacks.onDragComplete([], [change]);
+      callbacks.onNoteMoved(change.noteId);
+    },
+    [callbacks]
+  );
+
+  // Framework prop and event adaptation
+  const onNodeDragStop = useCallback<OnNodeDrag<ClassBoxNodeDescriptor | NoteBoxNodeDescriptor>>(
     (_event, node, rfNodes) => {
       const finalPositions = rfNodes.flatMap((rfNode) => {
         if (rfNode.type !== "classBox") return [];
         return [{ classId: rfNode.data.view.classId, x: rfNode.position.x, y: rfNode.position.y }];
       });
-      callbacks.onDragComplete(finalPositions);
+      const finalNotePositions = rfNodes.flatMap((rfNode) => {
+        if (rfNode.type !== "noteBox") return [];
+        return [
+          {
+            noteId: rfNode.data.view.noteId,
+            x: rfNode.position.x,
+            y: rfNode.position.y,
+            w: rfNode.width,
+            h: rfNode.height,
+          },
+        ];
+      });
+      callbacks.onDragComplete(finalPositions, finalNotePositions);
       if (node.type === "classBox") {
         callbacks.onClassMoved(node.data.view.classId);
+      }
+      if (node.type === "noteBox") {
+        callbacks.onNoteMoved(node.data.view.noteId);
       }
     },
     [callbacks]
@@ -137,7 +201,11 @@ export function useInteractions({
 
   // Framework prop and event adaptation
   const onReconnect = useCallback(
-    (oldEdge: RelationshipEdgeDescriptor, newConnection: Connection) => {
+    (
+      oldEdge: RelationshipEdgeDescriptor | NoteAttachmentEdgeDescriptor,
+      newConnection: Connection
+    ) => {
+      if (oldEdge.type !== "relationship") return;
       const reconnect = toRelationshipReconnect(oldEdge, newConnection);
       if (!reconnect) return;
       callbacks.onRelationshipReconnect(
@@ -152,6 +220,10 @@ export function useInteractions({
   // Framework prop and event adaptation
   const onReconnectStart = useCallback<OnReconnectStart>(
     (_event, edge, handleType) => {
+      if (edge.type !== "relationship") {
+        reconnectSeedRef.current = null;
+        return;
+      }
       const relationshipView = edge.data?.view;
       reconnectSeedRef.current = relationshipView
         ? toReconnectRelationshipSeed(relationshipView, handleType)
@@ -161,22 +233,37 @@ export function useInteractions({
   );
 
   // Framework prop and event adaptation
+  const onCanvasMouseMove = useCallback(
+    (event: ReactMouseEvent) => {
+      if (noteAttachState.kind !== "attaching") return;
+      setNoteAttachCursor({ x: event.clientX, y: event.clientY });
+    },
+    [noteAttachState.kind, setNoteAttachCursor]
+  );
+
+  // Framework prop and event adaptation
   const onPaneClick = useCallback(
     (event: ReactMouseEvent) => {
       if (event.target !== event.currentTarget) return;
+      if (noteAttachState.kind === "attaching") {
+        callbacks.onNoteAttachCancel();
+        return;
+      }
       callbacks.onBackgroundClick();
     },
-    [callbacks]
+    [callbacks, noteAttachState.kind]
   );
 
   return {
     onNodesChange,
+    onNoteResizeEnd,
     onNodeDragStop,
     onConnect,
     onConnectStart,
     onConnectEnd,
     onReconnect,
     onReconnectStart,
+    onCanvasMouseMove,
     onPaneClick,
   };
 }

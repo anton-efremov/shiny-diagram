@@ -67,6 +67,11 @@ export function resolveStatementRef(ref: StatementRef, provenance: ProvenanceInd
       ).self;
     case "note":
       return requireRecord(provenance.notes.get(ref.noteId), `note ${ref.noteId}`).self;
+    case "noteAnnotation":
+      return requireRecord(
+        provenance.noteAnnotations.get(ref.noteId),
+        `note annotation ${ref.noteId}`
+      ).self;
   }
 }
 
@@ -143,6 +148,11 @@ export function resolveValueRef(ref: ValueRef, provenance: ProvenanceIndex): Sou
         `spatial ${ref.target.classId}`
       ).fields.target;
     }
+    case "noteSpatialCoord":
+      return requireRecord(
+        provenance.noteAnnotations.get(ref.noteId),
+        `note annotation ${ref.noteId}`
+      ).fields[ref.coord];
     case "relationshipEndpoint": {
       const fields = requireRecord(
         provenance.relationships.get(ref.relationshipId),
@@ -169,6 +179,8 @@ export function resolveValueRef(ref: ValueRef, provenance: ProvenanceIndex): Sou
         provenance.relationships.get(ref.relationshipId)?.fields.label,
         `relationship label ${ref.relationshipId}`
       );
+    case "noteText":
+      return requireRecord(provenance.notes.get(ref.noteId), `note ${ref.noteId}`).fields.text;
     case "styleApplicationTarget":
       return requireRecord(
         provenance.styleApplications.get(ref.styleApplicationId),
