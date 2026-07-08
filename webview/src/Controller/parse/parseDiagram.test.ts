@@ -7,8 +7,9 @@ describe("parseDiagram member text blocks", () => {
     const result = parseDiagram(`classDiagram
 class User {
   ? strange visibility
-  +List~T~ items$*
+  +List~T~ items*
   +find(List~T~ input) Result~T~$
+  +compare(a: int, b: List~T~) bool
 }
 User : +shortMethod() void*
 %% @spatial:User x=10 y=20 w=220 h=160
@@ -22,39 +23,122 @@ User : +shortMethod() void*
       {
         id: "User:2",
         text: "? strange visibility",
-        isStatic: false,
-        isAbstract: false,
+        classifier: null,
       },
       {
         id: "User:3",
         text: "+List<T> items",
-        isStatic: true,
-        isAbstract: true,
+        classifier: "abstract",
       },
     ]);
     expect(user?.methods).toEqual([
       {
         id: "User:4",
         text: "+find(List<T> input) : Result<T>",
-        isStatic: true,
-        isAbstract: false,
+        classifier: "static",
       },
       {
-        id: "User:6",
+        id: "User:5",
+        text: "+compare(a: int, b: List<T>) : bool",
+        classifier: null,
+      },
+      {
+        id: "User:7",
         text: "+shortMethod() : void",
-        isStatic: false,
-        isAbstract: true,
+        classifier: "abstract",
       },
     ]);
 
     expect(result.provenance.blockMembers.get(toAttributeId("User:3"))?.fields.text).toEqual({
       start: { line: 3, character: 2 },
-      end: { line: 3, character: 18 },
+      end: { line: 3, character: 17 },
     });
-    expect(result.provenance.shortMembers.get(toMethodId("User:6"))?.fields.text).toEqual({
-      start: { line: 6, character: 7 },
-      end: { line: 6, character: 27 },
+    expect(result.provenance.shortMembers.get(toMethodId("User:7"))?.fields.text).toEqual({
+      start: { line: 7, character: 7 },
+      end: { line: 7, character: 27 },
     });
+  });
+
+  it("parses quoted identities in classes, relationships, short members, and spatial annotations", () => {
+    const result = parseDiagram(`classDiagram
+class \`Animal Class!\`
+class \`Car Class\`
+\`Animal Class!\` --> \`Car Class\`
+\`Animal Class!\` : +nickname String
+%% @spatial:\`Animal Class!\` x=10 y=20 w=220 h=160
+%% @spatial:\`Car Class\` x=260 y=20 w=220 h=160
+`);
+
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") return;
+
+    expect([...result.graph.classes.keys()]).toEqual([
+      toClassId("Animal Class!"),
+      toClassId("Car Class"),
+    ]);
+    expect([...result.graph.relationships.values()]).toHaveLength(1);
+    const animal = result.graph.classes.get(toClassId("Animal Class!"));
+    expect(animal?.attributes[0]).toEqual({
+      id: "Animal Class!:4",
+      text: "+nickname String",
+      classifier: null,
+    });
+    expect(animal?.spatial?.position).toEqual({ x: 10, y: 20 });
+    expect(result.provenance.classSpatial.get(toClassId("Animal Class!"))?.fields.target).toEqual({
+      start: { line: 5, character: 12 },
+      end: { line: 5, character: 27 },
+    });
+  });
+
+  it("parses class labels for plain and quoted identities", () => {
+    const result = parseDiagram(`classDiagram
+class User["Human User"]
+class \`A B\`~T~["Label AB"]
+%% @spatial:User x=10 y=20 w=220 h=160
+%% @spatial:\`A B\` x=260 y=20 w=220 h=160
+`);
+
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") return;
+
+    expect(result.graph.classes.get(toClassId("User"))?.label).toBe("Human User");
+    expect(result.graph.classes.get(toClassId("A B"))?.label).toBe("Label AB");
+    expect(result.graph.classes.get(toClassId("A B"))?.genericType).toBe("T");
+    expect(result.provenance.classes.get(toClassId("User"))?.fields.label).toEqual({
+      start: { line: 1, character: 12 },
+      end: { line: 1, character: 22 },
+    });
+  });
+
+  it("keeps valid known-ignored Mermaid statements from invalidating the read path", () => {
+    const result = parseDiagram(`classDiagram
+class User
+click User href "https://example.com"
+note for User "Read-only note"
+cssClass User Important
+accTitle: Accessible title
+direction LR
+%% @spatial:User x=10 y=20 w=220 h=160
+`);
+
+    expect(result.status).toBe("ready");
+  });
+
+  it("returns one diagnostic for each unrecognized statement", () => {
+    const result = parseDiagram(`classDiagram
+class User
+this is garbage
+also garbage
+%% @spatial:User x=10 y=20 w=220 h=160
+`);
+
+    expect(result.status).toBe("invalidSyntax");
+    if (result.status !== "invalidSyntax") return;
+
+    expect(result.diagnostics.map((diagnostic) => diagnostic.message)).toEqual([
+      "Unrecognized statement at line 3: this is garbage",
+      "Unrecognized statement at line 4: also garbage",
+    ]);
   });
 
   it("returns invalidSyntax with every text-block validation failure", () => {

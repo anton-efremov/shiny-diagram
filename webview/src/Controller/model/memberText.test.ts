@@ -5,32 +5,35 @@ describe("memberText", () => {
   it("keeps visibility-like leading characters as text", () => {
     expect(toDisplayMemberText("? strange", "field")).toEqual({
       text: "? strange",
-      isStatic: false,
-      isAbstract: false,
+      classifier: null,
     });
   });
 
-  it("extracts static and abstract classifiers from attributes", () => {
+  it("extracts one classifier from attributes using Mermaid field rules", () => {
     expect(toDisplayMemberText("+String id$*", "field")).toEqual({
-      text: "+String id",
-      isStatic: true,
-      isAbstract: true,
+      text: "+String id$",
+      classifier: "abstract",
     });
   });
 
   it("converts method return type to display colon syntax", () => {
     expect(toDisplayMemberText("+lookup(id) Result$", "method")).toEqual({
       text: "+lookup(id) : Result",
-      isStatic: true,
-      isAbstract: false,
+      classifier: "static",
     });
   });
 
   it("uses the last closing parenthesis for method return insertion", () => {
     expect(toDisplayMemberText("+build(a) b) Return*", "method")).toEqual({
       text: "+build(a) b) : Return",
-      isStatic: false,
-      isAbstract: true,
+      classifier: "abstract",
+    });
+  });
+
+  it("pins Mermaid method classifier precedence for adjacent classifiers", () => {
+    expect(toDisplayMemberText("+count()$*", "method")).toEqual({
+      text: "+count() : *",
+      classifier: "static",
     });
   });
 
@@ -43,9 +46,9 @@ describe("memberText", () => {
   it("round trips display text back to source spelling", () => {
     expect(
       toSourceMemberText(
-        { text: "+find(List<T> items) : Result<T>", isStatic: true, isAbstract: true },
+        { text: "+find(List<T> items) : Result<T>", classifier: "abstract" },
         "method"
       )
-    ).toBe("+find(List~T~ items) Result~T~$*");
+    ).toBe("+find(List~T~ items) Result~T~*");
   });
 });

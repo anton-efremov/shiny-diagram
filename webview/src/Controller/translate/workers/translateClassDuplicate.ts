@@ -32,6 +32,7 @@ import type { StatementAnchor, StatementRef, WriteIntent } from "../writeIntent"
 import { anchorExactStatement, asSameKind } from "../anchors/statementAnchors";
 import { composeSpatialAnnotation } from "../syntax/spatialSyntax";
 import { composeStyleEntry } from "../syntax/styleSyntax";
+import { spellIdentity } from "../../model/identitySpelling";
 
 export function translateClassDuplicate(
   command: EditorCommandOf<"class.duplicate">,
@@ -151,7 +152,7 @@ function composeDuplicatedClassDeclaration(
     sourceText,
     record.self,
     record.fields.declaredName,
-    classId
+    spellIdentity(classId)
   );
   return toRelativeBlockIndent(renamedText);
 }
@@ -211,9 +212,9 @@ function composeClassDirectStyle(
     value == null ? [] : [composeStyleEntry(property as StylePropertyName, value)]
   );
 
-  return `style ${classId} ${entries.join(",")}`;
+  return `style ${spellIdentity(classId)} ${entries.join(",")}`;
 }
 
 function composeClassStyleApplication(classId: ClassId, styleDefId: StyleDefId): string {
-  return `class ${classId}:::${styleDefId}`;
+  return `class ${spellIdentity(classId)}:::${styleDefId}`;
 }

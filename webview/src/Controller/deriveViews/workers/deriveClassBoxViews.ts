@@ -34,15 +34,13 @@ export function deriveClassBoxViews(model: DiagramGraph): ClassView[] {
         ...node.attributes.map((attribute) => ({
           memberId: attribute.id,
           text: attribute.text,
-          isStatic: attribute.isStatic,
-          isAbstract: attribute.isAbstract,
+          classifier: attribute.classifier,
           kind: "field" as const,
         })),
         ...node.methods.map((method) => ({
           memberId: method.id,
           text: method.text,
-          isStatic: method.isStatic,
-          isAbstract: method.isAbstract,
+          classifier: method.classifier,
           kind: "method" as const,
         })),
       ],

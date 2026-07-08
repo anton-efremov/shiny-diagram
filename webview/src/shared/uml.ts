@@ -6,6 +6,8 @@ import type { ClassId } from "./ids";
 
 export type MemberKind = "field" | "method";
 
+export type MemberClassifier = "static" | "abstract";
+
 export type MemberPrefix = "+" | "-" | "#" | "~";
 
 export type Visibility = MemberPrefix;

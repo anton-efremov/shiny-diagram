@@ -32,16 +32,14 @@ describe("deriveClassBoxViews", () => {
               {
                 id: toAttributeId("User:2"),
                 text: "+List<T> items",
-                isStatic: true,
-                isAbstract: true,
+                classifier: "static",
               },
             ],
             methods: [
               {
                 id: toMethodId("User:3"),
                 text: "+find() : Result<T>",
-                isStatic: false,
-                isAbstract: true,
+                classifier: "abstract",
               },
             ],
             lollipopInterfaces: [],
@@ -62,15 +60,13 @@ describe("deriveClassBoxViews", () => {
         memberId: "User:2",
         kind: "field",
         text: "+List<T> items",
-        isStatic: true,
-        isAbstract: true,
+        classifier: "static",
       },
       {
         memberId: "User:3",
         kind: "method",
         text: "+find() : Result<T>",
-        isStatic: false,
-        isAbstract: true,
+        classifier: "abstract",
       },
     ]);
   });

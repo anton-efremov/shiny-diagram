@@ -53,7 +53,7 @@ function MemberList({
 function toMemberClassName(member: ClassMemberView, isSelected: boolean): string {
   const classNames = [styles.memberRow];
   if (isSelected) classNames.push("nodrag");
-  if (member.isStatic) classNames.push(styles.isStatic);
-  if (member.isAbstract) classNames.push(styles.isAbstract);
+  if (member.classifier === "static") classNames.push(styles.isStatic);
+  if (member.classifier === "abstract") classNames.push(styles.isAbstract);
   return classNames.join(" ");
 }

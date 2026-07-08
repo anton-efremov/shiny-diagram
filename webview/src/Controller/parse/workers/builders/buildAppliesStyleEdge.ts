@@ -3,6 +3,7 @@
  */
 
 import { toClassId, toStyleApplicationId, toStyleDefId } from "../../../../shared/ids";
+import { IDENTITY_PATTERN, readIdentity } from "../../../model/identitySpelling";
 import type { StyleApplicationEdge } from "../../../model/diagramGraph";
 import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";
@@ -22,10 +23,10 @@ export function buildAppliesStyleEdge(
 ): ParsedStyleApplicationEdge | null {
   if (token.type !== "styleApplication") return null;
 
-  const match = /^\s*class\s+(\w+):::(\w+)/.exec(token.raw);
+  const match = new RegExp(`^\\s*class\\s+(${IDENTITY_PATTERN}):::(\\w+)`).exec(token.raw);
   if (!match) return null;
 
-  const targetId = toClassId(match[1]);
+  const targetId = toClassId(readIdentity(match[1]));
   const styleDefId = toStyleDefId(match[2]);
   return {
     location: toSourceSpan(token),

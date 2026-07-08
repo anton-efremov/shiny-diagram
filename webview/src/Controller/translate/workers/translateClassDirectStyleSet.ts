@@ -17,6 +17,7 @@ import {
   STATEMENT_KINDS,
 } from "../anchors/statementAnchors";
 import { composeStyleEntries, composeStyleEntry } from "../syntax/styleSyntax";
+import { spellIdentity } from "../../model/identitySpelling";
 
 export function translateClassDirectStyleSet(
   command: EditorCommandOf<"class.directStyle.set">,
@@ -74,7 +75,7 @@ export function translateClassDirectStyleClear(
 
 function composeClassDirectStyle(classId: ClassId, properties: StyleProperties): string | null {
   const entries = composeStyleEntries(properties);
-  return entries === "" ? null : `style ${classId} ${entries}`;
+  return entries === "" ? null : `style ${spellIdentity(classId)} ${entries}`;
 }
 
 function toClassDirectStyleAnchor(

@@ -3,6 +3,7 @@
  */
 
 import { toClassId, toDiagramId, toLollipopInterfaceId } from "../../../shared/ids";
+import { IDENTITY_PATTERN, readIdentity } from "../../model/identitySpelling";
 import {
   STYLE_PROPERTIES,
   type StyleProperties,
@@ -373,19 +374,30 @@ export function toDiagramRecord(tokens: readonly ParseToken[]): ProvenanceIndex[
 
 function toClassRecord(token: ParseToken): ClassRecord {
   const isBlock = token.raw.includes("{");
+  const label = toClassLabelLocation(token);
   return {
     self: toSourceSpan(token),
     header: toHeaderLocation(token),
     body: isBlock ? toBodyLocation(token) : null,
-    fields: { declaredName: toDeclaredNameLocation(token, "class") },
+    fields: {
+      declaredName: toDeclaredNameLocation(token, "class"),
+      ...(label ? { label } : {}),
+    },
   };
 }
 
 function toDeclaredNameLocation(token: ParseToken, keyword: "class" | "namespace"): SourceSpan {
-  const match = new RegExp(`^(\\s*${keyword}\\s+)(\\w+)`).exec(token.raw);
+  const match = new RegExp(`^(\\s*${keyword}\\s+)(${IDENTITY_PATTERN})`).exec(token.raw);
   if (!match) return toHeaderLocation(token);
   const start = match[1].length;
   return toLineFieldLocation(token, start, start + match[2].length);
+}
+
+function toClassLabelLocation(token: ParseToken): SourceSpan | null {
+  const match = /\["([^"]*)"\]/.exec(token.raw);
+  if (!match) return null;
+  const start = (match.index ?? 0) + 2;
+  return toLineFieldLocation(token, start, start + match[1].length);
 }
 
 function toBodyLocation(token: ParseToken): SourceSpan {
@@ -401,10 +413,10 @@ function parseClassDirectStyle(token: ParseToken): {
   readonly properties: StyleProperties;
   readonly record: ClassDirectStyleRecord;
 } | null {
-  const match = /^(\s*style\s+)(\w+)(\s+)(.+)$/.exec(token.raw);
+  const match = new RegExp(`^(\\s*style\\s+)(${IDENTITY_PATTERN})(\\s+)(.+)$`).exec(token.raw);
   if (!match) return null;
 
-  const classId = toClassId(match[2]);
+  const classId = toClassId(readIdentity(match[2]));
   const listStart = match[1].length + match[2].length + match[3].length;
   const propertyList = token.raw.slice(listStart);
   const properties = parseStyleProperties(propertyList);
@@ -447,7 +459,7 @@ function toStyleDefRecord(token: ParseToken): StyleDefRecord {
 }
 
 function toStyleApplicationRecord(token: ParseToken): StyleApplicationRecord {
-  const match = /^(\s*class\s+)(\w+)(:::)(\w+)/.exec(token.raw);
+  const match = new RegExp(`^(\\s*class\\s+)(${IDENTITY_PATTERN})(:::)(\\w+)`).exec(token.raw);
   if (!match) {
     return {
       self: toSourceSpan(token),
@@ -467,10 +479,9 @@ function toStyleApplicationRecord(token: ParseToken): StyleApplicationRecord {
 
 function toRelationshipRecord(token: ParseToken): RelationshipRecord {
   const self = toSourceSpan(token);
-  const match =
-    /^(\s*)(\w+)(?:\s+"([^"]+)")?\s*((?:\(\)|<\||\|>|<|>|\*|o)?(?:--|\.\.)(?:\(\)|<\||\|>|<|>|\*|o)?)\s*(?:"([^"]+)"\s*)?(\w+)(?:\s*:\s*(.+))?/.exec(
-      token.raw
-    );
+  const match = new RegExp(
+    `^(\\s*)(${IDENTITY_PATTERN})(?:\\s+"([^"]+)")?\\s*((?:\\(\\)|<\\||\\|>|<|>|\\*|o)?(?:--|\\.\\.)(?:\\(\\)|<\\||\\|>|<|>|\\*|o)?)\\s*(?:"([^"]+)"\\s*)?(${IDENTITY_PATTERN})(?:\\s*:\\s*(.+))?`
+  ).exec(token.raw);
   if (!match) {
     return {
       self,

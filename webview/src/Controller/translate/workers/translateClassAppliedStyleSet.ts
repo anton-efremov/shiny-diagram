@@ -7,6 +7,7 @@ import type { ClassId, StyleDefId } from "../../../shared/ids";
 import type { DiagramGraph } from "../../model/diagramGraph";
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { BlockRef, StatementAnchor, WriteIntent } from "../writeIntent";
+import { spellIdentity } from "../../model/identitySpelling";
 import {
   anchorAfterKindList,
   anchorBlockOpening,
@@ -57,7 +58,7 @@ export function translateClassAppliedStyleSet(
 }
 
 function composeClassStyleApplication(classId: ClassId, styleDefId: StyleDefId): string {
-  return `class ${classId}:::${styleDefId}`;
+  return `class ${spellIdentity(classId)}:::${styleDefId}`;
 }
 
 function toStyleApplicationAnchor(

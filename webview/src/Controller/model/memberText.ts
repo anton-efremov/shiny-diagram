@@ -6,53 +6,142 @@
  * - `ClassMember.parseMember` treats a method as text parsed around the last
  *   closing parenthesis and renders the return type after ` : `.
  * - `parseGenericTypes` pairs outer tildes from first to last, repeatedly.
- * - Mermaid has one rendered classifier style. Shiny stores both flags so the
- *   visual state can represent the product's two-toggle model; source text with
- *   both trailing classifiers is therefore a Shiny extension over Mermaid's
- *   single-style implementation.
+ * - `ClassMember.classifier` stores one trailing classifier character, mapped
+ *   by `parseClassifier()` to underline for `$` or italic for `*`.
  *
  * Public Mermaid parse/render verification in Node was infeasible in this repo:
  * the full `mermaid.parse` path requires DOMPurify/browser wiring and the
  * standalone `@mermaid-js/parser` package does not include class diagrams.
  */
 
-import type { MemberKind } from "../../shared/uml";
+import type { MemberClassifier, MemberKind } from "../../shared/uml";
 
 export type DisplayMemberText = {
   readonly text: string;
-  readonly isStatic: boolean;
-  readonly isAbstract: boolean;
+  readonly classifier: MemberClassifier | null;
 };
 
 export function toDisplayMemberText(sourceText: string, kind: MemberKind): DisplayMemberText {
-  const extracted = extractTrailingClassifiers(sourceText.trim());
-  const text =
-    kind === "method"
-      ? toDisplayMethodText(extracted.text)
-      : parseGenericTypes(extracted.text).trim();
-
-  return {
-    text,
-    isStatic: extracted.isStatic,
-    isAbstract: extracted.isAbstract,
-  };
+  return kind === "method"
+    ? toDisplayMethodMemberText(sourceText.trim())
+    : toDisplayFieldMemberText(sourceText.trim());
 }
 
 export function toSourceMemberText(member: DisplayMemberText, kind: MemberKind): string {
   const sourceText =
     kind === "method" ? toSourceMethodText(member.text) : toSourceGenericTypes(member.text);
-  return `${sourceText}${member.isStatic ? "$" : ""}${member.isAbstract ? "*" : ""}`.trim();
+  return `${sourceText}${toSourceClassifier(member.classifier)}`.trim();
 }
 
-function toDisplayMethodText(sourceText: string): string {
-  const closingParen = sourceText.lastIndexOf(")");
-  if (closingParen === -1) return parseGenericTypes(sourceText).trim();
+export function getMethodReturnTypeColonIndex(displayText: string): number {
+  const closingParen = displayText.indexOf(")");
+  return closingParen === -1 ? -1 : displayText.indexOf(":", closingParen + 1);
+}
 
-  const signature = sourceText.slice(0, closingParen + 1);
-  const returnType = sourceText.slice(closingParen + 1).trim();
-  const displaySignature = parseGenericTypes(signature).trim();
-  const displayReturnType = parseGenericTypes(returnType).trim();
-  return displayReturnType ? `${displaySignature} : ${displayReturnType}` : displaySignature;
+function toDisplayMethodMemberText(sourceText: string): DisplayMemberText {
+  const parsed = parseSourceMethodMember(sourceText);
+  if (!parsed) return { text: parseGenericTypes(sourceText).trim(), classifier: null };
+
+  const displaySignature = `${parsed.visibility}${parseGenericTypes(parsed.id)}(${parseGenericTypes(
+    parsed.parameters
+  )})`.trim();
+  const displayReturnType = parseGenericTypes(parsed.returnType).trim();
+  return {
+    text: displayReturnType ? `${displaySignature} : ${displayReturnType}` : displaySignature,
+    classifier: parsed.classifier,
+  };
+}
+
+function toDisplayFieldMemberText(sourceText: string): DisplayMemberText {
+  const parsed = parseSourceFieldMember(sourceText);
+  return {
+    text: `${parsed.visibility}${parseGenericTypes(parsed.id)}`.trim(),
+    classifier: parsed.classifier,
+  };
+}
+
+type ParsedSourceMember = {
+  readonly visibility: string;
+  readonly id: string;
+  readonly parameters: string;
+  readonly returnType: string;
+  readonly classifier: MemberClassifier | null;
+};
+
+function parseSourceMethodMember(sourceText: string): ParsedSourceMember | null {
+  const methodRegEx = /([#+~-])?(.+)\((.*)\)([\s$*])?(.*)([$*])?/;
+  const match = methodRegEx.exec(sourceText);
+  if (!match) return null;
+
+  const visibility = isVisibility(match[1]?.trim() ?? "") ? (match[1]?.trim() ?? "") : "";
+  const potentialClassifier = match[4]?.trim() ?? "";
+  let returnType = match[5]?.trim() ?? "";
+  let classifier = toClassifier(potentialClassifier);
+
+  if (classifier === null) {
+    const lastChar = returnType.substring(returnType.length - 1);
+    classifier = toClassifier(lastChar);
+    if (classifier !== null) {
+      returnType = returnType.substring(0, returnType.length - 1);
+    }
+  }
+
+  return {
+    visibility,
+    id: normalizeMermaidMemberId(match[2] ?? ""),
+    parameters: match[3]?.trim() ?? "",
+    returnType,
+    classifier,
+  };
+}
+
+function parseSourceFieldMember(sourceText: string): ParsedSourceMember {
+  const firstChar = sourceText.substring(0, 1);
+  const lastChar = sourceText.substring(sourceText.length - 1);
+  const visibility = isVisibility(firstChar) ? firstChar : "";
+  const classifier = toClassifier(lastChar);
+  const id = sourceText.substring(
+    visibility === "" ? 0 : 1,
+    classifier === null ? sourceText.length : sourceText.length - 1
+  );
+
+  return {
+    visibility,
+    id: normalizeMermaidMemberId(id),
+    parameters: "",
+    returnType: "",
+    classifier,
+  };
+}
+
+function normalizeMermaidMemberId(id: string): string {
+  return id.startsWith(" ") ? ` ${id.trim()}` : id.trim();
+}
+
+function isVisibility(value: string): boolean {
+  return value === "#" || value === "+" || value === "~" || value === "-" || value === "";
+}
+
+function toClassifier(value: string): MemberClassifier | null {
+  switch (value) {
+    case "$":
+      return "static";
+    case "*":
+      return "abstract";
+    default:
+      return null;
+  }
+}
+
+function toSourceClassifier(classifier: MemberClassifier | null): string {
+  switch (classifier) {
+    case "static":
+      return "$";
+    case "abstract":
+      return "*";
+    case null:
+      return "";
+  }
 }
 
 function toSourceMethodText(displayText: string): string {
@@ -60,29 +149,13 @@ function toSourceMethodText(displayText: string): string {
   if (closingParen === -1) return toSourceGenericTypes(displayText).trim();
 
   const signature = displayText.slice(0, closingParen + 1);
-  const tail = displayText.slice(closingParen + 1);
-  const colon = tail.indexOf(":");
+  const colon = getMethodReturnTypeColonIndex(displayText);
   if (colon === -1) return toSourceGenericTypes(displayText).trim();
 
-  const returnType = tail.slice(colon + 1).trim();
+  const returnType = displayText.slice(colon + 1).trim();
   const sourceSignature = toSourceGenericTypes(signature).trim();
   const sourceReturnType = toSourceGenericTypes(returnType).trim();
   return sourceReturnType ? `${sourceSignature} ${sourceReturnType}` : sourceSignature;
-}
-
-function extractTrailingClassifiers(text: string): DisplayMemberText {
-  let remaining = text.trimEnd();
-  let isStatic = false;
-  let isAbstract = false;
-
-  while (remaining.endsWith("$") || remaining.endsWith("*")) {
-    const classifier = remaining.at(-1);
-    isStatic = isStatic || classifier === "$";
-    isAbstract = isAbstract || classifier === "*";
-    remaining = remaining.slice(0, -1).trimEnd();
-  }
-
-  return { text: remaining, isStatic, isAbstract };
 }
 
 export function parseGenericTypes(input: string): string {

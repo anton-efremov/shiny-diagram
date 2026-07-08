@@ -17,7 +17,12 @@
  */
 
 import type { StyleProperties } from "../../shared/style";
-import type { MemberKind, RelationshipEndpointKind, RelationshipLineKind } from "../../shared/uml";
+import type {
+  MemberClassifier,
+  MemberKind,
+  RelationshipEndpointKind,
+  RelationshipLineKind,
+} from "../../shared/uml";
 import type { Rect } from "../../shared/geometry";
 import type {
   AttributeId,
@@ -39,8 +44,7 @@ export type ClassMemberView = {
   readonly memberId: AttributeId | MethodId;
   readonly kind: MemberKind;
   readonly text: string;
-  readonly isStatic: boolean;
-  readonly isAbstract: boolean;
+  readonly classifier: MemberClassifier | null;
 };
 
 /* ── Node views ──────────────────────────────────────────────────────────── */

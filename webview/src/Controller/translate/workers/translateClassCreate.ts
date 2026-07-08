@@ -20,6 +20,7 @@ import type { DiagramGraph } from "../../model/diagramGraph";
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { ClassId } from "../../../shared/ids";
 import type { TranslateContext } from "../translateContext";
+import { spellIdentity } from "../../model/identitySpelling";
 import type { BlockRef, StatementAnchor, WriteIntent } from "../writeIntent";
 import {
   anchorAfterKindList,
@@ -72,5 +73,5 @@ export function translateClassCreate(
 }
 
 function composeClassDeclaration(classId: ClassId): string {
-  return `class ${classId}`;
+  return `class ${spellIdentity(classId)}`;
 }

@@ -65,6 +65,7 @@ import type { StyleProperties } from "../../shared/style";
 import type {
   ClassAnnotation,
   DiagramDirection,
+  MemberClassifier,
   RelationshipEndpoint,
   RelationshipLineKind,
 } from "../../shared/uml";
@@ -133,8 +134,7 @@ export type ClassNode = {
 export type ClassMember = {
   readonly id: AttributeId | MethodId;
   readonly text: string;
-  readonly isStatic: boolean;
-  readonly isAbstract: boolean;
+  readonly classifier: MemberClassifier | null;
 };
 
 // Owned collection of `ClassNode`.

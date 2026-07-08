@@ -3,6 +3,7 @@
  */
 
 import { toClassId } from "../../../../shared/ids";
+import { IDENTITY_PATTERN, readIdentity } from "../../../model/identitySpelling";
 import type { RelationshipEdge } from "../../../model/diagramGraph";
 import { composeRelationshipId } from "../../../model/relationshipIdentity";
 import type { RelationshipEndpointKind, RelationshipLineKind } from "../../../../shared/uml";
@@ -224,16 +225,34 @@ function isCanonicalLollipopInterface(
 }
 
 function splitLabel(raw: string): { declaration: string; label?: string } {
-  const labelMatch = /^(.*?)\s*:\s*(.+)$/.exec(raw);
-  if (!labelMatch) return { declaration: raw };
-  return { declaration: labelMatch[1].trim(), label: labelMatch[2].trim() };
+  const colon = findRelationshipLabelColon(raw);
+  if (colon === -1) return { declaration: raw };
+  return { declaration: raw.slice(0, colon).trim(), label: raw.slice(colon + 1).trim() };
 }
 
 function parseEndpoint(part: string): ParsedEndpoint {
   const trimmed = part.trim();
-  const m1 = /^"([^"]+)"\s+(\w+)$/.exec(trimmed);
-  if (m1) return { multiplicity: m1[1], name: m1[2] };
-  const m2 = /^(\w+)\s+"([^"]+)"$/.exec(trimmed);
-  if (m2) return { name: m2[1], multiplicity: m2[2] };
-  return { name: trimmed.replace(/^"([^"]+)"\s*/, "").trim(), multiplicity: null };
+  const m1 = new RegExp(`^"([^"]+)"\\s+(${IDENTITY_PATTERN})$`).exec(trimmed);
+  if (m1) return { multiplicity: m1[1], name: readIdentity(m1[2]) };
+  const m2 = new RegExp(`^(${IDENTITY_PATTERN})\\s+"([^"]+)"$`).exec(trimmed);
+  if (m2) return { name: readIdentity(m2[1]), multiplicity: m2[2] };
+  return { name: readIdentity(trimmed.replace(/^"([^"]+)"\s*/, "").trim()), multiplicity: null };
+}
+
+function findRelationshipLabelColon(raw: string): number {
+  let inDoubleQuote = false;
+  let inBacktick = false;
+  for (let index = 0; index < raw.length; index++) {
+    const character = raw[index];
+    if (character === '"' && !inBacktick) {
+      inDoubleQuote = !inDoubleQuote;
+      continue;
+    }
+    if (character === "`" && !inDoubleQuote) {
+      inBacktick = !inBacktick;
+      continue;
+    }
+    if (character === ":" && !inDoubleQuote && !inBacktick) return index;
+  }
+  return -1;
 }

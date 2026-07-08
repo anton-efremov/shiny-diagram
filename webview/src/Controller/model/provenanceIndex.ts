@@ -64,6 +64,7 @@ export type ClassRecord = {
   readonly body: SourceSpan | null; // interior of `{ ... }`, only for block form
   readonly fields: {
     readonly declaredName: SourceSpan; // `User` in `class User`
+    readonly label?: SourceSpan; // `"Human User"` in `class User["Human User"]`
   };
 };
 

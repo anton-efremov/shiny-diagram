@@ -3,9 +3,10 @@
  */
 
 import type { ParseResult } from "./parseResult";
+import type { EditorDiagnostic } from "./parseResult";
 import { buildSpatiallyUnawareDiagramGraph } from "./workers/buildDiagramGraph";
 import { attachSpatial, parseSpatialAnnotations } from "./workers/spatialAnnotations";
-import { tokenize } from "./workers/tokenizer";
+import { tokenize, type ParseToken } from "./workers/tokenizer";
 import { validateTextBlocks } from "./workers/validateTextBlocks";
 
 /**
@@ -21,6 +22,11 @@ export function parseDiagram(source: string): ParseResult {
     }
 
     const tokens = tokenize(source);
+    const unrecognizedDiagnostics = collectUnrecognizedDiagnostics(tokens);
+    if (unrecognizedDiagnostics.length > 0) {
+      return { status: "invalidSyntax", diagnostics: unrecognizedDiagnostics };
+    }
+
     const spatiallyUnaware = buildSpatiallyUnawareDiagramGraph(tokens);
     const { valid, malformed } = parseSpatialAnnotations(tokens);
     const { graph, provenance } = attachSpatial(
@@ -58,11 +64,38 @@ export function parseDiagram(source: string): ParseResult {
   }
 }
 
+function collectUnrecognizedDiagnostics(tokens: readonly ParseToken[]): EditorDiagnostic[] {
+  const diagnostics: EditorDiagnostic[] = [];
+  collectUnrecognizedDiagnosticsInto(tokens, diagnostics);
+  return diagnostics;
+}
+
+function collectUnrecognizedDiagnosticsInto(
+  tokens: readonly ParseToken[],
+  diagnostics: EditorDiagnostic[]
+): void {
+  for (const token of tokens) {
+    if (token.type === "unrecognized") {
+      diagnostics.push({
+        kind: "syntaxError",
+        message: `Unrecognized statement at line ${token.lineNumber + 1}: ${token.raw.trim()}`,
+      });
+    }
+    if (token.blockTokens && token.type !== "classDeclaration") {
+      collectUnrecognizedDiagnosticsInto(token.blockTokens, diagnostics);
+    }
+  }
+}
+
 function hasClassDiagramHeader(source: string): boolean {
   for (const line of source.split("\n")) {
     const trimmed = line.trim();
     if (trimmed === "" || trimmed.startsWith("%%")) continue;
-    return trimmed === "classDiagram" || trimmed.startsWith("classDiagram ");
+    return (
+      trimmed === "classDiagram" ||
+      trimmed === "classDiagram-v2" ||
+      trimmed.startsWith("classDiagram ")
+    );
   }
   return false;
 }

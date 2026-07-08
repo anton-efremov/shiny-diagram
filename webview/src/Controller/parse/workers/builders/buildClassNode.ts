@@ -3,6 +3,7 @@
  */
 
 import { toDisplayMemberText } from "../../../model/memberText";
+import { IDENTITY_PATTERN, readIdentity } from "../../../model/identitySpelling";
 import type { ClassMember, ClassNode } from "../../../model/diagramGraph";
 import type { SourceSpan } from "../../../model/sourceEdit";
 import { toAttributeId, toClassId, toMethodId, type ClassId } from "../../../../shared/ids";
@@ -24,10 +25,13 @@ export type ParsedClassNode = {
 export function buildClassNode(token: ParseToken): ParsedClassNode | null {
   if (token.type !== "classDeclaration") return null;
 
-  const match = /^\s*class\s+(\w+)(?:~([^~]*)~)?/.exec(token.raw);
+  const match = new RegExp(
+    `^\\s*class\\s+(${IDENTITY_PATTERN})(?:~([^~]*)~)?(?:\\s*\\["([^"]*)"\\])?`
+  ).exec(token.raw);
   if (!match) return null;
 
-  const id = toClassId(match[1]);
+  const identity = readIdentity(match[1]);
+  const id = toClassId(identity);
   const { attributes, methods, annotation, memberLocations } = parseClassBody(
     id,
     token.blockTokens ?? []
@@ -39,8 +43,8 @@ export function buildClassNode(token: ParseToken): ParsedClassNode | null {
     node: {
       kind: "class",
       id,
-      name: id,
-      label: id,
+      name: identity,
+      label: match[3] ?? identity,
       genericType: match[2] ?? null,
       annotation,
       parentNamespaceId: null,
@@ -128,8 +132,7 @@ function parseClassMember(
           ? toMethodId(`${classId}:${token.lineNumber}`)
           : toAttributeId(`${classId}:${token.lineNumber}`),
       text: display.text,
-      isStatic: display.isStatic,
-      isAbstract: display.isAbstract,
+      classifier: display.classifier,
     },
   };
 }
@@ -141,10 +144,10 @@ export function buildShortClassMember(token: ParseToken): {
   readonly ownerLocation: SourceSpan;
   readonly textLocation: SourceSpan;
 } | null {
-  const match = /^(\s*)(\w+)(\s*:\s*)(.+)$/.exec(token.raw);
+  const match = new RegExp(`^(\\s*)(${IDENTITY_PATTERN})(\\s*:\\s*)(.+)$`).exec(token.raw);
   if (!match) return null;
 
-  const classId = toClassId(match[2]);
+  const classId = toClassId(readIdentity(match[2]));
   const sourceText = match[4].trim();
   if (sourceText === "") return null;
 
@@ -173,8 +176,7 @@ export function buildShortClassMember(token: ParseToken): {
           ? toMethodId(`${classId}:${token.lineNumber}`)
           : toAttributeId(`${classId}:${token.lineNumber}`),
       text: display.text,
-      isStatic: display.isStatic,
-      isAbstract: display.isAbstract,
+      classifier: display.classifier,
     },
   };
 }

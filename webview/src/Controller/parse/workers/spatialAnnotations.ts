@@ -3,6 +3,7 @@
  */
 
 import type { DiagramGraph } from "../../model/diagramGraph";
+import { IDENTITY_PATTERN } from "../../model/identitySpelling";
 import type { ProvenanceIndex, SpatialRecord } from "../../model/provenanceIndex";
 import type { SourceSpan } from "../../model/sourceEdit";
 import {
@@ -57,7 +58,7 @@ export function attachSpatial(
 }
 
 function toSpatialRecord(location: SourceSpan, rawLine: string): SpatialRecord {
-  const targetMatch = /@spatial:([A-Za-z_]\w*)/.exec(rawLine);
+  const targetMatch = new RegExp(`@spatial:(${IDENTITY_PATTERN})`).exec(rawLine);
   return {
     self: location,
     fields: {

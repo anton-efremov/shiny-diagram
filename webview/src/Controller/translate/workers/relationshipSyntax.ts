@@ -4,6 +4,7 @@
 
 import type { ClassId } from "../../../shared/ids";
 import type { RelationshipEndpointKind, RelationshipLineKind } from "../../../shared/uml";
+import { spellIdentity } from "../../model/identitySpelling";
 
 export type RelationshipStatementShape = {
   readonly sourceClassId: ClassId;
@@ -20,9 +21,9 @@ export function composeRelationshipStatement(shape: RelationshipStatementShape):
   const sourceMultiplicity = composeMultiplicity(shape.sourceMultiplicity);
   const targetMultiplicity = composeMultiplicity(shape.targetMultiplicity);
   const label = shape.label === null ? "" : ` : ${shape.label}`;
-  return `${shape.sourceClassId}${sourceMultiplicity} ${composeRelationshipOperator(
+  return `${spellIdentity(shape.sourceClassId)}${sourceMultiplicity} ${composeRelationshipOperator(
     shape
-  )}${targetMultiplicity} ${shape.targetClassId}${label}`;
+  )}${targetMultiplicity} ${spellIdentity(shape.targetClassId)}${label}`;
 }
 
 export function composeRelationshipOperator(

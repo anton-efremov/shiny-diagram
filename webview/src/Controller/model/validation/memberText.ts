@@ -3,6 +3,7 @@
  */
 
 import type { MemberKind } from "../../../shared/uml";
+import { getMethodReturnTypeColonIndex } from "../memberText";
 import { invalid, valid, type ValidationVerdict } from "./verdict";
 
 export function validateMemberText(
@@ -12,7 +13,7 @@ export function validateMemberText(
 ): readonly ValidationVerdict[] {
   if (kind !== "method") return [valid("verified-accepts")];
 
-  const colonAfterSignature = text.indexOf(":");
+  const colonAfterSignature = getMethodReturnTypeColonIndex(text);
   if (colonAfterSignature === -1) return [valid("verified-accepts")];
 
   const returnType = text.slice(colonAfterSignature + 1);
