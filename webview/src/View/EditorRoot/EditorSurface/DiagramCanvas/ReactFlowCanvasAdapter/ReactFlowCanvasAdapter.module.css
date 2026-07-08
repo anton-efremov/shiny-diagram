@@ -6,3 +6,7 @@
 .relationshipPlacement :global(.react-flow__node) {
   cursor: crosshair;
 }
+
+:global(.react-flow__node-classBox) {
+  overflow: visible;
+}

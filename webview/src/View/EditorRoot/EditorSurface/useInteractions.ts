@@ -1,12 +1,13 @@
 /**
- * @behavior Ready editor selection, class placement, and relationship placement semantic handlers.
- * @state SelectionState and NodePlacementState updates.
+ * @behavior Ready editor selection, placement, relationship placement, and text edit semantic handlers.
+ * @state SelectionState, NodePlacementState, and EditingState updates.
  */
 
 import { useCallback } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { ClassId, RelationshipId, StyleDefId } from "../../../shared/ids";
 import type {
+  EditingState,
   NodePlacementState,
   RelationshipSeed,
   SelectionState,
@@ -35,20 +36,28 @@ type Interactions = {
   readonly onBackgroundClick: () => void;
   readonly onConnectAborted: () => void;
   readonly onPlacementComplete: () => void;
+  readonly onTextBlockEditStart: (
+    editingState: Exclude<EditingState, { readonly kind: "none" }>
+  ) => void;
+  readonly onTextBlockEditCancel: () => void;
 };
 
 type UseInteractionsInput = {
   readonly relationships: readonly RelationshipView[];
+  readonly editingState: EditingState;
   readonly nodePlacementState: NodePlacementState;
   readonly setSelectionState: Dispatch<SetStateAction<SelectionState>>;
   readonly setNodePlacementState: Dispatch<SetStateAction<NodePlacementState>>;
+  readonly setEditingState: Dispatch<SetStateAction<EditingState>>;
 };
 
 export function useInteractions({
   relationships,
+  editingState,
   nodePlacementState,
   setSelectionState,
   setNodePlacementState,
+  setEditingState,
 }: UseInteractionsInput): Interactions {
   const dispatchTransaction = useDispatchTransaction();
 
@@ -156,9 +165,13 @@ export function useInteractions({
   );
 
   const onBackgroundClick = useCallback(() => {
-    setSelectionState((state) => clearSelectionState(state));
+    if (editingState.kind === "none") {
+      setSelectionState((state) => clearSelectionState(state));
+    } else {
+      setEditingState({ kind: "none" });
+    }
     setNodePlacementState((state) => (state?.kind === "relationship" ? null : state));
-  }, [setNodePlacementState, setSelectionState]);
+  }, [editingState.kind, setEditingState, setNodePlacementState, setSelectionState]);
 
   const onConnectAborted = useCallback(() => {
     setNodePlacementState((state) => (state?.kind === "relationship" ? null : state));
@@ -167,6 +180,18 @@ export function useInteractions({
   const onPlacementComplete = useCallback(() => {
     setNodePlacementState((state) => updateNodePlacementState(state, null));
   }, [setNodePlacementState]);
+
+  const onTextBlockEditStart = useCallback(
+    (nextEditingState: Exclude<EditingState, { readonly kind: "none" }>) => {
+      setSelectionState({ kind: "classes", classIds: [nextEditingState.classId] });
+      setEditingState(nextEditingState);
+    },
+    [setEditingState, setSelectionState]
+  );
+
+  const onTextBlockEditCancel = useCallback(() => {
+    setEditingState({ kind: "none" });
+  }, [setEditingState]);
 
   return {
     onClassPlacementStart,
@@ -181,6 +206,8 @@ export function useInteractions({
     onBackgroundClick,
     onConnectAborted,
     onPlacementComplete,
+    onTextBlockEditStart,
+    onTextBlockEditCancel,
   };
 }
 

@@ -8,11 +8,15 @@ import type { MouseEvent } from "react";
 import type { Rect } from "../../../../../../../shared/geometry";
 import type { ClassId } from "../../../../../../../shared/ids";
 import { useDispatchTransaction } from "../../../../../../contexts";
-import { toClassResizeTransaction } from "./transactions";
+import { toClassHeaderCommitTransaction, toClassResizeTransaction } from "./transactions";
 
 type Interactions = {
   readonly onClassBoxClick: (event: MouseEvent<HTMLDivElement>) => void;
   readonly onResizeEnd: (rect: Rect) => void;
+  readonly onHeaderCommit: (
+    block: "annotation" | "name" | "label",
+    value: string | null
+  ) => readonly string[];
 };
 
 export function useInteractions(
@@ -39,5 +43,13 @@ export function useInteractions(
     [classId, dispatchCommand]
   );
 
-  return { onClassBoxClick, onResizeEnd };
+  const onHeaderCommit = useCallback(
+    (block: "annotation" | "name" | "label", value: string | null) => {
+      const result = dispatchCommand(toClassHeaderCommitTransaction(classId, block, value));
+      return result.status === "rejected" ? result.errors.map((error) => error.message) : [];
+    },
+    [classId, dispatchCommand]
+  );
+
+  return { onClassBoxClick, onResizeEnd, onHeaderCommit };
 }

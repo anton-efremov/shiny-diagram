@@ -7,9 +7,11 @@ import type { ReactElement } from "react";
 import type { CSSProperties } from "react";
 import ReactFlowConnectionHandlesAdapter from "./ReactFlowConnectionHandlesAdapter/ReactFlowConnectionHandlesAdapter";
 import ReactFlowNodeResizerAdapter from "./ReactFlowNodeResizerAdapter/ReactFlowNodeResizerAdapter";
+import HeaderEditField from "./HeaderEditField/HeaderEditField";
 import MemberTable from "./MemberTable/MemberTable";
 import { useInteractions } from "./useInteractions";
 import type { ClassId } from "../../../../../../../shared/ids";
+import type { EditingState } from "../../../../../../state/editorStates";
 import type { ClassView } from "../../../../../../views/schema";
 import styles from "./ClassBox.module.css";
 
@@ -20,6 +22,11 @@ type ClassBoxProps = {
   readonly isResizeVisible: boolean;
   readonly isConnectSourceEnabled: boolean;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
+  readonly editingState: EditingState;
+  readonly onTextBlockEditStart: (
+    editingState: Exclude<EditingState, { readonly kind: "none" }>
+  ) => void;
+  readonly onTextBlockEditCancel: () => void;
 };
 
 type ConnectionHandleDescriptor = {
@@ -46,9 +53,15 @@ export default function ClassBox({
   isResizeVisible,
   isConnectSourceEnabled,
   onClassSelect,
+  editingState,
+  onTextBlockEditStart,
+  onTextBlockEditCancel,
 }: ClassBoxProps): ReactElement {
   // Event handler props derivation
-  const { onClassBoxClick, onResizeEnd } = useInteractions(view.classId, onClassSelect);
+  const { onClassBoxClick, onResizeEnd, onHeaderCommit } = useInteractions(
+    view.classId,
+    onClassSelect
+  );
 
   // UI props derivation
   const className = [
@@ -88,15 +101,132 @@ export default function ClassBox({
       />
       <header className={styles.header}>
         {view.header.stereotype ? (
-          <div className={styles.stereotype} title={view.header.stereotype}>
-            &lt;&lt;{view.header.stereotype}&gt;&gt;
-          </div>
+          isHeaderEditing(editingState, view.classId, "annotation") ? (
+            <HeaderEditField
+              initialText={view.header.stereotype}
+              onCommit={(text) => {
+                const errors = onHeaderCommit("annotation", text || null);
+                if (errors.length === 0) onTextBlockEditCancel();
+                return errors;
+              }}
+              onCancel={onTextBlockEditCancel}
+            />
+          ) : (
+            <div
+              className={styles.stereotype}
+              title={view.header.stereotype}
+              onDoubleClick={(event) => {
+                event.stopPropagation();
+                onTextBlockEditStart({
+                  kind: "header",
+                  classId: view.classId,
+                  block: "annotation",
+                });
+              }}
+              onClick={(event) => {
+                event.stopPropagation();
+                if (isSelected) {
+                  onTextBlockEditStart({
+                    kind: "header",
+                    classId: view.classId,
+                    block: "annotation",
+                  });
+                } else {
+                  onClassSelect(view.classId, false);
+                }
+              }}
+            >
+              &lt;&lt;{view.header.stereotype}&gt;&gt;
+            </div>
+          )
         ) : null}
-        <div className={styles.className} title={view.header.label}>
-          {view.header.label}
-        </div>
+        {isHeaderEditing(editingState, view.classId, "name") ? (
+          <HeaderEditField
+            initialText={view.header.name}
+            onCommit={(text) => {
+              const errors = onHeaderCommit("name", text);
+              if (errors.length === 0) onTextBlockEditCancel();
+              return errors;
+            }}
+            onCancel={onTextBlockEditCancel}
+          />
+        ) : (
+          <div
+            className={styles.className}
+            title={view.header.name}
+            onDoubleClick={(event) => {
+              event.stopPropagation();
+              onTextBlockEditStart({ kind: "header", classId: view.classId, block: "name" });
+            }}
+            onClick={(event) => {
+              event.stopPropagation();
+              if (isSelected) {
+                onTextBlockEditStart({ kind: "header", classId: view.classId, block: "name" });
+              } else {
+                onClassSelect(view.classId, false);
+              }
+            }}
+          >
+            {view.header.name}
+          </div>
+        )}
+        {view.header.label !== view.header.name ? (
+          isHeaderEditing(editingState, view.classId, "label") ? (
+            <HeaderEditField
+              initialText={view.header.label}
+              onCommit={(text) => {
+                const errors = onHeaderCommit("label", text || null);
+                if (errors.length === 0) onTextBlockEditCancel();
+                return errors;
+              }}
+              onCancel={onTextBlockEditCancel}
+            />
+          ) : (
+            <div
+              className={styles.classLabel}
+              title={view.header.label}
+              onDoubleClick={(event) => {
+                event.stopPropagation();
+                onTextBlockEditStart({ kind: "header", classId: view.classId, block: "label" });
+              }}
+              onClick={(event) => {
+                event.stopPropagation();
+                if (isSelected) {
+                  onTextBlockEditStart({
+                    kind: "header",
+                    classId: view.classId,
+                    block: "label",
+                  });
+                } else {
+                  onClassSelect(view.classId, false);
+                }
+              }}
+            >
+              as {view.header.label}
+            </div>
+          )
+        ) : null}
       </header>
-      <MemberTable view={{ members: view.members }} isSelected={isSelected} />
+      <MemberTable
+        view={{ classId: view.classId, members: view.members }}
+        isSelected={isSelected}
+        editingState={editingState}
+        onTextBlockEditStart={onTextBlockEditStart}
+        onTextBlockEditCancel={onTextBlockEditCancel}
+        onClassSelect={onClassSelect}
+      />
     </div>
+  );
+}
+
+function isHeaderEditing(
+  editingState: EditingState,
+  classId: ClassId,
+  block: "annotation" | "name" | "label"
+): boolean {
+  return (
+    editingState.kind === "header" &&
+    editingState.classId === classId &&
+    editingState.block === block
   );
 }

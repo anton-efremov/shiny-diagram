@@ -1,8 +1,8 @@
 /**
- * @behavior SelectionState and NodePlacementState construction for the ready editor.
+ * @behavior SelectionState, NodePlacementState, and EditingState construction for the ready editor.
  */
 
-import type { NodePlacementState, SelectionState } from "../../state/editorStates";
+import type { EditingState, NodePlacementState, SelectionState } from "../../state/editorStates";
 
 // State initialization
 export function toInitialSelectionState(): SelectionState {
@@ -11,4 +11,8 @@ export function toInitialSelectionState(): SelectionState {
 
 export function toInitialNodePlacementState(): NodePlacementState {
   return null;
+}
+
+export function toInitialEditingState(): EditingState {
+  return { kind: "none" };
 }

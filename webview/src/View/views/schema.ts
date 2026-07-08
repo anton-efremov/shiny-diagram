@@ -36,6 +36,7 @@ import type {
 /* ── Leaf views ──────────────────────────────────────────────────────────── */
 
 export type ClassHeaderView = {
+  readonly name: string;
   readonly label: string;
   readonly stereotype?: string;
 };

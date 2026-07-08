@@ -10,6 +10,7 @@ import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import type { SourcePosition, SourceSpan } from "../../model/sourceEdit";
 import { toSourceMemberText } from "../../model/memberText";
 import { anchorBlockOpening, anchorExactStatement, asSameKind } from "../anchors/statementAnchors";
+import { insertFirstClassBlockChildIntoBlocklessClass } from "../placement/classBlockEnsure";
 import type { StatementAnchor, StatementRef, WriteIntent } from "../writeIntent";
 
 export function translateClassAttributeSet(
@@ -53,12 +54,25 @@ export function translateClassMethodDelete(
 export function translateClassAttributeCreate(
   command: EditorCommandOf<"class.attribute.create">,
   graph: DiagramGraph,
-  provenance: ProvenanceIndex
+  provenance: ProvenanceIndex,
+  sourceText: string
 ): WriteIntent[] {
+  const payload = toSourceMemberText(
+    { text: command.text, classifier: command.classifier },
+    "field"
+  );
+  if (command.beforeAttributeId === null && isBlocklessClass(command.classId, provenance)) {
+    return insertFirstClassBlockChildIntoBlocklessClass(
+      command.classId,
+      provenance,
+      sourceText,
+      payload
+    );
+  }
   return [
     {
       kind: "insertStatement",
-      payload: toSourceMemberText({ text: command.text, classifier: command.classifier }, "field"),
+      payload,
       anchor: memberCreateAnchor(
         graph,
         provenance,
@@ -73,12 +87,25 @@ export function translateClassAttributeCreate(
 export function translateClassMethodCreate(
   command: EditorCommandOf<"class.method.create">,
   graph: DiagramGraph,
-  provenance: ProvenanceIndex
+  provenance: ProvenanceIndex,
+  sourceText: string
 ): WriteIntent[] {
+  const payload = toSourceMemberText(
+    { text: command.text, classifier: command.classifier },
+    "method"
+  );
+  if (command.beforeMethodId === null && isBlocklessClass(command.classId, provenance)) {
+    return insertFirstClassBlockChildIntoBlocklessClass(
+      command.classId,
+      provenance,
+      sourceText,
+      payload
+    );
+  }
   return [
     {
       kind: "insertStatement",
-      payload: toSourceMemberText({ text: command.text, classifier: command.classifier }, "method"),
+      payload,
       anchor: memberCreateAnchor(
         graph,
         provenance,
@@ -134,6 +161,10 @@ function deleteMemberIntent(
       ? { kind: "blockMember", memberId }
       : { kind: "shortMember", memberId },
   };
+}
+
+function isBlocklessClass(classId: ClassNode["id"], provenance: ProvenanceIndex): boolean {
+  return provenance.classes.get(classId)?.body === null;
 }
 
 function memberCreateAnchor(

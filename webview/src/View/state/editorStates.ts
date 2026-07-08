@@ -8,9 +8,9 @@
  * State annotations identify the View component that owns runtime storage.
  */
 
-import type { ClassId, RelationshipId, StyleDefId } from "../../shared/ids";
+import type { AttributeId, ClassId, MethodId, RelationshipId, StyleDefId } from "../../shared/ids";
 import type { Rect } from "../../shared/geometry";
-import type { RelationshipEndpointKind, RelationshipLineKind } from "../../shared/uml";
+import type { MemberKind, RelationshipEndpointKind, RelationshipLineKind } from "../../shared/uml";
 /*
  * Owned by: EditorSurface.
  *
@@ -47,6 +47,27 @@ export type NodePlacementState =
       readonly kind: "relationship";
       readonly seed: RelationshipSeed;
     };
+
+/*
+ * Owned by: EditorSurface.
+ *
+ * The single text block currently in direct edit mode. Draft text and draft
+ * classifier remain local to the edit field component.
+ */
+export type EditingState =
+  | { readonly kind: "none" }
+  | {
+      readonly kind: "header";
+      readonly classId: ClassId;
+      readonly block: "annotation" | "name" | "label";
+    }
+  | {
+      readonly kind: "member";
+      readonly classId: ClassId;
+      readonly memberKind: MemberKind;
+      readonly memberId: AttributeId | MethodId;
+    }
+  | { readonly kind: "newMember"; readonly classId: ClassId; readonly memberKind: MemberKind };
 
 export type RelationshipSeed = {
   readonly sourceEndpointKind: RelationshipEndpointKind;

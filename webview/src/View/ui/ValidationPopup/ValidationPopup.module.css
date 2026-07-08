@@ -1,0 +1,40 @@
+/**
+ * @render Inline validation message styling.
+ */
+
+.popup {
+  position: relative;
+  z-index: 30;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  max-width: 260px;
+  margin-top: 4px;
+  padding: 8px 10px;
+  color: #7f1d1d;
+  background: #fff7f7;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 16%);
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.message {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.dismiss {
+  flex: 0 0 auto;
+  padding: 0;
+  color: currentColor;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}

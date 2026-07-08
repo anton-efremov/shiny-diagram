@@ -5,12 +5,16 @@
 
 import { useState } from "react";
 import type { ReactElement } from "react";
-import type { NodePlacementState, SelectionState } from "../../state/editorStates";
+import type { EditingState, NodePlacementState, SelectionState } from "../../state/editorStates";
 import type { DiagramView } from "../../views/schema";
 import ClassDiagram from "./DiagramCanvas/DiagramCanvas";
 import StylePane from "./StylePane/StylePane";
 import ToolPane from "./ToolPane/ToolPane";
-import { toInitialNodePlacementState, toInitialSelectionState } from "./state";
+import {
+  toInitialEditingState,
+  toInitialNodePlacementState,
+  toInitialSelectionState,
+} from "./state";
 import { useInteractions } from "./useInteractions";
 import { useStateReconciliation } from "./useStateReconciliation";
 import styles from "./EditorSurface.module.css";
@@ -27,9 +31,10 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
   const [nodePlacementState, setNodePlacementState] = useState<NodePlacementState>(() =>
     toInitialNodePlacementState()
   );
+  const [editingState, setEditingState] = useState<EditingState>(() => toInitialEditingState());
 
   // State reconciliation
-  useStateReconciliation({ view, setSelectionState });
+  useStateReconciliation({ view, setSelectionState, setEditingState });
 
   // Event handler props derivation
   const {
@@ -45,11 +50,15 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
     onBackgroundClick,
     onConnectAborted,
     onPlacementComplete,
+    onTextBlockEditStart,
+    onTextBlockEditCancel,
   } = useInteractions({
     relationships: view.relationships,
+    editingState,
     nodePlacementState,
     setSelectionState,
     setNodePlacementState,
+    setEditingState,
   });
 
   return (
@@ -63,6 +72,7 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
         <ClassDiagram
           view={view}
           selectionState={selectionState}
+          editingState={editingState}
           nodePlacementState={nodePlacementState}
           onClassSelect={onClassSelect}
           onClassMoved={onClassMoved}
@@ -72,6 +82,8 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
           onBackgroundClick={onBackgroundClick}
           onConnectAborted={onConnectAborted}
           onPlacementComplete={onPlacementComplete}
+          onTextBlockEditStart={onTextBlockEditStart}
+          onTextBlockEditCancel={onTextBlockEditCancel}
         />
       </div>
       <StylePane

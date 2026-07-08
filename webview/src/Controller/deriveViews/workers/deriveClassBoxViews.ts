@@ -27,6 +27,7 @@ export function deriveClassBoxViews(model: DiagramGraph): ClassView[] {
         h: node.spatial.size.height,
       },
       header: {
+        name: `${node.name}${node.genericType ? `<${node.genericType}>` : ""}`,
         label: node.label,
         stereotype: node.annotation ?? undefined,
       },

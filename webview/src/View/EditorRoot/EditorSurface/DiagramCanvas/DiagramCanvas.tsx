@@ -7,7 +7,7 @@ import { useState } from "react";
 import type { ReactElement } from "react";
 import type { ClassId, RelationshipId } from "../../../../shared/ids";
 import type { DiagramView } from "../../../views/schema";
-import type { NodePlacementState, SelectionState } from "../../../state/editorStates";
+import type { EditingState, NodePlacementState, SelectionState } from "../../../state/editorStates";
 import { toInitialClassBoxPlacementState } from "./state";
 import { useInteractions } from "./useInteractions";
 import { useStateReconciliation } from "./useStateReconciliation";
@@ -18,6 +18,7 @@ import styles from "./DiagramCanvas.module.css";
 type DiagramCanvasProps = {
   readonly view: DiagramView;
   readonly selectionState: SelectionState;
+  readonly editingState: EditingState;
   readonly nodePlacementState: NodePlacementState;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
   readonly onClassMoved: (classId: ClassId) => void;
@@ -31,11 +32,16 @@ type DiagramCanvasProps = {
   readonly onBackgroundClick: () => void;
   readonly onConnectAborted: () => void;
   readonly onPlacementComplete: () => void;
+  readonly onTextBlockEditStart: (
+    editingState: Exclude<EditingState, { readonly kind: "none" }>
+  ) => void;
+  readonly onTextBlockEditCancel: () => void;
 };
 
 export default function DiagramCanvas({
   view,
   selectionState,
+  editingState,
   nodePlacementState,
   onClassSelect,
   onClassMoved,
@@ -45,6 +51,8 @@ export default function DiagramCanvas({
   onBackgroundClick,
   onConnectAborted,
   onPlacementComplete,
+  onTextBlockEditStart,
+  onTextBlockEditCancel,
 }: DiagramCanvasProps): ReactElement {
   // State creation: ledger state - framework-neutral class box positions and dimensions
   const [classBoxPlacementState, setClassBoxPlacementState] = useState(() =>
@@ -69,6 +77,7 @@ export default function DiagramCanvas({
         <ReactFlowCanvasAdapter
           view={view}
           selectionState={selectionState}
+          editingState={editingState}
           nodePlacementState={nodePlacementState}
           classBoxPlacementState={classBoxPlacementState}
           onClassBoxPlacementChange={onClassBoxPlacementChange}
@@ -81,6 +90,8 @@ export default function DiagramCanvas({
           onBackgroundClick={onBackgroundClick}
           onConnectAborted={onConnectAborted}
           onPlacementComplete={onPlacementComplete}
+          onTextBlockEditStart={onTextBlockEditStart}
+          onTextBlockEditCancel={onTextBlockEditCancel}
         />
       </ReactFlowProviderAdapter>
     </section>

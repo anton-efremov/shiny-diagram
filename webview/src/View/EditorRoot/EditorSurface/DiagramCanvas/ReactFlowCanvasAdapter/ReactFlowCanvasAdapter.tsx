@@ -18,6 +18,7 @@ import { RELATIONSHIP_RECONNECT_RADIUS } from "../../../../config/editorUiConfig
 import { reactFlowCanvasBoundaryProps } from "../../../../config/reactFlowConfig";
 import type {
   ClassBoxPlacementState,
+  EditingState,
   NodePlacementState,
   RelationshipSeed,
   SelectionState,
@@ -38,6 +39,7 @@ const edgeTypes = { relationship: RelationshipEdgeAdapter };
 type ReactFlowCanvasAdapterProps = {
   readonly view: DiagramView;
   readonly selectionState: SelectionState;
+  readonly editingState: EditingState;
   readonly nodePlacementState: NodePlacementState;
   readonly classBoxPlacementState: ClassBoxPlacementState;
   readonly onClassBoxPlacementChange: (changes: readonly ClassBoxPlacementChange[]) => void;
@@ -54,11 +56,16 @@ type ReactFlowCanvasAdapterProps = {
   readonly onBackgroundClick: () => void;
   readonly onConnectAborted: () => void;
   readonly onPlacementComplete: () => void;
+  readonly onTextBlockEditStart: (
+    editingState: Exclude<EditingState, { readonly kind: "none" }>
+  ) => void;
+  readonly onTextBlockEditCancel: () => void;
 };
 
 export default function ReactFlowCanvasAdapter({
   view,
   selectionState,
+  editingState,
   nodePlacementState,
   classBoxPlacementState,
   onClassBoxPlacementChange,
@@ -71,6 +78,8 @@ export default function ReactFlowCanvasAdapter({
   onBackgroundClick,
   onConnectAborted,
   onPlacementComplete,
+  onTextBlockEditStart,
+  onTextBlockEditCancel,
 }: ReactFlowCanvasAdapterProps): ReactElement {
   // Framework prop and event adaptation
   const { screenToFlowPosition } = useReactFlow();
@@ -88,7 +97,10 @@ export default function ReactFlowCanvasAdapter({
       selectedClassIds,
       classBoxPlacementState,
       isRelationshipPlacementActive,
-      onClassSelect
+      onClassSelect,
+      editingState,
+      onTextBlockEditStart,
+      onTextBlockEditCancel
     );
   }, [
     view.classes,
@@ -96,6 +108,9 @@ export default function ReactFlowCanvasAdapter({
     classBoxPlacementState,
     isRelationshipPlacementActive,
     onClassSelect,
+    editingState,
+    onTextBlockEditStart,
+    onTextBlockEditCancel,
   ]);
   const rfEdges = useMemo(
     () =>

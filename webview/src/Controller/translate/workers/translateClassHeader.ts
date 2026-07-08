@@ -9,6 +9,7 @@ import type { ProvenanceIndex } from "../../model/provenanceIndex";
 import { spellIdentity } from "../../model/identitySpelling";
 import { toSourceGenericTypes } from "../../model/memberText";
 import { anchorBlockOpening } from "../anchors/statementAnchors";
+import { insertFirstClassBlockChildIntoBlocklessClass } from "../placement/classBlockEnsure";
 import type { TranslateContext } from "../translateContext";
 import type { WriteIntent } from "../writeIntent";
 
@@ -106,7 +107,8 @@ export function translateClassLabelSet(
 
 export function translateClassAnnotationSet(
   command: EditorCommandOf<"class.annotation.set">,
-  provenance: ProvenanceIndex
+  provenance: ProvenanceIndex,
+  sourceText: string
 ): WriteIntent[] {
   const record = provenance.classes.get(command.classId);
   if (!record) throw new Error(`Missing provenance for class ${command.classId}`);
@@ -132,7 +134,14 @@ export function translateClassAnnotationSet(
       },
     ];
   }
-  if (!record.body) throw new Error(`Cannot add annotation to blockless class ${command.classId}`);
+  if (!record.body) {
+    return insertFirstClassBlockChildIntoBlocklessClass(
+      command.classId,
+      provenance,
+      sourceText,
+      payload
+    );
+  }
   return [
     {
       kind: "insertStatement",

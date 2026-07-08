@@ -108,7 +108,7 @@ function translateCommand(
     case "class.label.set":
       return translateClassLabelSet(command, graph, provenance);
     case "class.annotation.set":
-      return translateClassAnnotationSet(command, provenance);
+      return translateClassAnnotationSet(command, provenance, sourceText);
     case "class.spatial.set":
       return translateClassSpatialSet(command, graph, provenance);
     case "class.directStyle.property.set":
@@ -120,7 +120,7 @@ function translateCommand(
     case "class.appliedStyle.set":
       return translateClassAppliedStyleSet(command, graph, provenance);
     case "class.attribute.create":
-      return translateClassAttributeCreate(command, graph, provenance);
+      return translateClassAttributeCreate(command, graph, provenance, sourceText);
     case "class.attribute.set":
       return translateClassAttributeSet(command);
     case "class.attribute.delete":
@@ -128,7 +128,7 @@ function translateCommand(
     case "class.attribute.move":
       return translateClassAttributeMove(command, graph, provenance, sourceText);
     case "class.method.create":
-      return translateClassMethodCreate(command, graph, provenance);
+      return translateClassMethodCreate(command, graph, provenance, sourceText);
     case "class.method.set":
       return translateClassMethodSet(command);
     case "class.method.delete":
