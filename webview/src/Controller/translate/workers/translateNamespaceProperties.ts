@@ -6,8 +6,10 @@ import type { EditorCommandOf } from "../../../View/commands";
 import { toNamespaceId, type NamespaceId } from "../../../shared/ids";
 import { STYLE_PROPERTIES, type StyleProperties } from "../../../shared/style";
 import type { DiagramGraph } from "../../model/diagramGraph";
-import { readIdentity, spellIdentity } from "../../model/identitySpelling";
+import { readIdentity, spellNamespaceIdentity } from "../../model/identitySpelling";
 import type { ProvenanceIndex, SourceSpan } from "../../model/provenanceIndex";
+import { toNamespaceRenamePairs } from "../namespaceRenameCascade";
+import type { NamespaceRenamePair } from "../namespaceRenameCascade";
 import type { TranslateContext } from "../translateContext";
 import {
   anchorAfterKindList,
@@ -28,7 +30,7 @@ export function translateNamespaceNameSet(
   sourceText: string,
   context: TranslateContext
 ): WriteIntent[] {
-  const renamed = toNamespaceRenamePairs(command, graph);
+  const renamed = toNamespaceNameSetRenamePairs(command, graph);
   for (const pair of renamed) {
     context.recordNamespaceRenamed(pair.from, pair.to);
   }
@@ -82,7 +84,7 @@ export function translateNamespaceStyleSet(
   return [
     {
       kind: "insertStatement",
-      payload: `%% @style:${spellIdentity(command.namespaceId)} ${properties}`,
+      payload: `%% @style:${spellNamespaceIdentity(command.namespaceId)} ${properties}`,
       anchor: toNamespaceStyleAnchor(graph, provenance),
     },
   ];
@@ -120,12 +122,7 @@ export function translateNamespaceDelete(
   ];
 }
 
-type NamespaceRenamePair = {
-  readonly from: NamespaceId;
-  readonly to: NamespaceId;
-};
-
-function toNamespaceRenamePairs(
+function toNamespaceNameSetRenamePairs(
   command: EditorCommandOf<"namespace.name.set">,
   graph: DiagramGraph
 ): readonly NamespaceRenamePair[] {
@@ -136,18 +133,7 @@ function toNamespaceRenamePairs(
       ? `${current.parentNamespaceId}.${command.name.trim()}`
       : command.name.trim()
   );
-  if (nextId === command.namespaceId) return [];
-
-  return [...graph.namespaces.keys()].flatMap((namespaceId) =>
-    namespaceId === command.namespaceId || namespaceId.startsWith(`${command.namespaceId}.`)
-      ? [
-          {
-            from: namespaceId,
-            to: toNamespaceId(`${nextId}${namespaceId.slice(command.namespaceId.length)}`),
-          },
-        ]
-      : []
-  );
+  return toNamespaceRenamePairs(command.namespaceId, nextId, graph);
 }
 
 function toNamespaceDeclarationRenameIntent(
@@ -165,7 +151,7 @@ function toNamespaceDeclarationRenameIntent(
       {
         kind: "replaceValue",
         target: { kind: "namespaceName", namespaceId: pair.from },
-        payload: spellIdentity(pair.to),
+        payload: spellNamespaceIdentity(pair.to),
       },
     ];
   }
@@ -174,7 +160,7 @@ function toNamespaceDeclarationRenameIntent(
       {
         kind: "replaceValue",
         target: { kind: "namespaceName", namespaceId: pair.from },
-        payload: spellIdentity(lastNamespaceSegment(pair.to)),
+        payload: spellNamespaceIdentity(lastNamespaceSegment(pair.to)),
       },
     ];
   }
@@ -190,7 +176,7 @@ function toNamespaceStyleTargetRenameIntent(
         {
           kind: "replaceValue",
           target: { kind: "namespaceStyleTarget", namespaceId: pair.from },
-          payload: spellIdentity(pair.to),
+          payload: spellNamespaceIdentity(pair.to),
         },
       ]
     : [];

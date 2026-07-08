@@ -72,7 +72,7 @@ namespace Domain.Sub {
       {
         kind: "replaceValue",
         target: { kind: "namespaceName", namespaceId: toNamespaceId("Domain.Sub") },
-        payload: "`Core.Sub`",
+        payload: "Core.Sub",
       },
     ]);
   });
@@ -368,8 +368,8 @@ function deleteFixture(): Fixture {
         [
           childId,
           {
-            self: span(3, 0, 5, 3),
-            header: span(3, 0, 3, 19),
+            self: span(3, 2, 5, 3),
+            header: span(3, 2, 3, 19),
             body: span(4, 0, 4, 0),
             fields: { declaredName: span(3, 12, 3, 17) },
           },

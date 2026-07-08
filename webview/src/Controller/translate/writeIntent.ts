@@ -37,6 +37,7 @@ import type {
   StyleDefId,
 } from "../../shared/ids";
 import type { StylePropertyName } from "../../shared/style";
+import type { SourceSpan } from "../model/sourceEdit";
 
 // ============================================================================
 // References — a statement, an entry, a value, or an insertion anchor
@@ -181,9 +182,16 @@ export type ReplaceValueIntent = {
   readonly target: ValueRef;
 };
 
+/** Delete an exact source range. Reserved for post-pass structural cleanup. */
+export type DeleteRangeIntent = {
+  readonly kind: "deleteRange";
+  readonly target: SourceSpan;
+};
+
 export type WriteIntent =
   | InsertStatementIntent
   | DeleteStatementIntent
   | InsertEntryIntent
   | DeleteEntryIntent
-  | ReplaceValueIntent;
+  | ReplaceValueIntent
+  | DeleteRangeIntent;

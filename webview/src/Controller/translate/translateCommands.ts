@@ -103,7 +103,13 @@ export function translateCommands(
     return translateCommand(command, graph, provenance, sourceText, context);
   });
 
-  const intents = applyVacancyPostPass(translatedIntents, transaction, graph, provenance);
+  const intents = applyVacancyPostPass(
+    translatedIntents,
+    transaction,
+    graph,
+    provenance,
+    sourceText
+  );
 
   return { intents, outcome: context.toTransactionOutcome() };
 }
@@ -197,7 +203,7 @@ function translateCommand(
     case "namespace.style.set":
       return translateNamespaceStyleSet(command, graph, provenance);
     case "namespace.parentNamespace.set":
-      return translateNamespaceParentNamespaceSet(command, graph, provenance, sourceText);
+      return translateNamespaceParentNamespaceSet(command, graph, provenance, sourceText, context);
     case "style.definition.create":
       return translateStyleDefinitionCreate(command, graph, provenance);
     case "style.definition.delete":

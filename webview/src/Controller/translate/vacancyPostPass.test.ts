@@ -30,13 +30,17 @@ namespace Root {
       payload: "class User",
       anchor: { kind: "afterDifferentKind", statement: { kind: "namespaceStyle", namespaceId } },
     });
-    expect(intents).not.toContainEqual({
+    expect(intents).toContainEqual({
       kind: "deleteStatement",
       target: { kind: "class", classId },
     });
     expect(intents).toContainEqual({
-      kind: "deleteStatement",
-      target: { kind: "namespace", namespaceId },
+      kind: "deleteRange",
+      target: span(1, 0, 2, 0),
+    });
+    expect(intents).toContainEqual({
+      kind: "deleteRange",
+      target: span(3, 0, 4, 0),
     });
     expect(intents).toContainEqual({
       kind: "deleteStatement",

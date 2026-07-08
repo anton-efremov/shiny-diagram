@@ -1,39 +1,32 @@
 /**
  * @fileoverview Transaction-level namespace vacancy cleanup for Mermaid-valid output.
+ *
+ * The post-pass is overlap-aware by construction: member move/delete workers keep
+ * their own statement deletions, and vacancy cleanup deletes only the emptied
+ * namespace frame lines plus its style annotation. That avoids re-deleting child
+ * statement ranges that a prior intent already owns.
  */
 
 import type { EditorCommandTransaction } from "../../View/commands";
 import type { ClassId, NamespaceId } from "../../shared/ids";
 import type { DiagramGraph } from "../model/diagramGraph";
 import type { ProvenanceIndex } from "../model/provenanceIndex";
-import type { StatementRef, WriteIntent } from "./writeIntent";
+import type { SourceSpan } from "../model/sourceEdit";
+import type { WriteIntent } from "./writeIntent";
 
 export function applyVacancyPostPass(
   intents: readonly WriteIntent[],
   transaction: EditorCommandTransaction,
   graph: DiagramGraph,
-  provenance: ProvenanceIndex
+  provenance: ProvenanceIndex,
+  sourceText: string
 ): WriteIntent[] {
   const deletedNamespaceIds = toDeletedNamespaceIds(transaction, graph);
-  const topmostDeletedNamespaceIds = new Set(
-    [...deletedNamespaceIds].filter((namespaceId) => {
-      const parentNamespaceId = graph.namespaces.get(namespaceId)?.parentNamespaceId ?? null;
-      return !parentNamespaceId || !deletedNamespaceIds.has(parentNamespaceId);
-    })
-  );
-  const retainedIntents = intents.filter(
-    (intent) =>
-      intent.kind !== "deleteStatement" ||
-      !isCoveredByDeletedNamespace(intent.target, graph, topmostDeletedNamespaceIds)
-  );
   return [
-    ...retainedIntents,
-    ...[...topmostDeletedNamespaceIds].flatMap((namespaceId) => {
-      if (!provenance.namespaces.has(namespaceId)) return [];
-      return [
-        { kind: "deleteStatement" as const, target: { kind: "namespace" as const, namespaceId } },
-      ];
-    }),
+    ...intents,
+    ...[...deletedNamespaceIds].flatMap((namespaceId) =>
+      toNamespaceFrameDeleteIntents(namespaceId, provenance, sourceText)
+    ),
     ...[...deletedNamespaceIds].flatMap((namespaceId) =>
       provenance.namespaceStyles.has(namespaceId)
         ? [
@@ -45,38 +38,6 @@ export function applyVacancyPostPass(
         : []
     ),
   ];
-}
-
-function isCoveredByDeletedNamespace(
-  target: StatementRef,
-  graph: DiagramGraph,
-  topmostDeletedNamespaceIds: ReadonlySet<NamespaceId>
-): boolean {
-  switch (target.kind) {
-    case "class": {
-      const parentNamespaceId = graph.classes.get(target.classId)?.parentNamespaceId ?? null;
-      return isNamespaceInDeletedSubtree(parentNamespaceId, graph, topmostDeletedNamespaceIds);
-    }
-    case "namespace": {
-      const parentNamespaceId = graph.namespaces.get(target.namespaceId)?.parentNamespaceId ?? null;
-      return isNamespaceInDeletedSubtree(parentNamespaceId, graph, topmostDeletedNamespaceIds);
-    }
-    default:
-      return false;
-  }
-}
-
-function isNamespaceInDeletedSubtree(
-  namespaceId: NamespaceId | null,
-  graph: DiagramGraph,
-  topmostDeletedNamespaceIds: ReadonlySet<NamespaceId>
-): boolean {
-  let current = namespaceId;
-  while (current) {
-    if (topmostDeletedNamespaceIds.has(current)) return true;
-    current = graph.namespaces.get(current)?.parentNamespaceId ?? null;
-  }
-  return false;
 }
 
 function toDeletedNamespaceIds(
@@ -132,4 +93,29 @@ function hasDirectMembers(
     if (parentNamespaceId === namespaceId) return true;
   }
   return false;
+}
+
+function toNamespaceFrameDeleteIntents(
+  namespaceId: NamespaceId,
+  provenance: ProvenanceIndex,
+  sourceText: string
+): WriteIntent[] {
+  const record = provenance.namespaces.get(namespaceId);
+  if (!record) return [];
+  return [
+    { kind: "deleteRange", target: toFullLineSpan(record.header, sourceText) },
+    { kind: "deleteRange", target: toFullLineSpan(record.self.end, sourceText) },
+  ];
+}
+
+function toFullLineSpan(span: SourceSpan | SourceSpan["end"], sourceText: string): SourceSpan {
+  const line = "start" in span ? span.start.line : span.line;
+  const lineCount = sourceText.split("\n").length;
+  const hasFollowingLine = line < lineCount - 1;
+  return {
+    start: { line, character: 0 },
+    end: hasFollowingLine
+      ? { line: line + 1, character: 0 }
+      : { line, character: sourceText.split("\n")[line]?.length ?? 0 },
+  };
 }

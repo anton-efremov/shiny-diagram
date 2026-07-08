@@ -14,9 +14,8 @@ export function movedStatementPayload(
   sourceText: string,
   indentDelta: number
 ): string {
-  const relative = toRelativeBlockIndent(
-    sliceSpan(sourceText, statementSpan(statement, provenance))
-  );
+  const span = statementSpan(statement, provenance);
+  const relative = toRelativeBlockIndent(sliceSpan(sourceText, span), sourceText, span.start);
   if (indentDelta === 0) return relative;
   return relative
     .split("\n")
@@ -47,9 +46,14 @@ function shiftLine(line: string, indentDelta: number): string {
   return removeIndentPrefix(line, INDENT_UNIT.repeat(Math.abs(indentDelta)));
 }
 
-function toRelativeBlockIndent(text: string): string {
+function toRelativeBlockIndent(
+  text: string,
+  sourceText: string,
+  startPosition: SourcePosition
+): string {
   const lines = text.split("\n");
-  const baseIndent = /^\s*/.exec(lines[0])?.[0] ?? "";
+  const sourceLine = sourceText.split("\n")[startPosition.line] ?? "";
+  const baseIndent = sourceLine.slice(0, startPosition.character);
   if (baseIndent === "") return text;
   return lines.map((line) => removeIndentPrefix(line, baseIndent)).join("\n");
 }
