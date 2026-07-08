@@ -28,10 +28,63 @@ describe("note command round trips", () => {
     });
 
     source = dispatch(source, [
-      { type: "note.text.set", noteId: composeNoteId(1), text: 'Edited "quoted" note' },
+      { type: "note.text.set", noteId: composeNoteId(1), text: String.raw`Edited \n note` },
     ]).source;
 
-    expect(parseReady(source).graph.notes.get(composeNoteId(1))?.text).toBe('Edited "quoted" note');
+    expect(source).toContain(String.raw`note "Edited \n note"`);
+    expect(parseReady(source).graph.notes.get(composeNoteId(1))?.text).toBe(
+      String.raw`Edited \n note`
+    );
+  });
+
+  it("creates the first note with its annotation directly adjacent to the note statement", () => {
+    const result = dispatch(`classDiagram\nclass User\n%% @spatial:User x=10 y=20 w=220 h=160\n`, [
+      {
+        type: "note.create",
+        text: "First note",
+        spatial: { position: { x: 300, y: 120 }, size: { width: 160, height: 90 } },
+        attachedToClassId: null,
+      },
+    ]);
+
+    expect(result.source).toContain('%% @note: x=300 y=120 w=160 h=90\nnote "First note"');
+    expect(result.source).not.toContain("@note: x=300 y=120 w=160 h=90\n\nnote");
+    expect(parseReady(result.source).graph.notes.get(composeNoteId(0))?.spatial).toEqual({
+      position: { x: 300, y: 120 },
+      size: { width: 160, height: 90 },
+    });
+  });
+
+  it("can attach and duplicate a newly-created first note after reparse", () => {
+    let source = dispatch(`classDiagram\nclass User\n%% @spatial:User x=10 y=20 w=220 h=160\n`, [
+      {
+        type: "note.create",
+        text: "First note",
+        spatial: { position: { x: 300, y: 120 }, size: { width: 160, height: 90 } },
+        attachedToClassId: null,
+      },
+    ]).source;
+
+    source = dispatch(source, [
+      {
+        type: "note.attachment.set",
+        noteId: composeNoteId(0),
+        attachedToClassId: toClassId("User"),
+      },
+    ]).source;
+
+    expect(parseReady(source).graph.notes.get(composeNoteId(0))?.attachedToClassId).toBe(
+      toClassId("User")
+    );
+
+    const duplicated = dispatch(source, [{ type: "note.duplicate", noteId: composeNoteId(0) }]);
+
+    expect(duplicated.outcome.notes.created).toEqual([composeNoteId(1)]);
+    expect(parseReady(duplicated.source).graph.notes.get(composeNoteId(1))).toMatchObject({
+      text: "First note",
+      attachedToClassId: toClassId("User"),
+      spatial: { position: { x: 324, y: 144 }, size: { width: 160, height: 90 } },
+    });
   });
 
   it("updates note spatial coordinates", () => {

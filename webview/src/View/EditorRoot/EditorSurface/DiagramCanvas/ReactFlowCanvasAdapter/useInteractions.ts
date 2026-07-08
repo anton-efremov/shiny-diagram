@@ -2,7 +2,7 @@
  * @framework React Flow canvas events to View class selection and placement callbacks.
  */
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import type {
@@ -95,6 +95,20 @@ export function useInteractions({
   reconnectSeedRef,
   screenToFlowPosition,
 }: UseInteractionsInput): Interactions {
+  // Framework prop and event adaptation
+  useEffect(() => {
+    function updatePointerPosition(event: PointerEvent): void {
+      setNoteAttachCursor({ x: event.clientX, y: event.clientY });
+    }
+
+    window.addEventListener("pointerdown", updatePointerPosition);
+    window.addEventListener("pointermove", updatePointerPosition);
+    return () => {
+      window.removeEventListener("pointerdown", updatePointerPosition);
+      window.removeEventListener("pointermove", updatePointerPosition);
+    };
+  }, [setNoteAttachCursor]);
+
   // Framework prop and event adaptation
   const onNodesChange = useCallback(
     (changes: NodeChange<ClassBoxNodeDescriptor | NoteBoxNodeDescriptor>[]) => {

@@ -512,7 +512,7 @@ export function parseNoteStatement(raw: string): {
   if (textEnd === -1) return null;
 
   return {
-    text: unescapeNoteText(raw.slice(quoteStart + 1, textEnd)),
+    text: raw.slice(quoteStart + 1, textEnd),
     textStart: quoteStart + 1,
     textEnd,
     attachedToClassId: match[1] ? toClassId(readIdentity(match[1])) : null,
@@ -520,26 +520,10 @@ export function parseNoteStatement(raw: string): {
 }
 
 function findClosingQuote(raw: string, start: number): number {
-  let escaped = false;
   for (let index = start; index < raw.length; index++) {
-    const char = raw[index];
-    if (escaped) {
-      escaped = false;
-      continue;
-    }
-    if (char === "\\") {
-      escaped = true;
-      continue;
-    }
-    if (char === '"') return index;
+    if (raw[index] === '"') return index;
   }
   return -1;
-}
-
-function unescapeNoteText(text: string): string {
-  return text.replace(/\\(["\\n])/g, (_match, escaped: string) =>
-    escaped === "n" ? "\n" : escaped
-  );
 }
 
 function toStyleDefRecord(token: ParseToken): StyleDefRecord {

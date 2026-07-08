@@ -15,7 +15,6 @@ import { toDisplayMemberText, toSourceGenericTypes, toSourceMemberText } from ".
 import { validateAnnotation } from "../model/validation/annotation";
 import { validateClassGenericType } from "../model/validation/className";
 import { validateMemberText } from "../model/validation/memberText";
-import { escapeNoteText, unescapeNoteText } from "./syntax/noteSyntax";
 
 export function validateTransaction(
   transaction: EditorCommandTransaction,
@@ -155,8 +154,17 @@ function validateAnnotationCommand(
 
 function validateNoteText(text: string): readonly string[] {
   if (text === "") return ["Note text must not be empty"];
-  const roundTrip = unescapeNoteText(escapeNoteText(text));
-  return roundTrip === text ? [] : [`Note text would be reinterpreted as "${roundTrip}"`];
+  if (text.includes('"')) {
+    return [
+      `Note text "${text}" would be reinterpreted by Mermaid because double quotes end note strings`,
+    ];
+  }
+  if (text.includes("\n") || text.includes("\r")) {
+    return [
+      `Note text "${text}" would be reinterpreted by Mermaid because literal newlines cannot be represented inside note strings`,
+    ];
+  }
+  return [];
 }
 
 function validateNoteAttachmentTarget(

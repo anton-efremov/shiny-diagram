@@ -19,12 +19,7 @@ export function insertNotePair(
   return [
     {
       kind: "insertStatement",
-      payload: composeNoteAnnotation(spatial),
-      anchor,
-    },
-    {
-      kind: "insertStatement",
-      payload: composeNoteStatement(payload),
+      payload: `${composeNoteAnnotation(spatial)}\n${composeNoteStatement(payload)}`,
       anchor,
     },
   ];

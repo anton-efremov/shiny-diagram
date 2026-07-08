@@ -130,6 +130,7 @@ export default function ReactFlowCanvasAdapter({
   const noteAttachSource = toNoteAttachSourcePoint(
     noteAttachState,
     noteBoxPlacementState,
+    noteAttachCursor,
     flowToScreenPosition
   );
 
@@ -269,55 +270,94 @@ export default function ReactFlowCanvasAdapter({
   }, [relationshipPlacementState]);
 
   return (
-    <ReactFlow<
-      ClassBoxNodeDescriptor | NoteBoxNodeDescriptor,
-      RelationshipEdgeDescriptor | NoteAttachmentEdgeDescriptor
-    >
-      // Editable React Flow canvas boundary.
-      nodes={rfNodes}
-      edges={rfEdges}
-      nodeTypes={nodeTypes}
-      edgeTypes={edgeTypes}
-      onNodesChange={onNodesChange}
-      onNodeDragStop={onNodeDragStop}
-      onConnect={onConnect}
-      onConnectStart={onConnectStart}
-      onConnectEnd={onConnectEnd}
-      onReconnect={onReconnect}
-      onReconnectStart={onReconnectStart}
-      onMouseMove={onCanvasMouseMove}
-      onPaneClick={onPaneClick}
-      connectionMode={ConnectionMode.Loose}
-      reconnectRadius={RELATIONSHIP_RECONNECT_RADIUS}
-      connectionLineComponent={connectionLineComponent}
-      className={isRelationshipPlacementActive ? styles.relationshipPlacement : undefined}
-      fitView
-      nodesDraggable={!isPlacementActive}
-      panOnDrag={!isPlacementActive}
-      zoomOnScroll
-      // Keep last. This enforces Shiny's React Flow boundary policy.
-      {...reactFlowCanvasBoundaryProps}
-    >
+    <>
+      <ReactFlow<
+        ClassBoxNodeDescriptor | NoteBoxNodeDescriptor,
+        RelationshipEdgeDescriptor | NoteAttachmentEdgeDescriptor
+      >
+        // Editable React Flow canvas boundary.
+        nodes={rfNodes}
+        edges={rfEdges}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        onNodesChange={onNodesChange}
+        onNodeDragStop={onNodeDragStop}
+        onConnect={onConnect}
+        onConnectStart={onConnectStart}
+        onConnectEnd={onConnectEnd}
+        onReconnect={onReconnect}
+        onReconnectStart={onReconnectStart}
+        onMouseMove={onCanvasMouseMove}
+        onPaneClick={onPaneClick}
+        connectionMode={ConnectionMode.Loose}
+        reconnectRadius={RELATIONSHIP_RECONNECT_RADIUS}
+        connectionLineComponent={connectionLineComponent}
+        className={isRelationshipPlacementActive ? styles.relationshipPlacement : undefined}
+        fitView
+        nodesDraggable={!isPlacementActive}
+        panOnDrag={!isPlacementActive}
+        zoomOnScroll
+        // Keep last. This enforces Shiny's React Flow boundary policy.
+        {...reactFlowCanvasBoundaryProps}
+      >
+        <Background />
+        <Controls showInteractive={false} />
+        <PlacementOverlay
+          nodePlacementState={nodePlacementState}
+          onPlacementComplete={onPlacementComplete}
+        />
+      </ReactFlow>
       {noteAttachSource && noteAttachCursor ? (
         <NoteAttachGhostLine sourcePoint={noteAttachSource} targetPoint={noteAttachCursor} />
       ) : null}
-      <Background />
-      <Controls showInteractive={false} />
-      <PlacementOverlay
-        nodePlacementState={nodePlacementState}
-        onPlacementComplete={onPlacementComplete}
-      />
-    </ReactFlow>
+    </>
   );
 }
 
 function toNoteAttachSourcePoint(
   noteAttachState: NoteAttachState,
   noteBoxPlacementState: NoteBoxPlacementState,
+  targetPoint: Point | null,
   flowToScreenPosition: (position: XYPosition) => XYPosition
 ): Point | null {
   if (noteAttachState.kind !== "attaching") return null;
+  if (!targetPoint) return null;
   const rect = noteBoxPlacementState.rectByNoteId.get(noteAttachState.noteId);
   if (!rect) return null;
-  return flowToScreenPosition({ x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 });
+  const topLeft = flowToScreenPosition({ x: rect.x, y: rect.y });
+  const bottomRight = flowToScreenPosition({ x: rect.x + rect.w, y: rect.y + rect.h });
+  return toRectEdgePoint(
+    {
+      x: Math.min(topLeft.x, bottomRight.x),
+      y: Math.min(topLeft.y, bottomRight.y),
+      w: Math.abs(bottomRight.x - topLeft.x),
+      h: Math.abs(bottomRight.y - topLeft.y),
+    },
+    targetPoint
+  );
+}
+
+type ScreenRect = {
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
+};
+
+function toRectEdgePoint(rect: ScreenRect, targetPoint: Point): Point {
+  const center = { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 };
+  const dx = targetPoint.x - center.x;
+  const dy = targetPoint.y - center.y;
+
+  if (dx === 0 && dy === 0) {
+    return { x: rect.x + rect.w, y: center.y };
+  }
+
+  const xScale = dx === 0 ? Number.POSITIVE_INFINITY : rect.w / 2 / Math.abs(dx);
+  const yScale = dy === 0 ? Number.POSITIVE_INFINITY : rect.h / 2 / Math.abs(dy);
+  const edgeScale = Math.min(xScale, yScale);
+  return {
+    x: center.x + dx * edgeScale,
+    y: center.y + dy * edgeScale,
+  };
 }

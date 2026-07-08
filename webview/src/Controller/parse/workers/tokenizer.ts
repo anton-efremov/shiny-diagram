@@ -94,7 +94,8 @@ function detectLineType(raw: string): ParseTokenType {
   if (new RegExp(`^\\s*class\\s+${identity}:::`).test(raw)) return "styleApplication";
   if (new RegExp(`^\\s*class\\s+${identity}`).test(raw)) return "classDeclaration";
   if (new RegExp(`^\\s*namespace\\s+${identity}`).test(raw)) return "namespace";
-  if (new RegExp(`^\\s*note\\s+(?:for\\s+${identity}\\s+)?".*"`).test(raw)) return "noteStatement";
+  if (new RegExp(`^\\s*note\\s+(?:for\\s+${identity}\\s+)?"[^"]*"`).test(raw))
+    return "noteStatement";
   if (isKnownIgnoredStatement(raw, identity)) return "knownIgnored";
   if (new RegExp(`^\\s*${identity}\\s*:\\s*.+$`).test(raw)) return "classMember";
   if (

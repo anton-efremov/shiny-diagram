@@ -3,7 +3,6 @@
  */
 
 import type { EditorCommandOf } from "../../../View/commands";
-import { escapeNoteText } from "../syntax/noteSyntax";
 import type { WriteIntent } from "../writeIntent";
 
 export function translateNoteTextSet(command: EditorCommandOf<"note.text.set">): WriteIntent[] {
@@ -11,7 +10,7 @@ export function translateNoteTextSet(command: EditorCommandOf<"note.text.set">):
     {
       kind: "replaceValue",
       target: { kind: "noteText", noteId: command.noteId },
-      payload: escapeNoteText(command.text),
+      payload: command.text,
     },
   ];
 }

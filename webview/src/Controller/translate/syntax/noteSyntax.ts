@@ -15,21 +15,11 @@ export function composeNoteStatement(payload: NoteStatementPayload): string {
   const target = payload.attachedToClassId
     ? `for ${spellIdentity(payload.attachedToClassId)} `
     : "";
-  return `note ${target}"${escapeNoteText(payload.text)}"`;
+  return `note ${target}"${payload.text}"`;
 }
 
 export function composeNoteAnnotation(spatial: SpatialAttachment): string {
   const x = Math.round(spatial.position.x);
   const y = Math.round(spatial.position.y);
   return `%% @note: x=${x} y=${y} w=${spatial.size.width} h=${spatial.size.height}`;
-}
-
-export function escapeNoteText(text: string): string {
-  return text.replaceAll("\\", "\\\\").replaceAll('"', '\\"').replaceAll("\n", "\\n");
-}
-
-export function unescapeNoteText(text: string): string {
-  return text.replace(/\\(["\\n])/g, (_match, escaped: string) =>
-    escaped === "n" ? "\n" : escaped
-  );
 }

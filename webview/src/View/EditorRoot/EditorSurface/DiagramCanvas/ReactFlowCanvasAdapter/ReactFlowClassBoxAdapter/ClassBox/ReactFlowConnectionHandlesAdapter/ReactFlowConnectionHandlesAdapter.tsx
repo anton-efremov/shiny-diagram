@@ -31,11 +31,15 @@ export default function ReactFlowConnectionHandlesAdapter({
   isConnectSourceEnabled,
 }: ReactFlowConnectionHandlesAdapterProps) {
   // Framework prop and event adaptation
+  const connectHandleClassName = isConnectSourceEnabled
+    ? connectSourceClassName
+    : `${connectSourceClassName} ${className}`;
+
   return (
     <>
       {/* framework-adaptation nesting exception: existing Handle adapter lives under ClassBox. */}
       <Handle
-        className={connectSourceClassName}
+        className={connectHandleClassName}
         id="connect"
         type="source"
         position={Position.Top}

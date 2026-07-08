@@ -99,6 +99,63 @@ describe("validateTransaction", () => {
     expect(errors).toEqual([{ commandIndex: 0, message: "Note text must not be empty" }]);
   });
 
+  it("rejects note text that Mermaid would reinterpret at a double quote", () => {
+    const errors = validateTransaction(
+      [
+        {
+          type: "note.text.set",
+          noteId: "note:0" as NoteNode["id"],
+          text: 'quoted " text',
+        },
+      ],
+      graphWithClasses([])
+    );
+
+    expect(errors).toEqual([
+      {
+        commandIndex: 0,
+        message:
+          'Note text "quoted " text" would be reinterpreted by Mermaid because double quotes end note strings',
+      },
+    ]);
+  });
+
+  it("rejects note text with literal newlines", () => {
+    const errors = validateTransaction(
+      [
+        {
+          type: "note.text.set",
+          noteId: "note:0" as NoteNode["id"],
+          text: "line one\nline two",
+        },
+      ],
+      graphWithClasses([])
+    );
+
+    expect(errors).toEqual([
+      {
+        commandIndex: 0,
+        message:
+          'Note text "line one\nline two" would be reinterpreted by Mermaid because literal newlines cannot be represented inside note strings',
+      },
+    ]);
+  });
+
+  it("accepts backslashes as literal note text", () => {
+    const errors = validateTransaction(
+      [
+        {
+          type: "note.text.set",
+          noteId: "note:0" as NoteNode["id"],
+          text: String.raw`line \n stays literal`,
+        },
+      ],
+      graphWithClasses([])
+    );
+
+    expect(errors).toEqual([]);
+  });
+
   it("rejects note attachment targets that do not exist", () => {
     const errors = validateTransaction(
       [
