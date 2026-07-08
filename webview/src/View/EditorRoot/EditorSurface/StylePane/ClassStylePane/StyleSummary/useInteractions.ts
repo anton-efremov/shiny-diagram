@@ -1,6 +1,5 @@
 /**
- * @behavior Save style prompt lifecycle and transaction dispatch.
- * @state StyleSummary prompt, draft name, and notification state updates.
+ * @behavior Save style prompt lifecycle, transaction dispatch, and StyleSummary prompt, draft name, and notification state updates.
  */
 
 import { useCallback } from "react";

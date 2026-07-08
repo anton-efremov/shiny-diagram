@@ -64,6 +64,10 @@ export type ClassRecord = {
   readonly body: SourceSpan | null; // interior of `{ ... }`, only for block form
   readonly fields: {
     readonly declaredName: SourceSpan; // `User` in `class User`
+    readonly genericType?: SourceSpan; // `~T~` in `class Box~T~`
+    readonly label?: SourceSpan; // `"Human User"` in `class User["Human User"]`
+    readonly labelFull?: SourceSpan; // `["Human User"]`
+    readonly annotation?: SourceSpan; // `<<Interface>>` line inside class block
   };
 };
 
@@ -89,7 +93,7 @@ export type NamespaceRecord = {
 export type BlockMemberRecord = {
   readonly self: SourceSpan;
   readonly fields: {
-    readonly name: SourceSpan;
+    readonly text: SourceSpan;
   };
 };
 
@@ -98,7 +102,7 @@ export type ShortMemberRecord = {
   readonly self: SourceSpan;
   readonly fields: {
     readonly owner: SourceSpan; // `User` in `User : ...`
-    readonly name: SourceSpan;
+    readonly text: SourceSpan;
   };
 };
 

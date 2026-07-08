@@ -40,17 +40,26 @@ import type { StyleProperties, StylePropertyName } from "../../shared/style";
 import type {
   ClassAnnotation,
   DiagramDirection,
+  MemberClassifier,
   RelationshipEndpoint,
   RelationshipEndpointKind,
   RelationshipLineKind,
-  Visibility,
 } from "../../shared/uml";
 import type { TransactionOutcome } from "./transactionOutcome";
 
 /** One View-to-Controller editor transaction. */
 export type EditorCommandTransaction = readonly EditorCommand[];
 
-export type EditorDispatch = (transaction: EditorCommandTransaction) => TransactionOutcome;
+export type TransactionError = {
+  readonly message: string;
+  readonly commandIndex: number;
+};
+
+export type TransactionResult =
+  | { readonly status: "committed"; readonly outcome: TransactionOutcome }
+  | { readonly status: "rejected"; readonly errors: readonly TransactionError[] };
+
+export type EditorDispatch = (transaction: EditorCommandTransaction) => TransactionResult;
 
 export type EditorCommand =
   // ==========================================================================
@@ -89,12 +98,7 @@ export type EditorCommand =
   | {
       readonly type: "class.label.set";
       readonly classId: ClassId;
-      readonly label: string;
-    }
-  | {
-      readonly type: "class.genericType.set";
-      readonly classId: ClassId;
-      readonly genericType: string | null;
+      readonly label: string | null;
     }
   | {
       readonly type: "class.annotation.set";
@@ -148,8 +152,15 @@ export type EditorCommand =
   | {
       readonly type: "class.attribute.create";
       readonly classId: ClassId;
-      readonly name: string;
+      readonly text: string;
+      readonly classifier: MemberClassifier | null;
       readonly beforeAttributeId: AttributeId | null;
+    }
+  | {
+      readonly type: "class.attribute.set";
+      readonly attributeId: AttributeId;
+      readonly text: string;
+      readonly classifier: MemberClassifier | null;
     }
   | {
       readonly type: "class.attribute.delete";
@@ -161,26 +172,6 @@ export type EditorCommand =
       readonly classId: ClassId;
       readonly beforeAttributeId: AttributeId | null;
     }
-  | {
-      readonly type: "class.attribute.name.set";
-      readonly attributeId: AttributeId;
-      readonly name: string;
-    }
-  | {
-      readonly type: "class.attribute.visibility.set";
-      readonly attributeId: AttributeId;
-      readonly visibility: Visibility | null;
-    }
-  | {
-      readonly type: "class.attribute.type.set";
-      readonly attributeId: AttributeId;
-      readonly attributeType: string | null;
-    }
-  | {
-      readonly type: "class.attribute.static.set";
-      readonly attributeId: AttributeId;
-      readonly isStatic: boolean;
-    }
 
   // ==========================================================================
   // Class method
@@ -188,9 +179,15 @@ export type EditorCommand =
   | {
       readonly type: "class.method.create";
       readonly classId: ClassId;
-      readonly name: string;
-      readonly parameters: string;
+      readonly text: string;
+      readonly classifier: MemberClassifier | null;
       readonly beforeMethodId: MethodId | null;
+    }
+  | {
+      readonly type: "class.method.set";
+      readonly methodId: MethodId;
+      readonly text: string;
+      readonly classifier: MemberClassifier | null;
     }
   | {
       readonly type: "class.method.delete";
@@ -201,36 +198,6 @@ export type EditorCommand =
       readonly methodId: MethodId;
       readonly classId: ClassId;
       readonly beforeMethodId: MethodId | null;
-    }
-  | {
-      readonly type: "class.method.name.set";
-      readonly methodId: MethodId;
-      readonly name: string;
-    }
-  | {
-      readonly type: "class.method.visibility.set";
-      readonly methodId: MethodId;
-      readonly visibility: Visibility | null;
-    }
-  | {
-      readonly type: "class.method.parameters.set";
-      readonly methodId: MethodId;
-      readonly parameters: string;
-    }
-  | {
-      readonly type: "class.method.returnType.set";
-      readonly methodId: MethodId;
-      readonly returnType: string | null;
-    }
-  | {
-      readonly type: "class.method.static.set";
-      readonly methodId: MethodId;
-      readonly isStatic: boolean;
-    }
-  | {
-      readonly type: "class.method.abstract.set";
-      readonly methodId: MethodId;
-      readonly isAbstract: boolean;
     }
 
   // ==========================================================================

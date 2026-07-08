@@ -2,8 +2,12 @@
  * @fileoverview Tokenizes Mermaid source lines for the parse pipeline.
  */
 
+import { IDENTITY_PATTERN } from "../../model/identitySpelling";
+
 export type ParseTokenType =
+  | "diagramHeader"
   | "classDeclaration"
+  | "classMember"
   | "relationship"
   | "styleDef"
   | "classDirectStyle"
@@ -11,8 +15,9 @@ export type ParseTokenType =
   | "spatialAnnotation"
   | "namespace"
   | "directive"
+  | "knownIgnored"
   | "blank"
-  | "unknown";
+  | "unrecognized";
 
 export type ParseToken = {
   readonly lineNumber: number;
@@ -76,19 +81,39 @@ function tokenizeLines(
 }
 
 function detectLineType(raw: string): ParseTokenType {
+  const identity = IDENTITY_PATTERN;
   if (/^\s*$/.test(raw)) return "blank";
+  if (/^\s*classDiagram(?:-v2)?\b/.test(raw)) return "diagramHeader";
   if (/^\s*%%\s+@spatial:/.test(raw)) return "spatialAnnotation";
   if (/^\s*%%/.test(raw)) return "directive";
   if (/^\s*classDef\s+/.test(raw)) return "styleDef";
-  if (/^\s*style\s+\w+\s+/.test(raw)) return "classDirectStyle";
-  if (/^\s*class\s+\w+:::/.test(raw)) return "styleApplication";
-  if (/^\s*class\s+\w/.test(raw)) return "classDeclaration";
-  if (/^\s*namespace\s+\w/.test(raw)) return "namespace";
+  if (new RegExp(`^\\s*style\\s+${identity}\\s+`).test(raw)) return "classDirectStyle";
+  if (new RegExp(`^\\s*class\\s+${identity}:::`).test(raw)) return "styleApplication";
+  if (new RegExp(`^\\s*class\\s+${identity}`).test(raw)) return "classDeclaration";
+  if (new RegExp(`^\\s*namespace\\s+${identity}`).test(raw)) return "namespace";
+  if (isKnownIgnoredStatement(raw, identity)) return "knownIgnored";
+  if (new RegExp(`^\\s*${identity}\\s*:\\s*.+$`).test(raw)) return "classMember";
   if (
-    /^\s*\w+(?:\s+"[^"]+")?\s*(?:\(\)|<\||\|>|<|>|\*|o)?(?:--|\.\.)(?:\(\)|<\||\|>|<|>|\*|o)?\s*(?:"[^"]+"\s*)?\w+(?:\s*:\s*.*)?\s*$/.test(
-      raw
-    )
+    new RegExp(
+      `^\\s*${identity}(?:\\s+"[^"]+")?\\s*(?:\\(\\)|<\\||\\|>|<|>|\\*|o)?(?:--|\\.\\.)(?:\\(\\)|<\\||\\|>|<|>|\\*|o)?\\s*(?:"[^"]+"\\s*)?${identity}(?:\\s*:\\s*.*)?\\s*$`
+    ).test(raw)
   )
     return "relationship";
-  return "unknown";
+
+  return "unrecognized";
+}
+
+function isKnownIgnoredStatement(raw: string, identity: string): boolean {
+  // Valid Mermaid statement forms that Shiny does not model in this read path:
+  // direction, accessibility/title, click/callback/link interactions, cssClass,
+  // notes, and top-level annotation shorthand. They remain in source and are
+  // preserved by span-based writes.
+  if (/^\s*direction\s+(?:TB|BT|RL|LR)\b/.test(raw)) return true;
+  if (/^\s*accTitle\s*:/.test(raw)) return true;
+  if (/^\s*accDescr(?:\s*:|\s*\{)/.test(raw)) return true;
+  if (/^\s*(?:click|callback|link)\s+/.test(raw)) return true;
+  if (/^\s*cssClass\s+/.test(raw)) return true;
+  if (/^\s*note(?:\s+for)?\s+/.test(raw)) return true;
+  if (new RegExp(`^\\s*<<[^>]+>>\\s+${identity}\\s*$`).test(raw)) return true;
+  return false;
 }

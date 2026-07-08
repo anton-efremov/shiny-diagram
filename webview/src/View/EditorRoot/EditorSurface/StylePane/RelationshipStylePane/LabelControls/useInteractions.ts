@@ -1,6 +1,5 @@
 /**
- * @behavior Relationship label input semantic handlers and command dispatch.
- * @state Relationship label draft state updates.
+ * @behavior Relationship label input semantic handlers, command dispatch, and Relationship label draft state updates.
  */
 
 import { useCallback } from "react";

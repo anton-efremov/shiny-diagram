@@ -8,11 +8,12 @@ direction TB
 	    +addParticipant(UserContact participant) void
     }
     class ConversationThread_2 {
-    	    +UUID id
-    	    +List~TextMessage~ messages
+    	    <<interfac>>
     	    +List~UserContact~ participants
-    	    +addMessage(TextMessage message) void
+    	    +List~TextMessage~ messages*
+    	    +UUID idd
     	    +addParticipant(UserContact participant) void
+    	    addMessage(TextMessage message) void
     }
     class ConversationThread_1 {
     	    +UUID id
@@ -33,16 +34,29 @@ direction TB
 	    ConversationThread_1 "0..1" -- ConversationThread : Hi
 
     }
+    class UserContact_1 {
+    	    +UUID id
+    	    +String emailAddress
+    	    +String name
+    	    +List~CommunicationChannel~ preferredChannels
+    	    +addCommunicationChannel(CommunicationChannel channel) void
+    	    +removeCommunicationChannel(UUID channelId) void
 
-	ConversationThread_1 ..> UserContact
-	ConversationThread_1 --> ConversationThread_2
+    	    ConversationThread_1 "0..1" -- ConversationThread_2 : Hi
+
+    }
+
+	ConversationThread_1 ..> UserContact_1
+	ConversationThread_1 --> UserContact
+	ConversationThread_2 ..> UserContact_1
 
 
     %% Native Style Applications
     class ConversationThread:::PineSelected
-    class ConversationThread_2:::PineSelected
+    class ConversationThread_2:::ShinyStyleSelected
 
     style UserContact fill:#ce7373
+    style UserContact_1 fill:#ce7373
     style ConversationThread_1 fill:#b73434
 
     %% Native Style Definitions
@@ -52,10 +66,11 @@ direction TB
 
 
 
-    %% @spatial:ConversationThread x=-362 y=-113 w=276 h=179
-    %% @spatial:ConversationThread_2 x=5 y=293 w=244 h=218
-    %% @spatial:ConversationThread_1 x=-429 y=267 w=228 h=210
-    %% @spatial:UserContact x=-10 y=-112 w=236 h=281
+    %% @spatial:ConversationThread x=-362 y=-114 w=276 h=179
+    %% @spatial:ConversationThread_2 x=99 y=157 w=244 h=215
+    %% @spatial:ConversationThread_1 x=-364 y=241 w=228 h=210
+    %% @spatial:UserContact x=7 y=406 w=236 h=281
+    %% @spatial:UserContact_1 x=14 y=-235 w=342 h=259
 
 
 

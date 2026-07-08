@@ -18,8 +18,8 @@
 
 import type { StyleProperties } from "../../shared/style";
 import type {
+  MemberClassifier,
   MemberKind,
-  MemberPrefix,
   RelationshipEndpointKind,
   RelationshipLineKind,
 } from "../../shared/uml";
@@ -36,6 +36,7 @@ import type {
 /* ── Leaf views ──────────────────────────────────────────────────────────── */
 
 export type ClassHeaderView = {
+  readonly name: string;
   readonly label: string;
   readonly stereotype?: string;
 };
@@ -43,8 +44,8 @@ export type ClassHeaderView = {
 export type ClassMemberView = {
   readonly memberId: AttributeId | MethodId;
   readonly kind: MemberKind;
-  readonly prefix: MemberPrefix | null;
   readonly text: string;
+  readonly classifier: MemberClassifier | null;
 };
 
 /* ── Node views ──────────────────────────────────────────────────────────── */
@@ -97,7 +98,7 @@ export type DiagramView = {
 export type EditorViewModel =
   | {
       readonly status: "invalidSyntax";
-      readonly message: string;
+      readonly errors: readonly string[];
     }
   | {
       readonly status: "missingAnnotations";

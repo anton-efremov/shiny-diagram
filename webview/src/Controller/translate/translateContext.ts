@@ -23,6 +23,7 @@ import { allocateClassId, generateDuplicateClassId } from "./classIdentity";
 export type TranslateContext = {
   readonly allocateClassId: (requestedName: string | null) => ClassId;
   readonly allocateDuplicateId: (sourceClassId: ClassId) => ClassId;
+  readonly recordClassRenamed: (from: ClassId, to: ClassId) => void;
   readonly recordRelationshipRenamed: (from: RelationshipId, to: RelationshipId) => void;
   readonly recordRelationshipCreated: (id: RelationshipId) => void;
   /** Relationship creates recorded so far in this transaction, for ordinal math. */
@@ -37,6 +38,7 @@ export function createTranslateContext(graph: DiagramGraph): TranslateContext {
     readonly from: RelationshipId;
     readonly to: RelationshipId;
   }> = [];
+  const renamedClassIds: Array<{ readonly from: ClassId; readonly to: ClassId }> = [];
   const createdRelationshipIds: RelationshipId[] = [];
 
   return {
@@ -51,6 +53,9 @@ export function createTranslateContext(graph: DiagramGraph): TranslateContext {
       createdClassIds.push(id);
       return id;
     },
+    recordClassRenamed(from, to) {
+      renamedClassIds.push({ from, to });
+    },
     recordRelationshipRenamed(from, to) {
       renamedRelationships.push({ from, to });
     },
@@ -62,7 +67,7 @@ export function createTranslateContext(graph: DiagramGraph): TranslateContext {
     },
     toTransactionOutcome() {
       return {
-        classes: { renamed: [], created: createdClassIds },
+        classes: { renamed: renamedClassIds, created: createdClassIds },
         relationships: { renamed: renamedRelationships, created: createdRelationshipIds },
         styles: { renamed: [], created: [] },
       };

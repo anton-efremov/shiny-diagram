@@ -17,6 +17,7 @@ import {
   STATEMENT_KINDS,
 } from "../anchors/statementAnchors";
 import { composeStyleEntries, composeStyleEntry } from "../syntax/styleSyntax";
+import { spellIdentity } from "../../model/identitySpelling";
 
 export function translateStyleDefinitionCreate(
   command: EditorCommandOf<"style.definition.create">,
@@ -142,7 +143,7 @@ function composeStyleDefinition(styleDefId: StyleDefId, properties: StylePropert
 }
 
 function composeClassStyleApplication(classId: ClassId, styleDefId: StyleDefId): string {
-  return `class ${classId}:::${styleDefId}`;
+  return `class ${spellIdentity(classId)}:::${styleDefId}`;
 }
 
 function toStyleDefinitionAnchor(

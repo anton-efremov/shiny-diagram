@@ -1,6 +1,5 @@
 /**
- * @behavior Class box placement state updates and class move command dispatch handlers.
- * @state ClassBoxPlacementState updates from framework-neutral rect patches.
+ * @behavior Class box placement state updates, class move command dispatch handlers, and ClassBoxPlacementState updates from framework-neutral rect patches.
  */
 
 import { useCallback } from "react";

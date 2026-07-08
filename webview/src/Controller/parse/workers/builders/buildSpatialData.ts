@@ -3,6 +3,7 @@
  */
 
 import { toClassId, type ClassId } from "../../../../shared/ids";
+import { IDENTITY_PATTERN, readIdentity } from "../../../model/identitySpelling";
 import type { SpatialAttachment } from "../../../../shared/geometry";
 import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";
@@ -22,10 +23,10 @@ export type MalformedAnnotation = { readonly classId: ClassId; readonly location
 export function buildSpatialData(token: ParseToken): SpatialEntry | MalformedAnnotation | null {
   if (token.type !== "spatialAnnotation") return null;
 
-  const match = /^\s*%%\s+@spatial:([A-Za-z_]\w*)\s*(.*)$/.exec(token.raw);
+  const match = new RegExp(`^\\s*%%\\s+@spatial:(${IDENTITY_PATTERN})\\s*(.*)$`).exec(token.raw);
   if (!match) return null;
 
-  const classId = toClassId(match[1]);
+  const classId = toClassId(readIdentity(match[1]));
   const location = toSourceSpan(token);
   const values = parseSpatialValues(match[2]);
   if (!values) return { classId, location };

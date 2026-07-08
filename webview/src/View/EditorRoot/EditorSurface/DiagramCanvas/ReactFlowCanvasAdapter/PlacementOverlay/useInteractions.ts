@@ -1,6 +1,5 @@
 /**
- * @behavior Placement drawing pointer lifecycle and class creation dispatch.
- * @state Draw origin and draft rectangle updates from pointer gestures.
+ * @behavior Placement drawing pointer lifecycle, class creation dispatch, and draw origin and draft rectangle updates from pointer gestures.
  * @framework React Flow canvas coordinates to View diagram placement.
  */
 

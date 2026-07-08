@@ -1,6 +1,5 @@
 /**
- * @behavior Style name edit lifecycle and rename transaction dispatch.
- * @state StyleNameEditor draft, edit mode, and notification state updates.
+ * @behavior Style name edit lifecycle, rename transaction dispatch, and StyleNameEditor draft, edit mode, and notification state updates.
  */
 
 import { useCallback } from "react";

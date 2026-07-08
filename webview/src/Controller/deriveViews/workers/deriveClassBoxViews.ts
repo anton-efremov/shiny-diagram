@@ -27,28 +27,23 @@ export function deriveClassBoxViews(model: DiagramGraph): ClassView[] {
         h: node.spatial.size.height,
       },
       header: {
+        name: `${node.name}${node.genericType ? `<${node.genericType}>` : ""}`,
         label: node.label,
         stereotype: node.annotation ?? undefined,
       },
       members: [
-        ...node.attributes.map((attribute) => {
-          const typeSuffix = attribute.attributeType ? `: ${attribute.attributeType}` : "";
-          return {
-            memberId: attribute.id,
-            prefix: attribute.visibility,
-            text: `${attribute.name}${typeSuffix}`,
-            kind: "field" as const,
-          };
-        }),
-        ...node.methods.map((method) => {
-          const typeSuffix = method.returnType ? `: ${method.returnType}` : "";
-          return {
-            memberId: method.id,
-            prefix: method.visibility,
-            text: `${method.name}(${method.parameters})${typeSuffix}`,
-            kind: "method" as const,
-          };
-        }),
+        ...node.attributes.map((attribute) => ({
+          memberId: attribute.id,
+          text: attribute.text,
+          classifier: attribute.classifier,
+          kind: "field" as const,
+        })),
+        ...node.methods.map((method) => ({
+          memberId: method.id,
+          text: method.text,
+          classifier: method.classifier,
+          kind: "method" as const,
+        })),
       ],
       style,
       appliedStyleId: styleEdge?.styleDefId,

@@ -12,6 +12,7 @@
 import type { ClassId, RelationshipId } from "../../../shared/ids";
 import type { DiagramGraph } from "../../model/diagramGraph";
 import { composeRelationshipId } from "../../model/relationshipIdentity";
+import { spellIdentity } from "../../model/identitySpelling";
 import type { TranslateContext } from "../translateContext";
 import type { WriteIntent } from "../writeIntent";
 
@@ -36,12 +37,12 @@ export function translateRelationshipEndpointsPatch(
     {
       kind: "replaceValue",
       target: { kind: "relationshipEndpoint", relationshipId, side: "source" },
-      payload: patch.sourceClassId,
+      payload: spellIdentity(patch.sourceClassId),
     },
     {
       kind: "replaceValue",
       target: { kind: "relationshipEndpoint", relationshipId, side: "target" },
-      payload: patch.targetClassId,
+      payload: spellIdentity(patch.targetClassId),
     },
   ];
 }

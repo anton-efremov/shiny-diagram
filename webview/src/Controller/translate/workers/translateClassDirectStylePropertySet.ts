@@ -30,6 +30,7 @@ import {
   STATEMENT_KINDS,
 } from "../anchors/statementAnchors";
 import { composeStyleEntry } from "../syntax/styleSyntax";
+import { spellIdentity } from "../../model/identitySpelling";
 
 export function translateClassDirectStyleSet(
   command: EditorCommandOf<"class.directStyle.property.set">,
@@ -105,5 +106,5 @@ function composeClassDirectStyle(
   property: StylePropertyName,
   value: string
 ): string {
-  return `style ${classId} ${composeStyleEntry(property, value)}`;
+  return `style ${spellIdentity(classId)} ${composeStyleEntry(property, value)}`;
 }

@@ -3,6 +3,7 @@
  */
 
 import { toNamespaceId } from "../../../../shared/ids";
+import { IDENTITY_PATTERN, readIdentity } from "../../../model/identitySpelling";
 import type { NamespaceNode } from "../../../model/diagramGraph";
 import type { SourceSpan } from "../../../model/sourceEdit";
 import type { ParseToken } from "../tokenizer";
@@ -19,17 +20,18 @@ export type ParsedNamespaceNode = {
 export function buildNamespaceNode(token: ParseToken): ParsedNamespaceNode | null {
   if (token.type !== "namespace") return null;
 
-  const match = /^\s*namespace\s+(\w+)/.exec(token.raw);
+  const match = new RegExp(`^\\s*namespace\\s+(${IDENTITY_PATTERN})`).exec(token.raw);
   if (!match) return null;
 
-  const id = toNamespaceId(match[1]);
+  const identity = readIdentity(match[1]);
+  const id = toNamespaceId(identity);
   return {
     location: toSourceSpan(token),
     node: {
       kind: "namespace",
       id,
-      name: id,
-      label: id,
+      name: identity,
+      label: identity,
       parentNamespaceId: null,
       spatial: null,
     },

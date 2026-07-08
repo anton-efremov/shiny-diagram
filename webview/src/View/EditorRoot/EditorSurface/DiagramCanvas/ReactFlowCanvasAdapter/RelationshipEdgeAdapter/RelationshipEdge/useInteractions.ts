@@ -1,6 +1,5 @@
 /**
- * @behavior Relationship edge selection and inline edit semantic handlers with commit dispatch.
- * @state Inline edit target and draft updates.
+ * @behavior Relationship edge selection and inline edit semantic handlers with commit dispatch, inline edit target, and draft updates.
  */
 
 import { useCallback } from "react";

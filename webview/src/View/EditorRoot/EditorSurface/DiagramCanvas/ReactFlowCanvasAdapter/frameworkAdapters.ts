@@ -11,7 +11,11 @@ import type {
 import type { Rect } from "../../../../../shared/geometry";
 import type { ClassId, RelationshipId } from "../../../../../shared/ids";
 import { toClassId } from "../../../../../shared/ids";
-import type { ClassBoxPlacementState, SelectionState } from "../../../../state/editorStates";
+import type {
+  ClassBoxPlacementState,
+  EditingState,
+  SelectionState,
+} from "../../../../state/editorStates";
 import type { ClassView, DiagramView, RelationshipView } from "../../../../views/schema";
 
 export type ClassBoxNodeData = {
@@ -20,6 +24,11 @@ export type ClassBoxNodeData = {
   readonly isResizeVisible: boolean;
   readonly isConnectSourceEnabled: boolean;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
+  readonly editingState: EditingState;
+  readonly onTextBlockEditStart: (
+    editingState: Exclude<EditingState, { readonly kind: "none" }>
+  ) => void;
+  readonly onTextBlockEditCancel: () => void;
 };
 
 export type ClassBoxNodeDescriptor = ReactFlowNode<ClassBoxNodeData, "classBox">;
@@ -56,7 +65,10 @@ export function toClassBoxNodeDescriptors(
   selectedClassIds: readonly ClassId[],
   classBoxPlacementState: ClassBoxPlacementState,
   isConnectSourceEnabled: boolean,
-  onClassSelect: (classId: ClassId, additive: boolean) => void
+  onClassSelect: (classId: ClassId, additive: boolean) => void,
+  editingState: EditingState,
+  onTextBlockEditStart: (editingState: Exclude<EditingState, { readonly kind: "none" }>) => void,
+  onTextBlockEditCancel: () => void
 ): ClassBoxNodeDescriptor[] {
   const selected = new Set<ClassId>(selectedClassIds);
   return classes.flatMap((classView) => {
@@ -74,6 +86,9 @@ export function toClassBoxNodeDescriptors(
           isResizeVisible: selected.size === 1 && selected.has(classView.classId),
           isConnectSourceEnabled,
           onClassSelect,
+          editingState,
+          onTextBlockEditStart,
+          onTextBlockEditCancel,
         },
         selectable: false,
         focusable: false,

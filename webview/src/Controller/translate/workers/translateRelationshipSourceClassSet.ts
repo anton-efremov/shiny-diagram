@@ -4,6 +4,7 @@
 
 import type { EditorCommandOf } from "../../../View/commands";
 import type { DiagramGraph } from "../../model/diagramGraph";
+import { spellIdentity } from "../../model/identitySpelling";
 import { composeRelationshipId } from "../../model/relationshipIdentity";
 import type { TranslateContext } from "../translateContext";
 import type { WriteIntent } from "../writeIntent";
@@ -29,7 +30,7 @@ export function translateRelationshipSourceClassSet(
         relationshipId: command.relationshipId,
         side: "source",
       },
-      payload: command.classId,
+      payload: spellIdentity(command.classId),
     },
   ];
 }

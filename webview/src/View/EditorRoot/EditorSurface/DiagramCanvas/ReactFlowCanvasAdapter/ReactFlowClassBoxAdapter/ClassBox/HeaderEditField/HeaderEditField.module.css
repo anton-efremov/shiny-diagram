@@ -1,0 +1,23 @@
+/**
+ * @render Class header direct-edit input styling.
+ */
+
+.editor {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  height: 24px;
+  padding: 2px 6px;
+  font: inherit;
+  color: var(--shiny-text);
+  text-align: center;
+  background: var(--shiny-surface);
+  border: 1px solid #60a5fa;
+  border-radius: 4px;
+  outline: none;
+}
