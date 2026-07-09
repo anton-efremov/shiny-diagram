@@ -226,7 +226,7 @@ render:*                                               # [L]+[P] only
 
 **5.12 Shared vocabulary lives at the narrowest owner.** Descendants may type-import an ancestor-owned state/action vocabulary but must not import ancestor implementation or current state.
 
-**5.13 View state ledger.** `shinyView/state/editorStates.ts` defines the semantic state shapes used by the Shiny View tree. It contains type declarations and state ownership annotations only. It must not contain defaults, constructors, predicates, reducers, state actions, or consumer-specific interpretations. Consumers derive their own scenario views from canonical state; for example, selection state lists selected entity IDs, while StylePane, shortcuts, and canvas affordances interpret that selection for their own behavior.
+**5.13 View state ledger.** `shinyView/state/editorStates.ts` defines the semantic state shapes used by the Shiny View tree. It contains type declarations and state ownership annotations only. It must not contain defaults, constructors, predicates, reducers, state actions, or consumer-specific interpretations. Consumers derive their own scenario views from canonical state; for example, selection state lists selected entity IDs, while EditPane, shortcuts, and canvas affordances interpret that selection for their own behavior.
 
 ## 6. Pattern rules
 

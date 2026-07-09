@@ -2,7 +2,7 @@
  * @render Style inspector pane styling.
  */
 
-.stylePane {
+.editPane {
   display: flex;
   flex-direction: column;
   min-width: 220px;

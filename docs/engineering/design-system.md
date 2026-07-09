@@ -155,7 +155,7 @@ Nothing component-specific lives here.
 
 ### Rule 6 — Dynamic per-instance styling (user-defined components)
 
-`ClassBox` and `StylePane` render colors the user chose via `classDef` in their
+`ClassBox` and `EditPane` render colors the user chose via `classDef` in their
 diagram source — render-time data, not design tokens, different per instance.
 These bind to CSS custom properties via the `style` attribute, read back in the
 `.module.css` with `--shiny-*` as fallback:

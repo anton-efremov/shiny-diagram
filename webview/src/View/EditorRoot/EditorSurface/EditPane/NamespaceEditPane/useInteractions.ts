@@ -1,5 +1,5 @@
 /**
- * @behavior Namespace style-pane draft updates and command dispatch.
+ * @behavior Namespace edit-pane draft updates and command dispatch.
  */
 
 import { useCallback } from "react";

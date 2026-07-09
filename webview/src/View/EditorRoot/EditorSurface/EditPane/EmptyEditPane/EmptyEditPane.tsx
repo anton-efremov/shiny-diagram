@@ -3,8 +3,8 @@
  */
 
 import type { ReactElement } from "react";
-import styles from "./EmptyStylePane.module.css";
+import styles from "./EmptyEditPane.module.css";
 
-export default function EmptyStylePane(): ReactElement {
+export default function EmptyEditPane(): ReactElement {
   return <div className={styles.emptySelection} aria-label="No selected diagram element" />;
 }

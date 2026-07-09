@@ -14,7 +14,7 @@ import type {
 } from "../../state/editorStates";
 import type { DiagramView } from "../../views/schema";
 import ClassDiagram from "./DiagramCanvas/DiagramCanvas";
-import StylePane from "./StylePane/StylePane";
+import EditPane from "./EditPane/EditPane";
 import ToolPane from "./ToolPane/ToolPane";
 import {
   toInitialEditingState,
@@ -160,7 +160,7 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
           onTextBlockEditCancel={onTextBlockEditCancel}
         />
       </div>
-      <StylePane
+      <EditPane
         view={view}
         selectionState={selectionState}
         onStyleSelect={onStyleSelect}

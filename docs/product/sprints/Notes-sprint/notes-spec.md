@@ -52,7 +52,7 @@ Nothing is created
 
 ## Select note
 
-One click selects the note. StylePane shows the Note pane with exactly three buttons:
+One click selects the note. EditPane shows the Note pane with exactly three buttons:
 
 - **Attach to class** (label flips to **Detach from class** when attached)
 - **Duplicate**

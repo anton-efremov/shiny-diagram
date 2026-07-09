@@ -301,7 +301,7 @@ A component folder may use the following roles:
 Examples:
 
 - `ClassDiagram` owns class position and size commands produced from React Flow node interactions.
-- `StylePane` owns class style commands produced from style controls.
+- `EditPane` owns class style commands produced from style controls.
 - A missing-annotation flow emits concrete class position and size commands; it does not ask Controller to generate layout.
 
 #### 6.2.2 Render-contract ownership
@@ -501,7 +501,7 @@ Avoid **controls** in architectural descriptions unless its exact meaning is sta
 | `EditorCommand` | `View/commands/editorCommands.ts` | View command registry | View command-derivation helpers and interaction handlers | Controller Commands |
 | `EditorCommandTransaction` | `View/commands/editorCommands.ts` | View-to-Controller command boundary | View command-derivation helpers and interaction handlers | `ShinyController` and Controller Commands |
 | `ElementViews` and nested render contracts | `View/views/schema.ts` | View | Controller Derive Views | View components |
-| Selected class IDs | `EditorRoot/useSelectedClassIds.ts` | `EditorView` | `EditorView` state, reconciled against each View model | `ClassDiagram`, `ClassBox`, `StylePane` |
+| Selected class IDs | `EditorRoot/useSelectedClassIds.ts` | `EditorView` | `EditorView` state, reconciled against each View model | `ClassDiagram`, `ClassBox`, `EditPane` |
 | Class placement mode | `EditorRoot/placementMode.ts` | `EditorView` | `EditorView` state | `ToolPane`, `ClassDiagram`, `PlacementOverlay` |
 | `SourceEdit` | Controller Commands | Controller Commands | Command handlers | Extension Bridge |
 | Protocol message contracts | Independently in `webview/src/Bridge/protocol.ts` and `extension-host/protocol.ts` | Extension runtime boundary | Boundary adapters construct and validate protocol values | Opposite runtime boundary adapter |

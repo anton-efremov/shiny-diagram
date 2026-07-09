@@ -8,17 +8,17 @@ import type { StyleView } from "../../../../views/schema";
 import ChangeStylePalette from "./ChangeStylePalette/ChangeStylePalette";
 import StyleNameEditor from "./StyleNameEditor/StyleNameEditor";
 import { useInteractions } from "./useInteractions";
-import styles from "./StyleStylePane.module.css";
+import styles from "./StyleEditPane.module.css";
 
-type StyleStylePaneProps = {
+type StyleEditPaneProps = {
   readonly view: StyleView;
   readonly styles: readonly StyleView[];
 };
 
-export default function StyleStylePane({
+export default function StyleEditPane({
   view,
   styles: styleViews,
-}: StyleStylePaneProps): ReactElement {
+}: StyleEditPaneProps): ReactElement {
   // Event handler props derivation
   const { onDelete } = useInteractions(view);
 

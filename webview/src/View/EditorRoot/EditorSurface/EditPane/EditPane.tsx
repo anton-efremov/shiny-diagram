@@ -1,15 +1,15 @@
 /**
- * @behavior Selected diagram element view slicing and style pane scenario routing.
+ * @behavior Selected diagram element view slicing and edit pane scenario routing.
  * @render Style inspector pane.
  */
 
 import type { ReactElement } from "react";
-import EmptyStylePane from "./EmptyStylePane/EmptyStylePane";
-import ClassStylePane from "./ClassStylePane/ClassStylePane";
-import NoteStylePane from "./NoteStylePane/NoteStylePane";
-import RelationshipStylePane from "./RelationshipStylePane/RelationshipStylePane";
-import StyleStylePane from "./StyleStylePane/StyleStylePane";
-import NamespaceStylePane from "./NamespaceStylePane/NamespaceStylePane";
+import EmptyEditPane from "./EmptyEditPane/EmptyEditPane";
+import ClassEditPane from "./ClassEditPane/ClassEditPane";
+import NoteEditPane from "./NoteEditPane/NoteEditPane";
+import RelationshipEditPane from "./RelationshipEditPane/RelationshipEditPane";
+import StyleEditPane from "./StyleEditPane/StyleEditPane";
+import NamespaceEditPane from "./NamespaceEditPane/NamespaceEditPane";
 import type { NamespaceId, NoteId, RelationshipId, StyleDefId } from "../../../../shared/ids";
 import type { TransactionResult } from "../../../commands/editorCommands";
 import type { RelationshipSeed } from "../../../state/editorStates";
@@ -22,9 +22,9 @@ import type {
   NamespaceView,
   StyleView,
 } from "../../../views/schema";
-import styles from "./StylePane.module.css";
+import styles from "./EditPane.module.css";
 
-type StylePaneProps = {
+type EditPaneProps = {
   readonly view: Pick<DiagramView, "classes" | "relationships" | "notes" | "styles" | "namespaces">;
   readonly selectionState: SelectionState;
   readonly onStyleSelect: (styleDefId: StyleDefId) => void;
@@ -38,7 +38,7 @@ type StylePaneProps = {
   readonly onRelationshipDuplicate: (seed: RelationshipSeed) => void;
 };
 
-type StylePaneScenario =
+type EditPaneScenario =
   | {
       readonly kind: "style";
       readonly selectedStyle: StyleView;
@@ -63,7 +63,7 @@ type StylePaneScenario =
       readonly selectedNamespace: NamespaceView;
     };
 
-export default function StylePane({
+export default function EditPane({
   view,
   selectionState,
   onStyleSelect,
@@ -72,52 +72,52 @@ export default function StylePane({
   onNamespaceRenameCommitted,
   onRelationshipSelect,
   onRelationshipDuplicate,
-}: StylePaneProps): ReactElement {
+}: EditPaneProps): ReactElement {
   // View and State slice props derivation
-  const stylePaneScenario = toStylePaneScenario(view, selectionState);
+  const editPaneScenario = toEditPaneScenario(view, selectionState);
 
   // Child component routing
-  let stylePaneContent: ReactElement;
-  switch (stylePaneScenario.kind) {
+  let editPaneContent: ReactElement;
+  switch (editPaneScenario.kind) {
     case "style":
-      stylePaneContent = (
-        <StyleStylePane view={stylePaneScenario.selectedStyle} styles={view.styles} />
+      editPaneContent = (
+        <StyleEditPane view={editPaneScenario.selectedStyle} styles={view.styles} />
       );
       break;
     case "empty":
-      stylePaneContent = <EmptyStylePane />;
+      editPaneContent = <EmptyEditPane />;
       break;
     case "classes":
-      stylePaneContent = (
-        <ClassStylePane
-          view={stylePaneScenario.selectedClasses}
+      editPaneContent = (
+        <ClassEditPane
+          view={editPaneScenario.selectedClasses}
           styles={view.styles}
           onStyleSelect={onStyleSelect}
         />
       );
       break;
     case "relationship":
-      stylePaneContent = (
-        <RelationshipStylePane
-          view={stylePaneScenario.selectedRelationship}
+      editPaneContent = (
+        <RelationshipEditPane
+          view={editPaneScenario.selectedRelationship}
           onRelationshipSelect={onRelationshipSelect}
           onRelationshipDuplicate={onRelationshipDuplicate}
         />
       );
       break;
     case "note":
-      stylePaneContent = (
-        <NoteStylePane
-          view={stylePaneScenario.selectedNote}
+      editPaneContent = (
+        <NoteEditPane
+          view={editPaneScenario.selectedNote}
           onNoteAttachStart={onNoteAttachStart}
           onNoteDuplicateCommitted={onNoteDuplicateCommitted}
         />
       );
       break;
     case "namespace":
-      stylePaneContent = (
-        <NamespaceStylePane
-          view={stylePaneScenario.selectedNamespace}
+      editPaneContent = (
+        <NamespaceEditPane
+          view={editPaneScenario.selectedNamespace}
           onNamespaceRenameCommitted={onNamespaceRenameCommitted}
         />
       );
@@ -125,18 +125,18 @@ export default function StylePane({
   }
 
   return (
-    <aside className={styles.stylePane} aria-label="Styles pane">
+    <aside className={styles.editPane} aria-label="Edit pane">
       <header className={styles.header}>Styles</header>
-      {stylePaneContent}
+      {editPaneContent}
     </aside>
   );
 }
 
 // Private helpers
-function toStylePaneScenario(
+function toEditPaneScenario(
   view: Pick<DiagramView, "classes" | "relationships" | "notes" | "styles" | "namespaces">,
   selectionState: SelectionState
-): StylePaneScenario {
+): EditPaneScenario {
   switch (selectionState.kind) {
     case "none":
       return { kind: "empty" };

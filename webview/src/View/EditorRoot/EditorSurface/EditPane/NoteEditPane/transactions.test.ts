@@ -7,7 +7,7 @@ import {
   toNoteDuplicateTransaction,
 } from "./transactions";
 
-describe("NoteStylePane transactions", () => {
+describe("NoteEditPane transactions", () => {
   const view: NoteView = {
     noteId: toNoteId("note:0"),
     text: "Note",

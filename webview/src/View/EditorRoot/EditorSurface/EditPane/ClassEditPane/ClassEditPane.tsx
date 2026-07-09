@@ -12,19 +12,19 @@ import HeaderTextControls from "./HeaderTextControls/HeaderTextControls";
 import NamedStyleSelector from "./NamedStyleSelector/NamedStyleSelector";
 import StyleSummary from "./StyleSummary/StyleSummary";
 import { useInteractions } from "./useInteractions";
-import styles from "./ClassStylePane.module.css";
+import styles from "./ClassEditPane.module.css";
 
-type ClassStylePaneProps = {
+type ClassEditPaneProps = {
   readonly view: readonly ClassView[];
   readonly styles: readonly StyleView[];
   readonly onStyleSelect: (styleDefId: StyleDefId) => void;
 };
 
-export default function ClassStylePane({
+export default function ClassEditPane({
   view,
   styles: styleViews,
   onStyleSelect,
-}: ClassStylePaneProps): ReactElement {
+}: ClassEditPaneProps): ReactElement {
   // Event handler props derivation
   const { onNameCommit, onAnnotationCommit, onLabelCommit } = useInteractions();
 

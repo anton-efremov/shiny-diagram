@@ -8,19 +8,19 @@ import type { NoteId } from "../../../../../shared/ids";
 import type { TransactionResult } from "../../../../commands/editorCommands";
 import type { NoteView } from "../../../../views/schema";
 import { useInteractions } from "./useInteractions";
-import styles from "./NoteStylePane.module.css";
+import styles from "./NoteEditPane.module.css";
 
-type NoteStylePaneProps = {
+type NoteEditPaneProps = {
   readonly view: NoteView;
   readonly onNoteAttachStart: (noteId: NoteId) => void;
   readonly onNoteDuplicateCommitted: (result: TransactionResult) => void;
 };
 
-export default function NoteStylePane({
+export default function NoteEditPane({
   view,
   onNoteAttachStart,
   onNoteDuplicateCommitted,
-}: NoteStylePaneProps): ReactElement {
+}: NoteEditPaneProps): ReactElement {
   // UI props derivation
   const attachmentLabel = view.attachedToClassId ? "Detach from class" : "Attach to class";
 

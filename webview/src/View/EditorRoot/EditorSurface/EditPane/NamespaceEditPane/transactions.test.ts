@@ -8,7 +8,7 @@ import {
   toNamespaceStyleResetTransaction,
 } from "./transactions";
 
-describe("NamespaceStylePane transactions", () => {
+describe("NamespaceEditPane transactions", () => {
   it("builds namespace rename, reset, and delete transactions", () => {
     const namespaceId = toNamespaceId("Root");
 

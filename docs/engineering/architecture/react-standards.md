@@ -396,7 +396,7 @@ Choosing which child interface renders, from a discriminated view or a derived s
 1. **inline binary select**	
 	- select the child interface inline with a ternary over a derived condition. **Location:** `<Component>.tsx`	
 	- the routing condition **may** be assigned to a named binding before `return` when it is non-obvious or reused. **Location:** `<Component>.tsx`	
-	- **naming:** routing condition binding is named by the interface decision, e.g. `shouldRenderStylePane`, `shouldRenderPlacementOverlay`	
+	- **naming:** routing condition binding is named by the interface decision, e.g. `shouldRenderEditPane`, `shouldRenderPlacementOverlay`	
 	- **when:** exactly two branches
 2. **exhaustive switch + named binding**
 	- assign the selected interface to a binding via an exhaustive `switch` over the view discriminant. **Location:** `<Component>.tsx`
@@ -847,7 +847,7 @@ Good:
 
 ```ts
 /**
- * @behavior Filters selected classes from the diagram view using SelectionState and derives render-ready style panel props.
+ * @behavior Filters selected classes from the diagram view using SelectionState and derives render-ready edit panel props.
  */
 ```
 
@@ -855,7 +855,7 @@ Bad — restates bindings instead of explaining the derivation:
 
 ```ts
 /**
- * @behavior Selected class view and style panel UI prop derivation.
+ * @behavior Selected class view and edit panel UI prop derivation.
  */
 ```
 
