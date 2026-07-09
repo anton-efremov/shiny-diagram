@@ -3,11 +3,18 @@
  * @render Named style property controls.
  */
 
-import type { ChangeEvent, ReactElement } from "react";
+import type { ReactElement } from "react";
 import { STYLE_PROPERTIES, type StylePropertyName } from "../../../../../../shared/style";
 import type { StyleView } from "../../../../../views/schema";
+import {
+  STYLE_COLOR_PRESETS,
+  STYLE_STROKE_DASHARRAY_PRESETS,
+  STYLE_STROKE_WIDTH_PRESETS,
+} from "../../../../../config/editorUiConfig";
+import ColorSelect from "../../../../../ui/composites/ColorSelect/ColorSelect";
+import Dropdown from "../../../../../ui/composites/Dropdown/Dropdown";
+import type { DropdownOption } from "../../../../../ui/composites/Dropdown/Dropdown";
 import { useInteractions } from "./useInteractions";
-import styles from "./ChangeStylePalette.module.css";
 
 type ChangeStylePaletteProps = {
   readonly view: StyleView;
@@ -18,28 +25,80 @@ export default function ChangeStylePalette({ view }: ChangeStylePaletteProps): R
   const { onPropertyChange } = useInteractions(view);
 
   return (
-    <section className={styles.palette} aria-label="Style controls">
+    <>
       {STYLE_PROPERTIES.map(({ name }) => (
-        <label key={name} className={styles.control}>
-          <span>{toLabel(name)}</span>
-          <input
-            type={isColorProperty(name) ? "color" : "text"}
-            value={toInputValue(view.style[name], name)}
-            onChange={(event) => onPropertyChange(name, toValue(event))}
-          />
-        </label>
+        <StylePropertyControl
+          key={name}
+          property={name}
+          value={view.style[name]}
+          onChange={(value) => onPropertyChange(name, value)}
+        />
       ))}
-    </section>
+    </>
   );
 }
 
-// Private helpers
-function toInputValue(value: string | null, property: StylePropertyName): string {
-  return value ?? (isColorProperty(property) ? "#ffffff" : "");
+function StylePropertyControl({
+  property,
+  value,
+  onChange,
+}: {
+  readonly property: StylePropertyName;
+  readonly value: string | null;
+  readonly onChange: (value: string | null) => void;
+}): ReactElement {
+  const selectedValue = value ?? "";
+
+  return isColorProperty(property) ? (
+    <ColorSelect
+      presets={toColorPresetOptions(property)}
+      value={selectedValue}
+      onChange={(nextValue) => onChange(toNullableValue(nextValue))}
+    />
+  ) : (
+    <Dropdown
+      options={toStrokePresetOptions(property)}
+      value={selectedValue}
+      onChange={(nextValue) => onChange(toNullableValue(nextValue))}
+    />
+  );
 }
 
-function toValue(event: ChangeEvent<HTMLInputElement>): string | null {
-  return event.currentTarget.value.trim() === "" ? null : event.currentTarget.value;
+function toColorPresetOptions(property: StylePropertyName): readonly DropdownOption[] {
+  return STYLE_COLOR_PRESETS.map((preset) => {
+    const label = `${toLabel(property)}: ${preset.label}`;
+    return {
+      value: preset.value,
+      label,
+      swatchStyle: {
+        fill: property === "fill" ? toSwatchColor(preset.value) : null,
+        stroke: property === "stroke" ? toSwatchColor(preset.value) : null,
+        color: property === "color" ? toSwatchColor(preset.value) : null,
+      },
+    };
+  });
+}
+
+function toStrokePresetOptions(property: StylePropertyName): readonly DropdownOption[] {
+  const presets =
+    property === "strokeWidth" ? STYLE_STROKE_WIDTH_PRESETS : STYLE_STROKE_DASHARRAY_PRESETS;
+
+  return presets.map((preset) => ({
+    value: preset.value,
+    label: `${toLabel(property)}: ${preset.label}`,
+    swatchStyle: {
+      strokeWidth: property === "strokeWidth" ? preset.value || null : null,
+      strokeDasharray: property === "strokeDasharray" ? preset.value || null : null,
+    },
+  }));
+}
+
+function toSwatchColor(value: string): string | null {
+  return value === "" ? null : value;
+}
+
+function toNullableValue(value: string): string | null {
+  return value === "" ? null : value;
 }
 
 function isColorProperty(property: StylePropertyName): boolean {

@@ -1,10 +1,10 @@
 /**
- * @render Empty style inspector scenario.
+ * @render Empty edit pane section placeholder.
  */
 
 import type { ReactElement } from "react";
-import styles from "./EmptyEditPane.module.css";
+import PaneSection from "../../../../ui/templates/PaneSection/PaneSection";
 
 export default function EmptyEditPane(): ReactElement {
-  return <div className={styles.emptySelection} aria-label="No selected diagram element" />;
+  return <PaneSection label="" />;
 }

@@ -5,10 +5,11 @@
 
 import type { ReactElement } from "react";
 import type { StyleView } from "../../../../views/schema";
+import Button from "../../../../ui/primitives/Button/Button";
+import PaneSection from "../../../../ui/templates/PaneSection/PaneSection";
 import ChangeStylePalette from "./ChangeStylePalette/ChangeStylePalette";
 import StyleNameEditor from "./StyleNameEditor/StyleNameEditor";
 import { useInteractions } from "./useInteractions";
-import styles from "./StyleEditPane.module.css";
 
 type StyleEditPaneProps = {
   readonly view: StyleView;
@@ -23,12 +24,16 @@ export default function StyleEditPane({
   const { onDelete } = useInteractions(view);
 
   return (
-    <section className={styles.panel} aria-label="Named style editor">
-      <StyleNameEditor view={view} styles={styleViews} />
-      <ChangeStylePalette view={view} />
-      <button type="button" className={styles.danger} onClick={onDelete}>
-        Delete style
-      </button>
-    </section>
+    <>
+      <PaneSection label="Style name">
+        <StyleNameEditor view={view} styles={styleViews} />
+      </PaneSection>
+      <PaneSection label="Change style">
+        <ChangeStylePalette view={view} />
+      </PaneSection>
+      <PaneSection label="">
+        <Button label="Delete style" tone="danger" onClick={onDelete} />
+      </PaneSection>
+    </>
   );
 }

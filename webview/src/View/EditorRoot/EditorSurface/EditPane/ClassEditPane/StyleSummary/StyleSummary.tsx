@@ -7,8 +7,11 @@ import { useState, type ReactElement } from "react";
 import type { StyleDefId } from "../../../../../../shared/ids";
 import { STYLE_PROPERTIES, type StyleProperties } from "../../../../../../shared/style";
 import type { ClassView, StyleView } from "../../../../../views/schema";
-import { useInteractions } from "./useInteractions";
-import styles from "./StyleSummary.module.css";
+import Button from "../../../../../ui/primitives/Button/Button";
+import CommitTextField from "../../../../../ui/composites/CommitTextField/CommitTextField";
+import StyledBoxSwatch from "../../../../../ui/primitives/StyledBoxSwatch/StyledBoxSwatch";
+import { useDispatchTransaction } from "../../../../../contexts";
+import { toStyleSaveTransaction } from "./transactions";
 
 type StyleSummaryProps = {
   readonly view: readonly ClassView[];
@@ -36,11 +39,6 @@ type SummaryScenario =
       readonly style?: ClassView["style"];
     };
 
-type NotificationState = {
-  readonly key: number;
-  readonly message: string;
-};
-
 type SaveStyleScenario =
   | {
       readonly kind: "direct";
@@ -64,75 +62,52 @@ export default function StyleSummary({
   onStyleSelect,
 }: StyleSummaryProps): ReactElement {
   // State creation: local state - style save prompt lifecycle and entered style name
-  const [draftNameState, setDraftNameState] = useState("");
   const [promptState, setPromptState] = useState(false);
-  const [notificationState, setNotificationState] = useState<NotificationState | null>(null);
+  const dispatchTransaction = useDispatchTransaction();
 
   // UI props derivation
   const scenario = toSummaryScenario(view, styleViews);
   const saveStyleScenario = toSaveStyleScenario(scenario);
-  const canSubmit = toCanSubmit(draftNameState);
-
-  // Event handler props derivation
-  const { onPromptOpen, onDraftNameChange, onSubmit } = useInteractions({
-    view,
-    scenario: saveStyleScenario,
-    styles: styleViews,
-    draftNameState,
-    setDraftNameState,
-    setPromptState,
-    setNotificationState,
-  });
-
   return (
-    <section className={styles.summary} aria-label="Style summary">
-      <div className={styles.header}>
-        <span className={styles.swatch} style={toSwatchStyle(scenario)} />
-        <div className={styles.titleBlock}>
-          <span className={styles.title}>{scenario.label}</span>
-          {"detail" in scenario && scenario.detail ? (
-            <span className={styles.detail}>{scenario.detail}</span>
-          ) : null}
-        </div>
-      </div>
+    <>
+      <StyledBoxSwatch
+        styleValues={scenario.style ?? EMPTY_STYLE_PROPERTIES}
+        label={
+          "detail" in scenario && scenario.detail
+            ? `${scenario.label}: ${scenario.detail}`
+            : scenario.label
+        }
+      />
       {scenario.kind === "named" ? (
-        <button
-          type="button"
-          className={styles.action}
+        <Button
+          label={`Edit style ${scenario.label}`}
           disabled={!scenario.styleDefId}
           onClick={() => scenario.styleDefId && onStyleSelect(scenario.styleDefId)}
-        >
-          Edit style {scenario.label}
-        </button>
+        />
       ) : (
-        <button
-          type="button"
-          className={styles.action}
+        <Button
+          label="Save style"
           disabled={scenario.kind !== "direct"}
-          onClick={onPromptOpen}
-        >
-          Save style
-        </button>
+          onClick={() => setPromptState(true)}
+        />
       )}
       {promptState && scenario.kind === "direct" ? (
-        <form className={styles.prompt} onSubmit={onSubmit}>
-          <input
-            value={draftNameState}
-            aria-label="Enter style name"
-            placeholder="Enter style name"
-            onChange={(event) => onDraftNameChange(event.currentTarget.value)}
-          />
-          <button type="submit" disabled={!canSubmit}>
-            Save
-          </button>
-          {notificationState ? (
-            <p key={notificationState.key} className={styles.notification} role="status">
-              {notificationState.message}
-            </p>
-          ) : null}
-        </form>
+        <CommitTextField
+          initialValue=""
+          validate={(draft) => validateStyleName(draft, styleViews)}
+          ariaLabel="Enter style name"
+          onCommit={(draft) => {
+            if (saveStyleScenario.kind !== "direct") return;
+            const name = toCamelCaseName(draft);
+            if (name === "") return;
+            dispatchTransaction(toStyleSaveTransaction(view, name, saveStyleScenario.style));
+            setPromptState(false);
+          }}
+          onDiscard={() => undefined}
+          onCancel={() => setPromptState(false)}
+        />
       ) : null}
-    </section>
+    </>
   );
 }
 
@@ -175,10 +150,6 @@ function toSaveStyleScenario(scenario: SummaryScenario): SaveStyleScenario {
     : { kind: "disabled" };
 }
 
-function toCanSubmit(draftName: string): boolean {
-  return toCamelCaseName(draftName) !== "";
-}
-
 function toMixedDetail(classes: readonly ClassView[], styles: readonly StyleView[]): string {
   const names = [
     ...new Set(
@@ -191,18 +162,6 @@ function toMixedDetail(classes: readonly ClassView[], styles: readonly StyleView
     (classView) => !classView.appliedStyleId && hasStyleValue(classView.style)
   );
   return [...names, ...(hasCustom ? ["Custom style(s)"] : [])].join(", ");
-}
-
-function toSwatchStyle(scenario: SummaryScenario): {
-  readonly background?: string;
-  readonly borderColor?: string;
-  readonly color?: string;
-} {
-  return {
-    background: scenario.style?.fill ?? undefined,
-    borderColor: scenario.style?.stroke ?? undefined,
-    color: scenario.style?.color ?? undefined,
-  };
 }
 
 function hasStyleValue(style: StyleProperties | undefined): style is StyleProperties {
@@ -221,6 +180,14 @@ function areStylesEqual(
 function toStyleName(styleId: string | undefined, styles: readonly StyleView[]): string {
   if (styleId === undefined) return "No style";
   return styles.find((styleView) => styleView.styleId === styleId)?.name ?? styleId;
+}
+
+function validateStyleName(draftName: string, styles: readonly StyleView[]): readonly string[] {
+  const normalizedName = toCamelCaseName(draftName);
+  if (normalizedName === "") return ["Enter a style name."];
+  return styles.some((styleView) => styleView.name === normalizedName)
+    ? [`Style "${normalizedName}" already exists.`]
+    : [];
 }
 
 function toCamelCaseName(value: string): string {

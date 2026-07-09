@@ -1,0 +1,74 @@
+/**
+ * @render Dropdown styling.
+ */
+
+.dropdown {
+  position: relative;
+  min-width: 0;
+}
+
+.trigger,
+.option {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 1px solid var(--shiny-button-border);
+  border-radius: 4px;
+  color: var(--shiny-button-secondary-fg);
+  background: var(--shiny-button-secondary-bg);
+  box-shadow: 0 1px 1px var(--shiny-overlay-faint);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.trigger:hover:not(:disabled),
+.option:hover {
+  color: var(--shiny-button-fg);
+  background: var(--shiny-button-bg);
+}
+
+.trigger:focus-visible,
+.option:focus-visible {
+  outline: 2px solid var(--shiny-accent);
+  outline-offset: 2px;
+}
+
+.trigger:disabled {
+  color: var(--shiny-text-muted);
+  cursor: default;
+  opacity: 0.58;
+}
+
+.triggerLabel,
+.optionLabel {
+  display: block;
+  min-height: 32px;
+  padding: 7px 10px;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu {
+  position: absolute;
+  z-index: 10;
+  right: 0;
+  left: 0;
+  display: grid;
+  gap: 2px;
+  max-height: 220px;
+  padding: 4px;
+  overflow: auto;
+  border: 1px solid var(--shiny-border);
+  border-radius: 4px;
+  background: var(--shiny-surface);
+  box-shadow: 0 4px 10px var(--shiny-overlay-faint);
+}
+
+.option[aria-selected="true"] {
+  border-color: var(--shiny-accent);
+}

@@ -3,12 +3,13 @@
  * @render Relationship shape controls.
  */
 
-import type { ChangeEvent, ReactElement } from "react";
+import type { ReactElement } from "react";
 import type { RelationshipId } from "../../../../../../shared/ids";
 import type { RelationshipEndpointKind, RelationshipLineKind } from "../../../../../../shared/uml";
 import type { RelationshipView } from "../../../../../views/schema";
+import Button from "../../../../../ui/primitives/Button/Button";
+import Dropdown from "../../../../../ui/composites/Dropdown/Dropdown";
 import { useInteractions } from "./useInteractions";
-import styles from "./EdgeShapeControls.module.css";
 
 const endpointKinds: readonly RelationshipEndpointKind[] = [
   "none",
@@ -34,54 +35,34 @@ export default function EdgeShapeControls({
   const { onSourceEndpointKindChange, onLineKindChange, onTargetEndpointKindChange, onReverse } =
     useInteractions(view, onRelationshipSelect);
 
-  function onSourceChange(event: ChangeEvent<HTMLSelectElement>): void {
-    onSourceEndpointKindChange(event.currentTarget.value as RelationshipEndpointKind);
-  }
-
-  function onLineChange(event: ChangeEvent<HTMLSelectElement>): void {
-    onLineKindChange(event.currentTarget.value as RelationshipLineKind);
-  }
-
-  function onTargetChange(event: ChangeEvent<HTMLSelectElement>): void {
-    onTargetEndpointKindChange(event.currentTarget.value as RelationshipEndpointKind);
-  }
-
   return (
-    <section className={styles.section} aria-label="Relationship shape">
-      <label className={styles.field}>
-        <span>Source marker</span>
-        <select value={view.sourceEndpointKind} onChange={onSourceChange}>
-          {endpointKinds.map((endpointKind) => (
-            <option key={endpointKind} value={endpointKind}>
-              {toEndpointLabel(endpointKind)}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className={styles.field}>
-        <span>Line</span>
-        <select value={view.lineKind} onChange={onLineChange}>
-          {lineKinds.map((lineKind) => (
-            <option key={lineKind} value={lineKind}>
-              {toLineLabel(lineKind)}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className={styles.field}>
-        <span>Target marker</span>
-        <select value={view.targetEndpointKind} onChange={onTargetChange}>
-          {endpointKinds.map((endpointKind) => (
-            <option key={endpointKind} value={endpointKind}>
-              {toEndpointLabel(endpointKind)}
-            </option>
-          ))}
-        </select>
-      </label>
-      <button type="button" onClick={onReverse}>
-        Reverse
-      </button>
-    </section>
+    <>
+      <Dropdown
+        options={endpointKinds.map((endpointKind) => ({
+          value: endpointKind,
+          label: `Source endpoint: ${toEndpointLabel(endpointKind)}`,
+        }))}
+        value={view.sourceEndpointKind}
+        onChange={(value) => onSourceEndpointKindChange(value as RelationshipEndpointKind)}
+      />
+      <Dropdown
+        options={lineKinds.map((lineKind) => ({
+          value: lineKind,
+          label: `Line: ${toLineLabel(lineKind)}`,
+        }))}
+        value={view.lineKind}
+        onChange={(value) => onLineKindChange(value as RelationshipLineKind)}
+      />
+      <Dropdown
+        options={endpointKinds.map((endpointKind) => ({
+          value: endpointKind,
+          label: `Target endpoint: ${toEndpointLabel(endpointKind)}`,
+        }))}
+        value={view.targetEndpointKind}
+        onChange={(value) => onTargetEndpointKindChange(value as RelationshipEndpointKind)}
+      />
+      <Button label="Reverse" onClick={onReverse} />
+    </>
   );
 }
 

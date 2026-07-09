@@ -7,8 +7,8 @@ import { useEffect, type ReactElement } from "react";
 import type { RelationshipSeed } from "../../../../../state/editorStates";
 import type { RelationshipView } from "../../../../../views/schema";
 import { shouldIgnoreKeyboardShortcutEvent } from "../../../../../utils/keyboardEvents";
+import Button from "../../../../../ui/primitives/Button/Button";
 import { useInteractions } from "./useInteractions";
-import styles from "./EdgeActions.module.css";
 
 type EdgeActionsProps = {
   readonly view: RelationshipView;
@@ -35,13 +35,9 @@ export default function EdgeActions({
   }, [onDelete]);
 
   return (
-    <section className={styles.actions} aria-label="Relationship actions">
-      <button type="button" onClick={onDuplicate}>
-        Duplicate
-      </button>
-      <button type="button" className={styles.danger} onClick={onDelete}>
-        Delete
-      </button>
-    </section>
+    <>
+      <Button label="Duplicate" onClick={onDuplicate} />
+      <Button label="Delete" tone="danger" onClick={onDelete} />
+    </>
   );
 }

@@ -1,10 +1,9 @@
 /**
- * @behavior Local namespace name draft and namespace property edit requests.
- * @render Namespace property inspector sections.
+ * @behavior Namespace name, style property, reset, and delete requests.
+ * @render Namespace edit pane sections.
  */
 
-import { useEffect, useRef, useState } from "react";
-import type { CSSProperties, ReactElement } from "react";
+import type { ReactElement } from "react";
 import type { NamespaceId } from "../../../../../shared/ids";
 import {
   STYLE_PROPERTIES,
@@ -16,31 +15,25 @@ import {
   NAMESPACE_DEFAULT_FILL,
   NAMESPACE_DEFAULT_STROKE,
   NAMESPACE_DEFAULT_STROKE_WIDTH,
-  NAMESPACE_EDIT_PANE_COLOR_PICKER_FALLBACK,
-  NAMESPACE_EDIT_PANE_CONTROL_GAP,
-  NAMESPACE_EDIT_PANE_FIELD_GAP,
-  NAMESPACE_EDIT_PANE_FONT_SIZE,
-  NAMESPACE_EDIT_PANE_INPUT_PADDING_X,
-  NAMESPACE_EDIT_PANE_INPUT_PADDING_Y,
-  NAMESPACE_EDIT_PANE_INPUT_RADIUS,
-  NAMESPACE_EDIT_PANE_INPUT_BORDER_WIDTH,
-  NAMESPACE_EDIT_PANE_INPUT_MIN_WIDTH,
-  NAMESPACE_EDIT_PANE_SECTION_GAP,
-  NAMESPACE_EDIT_PANE_SECTION_PADDING,
+  STYLE_COLOR_PRESETS,
+  STYLE_STROKE_DASHARRAY_PRESETS,
+  STYLE_STROKE_WIDTH_PRESETS,
 } from "../../../../config/editorUiConfig";
-import ValidationPopup from "../../../../ui/ValidationPopup/ValidationPopup";
-import ColorSelector from "../../../../ui/ColorSelector/ColorSelector";
-import ControlButton from "../../../../ui/ControlButton/ControlButton";
-import {
-  BorderIcon,
-  DeleteIcon,
-  FillIcon,
-  GenerateIcon,
-  TextColorIcon,
-} from "../../../../ui/icons/icons";
+import { useDispatchTransaction } from "../../../../contexts";
+import Button from "../../../../ui/primitives/Button/Button";
+import CommitTextField from "../../../../ui/composites/CommitTextField/CommitTextField";
+import ColorSelect from "../../../../ui/composites/ColorSelect/ColorSelect";
+import Dropdown from "../../../../ui/composites/Dropdown/Dropdown";
+import type { DropdownOption } from "../../../../ui/composites/Dropdown/Dropdown";
+import StyledBoxSwatch from "../../../../ui/primitives/StyledBoxSwatch/StyledBoxSwatch";
+import PaneSection from "../../../../ui/templates/PaneSection/PaneSection";
 import type { NamespaceView } from "../../../../views/schema";
-import { useInteractions } from "./useInteractions";
-import styles from "./NamespaceEditPane.module.css";
+import {
+  toNamespaceDeleteTransaction,
+  toNamespaceNameCommitTransaction,
+  toNamespaceStylePropertySetTransaction,
+  toNamespaceStyleResetTransaction,
+} from "./transactions";
 
 type NamespaceEditPaneProps = {
   readonly view: NamespaceView;
@@ -62,125 +55,114 @@ export default function NamespaceEditPane({
   view,
   onNamespaceRenameCommitted,
 }: NamespaceEditPaneProps): ReactElement {
-  // State creation: local state - namespace name draft and validation messages
-  const [nameDraft, setNameDraft] = useState(view.label);
-  const [errors, setErrors] = useState<readonly string[]>([]);
-  const nameSettledRef = useRef(false);
-
-  // State reconciliation
-  useEffect(() => {
-    setNameDraft(view.label);
-    setErrors([]);
-    nameSettledRef.current = false;
-  }, [view.label, view.namespaceId]);
-
-  // UI props derivation
-  const paneVars = {
-    "--namespace-edit-pane-section-padding": `${NAMESPACE_EDIT_PANE_SECTION_PADDING}px`,
-    "--namespace-edit-pane-section-gap": `${NAMESPACE_EDIT_PANE_SECTION_GAP}px`,
-    "--namespace-edit-pane-field-gap": `${NAMESPACE_EDIT_PANE_FIELD_GAP}px`,
-    "--namespace-edit-pane-control-gap": `${NAMESPACE_EDIT_PANE_CONTROL_GAP}px`,
-    "--namespace-edit-pane-input-padding": `${NAMESPACE_EDIT_PANE_INPUT_PADDING_Y}px ${NAMESPACE_EDIT_PANE_INPUT_PADDING_X}px`,
-    "--namespace-edit-pane-font-size": `${NAMESPACE_EDIT_PANE_FONT_SIZE}px`,
-    "--namespace-edit-pane-input-radius": `${NAMESPACE_EDIT_PANE_INPUT_RADIUS}px`,
-    "--namespace-edit-pane-input-border-width": `${NAMESPACE_EDIT_PANE_INPUT_BORDER_WIDTH}px`,
-    "--namespace-edit-pane-input-min-width": `${NAMESPACE_EDIT_PANE_INPUT_MIN_WIDTH}px`,
-  } as CSSProperties;
+  const dispatchTransaction = useDispatchTransaction();
   const style = view.style ?? EMPTY_STYLE_PROPERTIES;
 
-  // Event handler props derivation
-  const {
-    onNameDraftChange,
-    onNameSubmit,
-    onNameKeyDown,
-    onValidationDismiss,
-    onFillChange,
-    onStrokeChange,
-    onTextColorChange,
-    onStrokeWidthChange,
-    onStrokeDasharrayChange,
-    onStyleReset,
-    onNamespaceDelete,
-  } = useInteractions({
-    view,
-    nameDraft,
-    setNameDraft,
-    setErrors,
-    nameSettledRef,
-    onNamespaceRenameCommitted,
-  });
-  const stylePropertyHandlers = {
-    fill: onFillChange,
-    stroke: onStrokeChange,
-    color: onTextColorChange,
-    strokeWidth: onStrokeWidthChange,
-    strokeDasharray: onStrokeDasharrayChange,
-  } satisfies Record<StylePropertyName, (value: string | null) => void>;
+  function commitName(name: string): readonly string[] {
+    const result = dispatchTransaction(
+      toNamespaceNameCommitTransaction(view.namespaceId, name.trim())
+    );
+    if (result.status === "committed") {
+      onNamespaceRenameCommitted(result, view.namespaceId);
+      return [];
+    }
+    return result.errors.map((error) => error.message);
+  }
 
   return (
-    <section className={styles.panel} style={paneVars} aria-label="Namespace styles">
-      <section className={styles.section} aria-label="Namespace name">
-        <label className={styles.field}>
-          <span className={styles.label}>Name</span>
-          <input
-            value={nameDraft}
-            onChange={(event) => onNameDraftChange(event.currentTarget.value)}
-            onBlur={onNameSubmit}
-            onKeyDown={onNameKeyDown}
+    <>
+      <PaneSection label="Selected namespace">
+        <StyledBoxSwatch styleValues={style} label={view.label} />
+        <CommitTextField
+          initialValue={view.label}
+          validate={() => []}
+          ariaLabel="Namespace name"
+          onCommit={(name) => commitName(name)}
+          onDiscard={() => undefined}
+          onCancel={() => undefined}
+        />
+      </PaneSection>
+      <PaneSection label="Namespace style">
+        {STYLE_PROPERTIES.map(({ name }) => (
+          <NamespaceStyleControl
+            key={name}
+            property={name}
+            value={style[name]}
+            onChange={(value) =>
+              dispatchTransaction(toNamespaceStylePropertySetTransaction(view, name, value))
+            }
           />
-        </label>
-        {errors.length > 0 ? (
-          <ValidationPopup messages={errors} onDismiss={onValidationDismiss} />
-        ) : null}
-      </section>
-
-      <section className={styles.section} aria-label="Namespace style">
-        {STYLE_PROPERTIES.map(({ name }) =>
-          isColorProperty(name) ? (
-            <ColorSelector
-              key={name}
-              label={toPropertyLabel(name)}
-              icon={toPropertyIcon(name)}
-              displayValue={toDisplayValue(style, name)}
-              pickerValue={toPickerValue(style[name])}
-              swatchColor={style[name] ?? toDefaultColor(name)}
-              onChange={stylePropertyHandlers[name]}
-            />
-          ) : (
-            <label key={name} className={styles.field}>
-              <span className={styles.label}>{toPropertyLabel(name)}</span>
-              <input
-                value={style[name] ?? ""}
-                placeholder={toTextPlaceholder(name)}
-                onChange={(event) =>
-                  stylePropertyHandlers[name](event.currentTarget.value.trim() || null)
-                }
-              />
-            </label>
-          )
-        )}
-        <ControlButton
+        ))}
+        <Button
           label="Reset style"
-          icon={<GenerateIcon />}
-          variant="label"
-          onClick={onStyleReset}
+          disabled={view.style === null}
+          onClick={() => dispatchTransaction(toNamespaceStyleResetTransaction(view.namespaceId))}
         />
-      </section>
-
-      <section className={styles.section} aria-label="Namespace controls">
-        <ControlButton
+      </PaneSection>
+      <PaneSection label="">
+        <Button
           label="Delete"
-          icon={<DeleteIcon />}
-          variant="label"
           tone="danger"
-          onClick={onNamespaceDelete}
+          onClick={() => dispatchTransaction(toNamespaceDeleteTransaction(view.namespaceId))}
         />
-      </section>
-    </section>
+      </PaneSection>
+    </>
   );
 }
 
-// Private helpers
+function NamespaceStyleControl({
+  property,
+  value,
+  onChange,
+}: {
+  readonly property: StylePropertyName;
+  readonly value: string | null;
+  readonly onChange: (value: string | null) => void;
+}): ReactElement {
+  const selectedValue = value ?? "";
+
+  return isColorProperty(property) ? (
+    <ColorSelect
+      presets={toColorPresetOptions(property)}
+      value={selectedValue}
+      onChange={(nextValue) => onChange(toNullableValue(nextValue))}
+    />
+  ) : (
+    <Dropdown
+      options={toStrokePresetOptions(property)}
+      value={selectedValue}
+      onChange={(nextValue) => onChange(toNullableValue(nextValue))}
+    />
+  );
+}
+
+function toColorPresetOptions(property: StylePropertyName): readonly DropdownOption[] {
+  return STYLE_COLOR_PRESETS.map((preset) => ({
+    value: preset.value,
+    label: `${toPropertyLabel(property)}: ${preset.label}`,
+    swatchStyle: {
+      fill: property === "fill" ? toSwatchColor(preset.value, NAMESPACE_DEFAULT_FILL) : null,
+      stroke: property === "stroke" ? toSwatchColor(preset.value, NAMESPACE_DEFAULT_STROKE) : null,
+      color: property === "color" ? toSwatchColor(preset.value, null) : null,
+    },
+  }));
+}
+
+function toStrokePresetOptions(property: StylePropertyName): readonly DropdownOption[] {
+  const presets =
+    property === "strokeWidth" ? STYLE_STROKE_WIDTH_PRESETS : STYLE_STROKE_DASHARRAY_PRESETS;
+
+  return presets.map((preset) => ({
+    value: preset.value,
+    label: `${toPropertyLabel(property)}: ${preset.label}`,
+    swatchStyle: {
+      strokeWidth:
+        property === "strokeWidth" ? preset.value || `${NAMESPACE_DEFAULT_STROKE_WIDTH}px` : null,
+      strokeDasharray: property === "strokeDasharray" ? preset.value || null : null,
+    },
+  }));
+}
+
 function isColorProperty(property: StylePropertyName): boolean {
   return property === "fill" || property === "stroke" || property === "color";
 }
@@ -200,59 +182,10 @@ function toPropertyLabel(property: StylePropertyName): string {
   }
 }
 
-function toPropertyIcon(property: StylePropertyName): ReactElement {
-  switch (property) {
-    case "fill":
-      return <FillIcon />;
-    case "stroke":
-      return <BorderIcon />;
-    case "color":
-      return <TextColorIcon />;
-    case "strokeWidth":
-    case "strokeDasharray":
-      return <BorderIcon />;
-  }
+function toSwatchColor(value: string, fallback: string | null): string | null {
+  return value === "" ? fallback : value;
 }
 
-function toDisplayValue(style: StyleProperties, property: StylePropertyName): string {
-  return style[property] ?? toDefaultValue(property);
-}
-
-function toDefaultValue(property: StylePropertyName): string {
-  switch (property) {
-    case "fill":
-      return NAMESPACE_DEFAULT_FILL;
-    case "stroke":
-      return NAMESPACE_DEFAULT_STROKE;
-    case "strokeWidth":
-      return `${NAMESPACE_DEFAULT_STROKE_WIDTH}px`;
-    case "strokeDasharray":
-      return "solid";
-    case "color":
-      return "default";
-  }
-}
-
-function toTextPlaceholder(property: StylePropertyName): string {
-  return property === "strokeWidth" ? `${NAMESPACE_DEFAULT_STROKE_WIDTH}px` : "solid";
-}
-
-function toDefaultColor(property: StylePropertyName): string {
-  switch (property) {
-    case "fill":
-      return NAMESPACE_EDIT_PANE_COLOR_PICKER_FALLBACK;
-    case "stroke":
-      return NAMESPACE_DEFAULT_STROKE;
-    case "color":
-      return NAMESPACE_EDIT_PANE_COLOR_PICKER_FALLBACK;
-    case "strokeWidth":
-    case "strokeDasharray":
-      return NAMESPACE_EDIT_PANE_COLOR_PICKER_FALLBACK;
-  }
-}
-
-function toPickerValue(value: string | null): string {
-  return value && /^#[0-9a-fA-F]{6}$/.test(value)
-    ? value
-    : NAMESPACE_EDIT_PANE_COLOR_PICKER_FALLBACK;
+function toNullableValue(value: string): string | null {
+  return value === "" ? null : value;
 }

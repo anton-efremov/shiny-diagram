@@ -12,7 +12,7 @@ import HeaderTextControls from "./HeaderTextControls/HeaderTextControls";
 import NamedStyleSelector from "./NamedStyleSelector/NamedStyleSelector";
 import StyleSummary from "./StyleSummary/StyleSummary";
 import { useInteractions } from "./useInteractions";
-import styles from "./ClassEditPane.module.css";
+import PaneSection from "../../../../ui/templates/PaneSection/PaneSection";
 
 type ClassEditPaneProps = {
   readonly view: readonly ClassView[];
@@ -29,19 +29,29 @@ export default function ClassEditPane({
   const { onNameCommit, onAnnotationCommit, onLabelCommit } = useInteractions();
 
   return (
-    <section className={styles.selectionPanel} aria-label="Selected class styles">
+    <>
       {view.length === 1 ? (
-        <HeaderTextControls
-          view={view[0]}
-          onNameCommit={onNameCommit}
-          onAnnotationCommit={onAnnotationCommit}
-          onLabelCommit={onLabelCommit}
-        />
+        <PaneSection label="Selected Class">
+          <HeaderTextControls
+            view={view[0]}
+            onNameCommit={onNameCommit}
+            onAnnotationCommit={onAnnotationCommit}
+            onLabelCommit={onLabelCommit}
+          />
+        </PaneSection>
       ) : null}
-      <StyleSummary view={view} styles={styleViews} onStyleSelect={onStyleSelect} />
-      <NamedStyleSelector view={view} styles={styleViews} />
-      <ChangeStylePalette view={view} />
-      <ClassActions view={view} />
-    </section>
+      <PaneSection label="Current style">
+        <StyleSummary view={view} styles={styleViews} onStyleSelect={onStyleSelect} />
+      </PaneSection>
+      <PaneSection label="Select style">
+        <NamedStyleSelector view={view} styles={styleViews} />
+      </PaneSection>
+      <PaneSection label="Change style">
+        <ChangeStylePalette view={view} />
+      </PaneSection>
+      <PaneSection label="">
+        <ClassActions view={view} />
+      </PaneSection>
+    </>
   );
 }

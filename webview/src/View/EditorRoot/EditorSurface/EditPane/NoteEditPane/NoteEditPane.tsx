@@ -7,8 +7,9 @@ import type { ReactElement } from "react";
 import type { NoteId } from "../../../../../shared/ids";
 import type { TransactionResult } from "../../../../commands/editorCommands";
 import type { NoteView } from "../../../../views/schema";
+import Button from "../../../../ui/primitives/Button/Button";
+import PaneSection from "../../../../ui/templates/PaneSection/PaneSection";
 import { useInteractions } from "./useInteractions";
-import styles from "./NoteEditPane.module.css";
 
 type NoteEditPaneProps = {
   readonly view: NoteView;
@@ -32,16 +33,10 @@ export default function NoteEditPane({
   });
 
   return (
-    <section className={styles.selectionPanel} aria-label="Selected note styles">
-      <button type="button" onClick={onAttachmentToggle}>
-        {attachmentLabel}
-      </button>
-      <button type="button" onClick={onDuplicate}>
-        Duplicate
-      </button>
-      <button type="button" className={styles.danger} onClick={onDelete}>
-        Delete
-      </button>
-    </section>
+    <PaneSection label="">
+      <Button label={attachmentLabel} onClick={onAttachmentToggle} />
+      <Button label="Duplicate" onClick={onDuplicate} />
+      <Button label="Delete" tone="danger" onClick={onDelete} />
+    </PaneSection>
   );
 }

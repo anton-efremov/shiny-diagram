@@ -11,7 +11,7 @@ import EdgeActions from "./EdgeActions/EdgeActions";
 import EdgeShapeControls from "./EdgeShapeControls/EdgeShapeControls";
 import LabelControls from "./LabelControls/LabelControls";
 import MultiplicityControls from "./MultiplicityControls/MultiplicityControls";
-import styles from "./RelationshipEditPane.module.css";
+import PaneSection from "../../../../ui/templates/PaneSection/PaneSection";
 
 type RelationshipEditPaneProps = {
   readonly view: RelationshipView;
@@ -25,11 +25,19 @@ export default function RelationshipEditPane({
   onRelationshipDuplicate,
 }: RelationshipEditPaneProps): ReactElement {
   return (
-    <section className={styles.selectionPanel} aria-label="Selected relationship styles">
-      <EdgeShapeControls view={view} onRelationshipSelect={onRelationshipSelect} />
-      <MultiplicityControls view={view} />
-      <LabelControls view={view} />
-      <EdgeActions view={view} onRelationshipDuplicate={onRelationshipDuplicate} />
-    </section>
+    <>
+      <PaneSection label="Relationship shape">
+        <EdgeShapeControls view={view} onRelationshipSelect={onRelationshipSelect} />
+      </PaneSection>
+      <PaneSection label="Multiplicity">
+        <MultiplicityControls view={view} />
+      </PaneSection>
+      <PaneSection label="Relationship label">
+        <LabelControls view={view} />
+      </PaneSection>
+      <PaneSection label="">
+        <EdgeActions view={view} onRelationshipDuplicate={onRelationshipDuplicate} />
+      </PaneSection>
+    </>
   );
 }

@@ -1,0 +1,38 @@
+/**
+ * @render Inline validation messages styling.
+ */
+
+.popup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+  padding: 7px 8px;
+  border: 1px solid var(--shiny-text-error);
+  color: var(--shiny-text-error);
+  background: var(--shiny-surface);
+  font-size: 12px;
+}
+
+.messages {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.message {
+  min-width: 0;
+}
+
+.dismiss {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--shiny-text-error);
+  color: var(--shiny-text-error);
+  background: var(--shiny-surface);
+  font: inherit;
+  cursor: pointer;
+}

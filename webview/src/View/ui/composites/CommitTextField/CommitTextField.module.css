@@ -1,0 +1,38 @@
+/**
+ * @render Commit text field styling.
+ */
+
+.field,
+.fieldWithoutLabel {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.field {
+  grid-template-columns: 76px minmax(0, 1fr);
+}
+
+.fieldWithoutLabel {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--shiny-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field > :global([role="alert"]) {
+  grid-column: 1 / -1;
+}
+
+.fieldWithoutLabel > :global([role="alert"]) {
+  grid-column: 1 / -1;
+}

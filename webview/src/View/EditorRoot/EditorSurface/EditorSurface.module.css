@@ -4,7 +4,7 @@
 
 .editorShell {
   display: grid;
-  grid-template-columns: var(--editor-tool-pane-width) minmax(0, 1fr) minmax(220px, 260px);
+  grid-template-columns: var(--editor-tool-pane-width) minmax(0, 1fr) var(--editor-edit-pane-width);
   gap: 12px;
   align-items: stretch;
 }

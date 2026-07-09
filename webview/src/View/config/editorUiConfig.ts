@@ -11,6 +11,28 @@ export const GENERATE_CLASS_MARGIN = 40;
 export const PLACEMENT_OVERLAY_DRAG_THRESHOLD = 4;
 export const PLACEMENT_OVERLAY_Z_INDEX = 20;
 export const TOOL_PANE_WIDTH = 136;
+export const EDIT_PANE_WIDTH = 260;
+export const STYLE_COLOR_PRESETS = [
+  { label: "Default", value: "" },
+  { label: "White", value: "#ffffff" },
+  { label: "Ink", value: "#24292f" },
+  { label: "Blue", value: "#e8f0ff" },
+  { label: "Green", value: "#e9f7ef" },
+  { label: "Yellow", value: "#fff4b8" },
+  { label: "Rose", value: "#ffdfe5" },
+] as const;
+export const STYLE_STROKE_WIDTH_PRESETS = [
+  { label: "Default", value: "" },
+  { label: "Thin", value: "1px" },
+  { label: "Medium", value: "2px" },
+  { label: "Thick", value: "3px" },
+] as const;
+export const STYLE_STROKE_DASHARRAY_PRESETS = [
+  { label: "Solid", value: "" },
+  { label: "Dotted", value: "2 3" },
+  { label: "Dashed", value: "6 4" },
+  { label: "Long dash", value: "10 5" },
+] as const;
 export const MEMBER_DRAG_THRESHOLD = 4;
 export const CLASS_BOX_MIN_WIDTH = 80;
 export const CLASS_BOX_MIN_HEIGHT = 48;

@@ -13,7 +13,7 @@ import type {
   SelectionState,
 } from "../../state/editorStates";
 import type { DiagramView } from "../../views/schema";
-import { TOOL_PANE_WIDTH } from "../../config/editorUiConfig";
+import { EDIT_PANE_WIDTH, TOOL_PANE_WIDTH } from "../../config/editorUiConfig";
 import ClassDiagram from "./DiagramCanvas/DiagramCanvas";
 import EditPane from "./EditPane/EditPane";
 import ToolPane from "./ToolPane/ToolPane";
@@ -122,8 +122,12 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
     onNoteAttachCancel,
   ]);
 
-  const editorShellStyle: CSSProperties & { "--editor-tool-pane-width": string } = {
+  const editorShellStyle: CSSProperties & {
+    "--editor-tool-pane-width": string;
+    "--editor-edit-pane-width": string;
+  } = {
     "--editor-tool-pane-width": `${TOOL_PANE_WIDTH}px`,
+    "--editor-edit-pane-width": `${EDIT_PANE_WIDTH}px`,
   };
 
   return (

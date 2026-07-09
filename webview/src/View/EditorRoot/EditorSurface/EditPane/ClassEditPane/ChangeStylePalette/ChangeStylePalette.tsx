@@ -3,15 +3,22 @@
  * @render Class style property controls.
  */
 
-import type { ChangeEvent, ReactElement } from "react";
+import type { ReactElement } from "react";
 import {
   STYLE_PROPERTIES,
   type StyleProperties,
   type StylePropertyName,
 } from "../../../../../../shared/style";
 import type { ClassView } from "../../../../../views/schema";
+import {
+  STYLE_COLOR_PRESETS,
+  STYLE_STROKE_DASHARRAY_PRESETS,
+  STYLE_STROKE_WIDTH_PRESETS,
+} from "../../../../../config/editorUiConfig";
+import ColorSelect from "../../../../../ui/composites/ColorSelect/ColorSelect";
+import Dropdown from "../../../../../ui/composites/Dropdown/Dropdown";
+import type { DropdownOption } from "../../../../../ui/composites/Dropdown/Dropdown";
 import { useInteractions } from "./useInteractions";
-import styles from "./ChangeStylePalette.module.css";
 
 const EMPTY_STYLE_PROPERTIES: StyleProperties = {
   fill: null,
@@ -30,19 +37,41 @@ export default function ChangeStylePalette({ view }: ChangeStylePaletteProps): R
   const { onPropertyChange } = useInteractions(view);
 
   return (
-    <section className={styles.palette} aria-label="Change style palette">
+    <>
       {STYLE_PROPERTIES.map(({ name }) => (
-        <label key={name} className={styles.control}>
-          <span>{toLabel(name)}</span>
-          <input
-            type={isColorProperty(name) ? "color" : "text"}
-            value={toInputValue(toCommonPropertyValue(view, name), name)}
-            placeholder={toPlaceholder(toCommonPropertyValue(view, name))}
-            onChange={(event) => onPropertyChange(name, toValue(event))}
-          />
-        </label>
+        <StylePropertyControl
+          key={name}
+          property={name}
+          value={toCommonPropertyValue(view, name)}
+          onChange={(value) => onPropertyChange(name, value)}
+        />
       ))}
-    </section>
+    </>
+  );
+}
+
+function StylePropertyControl({
+  property,
+  value,
+  onChange,
+}: {
+  readonly property: StylePropertyName;
+  readonly value: string | null | "multiple";
+  readonly onChange: (value: string | null) => void;
+}): ReactElement {
+  const selectedValue = value ?? "";
+  return isColorProperty(property) ? (
+    <ColorSelect
+      presets={toColorPresetOptions(property, value)}
+      value={selectedValue}
+      onChange={(nextValue) => nextValue !== "multiple" && onChange(toNullableValue(nextValue))}
+    />
+  ) : (
+    <Dropdown
+      options={toStrokePresetOptions(property, value)}
+      value={selectedValue}
+      onChange={(nextValue) => nextValue !== "multiple" && onChange(toNullableValue(nextValue))}
+    />
   );
 }
 
@@ -59,21 +88,61 @@ function toCommonPropertyValue(
     : "multiple";
 }
 
-function toInputValue(value: string | null | "multiple", property: StylePropertyName): string {
-  if (value === "multiple" || value === null) return isColorProperty(property) ? "#ffffff" : "";
-  return value;
-}
-
-function toPlaceholder(value: string | null | "multiple"): string {
-  return value === "multiple" ? "multiple" : "";
-}
-
-function toValue(event: ChangeEvent<HTMLInputElement>): string | null {
-  return event.currentTarget.value.trim() === "" ? null : event.currentTarget.value;
-}
-
 function isColorProperty(property: StylePropertyName): boolean {
   return property === "fill" || property === "stroke" || property === "color";
+}
+
+function toColorPresetOptions(
+  property: StylePropertyName,
+  value: string | null | "multiple"
+): readonly DropdownOption[] {
+  return [
+    ...(value === "multiple"
+      ? [{ value: "multiple", label: `${toLabel(property)}: multiple` }]
+      : []),
+    ...STYLE_COLOR_PRESETS.map((preset) => {
+      const label = `${toLabel(property)}: ${preset.label}`;
+      return {
+        value: preset.value,
+        label,
+        swatchStyle: {
+          fill: property === "fill" ? toSwatchColor(preset.value) : null,
+          stroke: property === "stroke" ? toSwatchColor(preset.value) : null,
+          color: property === "color" ? toSwatchColor(preset.value) : null,
+        },
+      };
+    }),
+  ];
+}
+
+function toStrokePresetOptions(
+  property: StylePropertyName,
+  value: string | null | "multiple"
+): readonly DropdownOption[] {
+  const presets =
+    property === "strokeWidth" ? STYLE_STROKE_WIDTH_PRESETS : STYLE_STROKE_DASHARRAY_PRESETS;
+
+  return [
+    ...(value === "multiple"
+      ? [{ value: "multiple", label: `${toLabel(property)}: multiple` }]
+      : []),
+    ...presets.map((preset) => ({
+      value: preset.value,
+      label: `${toLabel(property)}: ${preset.label}`,
+      swatchStyle: {
+        strokeWidth: property === "strokeWidth" ? preset.value || null : null,
+        strokeDasharray: property === "strokeDasharray" ? preset.value || null : null,
+      },
+    })),
+  ];
+}
+
+function toSwatchColor(value: string): string | null {
+  return value === "" ? null : value;
+}
+
+function toNullableValue(value: string): string | null {
+  return value === "" ? null : value;
 }
 
 function toLabel(property: StylePropertyName): string {

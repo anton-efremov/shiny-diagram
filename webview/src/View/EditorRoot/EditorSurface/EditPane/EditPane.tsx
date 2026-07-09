@@ -22,7 +22,8 @@ import type {
   NamespaceView,
   StyleView,
 } from "../../../views/schema";
-import styles from "./EditPane.module.css";
+import { EDIT_PANE_WIDTH } from "../../../config/editorUiConfig";
+import PaneFrame from "../../../ui/templates/PaneFrame/PaneFrame";
 
 type EditPaneProps = {
   readonly view: Pick<DiagramView, "classes" | "relationships" | "notes" | "styles" | "namespaces">;
@@ -124,12 +125,7 @@ export default function EditPane({
       break;
   }
 
-  return (
-    <aside className={styles.editPane} aria-label="Edit pane">
-      <header className={styles.header}>Styles</header>
-      {editPaneContent}
-    </aside>
-  );
+  return <PaneFrame width={EDIT_PANE_WIDTH}>{editPaneContent}</PaneFrame>;
 }
 
 // Private helpers

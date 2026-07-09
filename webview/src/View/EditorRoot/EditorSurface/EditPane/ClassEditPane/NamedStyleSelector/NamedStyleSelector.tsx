@@ -3,11 +3,11 @@
  * @render Named style selector.
  */
 
-import type { ChangeEvent, ReactElement } from "react";
+import type { ReactElement } from "react";
 import { toStyleDefId } from "../../../../../../shared/ids";
 import type { ClassView, StyleView } from "../../../../../views/schema";
+import Dropdown from "../../../../../ui/composites/Dropdown/Dropdown";
 import { useInteractions } from "./useInteractions";
-import styles from "./NamedStyleSelector.module.css";
 
 type NamedStyleSelectorProps = {
   readonly view: readonly ClassView[];
@@ -22,25 +22,27 @@ export default function NamedStyleSelector({
   const { onStyleChange } = useInteractions(view);
   const selectedValue = toSelectedValue(view);
 
-  function onChange(event: ChangeEvent<HTMLSelectElement>): void {
-    const value = event.currentTarget.value;
+  function onChange(value: string): void {
     if (value === "multiple") return;
     onStyleChange(value === "none" ? null : toStyleDefId(value));
   }
 
   return (
-    <label className={styles.selector}>
-      <span>Select style</span>
-      <select value={selectedValue} onChange={onChange}>
-        {selectedValue === "multiple" ? <option value="multiple">Multiple</option> : null}
-        <option value="none">No style</option>
-        {styleViews.map((styleView) => (
-          <option key={styleView.styleId} value={styleView.styleId}>
-            {styleView.name}
-          </option>
-        ))}
-      </select>
-    </label>
+    <Dropdown
+      value={selectedValue}
+      options={[
+        ...(selectedValue === "multiple"
+          ? [{ value: "multiple", label: "Saved styles: Multiple" }]
+          : []),
+        { value: "none", label: "Saved styles: No style" },
+        ...styleViews.map((styleView) => ({
+          value: styleView.styleId,
+          label: `Saved styles: ${styleView.name}`,
+          swatchStyle: styleView.style,
+        })),
+      ]}
+      onChange={onChange}
+    />
   );
 }
 
