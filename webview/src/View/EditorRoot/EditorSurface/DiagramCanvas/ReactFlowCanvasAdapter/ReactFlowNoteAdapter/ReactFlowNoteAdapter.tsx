@@ -2,36 +2,29 @@
  * @framework React Flow note NodeProps to View NoteBox props.
  */
 
-import { useCallback } from "react";
 import type { ReactElement } from "react";
-import {
-  Handle,
-  NodeResizer,
-  Position,
-  type Node,
-  type NodeProps,
-  type OnResizeEnd,
-} from "@xyflow/react";
-import { NOTE_MIN_HEIGHT, NOTE_MIN_WIDTH } from "../../../../../config/editorUiConfig";
+import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
+import type { Point, Rect } from "../../../../../../shared/geometry";
 import type { NoteId } from "../../../../../../shared/ids";
 import type { EditingState } from "../../../../../state/editorStates";
 import type { NoteView } from "../../../../../views/schema";
+import type { NamespaceResizeHandle } from "../frameworkAdapters";
 import NoteBox from "./NoteBox/NoteBox";
 import styles from "./ReactFlowNoteAdapter.module.css";
 
 type NoteBoxNodeData = {
   readonly view: NoteView;
+  readonly bounds: Rect;
   readonly isSelected: boolean;
   readonly isResizeVisible: boolean;
   readonly editingState: EditingState;
   readonly onNoteSelect: (noteId: NoteId) => void;
-  readonly onNoteResizeEnd: (change: {
-    readonly noteId: NoteId;
-    readonly x: number;
-    readonly y: number;
-    readonly w: number;
-    readonly h: number;
-  }) => void;
+  readonly onNoteResizeHandlePress: (
+    noteId: NoteId,
+    bounds: Rect,
+    handle: NamespaceResizeHandle,
+    screenPoint: Point
+  ) => void;
   readonly onTextBlockEditStart: (
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
@@ -42,36 +35,17 @@ type NoteBoxNode = Node<NoteBoxNodeData, "noteBox">;
 
 export default function ReactFlowNoteAdapter(props: NodeProps<NoteBoxNode>): ReactElement {
   // Framework prop and event adaptation
-  const onResizeEnd = useCallback<OnResizeEnd>(
-    (_event, params) => {
-      props.data.onNoteResizeEnd({
-        noteId: props.data.view.noteId,
-        x: params.x,
-        y: params.y,
-        w: params.width,
-        h: params.height,
-      });
-    },
-    [props.data]
-  );
-
   return (
     <>
-      <NodeResizer
-        nodeId={props.data.view.noteId}
-        isVisible={props.data.isResizeVisible}
-        minWidth={NOTE_MIN_WIDTH}
-        minHeight={NOTE_MIN_HEIGHT}
-        handleClassName={styles.resizeHandle}
-        lineClassName={styles.resizeLine}
-        onResizeEnd={onResizeEnd}
-      />
       <NoteBox
         view={props.data.view}
+        bounds={props.data.bounds}
         isSelected={props.data.isSelected}
+        isResizeVisible={props.data.isResizeVisible}
         isDragging={props.dragging ?? false}
         editingState={props.data.editingState}
         onNoteSelect={props.data.onNoteSelect}
+        onNoteResizeHandlePress={props.data.onNoteResizeHandlePress}
         onTextBlockEditStart={props.data.onTextBlockEditStart}
         onTextBlockEditCancel={props.data.onTextBlockEditCancel}
       />

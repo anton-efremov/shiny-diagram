@@ -1,0 +1,12 @@
+/**
+ * @render Box halo overlay styling.
+ */
+
+.halo {
+  position: absolute;
+  inset: -6px;
+  z-index: -1;
+  border-radius: 4px;
+  background: var(--halo-tint);
+  pointer-events: none;
+}

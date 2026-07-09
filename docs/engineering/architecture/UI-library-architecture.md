@@ -89,7 +89,7 @@ Behavior lists only augmentation beyond the bare pattern; "—" means pattern-de
 | StyledBoxSwatch  | —            | `styleValues`<br>`label`                                  |
 | BoxOutline       | —            | `variant`                                                 |
 | HaloRing         | —            | `tint`                                                    |
-| ResizeAffordance | —            | `onGrab(corner, point)`                                   |
+| ResizeAffordance | button (nat) | `onGrab(handle, point)` — handle: nw \| ne \| sw \| se |
 | Divider          | —            | —                                                         |
 
 ---
@@ -287,6 +287,7 @@ Classifiers map to emphasis in the domain (static → underline, abstract → it
 |Element|Application behavior|
 |---|---|
 |BoxOutline|mounted [selected] with variant `selected`|
+|ResizeAffordance|mounted [selected]|
 |CommitTextArea|mounted [text editing]; passed initial value = _note text_|
 
 ### DiagramCanvas/.../NamespaceBox
@@ -311,7 +312,7 @@ Resize is a membership gesture, not a bounds edit: the dragged rect selects pend
 |CommitTextField|source multiplicity|mounted [multiplicity set or block editing]; passed initial value = _current multiplicity_; edit start enabled [selected]|
 |CommitTextField|target multiplicity|mounted [multiplicity set or block editing]; passed initial value = _current multiplicity_; edit start enabled [selected]|
 
-SVG-hosted — conditional library admission as a CommitTextField variant, pending unification with the HTML-hosted field at refactor.
+Non-editing text renders as domain SVG; editing mounts CommitTextField in an HTML overlay positioned at the block. `EditableText` is deleted at the edge migration — no SVG-hosted field variant exists.
 
 ### ToolPane
 

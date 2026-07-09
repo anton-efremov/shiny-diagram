@@ -3,10 +3,13 @@
  * @render Namespace hull box.
  */
 
-import type { CSSProperties, MouseEvent, PointerEvent, ReactElement } from "react";
+import type { CSSProperties, MouseEvent, ReactElement } from "react";
 import type { NamespaceId } from "../../../../../../../shared/ids";
 import type { Point, Rect } from "../../../../../../../shared/geometry";
 import type { NamespaceView } from "../../../../../../views/schema";
+import BoxOutline from "../../../../../../ui/primitives/BoxOutline/BoxOutline";
+import ResizeAffordance from "../../../../../../ui/primitives/ResizeAffordance/ResizeAffordance";
+import type { ResizeHandle } from "../../../../../../ui/primitives/ResizeAffordance/ResizeAffordance";
 import {
   NAMESPACE_LABEL_BAND_HEIGHT,
   NAMESPACE_LABEL_FONT_SIZE,
@@ -22,12 +25,8 @@ import {
   NAMESPACE_PENDING_STROKE,
   NAMESPACE_PENDING_OUTLINE_OFFSET,
   NAMESPACE_PENDING_STROKE_WIDTH,
-  NAMESPACE_RESIZE_HANDLE_OFFSET,
-  NAMESPACE_RESIZE_HANDLE_SIZE,
 } from "../../../../../../config/editorUiConfig";
 import styles from "./NamespaceBox.module.css";
-
-type NamespaceResizeHandle = "nw" | "ne" | "sw" | "se";
 
 type NamespaceBoxProps = {
   readonly view: NamespaceView;
@@ -38,7 +37,7 @@ type NamespaceBoxProps = {
   readonly onNamespaceResizeHandlePress: (
     namespaceId: NamespaceId,
     bounds: Rect,
-    handle: NamespaceResizeHandle,
+    handle: ResizeHandle,
     screenPoint: Point
   ) => void;
 };
@@ -52,13 +51,7 @@ export default function NamespaceBox({
   onNamespaceResizeHandlePress,
 }: NamespaceBoxProps): ReactElement {
   // UI props derivation
-  const className = [
-    styles.namespaceBox,
-    isSelected ? styles.selected : "",
-    isPendingMember ? styles.pendingMember : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const className = [styles.namespaceBox].filter(Boolean).join(" ");
   const dynamicVars = {
     "--namespace-label-band-height": `${NAMESPACE_LABEL_BAND_HEIGHT}px`,
     "--namespace-label-font-size": `${NAMESPACE_LABEL_FONT_SIZE}px`,
@@ -76,8 +69,6 @@ export default function NamespaceBox({
     "--namespace-pending-stroke": NAMESPACE_PENDING_STROKE,
     "--namespace-pending-stroke-width": `${NAMESPACE_PENDING_STROKE_WIDTH}px`,
     "--namespace-pending-outline-offset": `${NAMESPACE_PENDING_OUTLINE_OFFSET}px`,
-    "--namespace-resize-handle-size": `${NAMESPACE_RESIZE_HANDLE_SIZE}px`,
-    "--namespace-resize-handle-offset": `${NAMESPACE_RESIZE_HANDLE_OFFSET}px`,
   } as CSSProperties;
 
   // Event handler props derivation
@@ -88,15 +79,9 @@ export default function NamespaceBox({
   const onNamespacePress = () => {
     onNamespaceSelect(view.namespaceId);
   };
-  const onResizeHandlePointerDown =
-    (handle: NamespaceResizeHandle) => (event: PointerEvent<HTMLButtonElement>) => {
-      event.preventDefault();
-      event.stopPropagation();
-      onNamespaceResizeHandlePress(view.namespaceId, bounds, handle, {
-        x: event.clientX,
-        y: event.clientY,
-      });
-    };
+  const onResizeGrab = (handle: ResizeHandle, point: Point) => {
+    onNamespaceResizeHandlePress(view.namespaceId, bounds, handle, point);
+  };
 
   return (
     <div
@@ -107,29 +92,12 @@ export default function NamespaceBox({
       onClick={onNamespaceClick}
     >
       <div className={styles.labelBand}>{view.label}</div>
+      {isPendingMember ? <BoxOutline variant="pending" /> : null}
+      {isSelected ? <BoxOutline variant="selected" /> : null}
       {isSelected ? (
-        <>
-          <button
-            className={`${styles.resizeHandle} ${styles.nw}`}
-            aria-label="Resize namespace from top left"
-            onPointerDown={onResizeHandlePointerDown("nw")}
-          />
-          <button
-            className={`${styles.resizeHandle} ${styles.ne}`}
-            aria-label="Resize namespace from top right"
-            onPointerDown={onResizeHandlePointerDown("ne")}
-          />
-          <button
-            className={`${styles.resizeHandle} ${styles.sw}`}
-            aria-label="Resize namespace from bottom left"
-            onPointerDown={onResizeHandlePointerDown("sw")}
-          />
-          <button
-            className={`${styles.resizeHandle} ${styles.se}`}
-            aria-label="Resize namespace from bottom right"
-            onPointerDown={onResizeHandlePointerDown("se")}
-          />
-        </>
+        <div className="nodrag nopan">
+          <ResizeAffordance onGrab={onResizeGrab} />
+        </div>
       ) : null}
     </div>
   );

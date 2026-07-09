@@ -1,0 +1,55 @@
+/**
+ * @render Editable list styling.
+ */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.row {
+  min-width: 0;
+  padding: 4px 10px;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.25;
+  text-align: left;
+  cursor: default;
+}
+
+.row:disabled {
+  color: inherit;
+}
+
+.isEditable .row {
+  cursor: pointer;
+}
+
+.isEditable .row:hover:not(:disabled) {
+  background: var(--shiny-overlay-faint);
+}
+
+.underlined {
+  text-decoration: underline;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.draggedRow {
+  opacity: 0.4;
+}
+
+.dropIndicator {
+  height: 2px;
+  background: var(--shiny-accent);
+}
+
+.isDragging {
+  user-select: none;
+}

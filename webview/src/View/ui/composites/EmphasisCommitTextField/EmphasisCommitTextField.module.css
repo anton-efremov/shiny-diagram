@@ -1,0 +1,17 @@
+/**
+ * @render Emphasis commit text field styling.
+ */
+
+.editor {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+}
+
+.toolbar {
+  display: flex;
+  gap: 4px;
+}

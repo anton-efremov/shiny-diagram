@@ -1,14 +1,3 @@
-.resizeHandle {
-  width: 8px;
-  height: 8px;
-  border: 1px solid #805d00;
-  background: #fffdf0;
-}
-
-.resizeLine {
-  border-color: #805d00;
-}
-
 .edgeHandle {
   opacity: 0;
 }

@@ -1,5 +1,5 @@
 /**
- * @render Member table sections inside a class box styling.
+ * @render Member compartments layout inside a class box.
  */
 
 .body {
@@ -9,72 +9,4 @@
   min-height: 0;
   padding: 6px 0;
   overflow: visible;
-}
-
-.memberList {
-  display: flex;
-  flex-direction: column;
-  flex: 0 0 auto;
-}
-
-.isDraggingMember .memberList {
-  user-select: none;
-}
-
-.memberRow {
-  min-height: 18px;
-  padding: 1px 10px;
-  overflow: hidden;
-  font-size: 12px;
-  line-height: 16px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.isSelected .memberRow {
-  cursor: default;
-}
-
-.isSelected .memberRow:hover {
-  background: var(--shiny-overlay-faint);
-}
-
-.isStatic {
-  text-decoration: underline;
-}
-
-.isAbstract {
-  font-style: italic;
-}
-
-.memberDivider {
-  flex: 0 0 auto;
-  margin: 5px 0;
-  border-top: 1px solid var(--class-stroke, var(--shiny-border));
-}
-
-.dropIndicator {
-  flex: 0 0 auto;
-  height: 2px;
-  margin: 1px 8px;
-  background: var(--shiny-accent);
-  border-radius: 2px;
-}
-
-.addMemberButton {
-  min-height: 20px;
-  padding: 2px 10px;
-  overflow: hidden;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--shiny-muted);
-  text-align: left;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-}
-
-.addMemberButton:hover {
-  color: var(--shiny-text);
-  background: var(--shiny-overlay-faint);
 }

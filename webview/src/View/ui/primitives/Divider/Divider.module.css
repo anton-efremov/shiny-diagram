@@ -1,0 +1,10 @@
+/**
+ * @render Shared divider styling.
+ */
+
+.divider {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--shiny-border);
+}

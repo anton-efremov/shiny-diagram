@@ -24,29 +24,12 @@ classDiagram
 			}
 		}
 
-	class ConversationThread_2 {
-	<<interfac>>
-	+List~UserContact~ participants
-	+UUID idd
-	+List~TextMessage~ messages*
-	+addParticipant(UserContact participant) void
-	addMessage(TextMessage message) void
-	}
-							class UserContact_1 {
-								
-								+UUID id
-								+String emailAddress
-								+String name
-								+List~CommunicationChannel~ preferredChannels
-								+addCommunicationChannel(CommunicationChannel channel) void
-								+removeCommunicationChannel(UUID channelId) void
-								}
 direction TB
 
 
 	ConversationThread_1 --> UserContact
 	ConversationThread_2 ..> UserContact_1
-	UserContact --> UserContact_1
+	UserContact --> ConversationThread_2
 
 
     %% Native Style Applications
@@ -64,19 +47,37 @@ direction TB
 
 
 
-    %% @spatial:ConversationThread x=-160 y=882 w=276 h=179
-    %% @spatial:ConversationThread_2 x=540 y=1243 w=328 h=227
-    %% @spatial:ConversationThread_1 x=85 y=1378 w=269 h=177
-    %% @spatial:UserContact x=3 y=1115 w=237 h=184
-    %% @spatial:UserContact_1 x=527 y=725 w=342 h=259
+    %% @spatial:ConversationThread x=-161 y=947 w=276 h=179
+    %% @spatial:ConversationThread_2 x=456 y=1290 w=328 h=227
+    %% @spatial:ConversationThread_1 x=84 y=1443 w=269 h=177
+    %% @spatial:UserContact x=-59 y=1162 w=321 h=271
+    %% @spatial:UserContact_1 x=488 y=743 w=300 h=393
 
     %% @style:`NewNamespace.NewNamespace2` fill=#934343
     %% @style:NewNamespace fill=#9f5b5b
 
-    %% @note: x=-167 y=684 w=180 h=96
+    %% @note: x=-161 y=679 w=376 h=137
     note for ConversationThread "Note"
     %% @note: x=-324 y=1106 w=180 h=96
     note for ConversationThread_1 "fdsaf"
+
+    										class UserContact_1 {
+    											
+    											+UUID id
+    											+String emailAddress
+    											+String name
+    											+List~CommunicationChannel~ preferredChannels
+    											+addCommunicationChannel(CommunicationChannel channel) void
+    											+removeCommunicationChannel(UUID channelId) void
+    											}
+    														class ConversationThread_2 {
+    														<<interfac>>
+    														+List~UserContact~ participants
+    														+UUID idd
+    														+List~TextMessage~ messages*
+    														+addParticipant(UserContact participant) void
+    														addMessage(TextMessage message) void
+    														}
 
 
 

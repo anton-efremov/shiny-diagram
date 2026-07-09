@@ -3,17 +3,19 @@
  * @render Relationship edge path, markers, multiplicities, and label.
  */
 
-import { useState } from "react";
 import type { ReactElement } from "react";
+import { useState } from "react";
 import type { RelationshipId } from "../../../../../../../shared/ids";
 import {
   RELATIONSHIP_EDGE_DASH_PATTERN,
   RELATIONSHIP_EDGE_HIT_PATH_STROKE_WIDTH,
   RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION,
+  RELATIONSHIP_EDGE_TEXT_REGION_HEIGHT,
+  RELATIONSHIP_EDGE_TEXT_REGION_WIDTH,
 } from "../../../../../../config/editorUiConfig";
 import type { RelationshipView } from "../../../../../../views/schema";
 import RelationshipMarker from "../../../../../../ui/RelationshipMarker/RelationshipMarker";
-import EditableText from "./EditableText/EditableText";
+import CommitTextField from "../../../../../../ui/composites/CommitTextField/CommitTextField";
 import type { EditTarget } from "./state";
 import { useInteractions } from "./useInteractions";
 import styles from "./RelationshipEdge.module.css";
@@ -45,24 +47,15 @@ export default function RelationshipEdge({
 }: RelationshipEdgeProps): ReactElement {
   // State creation: local state - inline text edit target and draft value
   const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
-  const [draft, setDraft] = useState("");
 
   // Event handler props derivation
-  const { onEdgeSelect, onEditStart, onDraftChange, onDraftCommit, onDraftDiscard } =
-    useInteractions({
-      view,
-      isSelected,
-      onRelationshipSelect,
-      editTarget,
-      setEditTarget,
-      draft,
-      setDraft,
-    });
-  const onLabelEditStart = () => onEditStart("label", view.label ?? "");
-  const onSourceMultiplicityEditStart = () =>
-    onEditStart("sourceMultiplicity", view.sourceMultiplicity ?? "");
-  const onTargetMultiplicityEditStart = () =>
-    onEditStart("targetMultiplicity", view.targetMultiplicity ?? "");
+  const { onEdgeSelect, onEditStart, onEditCommit, onDraftDiscard } = useInteractions({
+    view,
+    isSelected,
+    onRelationshipSelect,
+    editTarget,
+    setEditTarget,
+  });
 
   // UI props derivation
   const isLabelEditing = editTarget === "label";
@@ -115,47 +108,44 @@ export default function RelationshipEdge({
         strokeDasharray={view.lineKind === "dashed" ? RELATIONSHIP_EDGE_DASH_PATTERN : undefined}
       />
       {view.sourceMultiplicity || isSourceMultiplicityEditing ? (
-        <EditableText
+        <EdgeText
           x={sourceMultiplicityX}
           y={sourceMultiplicityY}
-          text={isSourceMultiplicityEditing ? draft : (view.sourceMultiplicity ?? "")}
+          text={view.sourceMultiplicity ?? ""}
           tone="dark"
           isEditing={isSourceMultiplicityEditing}
           isEditStartEnabled={isSelected}
           onSelect={onEdgeSelect}
-          onEditStart={onSourceMultiplicityEditStart}
-          onDraftChange={onDraftChange}
-          onDraftCommit={onDraftCommit}
+          onEditStart={() => onEditStart("sourceMultiplicity")}
+          onCommit={onEditCommit}
           onDraftDiscard={onDraftDiscard}
         />
       ) : null}
       {view.targetMultiplicity || isTargetMultiplicityEditing ? (
-        <EditableText
+        <EdgeText
           x={targetMultiplicityX}
           y={targetMultiplicityY}
-          text={isTargetMultiplicityEditing ? draft : (view.targetMultiplicity ?? "")}
+          text={view.targetMultiplicity ?? ""}
           tone="dark"
           isEditing={isTargetMultiplicityEditing}
           isEditStartEnabled={isSelected}
           onSelect={onEdgeSelect}
-          onEditStart={onTargetMultiplicityEditStart}
-          onDraftChange={onDraftChange}
-          onDraftCommit={onDraftCommit}
+          onEditStart={() => onEditStart("targetMultiplicity")}
+          onCommit={onEditCommit}
           onDraftDiscard={onDraftDiscard}
         />
       ) : null}
       {view.label || isLabelEditing ? (
-        <EditableText
+        <EdgeText
           x={labelX}
           y={labelY}
-          text={isLabelEditing ? draft : (view.label ?? "")}
+          text={view.label ?? ""}
           tone="light"
           isEditing={isLabelEditing}
           isEditStartEnabled={isSelected}
           onSelect={onEdgeSelect}
-          onEditStart={onLabelEditStart}
-          onDraftChange={onDraftChange}
-          onDraftCommit={onDraftCommit}
+          onEditStart={() => onEditStart("label")}
+          onCommit={onEditCommit}
           onDraftDiscard={onDraftDiscard}
         />
       ) : null}
@@ -166,4 +156,75 @@ export default function RelationshipEdge({
 // Private helpers
 function toMarkerUrl(id: string, endpointKind: string): string | undefined {
   return endpointKind === "none" ? undefined : `url(#${id})`;
+}
+
+function EdgeText({
+  x,
+  y,
+  text,
+  tone,
+  isEditing,
+  isEditStartEnabled,
+  onSelect,
+  onEditStart,
+  onCommit,
+  onDraftDiscard,
+}: {
+  readonly x: number;
+  readonly y: number;
+  readonly text: string;
+  readonly tone: "light" | "dark";
+  readonly isEditing: boolean;
+  readonly isEditStartEnabled: boolean;
+  readonly onSelect: () => void;
+  readonly onEditStart: () => void;
+  readonly onCommit: (value: string) => void;
+  readonly onDraftDiscard: () => void;
+}): ReactElement {
+  if (isEditing) {
+    return (
+      <foreignObject
+        x={x - RELATIONSHIP_EDGE_TEXT_REGION_WIDTH / 2}
+        y={y - RELATIONSHIP_EDGE_TEXT_REGION_HEIGHT / 2}
+        width={RELATIONSHIP_EDGE_TEXT_REGION_WIDTH}
+        height={RELATIONSHIP_EDGE_TEXT_REGION_HEIGHT}
+        className={styles.textObject}
+      >
+        <div className={`${styles.editorHost} nodrag nopan`}>
+          <CommitTextField
+            initialValue={text}
+            validate={() => []}
+            ariaLabel="Relationship text"
+            isLabelVisible={false}
+            autoFocus
+            onCommit={onCommit}
+            onDiscard={onDraftDiscard}
+            onCancel={onDraftDiscard}
+          />
+        </div>
+      </foreignObject>
+    );
+  }
+
+  return (
+    <text
+      x={x}
+      y={y}
+      className={tone === "light" ? styles.lightText : styles.darkText}
+      textAnchor="middle"
+      dominantBaseline="middle"
+      onClick={(event) => {
+        event.stopPropagation();
+        onSelect();
+        if (isEditStartEnabled) onEditStart();
+      }}
+      onDoubleClick={(event) => {
+        event.stopPropagation();
+        onSelect();
+        onEditStart();
+      }}
+    >
+      {text}
+    </text>
+  );
 }

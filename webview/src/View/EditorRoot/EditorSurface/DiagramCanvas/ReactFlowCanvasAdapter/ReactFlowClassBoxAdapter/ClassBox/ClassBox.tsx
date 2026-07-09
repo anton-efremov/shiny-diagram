@@ -7,27 +7,23 @@ import type { ReactElement } from "react";
 import { useState } from "react";
 import type { CSSProperties } from "react";
 import ReactFlowConnectionHandlesAdapter from "./ReactFlowConnectionHandlesAdapter/ReactFlowConnectionHandlesAdapter";
-import ReactFlowNodeResizerAdapter from "./ReactFlowNodeResizerAdapter/ReactFlowNodeResizerAdapter";
-import HeaderEditField from "./HeaderEditField/HeaderEditField";
 import MemberTable from "./MemberTable/MemberTable";
 import { useInteractions } from "./useInteractions";
+import BoxOutline from "../../../../../../ui/primitives/BoxOutline/BoxOutline";
+import CommitTextField from "../../../../../../ui/composites/CommitTextField/CommitTextField";
+import HaloRing from "../../../../../../ui/primitives/HaloRing/HaloRing";
+import ResizeAffordance from "../../../../../../ui/primitives/ResizeAffordance/ResizeAffordance";
+import type { ResizeHandle } from "../../../../../../ui/primitives/ResizeAffordance/ResizeAffordance";
+import type { Point, Rect } from "../../../../../../../shared/geometry";
 import type { ClassId } from "../../../../../../../shared/ids";
 import type { EditingState } from "../../../../../../state/editorStates";
 import type { ClassView } from "../../../../../../views/schema";
-import {
-  CLASS_BOX_MIN_HEIGHT,
-  CLASS_BOX_MIN_WIDTH,
-  NAMESPACE_HALO_PADDING,
-  NAMESPACE_HALO_BORDER_RADIUS,
-  NAMESPACE_PENDING_OUTLINE_OFFSET,
-  NAMESPACE_PENDING_STROKE,
-  NAMESPACE_PENDING_STROKE_WIDTH,
-} from "../../../../../../config/editorUiConfig";
-import ValidationPopup from "../../../../../../ui/ValidationPopup/ValidationPopup";
+import ValidationPopup from "../../../../../../ui/primitives/ValidationPopup/ValidationPopup";
 import styles from "./ClassBox.module.css";
 
 type ClassBoxProps = {
   readonly view: ClassView;
+  readonly bounds: Rect;
   readonly isSelected: boolean;
   readonly isDragging: boolean;
   readonly isResizeVisible: boolean;
@@ -35,6 +31,12 @@ type ClassBoxProps = {
   readonly isPendingMember: boolean;
   readonly haloColor: string | null;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
+  readonly onClassResizeHandlePress: (
+    classId: ClassId,
+    bounds: Rect,
+    handle: ResizeHandle,
+    screenPoint: Point
+  ) => void;
   readonly editingState: EditingState;
   readonly onTextBlockEditStart: (
     editingState: Exclude<EditingState, { readonly kind: "none" }>
@@ -61,6 +63,7 @@ const CONNECTION_HANDLES: readonly ConnectionHandleDescriptor[] = [
 
 export default function ClassBox({
   view,
+  bounds,
   isSelected,
   isDragging,
   isResizeVisible,
@@ -68,6 +71,7 @@ export default function ClassBox({
   isPendingMember,
   haloColor,
   onClassSelect,
+  onClassResizeHandlePress,
   editingState,
   onTextBlockEditStart,
   onTextBlockEditCancel,
@@ -76,20 +80,10 @@ export default function ClassBox({
   const [headerDiscardErrors, setHeaderDiscardErrors] = useState<readonly string[]>([]);
 
   // Event handler props derivation
-  const { onClassBoxClick, onResizeEnd, onHeaderCommit } = useInteractions(
-    view.classId,
-    onClassSelect
-  );
+  const { onClassBoxClick, onHeaderCommit } = useInteractions(view.classId, onClassSelect);
 
   // UI props derivation
-  const className = [
-    styles.classBox,
-    isSelected ? styles.selected : "",
-    isDragging ? styles.dragging : "",
-    isPendingMember ? styles.pendingMember : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const className = [styles.classBox, isDragging ? styles.dragging : ""].filter(Boolean).join(" ");
 
   const dynamicVars = {
     "--class-fill": view.style?.fill ?? undefined,
@@ -97,26 +91,22 @@ export default function ClassBox({
     "--class-stroke-width": view.style?.strokeWidth ?? undefined,
     "--class-stroke-dasharray": view.style?.strokeDasharray ?? undefined,
     "--class-color": view.style?.color ?? undefined,
-    "--namespace-halo-color": haloColor ?? undefined,
-    "--namespace-halo-padding": `${NAMESPACE_HALO_PADDING}px`,
-    "--namespace-halo-border-radius": `${NAMESPACE_HALO_BORDER_RADIUS}px`,
-    "--namespace-pending-stroke-width": `${NAMESPACE_PENDING_STROKE_WIDTH}px`,
-    "--namespace-pending-outline-offset": `${NAMESPACE_PENDING_OUTLINE_OFFSET}px`,
-    "--namespace-pending-stroke": NAMESPACE_PENDING_STROKE,
   } as CSSProperties;
+
+  const onResizeGrab = (handle: ResizeHandle, point: Point) => {
+    onClassResizeHandlePress(view.classId, bounds, handle, point);
+  };
 
   return (
     <div className={className} style={dynamicVars} title={view.classId} onClick={onClassBoxClick}>
-      {haloColor ? <div className={styles.namespaceHalo} /> : null}
-      <ReactFlowNodeResizerAdapter
-        nodeId={view.classId}
-        isVisible={isResizeVisible}
-        minWidth={CLASS_BOX_MIN_WIDTH}
-        minHeight={CLASS_BOX_MIN_HEIGHT}
-        handleClassName={styles.resizeHandle}
-        lineClassName={styles.resizeLine}
-        onResizeEnd={onResizeEnd}
-      />
+      {haloColor ? <HaloRing tint={haloColor} /> : null}
+      {isPendingMember ? <BoxOutline variant="pending" /> : null}
+      {isSelected ? <BoxOutline variant="selected" /> : null}
+      {isResizeVisible ? (
+        <div className="nodrag nopan">
+          <ResizeAffordance onGrab={onResizeGrab} />
+        </div>
+      ) : null}
       <ReactFlowConnectionHandlesAdapter
         handles={CONNECTION_HANDLES}
         className={styles.connectionHandle}
@@ -132,19 +122,21 @@ export default function ClassBox({
         ) : null}
         {view.header.stereotype ? (
           isHeaderEditing(editingState, view.classId, "annotation") ? (
-            <HeaderEditField
-              initialText={view.header.stereotype}
-              onCommit={(text) => {
-                const errors = onHeaderCommit("annotation", text || null);
-                if (errors.length === 0) onTextBlockEditCancel();
-                return errors;
-              }}
-              onCancel={onTextBlockEditCancel}
-              onEditDiscard={(messages) => {
-                setHeaderDiscardErrors(messages);
-                onTextBlockEditCancel();
-              }}
-            />
+            <div className="nodrag nopan">
+              <CommitTextField
+                initialValue={view.header.stereotype}
+                validate={(text) => onHeaderCommit("annotation", text.trim() || null)}
+                ariaLabel="Annotation"
+                isLabelVisible={false}
+                autoFocus
+                onCommit={onTextBlockEditCancel}
+                onDiscard={(messages) => {
+                  setHeaderDiscardErrors(messages);
+                  onTextBlockEditCancel();
+                }}
+                onCancel={onTextBlockEditCancel}
+              />
+            </div>
           ) : (
             <div
               className={styles.stereotype}
@@ -175,19 +167,21 @@ export default function ClassBox({
           )
         ) : null}
         {isHeaderEditing(editingState, view.classId, "name") ? (
-          <HeaderEditField
-            initialText={view.header.name}
-            onCommit={(text) => {
-              const errors = onHeaderCommit("name", text);
-              if (errors.length === 0) onTextBlockEditCancel();
-              return errors;
-            }}
-            onCancel={onTextBlockEditCancel}
-            onEditDiscard={(messages) => {
-              setHeaderDiscardErrors(messages);
-              onTextBlockEditCancel();
-            }}
-          />
+          <div className="nodrag nopan">
+            <CommitTextField
+              initialValue={view.header.name}
+              validate={(text) => onHeaderCommit("name", text.trim())}
+              ariaLabel="Class name"
+              isLabelVisible={false}
+              autoFocus
+              onCommit={onTextBlockEditCancel}
+              onCancel={onTextBlockEditCancel}
+              onDiscard={(messages) => {
+                setHeaderDiscardErrors(messages);
+                onTextBlockEditCancel();
+              }}
+            />
+          </div>
         ) : (
           <div
             className={styles.className}
@@ -210,19 +204,21 @@ export default function ClassBox({
         )}
         {view.header.label !== view.header.name ? (
           isHeaderEditing(editingState, view.classId, "label") ? (
-            <HeaderEditField
-              initialText={view.header.label}
-              onCommit={(text) => {
-                const errors = onHeaderCommit("label", text || null);
-                if (errors.length === 0) onTextBlockEditCancel();
-                return errors;
-              }}
-              onCancel={onTextBlockEditCancel}
-              onEditDiscard={(messages) => {
-                setHeaderDiscardErrors(messages);
-                onTextBlockEditCancel();
-              }}
-            />
+            <div className="nodrag nopan">
+              <CommitTextField
+                initialValue={view.header.label}
+                validate={(text) => onHeaderCommit("label", text.trim() || null)}
+                ariaLabel="Class label"
+                isLabelVisible={false}
+                autoFocus
+                onCommit={onTextBlockEditCancel}
+                onCancel={onTextBlockEditCancel}
+                onDiscard={(messages) => {
+                  setHeaderDiscardErrors(messages);
+                  onTextBlockEditCancel();
+                }}
+              />
+            </div>
           ) : (
             <div
               className={styles.classLabel}

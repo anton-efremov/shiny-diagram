@@ -45,7 +45,14 @@ import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../../../.
 import type { Point, Rect } from "../../../../../shared/geometry";
 import { useDispatchTransaction } from "../../../../contexts";
 import {
+  CLASS_BOX_MIN_HEIGHT,
+  CLASS_BOX_MIN_WIDTH,
+  NOTE_MIN_HEIGHT,
+  NOTE_MIN_WIDTH,
+} from "../../../../config/editorUiConfig";
+import {
   toClassDropTransaction,
+  toClassResizeTransaction,
   toNamespaceCreateTransaction,
   toNamespaceDropTransaction,
   toNamespaceResizeTransaction,
@@ -86,16 +93,33 @@ export type NamespaceResizePointerState = {
   readonly startPoint: Point;
 };
 
+export type ClassResizePointerState = {
+  readonly classId: ClassId;
+  readonly handle: NamespaceResizeHandle;
+  readonly startRect: Rect;
+  readonly startPoint: Point;
+};
+
+export type NoteResizePointerState = {
+  readonly noteId: NoteId;
+  readonly handle: NamespaceResizeHandle;
+  readonly startRect: Rect;
+  readonly startPoint: Point;
+};
+
 type UseInteractionsInput = {
   readonly callbacks: ReactFlowCanvasAdapterCallbacks;
   readonly isRelationshipPlacementArmed: boolean;
   readonly noteAttachState: NoteAttachState;
   readonly setNoteAttachCursor: Dispatch<SetStateAction<Point | null>>;
+  readonly setSurfaceResizeActive: Dispatch<SetStateAction<boolean>>;
   readonly placementStartPointRef: MutableRefObject<XYPosition | null>;
   readonly namespaceStartPointRef: MutableRefObject<XYPosition | null>;
   readonly namespaceDragStartPointRef: MutableRefObject<XYPosition | null>;
   readonly namespaceDropBoundsRef: MutableRefObject<ReadonlyMap<NamespaceId, Rect> | null>;
   readonly namespaceResizePointerStateRef: MutableRefObject<NamespaceResizePointerState | null>;
+  readonly classResizePointerStateRef: MutableRefObject<ClassResizePointerState | null>;
+  readonly noteResizePointerStateRef: MutableRefObject<NoteResizePointerState | null>;
   readonly reconnectSeedRef: MutableRefObject<RelationshipSeed | null>;
   readonly screenToFlowPosition: (position: XYPosition) => XYPosition;
   readonly namespaceGestureState: NamespaceGestureState;
@@ -122,7 +146,19 @@ type Interactions = {
   readonly onNodeDragStart: OnNodeDrag<
     ClassBoxNodeDescriptor | NamespaceNodeDescriptor | NoteBoxNodeDescriptor
   >;
-  readonly onNamespaceDragCancel: () => void;
+  readonly onCanvasGestureCancel: () => void;
+  readonly onClassResizeHandlePress: (
+    classId: ClassId,
+    bounds: Rect,
+    handle: NamespaceResizeHandle,
+    screenPoint: Point
+  ) => void;
+  readonly onNoteResizeHandlePress: (
+    noteId: NoteId,
+    bounds: Rect,
+    handle: NamespaceResizeHandle,
+    screenPoint: Point
+  ) => void;
   readonly onNamespaceResizeHandlePress: (
     namespaceId: NamespaceId,
     bounds: Rect,
@@ -155,11 +191,14 @@ export function useInteractions({
   isRelationshipPlacementArmed,
   noteAttachState,
   setNoteAttachCursor,
+  setSurfaceResizeActive,
   placementStartPointRef,
   namespaceStartPointRef,
   namespaceDragStartPointRef,
   namespaceDropBoundsRef,
   namespaceResizePointerStateRef,
+  classResizePointerStateRef,
+  noteResizePointerStateRef,
   reconnectSeedRef,
   screenToFlowPosition,
   namespaceGestureState,
@@ -374,19 +413,74 @@ export function useInteractions({
     ]
   );
 
-  const onNamespaceDragCancel = useCallback(() => {
+  const onCanvasGestureCancel = useCallback(() => {
+    const classResizeState = classResizePointerStateRef.current;
+    if (classResizeState) {
+      classResizePointerStateRef.current = null;
+      setSurfaceResizeActive(false);
+      callbacks.onClassBoxPlacementChange([
+        { classId: classResizeState.classId, ...classResizeState.startRect },
+      ]);
+      return;
+    }
+    const noteResizeState = noteResizePointerStateRef.current;
+    if (noteResizeState) {
+      noteResizePointerStateRef.current = null;
+      setSurfaceResizeActive(false);
+      callbacks.onNoteBoxPlacementChange([
+        { noteId: noteResizeState.noteId, ...noteResizeState.startRect },
+      ]);
+      return;
+    }
     namespaceDragStartPointRef.current = null;
     namespaceDropBoundsRef.current = null;
     namespaceResizePointerStateRef.current = null;
+    namespaceStartPointRef.current = null;
+    setSurfaceResizeActive(false);
     setNamespaceDragBoundsState(null);
     setNamespaceDragState(null);
+    if (namespaceGestureState.kind !== "none") callbacks.onNamespaceGestureCancel();
   }, [
+    callbacks,
+    classResizePointerStateRef,
     namespaceDragStartPointRef,
     namespaceDropBoundsRef,
+    namespaceGestureState.kind,
     namespaceResizePointerStateRef,
+    namespaceStartPointRef,
+    noteResizePointerStateRef,
+    setSurfaceResizeActive,
     setNamespaceDragBoundsState,
     setNamespaceDragState,
   ]);
+
+  const onClassResizeHandlePress = useCallback(
+    (classId: ClassId, bounds: Rect, handle: NamespaceResizeHandle, screenPoint: Point) => {
+      const startPoint = screenToFlowPosition(screenPoint);
+      classResizePointerStateRef.current = {
+        classId,
+        handle,
+        startRect: bounds,
+        startPoint,
+      };
+      setSurfaceResizeActive(true);
+    },
+    [classResizePointerStateRef, screenToFlowPosition, setSurfaceResizeActive]
+  );
+
+  const onNoteResizeHandlePress = useCallback(
+    (noteId: NoteId, bounds: Rect, handle: NamespaceResizeHandle, screenPoint: Point) => {
+      const startPoint = screenToFlowPosition(screenPoint);
+      noteResizePointerStateRef.current = {
+        noteId,
+        handle,
+        startRect: bounds,
+        startPoint,
+      };
+      setSurfaceResizeActive(true);
+    },
+    [noteResizePointerStateRef, screenToFlowPosition, setSurfaceResizeActive]
+  );
 
   const onNamespaceResizeHandlePress = useCallback(
     (namespaceId: NamespaceId, bounds: Rect, handle: NamespaceResizeHandle, screenPoint: Point) => {
@@ -397,9 +491,10 @@ export function useInteractions({
         startRect: bounds,
         startPoint,
       };
+      setSurfaceResizeActive(true);
       callbacks.onNamespaceResizeStart(namespaceId, bounds);
     },
-    [callbacks, namespaceResizePointerStateRef, screenToFlowPosition]
+    [callbacks, namespaceResizePointerStateRef, screenToFlowPosition, setSurfaceResizeActive]
   );
 
   // Framework prop and event adaptation
@@ -494,6 +589,42 @@ export function useInteractions({
 
   const onCanvasPointerMove = useCallback(
     (event: ReactMouseEvent) => {
+      const classResizeState = classResizePointerStateRef.current;
+      if (classResizeState) {
+        event.preventDefault();
+        event.stopPropagation();
+        const point = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        const rect = resizeClampedRect(
+          classResizeState.startRect,
+          classResizeState.handle,
+          {
+            x: point.x - classResizeState.startPoint.x,
+            y: point.y - classResizeState.startPoint.y,
+          },
+          CLASS_BOX_MIN_WIDTH,
+          CLASS_BOX_MIN_HEIGHT
+        );
+        callbacks.onClassBoxPlacementChange([{ classId: classResizeState.classId, ...rect }]);
+        return;
+      }
+      const noteResizeState = noteResizePointerStateRef.current;
+      if (noteResizeState) {
+        event.preventDefault();
+        event.stopPropagation();
+        const point = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        const rect = resizeClampedRect(
+          noteResizeState.startRect,
+          noteResizeState.handle,
+          {
+            x: point.x - noteResizeState.startPoint.x,
+            y: point.y - noteResizeState.startPoint.y,
+          },
+          NOTE_MIN_WIDTH,
+          NOTE_MIN_HEIGHT
+        );
+        callbacks.onNoteBoxPlacementChange([{ noteId: noteResizeState.noteId, ...rect }]);
+        return;
+      }
       const resizeState = namespaceResizePointerStateRef.current;
       if (resizeState) {
         event.preventDefault();
@@ -516,20 +647,65 @@ export function useInteractions({
     },
     [
       callbacks,
+      classResizePointerStateRef,
       namespaceGestureState.kind,
       namespaceResizePointerStateRef,
       namespaceStartPointRef,
+      noteResizePointerStateRef,
       screenToFlowPosition,
     ]
   );
 
   const onCanvasPointerUp = useCallback(
     (event: ReactMouseEvent) => {
+      const classResizeState = classResizePointerStateRef.current;
+      if (classResizeState) {
+        event.preventDefault();
+        event.stopPropagation();
+        classResizePointerStateRef.current = null;
+        setSurfaceResizeActive(false);
+        const point = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        const rect = resizeClampedRect(
+          classResizeState.startRect,
+          classResizeState.handle,
+          {
+            x: point.x - classResizeState.startPoint.x,
+            y: point.y - classResizeState.startPoint.y,
+          },
+          CLASS_BOX_MIN_WIDTH,
+          CLASS_BOX_MIN_HEIGHT
+        );
+        callbacks.onClassBoxPlacementChange([{ classId: classResizeState.classId, ...rect }]);
+        dispatchTransaction(toClassResizeTransaction(classResizeState.classId, rect));
+        return;
+      }
+      const noteResizeState = noteResizePointerStateRef.current;
+      if (noteResizeState) {
+        event.preventDefault();
+        event.stopPropagation();
+        noteResizePointerStateRef.current = null;
+        setSurfaceResizeActive(false);
+        const point = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        const rect = resizeClampedRect(
+          noteResizeState.startRect,
+          noteResizeState.handle,
+          {
+            x: point.x - noteResizeState.startPoint.x,
+            y: point.y - noteResizeState.startPoint.y,
+          },
+          NOTE_MIN_WIDTH,
+          NOTE_MIN_HEIGHT
+        );
+        callbacks.onNoteBoxPlacementChange([{ noteId: noteResizeState.noteId, ...rect }]);
+        onNoteResizeEnd({ noteId: noteResizeState.noteId, ...rect });
+        return;
+      }
       const resizeState = namespaceResizePointerStateRef.current;
       if (resizeState && namespaceGestureState.kind === "resizing") {
         event.preventDefault();
         event.stopPropagation();
         namespaceResizePointerStateRef.current = null;
+        setSurfaceResizeActive(false);
         const transaction = toNamespaceResizeTransaction(
           resizeState.namespaceId,
           [...namespaceGeometry.pendingClassIds],
@@ -555,11 +731,16 @@ export function useInteractions({
     },
     [
       callbacks,
+      classResizePointerStateRef,
       dispatchTransaction,
       namespaceGeometry,
       namespaceGestureState.kind,
       namespaceResizePointerStateRef,
       namespaceStartPointRef,
+      noteResizePointerStateRef,
+      onNoteResizeEnd,
+      screenToFlowPosition,
+      setSurfaceResizeActive,
       view,
     ]
   );
@@ -583,7 +764,9 @@ export function useInteractions({
     onNodeDragStop,
     onNodeDrag,
     onNodeDragStart,
-    onNamespaceDragCancel,
+    onCanvasGestureCancel,
+    onClassResizeHandlePress,
+    onNoteResizeHandlePress,
     onNamespaceResizeHandlePress,
     onConnect,
     onConnectStart,
@@ -599,6 +782,41 @@ export function useInteractions({
 }
 
 // Private helpers
+function resizeClampedRect(
+  rect: Rect,
+  handle: NamespaceResizeHandle,
+  delta: Point,
+  minWidth: number,
+  minHeight: number
+): Rect {
+  let left = handle.includes("w") ? rect.x + delta.x : rect.x;
+  let right = handle.includes("e") ? rect.x + rect.w + delta.x : rect.x + rect.w;
+  let top = handle.includes("n") ? rect.y + delta.y : rect.y;
+  let bottom = handle.includes("s") ? rect.y + rect.h + delta.y : rect.y + rect.h;
+
+  if (right - left < minWidth) {
+    if (handle.includes("w")) {
+      left = right - minWidth;
+    } else {
+      right = left + minWidth;
+    }
+  }
+  if (bottom - top < minHeight) {
+    if (handle.includes("n")) {
+      top = bottom - minHeight;
+    } else {
+      bottom = top + minHeight;
+    }
+  }
+
+  return {
+    x: Math.round(left),
+    y: Math.round(top),
+    w: Math.round(right - left),
+    h: Math.round(bottom - top),
+  };
+}
+
 function resizeNamespaceRect(rect: Rect, handle: NamespaceResizeHandle, delta: Point): Rect {
   const left = handle.includes("w") ? rect.x + delta.x : rect.x;
   const right = handle.includes("e") ? rect.x + rect.w + delta.x : rect.x + rect.w;

@@ -36,12 +36,19 @@ import {
 
 export type ClassBoxNodeData = {
   readonly view: ClassView;
+  readonly bounds: Rect;
   readonly isSelected: boolean;
   readonly isResizeVisible: boolean;
   readonly isConnectSourceEnabled: boolean;
   readonly isPendingMember: boolean;
   readonly haloColor: string | null;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
+  readonly onClassResizeHandlePress: (
+    classId: ClassId,
+    bounds: Rect,
+    handle: NamespaceResizeHandle,
+    screenPoint: Point
+  ) => void;
   readonly editingState: EditingState;
   readonly onTextBlockEditStart: (
     editingState: Exclude<EditingState, { readonly kind: "none" }>
@@ -68,11 +75,18 @@ export type NamespaceNodeDescriptor = ReactFlowNode<NamespaceNodeData, "namespac
 export type NamespaceResizeHandle = "nw" | "ne" | "sw" | "se";
 export type NoteBoxNodeData = {
   readonly view: NoteView;
+  readonly bounds: Rect;
   readonly isSelected: boolean;
   readonly isResizeVisible: boolean;
   readonly editingState: EditingState;
   readonly onNoteSelect: (noteId: NoteView["noteId"]) => void;
   readonly onNoteResizeEnd: (change: NoteBoxPlacementChange) => void;
+  readonly onNoteResizeHandlePress: (
+    noteId: NoteView["noteId"],
+    bounds: Rect,
+    handle: NamespaceResizeHandle,
+    screenPoint: Point
+  ) => void;
   readonly onTextBlockEditStart: (
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
@@ -135,6 +149,7 @@ export function toClassBoxNodeDescriptors(
   namespaceGeometry: NamespaceGeometry,
   isConnectSourceEnabled: boolean,
   onClassSelect: (classId: ClassId, additive: boolean) => void,
+  onClassResizeHandlePress: ClassBoxNodeData["onClassResizeHandlePress"],
   editingState: EditingState,
   onTextBlockEditStart: (editingState: Exclude<EditingState, { readonly kind: "none" }>) => void,
   onTextBlockEditCancel: () => void
@@ -151,12 +166,14 @@ export function toClassBoxNodeDescriptors(
         position: { x: placement.x, y: placement.y },
         data: {
           view: classView,
+          bounds: placement,
           isSelected: selected.has(classView.classId),
           isResizeVisible: selected.size === 1 && selected.has(classView.classId),
           isConnectSourceEnabled,
           isPendingMember: namespaceGeometry.pendingClassIds.has(classView.classId),
           haloColor: namespaceGeometry.haloColorByClassId.get(classView.classId) ?? null,
           onClassSelect,
+          onClassResizeHandlePress,
           editingState,
           onTextBlockEditStart,
           onTextBlockEditCancel,
@@ -349,6 +366,7 @@ export function toNoteBoxNodeDescriptors(
   noteBoxPlacementState: NoteBoxPlacementState,
   onNoteSelect: (noteId: NoteView["noteId"]) => void,
   onNoteResizeEnd: (change: NoteBoxPlacementChange) => void,
+  onNoteResizeHandlePress: NoteBoxNodeData["onNoteResizeHandlePress"],
   onTextBlockEditStart: (editingState: Exclude<EditingState, { readonly kind: "none" }>) => void,
   onTextBlockEditCancel: () => void
 ): NoteBoxNodeDescriptor[] {
@@ -363,11 +381,13 @@ export function toNoteBoxNodeDescriptors(
         position: { x: placement.x, y: placement.y },
         data: {
           view: noteView,
+          bounds: placement,
           isSelected,
           isResizeVisible: isSelected,
           editingState,
           onNoteSelect,
           onNoteResizeEnd,
+          onNoteResizeHandlePress,
           onTextBlockEditStart,
           onTextBlockEditCancel,
         },

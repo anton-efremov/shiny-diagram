@@ -1,0 +1,21 @@
+/**
+ * @render Box outline overlay styling.
+ */
+
+.selected,
+.pending {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.selected {
+  border: 1px solid var(--shiny-accent);
+  box-shadow: 0 0 0 1px var(--shiny-accent);
+}
+
+.pending {
+  outline: 2px dashed var(--shiny-accent);
+  outline-offset: 2px;
+}

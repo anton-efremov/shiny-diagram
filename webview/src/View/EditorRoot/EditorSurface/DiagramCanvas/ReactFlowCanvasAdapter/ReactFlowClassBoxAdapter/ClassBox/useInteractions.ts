@@ -1,18 +1,16 @@
 /**
- * @behavior Class-box selection and class resize semantic handlers.
+ * @behavior Class-box selection and header commit semantic handlers.
  * @framework DOM click modifier state to additive class selection fact.
  */
 
 import { useCallback } from "react";
 import type { MouseEvent } from "react";
-import type { Rect } from "../../../../../../../shared/geometry";
 import type { ClassId } from "../../../../../../../shared/ids";
 import { useDispatchTransaction } from "../../../../../../contexts";
-import { toClassHeaderCommitTransaction, toClassResizeTransaction } from "./transactions";
+import { toClassHeaderCommitTransaction } from "./transactions";
 
 type Interactions = {
   readonly onClassBoxClick: (event: MouseEvent<HTMLDivElement>) => void;
-  readonly onResizeEnd: (rect: Rect) => void;
   readonly onHeaderCommit: (
     block: "annotation" | "name" | "label",
     value: string | null
@@ -34,15 +32,6 @@ export function useInteractions(
     [classId, onClassSelect]
   );
 
-  const onResizeEnd = useCallback(
-    (rect: Rect) => {
-      // Implementing interaction through command transaction
-      const transaction = toClassResizeTransaction(classId, rect);
-      dispatchCommand(transaction);
-    },
-    [classId, dispatchCommand]
-  );
-
   const onHeaderCommit = useCallback(
     (block: "annotation" | "name" | "label", value: string | null) => {
       const result = dispatchCommand(toClassHeaderCommitTransaction(classId, block, value));
@@ -51,5 +40,5 @@ export function useInteractions(
     [classId, dispatchCommand]
   );
 
-  return { onClassBoxClick, onResizeEnd, onHeaderCommit };
+  return { onClassBoxClick, onHeaderCommit };
 }

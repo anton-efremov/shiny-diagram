@@ -15,6 +15,7 @@ type CommitTextFieldProps = {
   readonly disabled?: boolean;
   readonly ariaLabel?: string;
   readonly isLabelVisible?: boolean;
+  readonly autoFocus?: boolean;
   readonly onCommit: (value: string) => void;
   readonly onDiscard: (messages: readonly string[]) => void;
   readonly onCancel: () => void;
@@ -26,6 +27,7 @@ export default function CommitTextField({
   disabled = false,
   ariaLabel,
   isLabelVisible = true,
+  autoFocus = false,
   onCommit,
   onDiscard,
   onCancel,
@@ -84,6 +86,7 @@ export default function CommitTextField({
         disabled={disabled}
         invalid={messages.length > 0}
         ariaLabel={ariaLabel}
+        autoFocus={autoFocus}
         onChange={setDraft}
         onBlur={discardIfInvalid}
         onKeyDown={handleKeyDown}
