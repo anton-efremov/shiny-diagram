@@ -1,0 +1,39 @@
+/**
+ * @render Labeled pane section styling.
+ */
+
+.section {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.section + .section {
+  padding-top: 10px;
+  border-top: 1px solid var(--shiny-border);
+}
+
+.label {
+  margin: 0;
+  color: var(--shiny-text-muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.oneColumnContent,
+.twoColumnContent {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.oneColumnContent {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.twoColumnContent {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  justify-items: center;
+}

@@ -26,21 +26,6 @@ function IconFrame({ className, children }: IconProps & { children: ReactNode })
   );
 }
 
-export function ClassIcon({ className }: IconProps): ReactElement {
-  // @job render:structure
-  return (
-    <IconFrame className={className}>
-      <path
-        d="M3.5 3.5h9v9h-9zM3.5 6.5h9M5.25 9h5.5M5.25 11h3.5"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </IconFrame>
-  );
-}
-
 export function GenerateIcon({ className }: IconProps): ReactElement {
   // @job render:structure
   return (

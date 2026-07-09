@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from "react";
-import type { ReactElement } from "react";
+import type { CSSProperties, ReactElement } from "react";
 import type {
   EditingState,
   NamespaceGestureState,
@@ -13,6 +13,7 @@ import type {
   SelectionState,
 } from "../../state/editorStates";
 import type { DiagramView } from "../../views/schema";
+import { TOOL_PANE_WIDTH } from "../../config/editorUiConfig";
 import ClassDiagram from "./DiagramCanvas/DiagramCanvas";
 import EditPane from "./EditPane/EditPane";
 import ToolPane from "./ToolPane/ToolPane";
@@ -121,8 +122,16 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
     onNoteAttachCancel,
   ]);
 
+  const editorShellStyle: CSSProperties & { "--editor-tool-pane-width": string } = {
+    "--editor-tool-pane-width": `${TOOL_PANE_WIDTH}px`,
+  };
+
   return (
-    <section className={styles.editorShell} aria-label="Class diagram editor">
+    <section
+      className={styles.editorShell}
+      style={editorShellStyle}
+      aria-label="Class diagram editor"
+    >
       <ToolPane
         nodePlacementState={nodePlacementState}
         namespaceGestureState={namespaceGestureState}

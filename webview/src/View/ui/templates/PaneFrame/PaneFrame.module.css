@@ -1,15 +1,15 @@
 /**
- * @render Diagram creation tool palette styling.
+ * @render Side pane frame styling.
  */
 
-.toolPane {
+.frame {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  width: 104px;
+  width: var(--pane-frame-width);
   max-height: 620px;
   padding: 8px;
-  overflow: hidden;
+  overflow: hidden auto;
   border: 1px solid var(--shiny-border);
   background: var(--shiny-surface);
 }

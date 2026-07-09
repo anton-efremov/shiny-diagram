@@ -10,6 +10,7 @@ export const GENERATE_CLASS_MARGIN = 40;
 
 export const PLACEMENT_OVERLAY_DRAG_THRESHOLD = 4;
 export const PLACEMENT_OVERLAY_Z_INDEX = 20;
+export const TOOL_PANE_WIDTH = 136;
 export const MEMBER_DRAG_THRESHOLD = 4;
 export const CLASS_BOX_MIN_WIDTH = 80;
 export const CLASS_BOX_MIN_HEIGHT = 48;

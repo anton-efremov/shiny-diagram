@@ -28,7 +28,7 @@ _Terminology lineage: Atomic-Design-inspired (primitives ≈ atoms, composites �
 
 - Library elements never import the state ledger, `editorCommands`, contexts, `editorUiConfig`, or anything under `EditorRoot/` — their entire interface is UI props in, `on<Event>` handlers out
 - Internal drafts (in-progress text, drag positions) are local view state owned by the element; semantic meaning, dispatch, and transactions stay in the domain components that compose it
-- Composition inside the library flows downward only: composites use primitives and native elements; templates arrange library elements and own no behavior; primitives use nothing
+- Composition inside the library flows downward only: composites use primitives and native elements; templates arrange library elements and own no behavior; primitives import nothing from the library and may wrap governed native elements
 - Domain-flavored assemblies of library elements (e.g. a grid of relationship tool presets) are _applications_ of the library and reside in View React tree 
 
 **Naming**
@@ -41,7 +41,7 @@ _Terminology lineage: Atomic-Design-inspired (primitives ≈ atoms, composites �
 **Variety**
 
 - Library variety is biased towards fewer elements; a new element is admitted only when its UI/behavior cannot be expressed by composing or configuring existing ones (mirror of the command-primitive rule)
-- All chrome elements (ToolPane, EditPane, WebViewHeader) are built exclusively from library elements, even non-repetitive ones; they contain **no native DOM at all**
+- All chrome elements (ToolPane, EditPane) are built exclusively from library elements, even non-repetitive ones; they contain **no native DOM at all**
 - Diagram elements are encapsulated only when they can be expressed in pure UI/behavior terms, e.g. `EditableList` is encapsulated, `ClassBox` is not
 
 **Governance**
@@ -68,7 +68,7 @@ Behavior lists only augmentation beyond the bare pattern; "—" means pattern-de
 | CommitComboBox           | TextField (prim)<br>Dropdown (comp)<br>ValidationPopup (prim) | option select commits natively<br>typed custom value follows CommitTextField lifecycle                                                                                                                                                                                  | `initialValue`<br>`options`<br>`validate(draft)→messages`<br>`disabled`<br>`onCommit(value)`<br>`onDiscard(messages)`<br>`onCancel`          |
 | Dropdown                 | StyledBoxSwatch (prim)<br>button (nat)                        | —                                                                                                                                                                                                                                                                       | `options` (label, optional swatch style)<br>`value`<br>`disabled`<br>`onChange(value)`                                                       |
 | ColorSelect              | Dropdown (comp)<br>StyledBoxSwatch (prim)                     | —                                                                                                                                                                                                                                                                       | `presets`<br>`value`<br>`disabled`<br>`onChange(value)`                                                                                      |
-| EditableList             | CommitTextField (comp)<br>button (nat)                        | row enters editing on click [edit start enabled]<br>trailing add affordance opens an empty editor row<br>row drag reorder within the list with drop indicator                                                                                                           | `rows`<br>`validate(draft)→messages`<br>`isEditStartEnabled`<br>`onRowCommit(index, value)`<br>`onRowAdd(value)`<br>`onRowReorder(from, to)` |
+| EditableList             | CommitTextField (comp)<br>button (nat)                        | row enters editing on click [edit start enabled]<br>trailing add affordance opens an empty editor row, visible [edit start enabled]<br>row drag reorder within the list with drop indicator                                                                                                           | `rows` (text, optional emphasis: underline/italic)<br>`addLabel`<br>`validate(draft)→messages`<br>`isEditStartEnabled`<br>`onRowCommit(index, value)`<br>`onRowAdd(value)`<br>`onRowReorder(from, to)` |
 
 ### Templates
 
@@ -84,7 +84,7 @@ Behavior lists only augmentation beyond the bare pattern; "—" means pattern-de
 | TextField        | input (nat)  | `value`<br>`disabled`<br>`invalid`<br>`onChange`          |
 | ValidationPopup  | button (nat) | `messages`<br>`onDismiss`                                 |
 | Button           | button (nat) | `label`<br>`icon`<br>`disabled`<br>`onClick`              |
-| ToggleButton     | button (nat) | `icon`<br>`title`<br>`pressed`<br>`disabled`<br>`onClick` |
+| ToggleButton     | button (nat) | `icon`<br>`label` (optional)<br>`title`<br>`pressed`<br>`disabled`<br>`onClick` |
 | StyledBoxSwatch  | —            | `styleValues`<br>`label`                                  |
 | BoxOutline       | —            | `variant`                                                 |
 | HaloRing         | —            | `tint`                                                    |
@@ -112,14 +112,16 @@ Multiple boxes with different styles might be selected
 
 | Element                     | Same named style "S" (incl. "No style"/"Default")              | Same direct style                       | Mixed styles (property values differ) | Mixed named/direct, same properties           |
 | --------------------------- | -------------------------------------------------------------- | --------------------------------------- | ------------------------------------- | --------------------------------------------- |
-| StyledBoxSwatch (read only) | swatch of S + "S"                                              | swatch of direct style + "Custom style" | neutral swatch + "Multiple styles"    | swatch of selected styles + "Multiple styles" |
+| StyledBoxSwatch | swatch of S + "S"                                              | swatch of direct style + "Custom style" | neutral swatch + "Multiple styles"    | swatch of selected styles + "Multiple styles" |
 | Button                      | "Edit style S" — enabled; "Edit style" disabled for "No style" | "Save style" — enabled                  | "Save style" — disabled               | "Save style" — disabled                       |
 
 **PaneFrame › PaneSection** ("Select style")
 
-| Element                  | Label          | Same named style "S"    | Direct style(s) and/or multiple named styles |
-| ------------------------ | -------------- | ----------------------- | -------------------------------------------- |
-| Dropdown (swatch + name) | "Saved styles" | "S" selected — editable | none selected — editable                     |
+| Element  | Label          | Same named style "S"    | Direct style(s) and/or multiple named styles |
+| -------- | -------------- | ----------------------- | -------------------------------------------- |
+| Dropdown | "Saved styles" | "S" selected — editable | none selected — editable                     |
+
+Options render swatch + name (Dropdown option swatch style).
 
 **PaneFrame › PaneSection** ("Change style")
 
@@ -176,9 +178,12 @@ Single named-style selection only.
 
 **PaneFrame › PaneSection** ("Style name")
 
-| Element                                         | Label        | Swatch           |
-| ----------------------------------------------- | ------------ | ---------------- |
-| StyledBoxSwatch (editable with CommitTextField) | "Style name" | _selected style_ |
+| Element         | Label        | Selected style                          |
+| --------------- | ------------ | ---------------------------------------- |
+| StyledBoxSwatch |              | swatch of _selected style_               |
+| CommitTextField | "Style name" | _style name_ — editable                  |
+
+Name renders inside the swatch's label area via the CommitTextField — domain arrangement, not a library composite.
 
 **PaneFrame › PaneSection** ("Change style")
 
@@ -202,9 +207,12 @@ Single namespace selection only.
 
 **PaneFrame › PaneSection** ("Selected namespace")
 
-| Element                                         | Label            | Swatch                                                       |
-| ----------------------------------------------- | ---------------- | ------------------------------------------------------------ |
-| StyledBoxSwatch (editable with CommitTextField) | "Namespace name" | _style of namespace_ if annotation present / *neutral style* |
+| Element         | Label            | Selected namespace                                                     |
+| --------------- | ---------------- | ----------------------------------------------------------------------- |
+| StyledBoxSwatch |                  | swatch of _namespace style_ if annotation present / *neutral style*     |
+| CommitTextField | "Namespace name" | _namespace name_ — editable                                             |
+
+Name renders inside the swatch's label area via the CommitTextField — domain arrangement, not a library composite.
 
 **PaneFrame › PaneSection** ("Namespace style")
 
@@ -212,7 +220,7 @@ Single namespace selection only.
 | ----------- | ------------------ | ------------------------------------ | ------------------------------------ |
 | ColorSelect | "Fill"             | _style's value_ preset — editable    | _default value_ preset — editable    |
 | ColorSelect | "Stroke"           | _style's value_ preset — editable    | _default value_ preset — editable    |
-| ColorSelect | "Color"            | _style's value_ preset — editable    | _default value_ preset — editable    |
+| ColorSelect | "Text"             | _style's value_ preset — editable    | _default value_ preset — editable    |
 | Dropdown    | "Stroke width"     | _style's preset_ selected — editable | _default preset_ selected — editable |
 | Dropdown    | "Stroke dasharray" | _style's preset_ selected — editable | _default preset_ selected — editable |
 | Button      | "Reset style"      | enabled                              | disabled                             |
@@ -255,19 +263,21 @@ No selection.
 
 | Element                  | Block      | Application behavior                                                                                               |
 | ------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------ |
-| CommitTextField (inline) | annotation | mounted [block editing]; passed initial value = _current annotation_; block area absent when empty and not editing |
-| CommitTextField (inline) | name       | mounted [block editing]; passed initial value = _display name incl. generics_                                      |
-| CommitTextField (inline) | label      | mounted [block editing]; passed initial value = _current label_; block area absent when empty and not editing      |
+| CommitTextField | annotation | mounted [block editing]; passed initial value = _current annotation_; block area absent when empty and not editing |
+| CommitTextField | name       | mounted [block editing]; passed initial value = _display name incl. generics_                                      |
+| CommitTextField | label      | mounted [block editing]; passed initial value = _current label_; block area absent when empty and not editing      |
 
 At most one block is in editing at a time; the box remains selected while editing.
 
 **Attribute / method compartments** (domain layout)
 
-|Element|Instance|Application behavior|
-|---|---|---|
-|MemberTable|attributes|always mounted — see MemberTable subchapter|
-|MemberTable|methods|always mounted — see MemberTable subchapter|
-|Divider|compartment boundaries|always mounted — conditional library admission, pending consumer count at refactor|
+| Element      | Instance               | Application behavior                                                                                                        |
+| ------------ | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| EditableList | attributes             | always mounted; edit start enabled [box selected]; passed add label = "[+ attribute]"; rows = _attribute texts + emphasis_ |
+| EditableList | methods                | always mounted; edit start enabled [box selected]; passed add label = "[+ method]"; rows = _method texts + emphasis_       |
+| Divider      | compartment boundaries | always mounted — conditional library admission, pending consumer count at refactor                                          |
+
+Classifiers map to emphasis in the domain (static → underline, abstract → italic); the classifier-toggle overlay during row editing is domain-owned, parked for the brandbook pass.
 
 ### DiagramCanvas/.../NoteBox
 
@@ -276,17 +286,19 @@ At most one block is in editing at a time; the box remains selected while editin
 |Element|Application behavior|
 |---|---|
 |BoxOutline|mounted [selected] with variant `selected`|
-|CommitTextArea (inline)|mounted [text editing]; passed initial value = _note text_|
+|CommitTextArea|mounted [text editing]; passed initial value = _note text_|
 
 ### DiagramCanvas/.../NamespaceBox
 
 (domain layout; hull box and label band render as domain surface — bounds and colors are runtime values)
 
-| Element                  | Application behavior                                                                                                 |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| BoxOutline               | mounted [selected] with variant `selected`; mounted [pending member during namespace gesture] with variant `pending` |
-| ResizeAffordance         | mounted [selected]                                                                                                   |
-| CommitTextField (inline) | mounted [name editing]; passed initial value = _namespace name_                                                      |
+| Element          | Application behavior                                                                                                 |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------- |
+| BoxOutline       | mounted [selected] with variant `selected`; mounted [pending member during namespace gesture] with variant `pending` |
+| ResizeAffordance | mounted [selected]                                                                                                   |
+| CommitTextField  | mounted [name editing]; passed initial value = _namespace name_                                                      |
+
+Resize is a membership gesture, not a bounds edit: the dragged rect selects pending members by overlap; on release bounds re-derive from the new member hull, and the rect itself is never persisted (no-empty-namespace rule applies).
 
 ### DiagramCanvas/.../RelationshipEdge
 
@@ -294,32 +306,33 @@ At most one block is in editing at a time; the box remains selected while editin
 
 |Element|Block|Application behavior|
 |---|---|---|
-|CommitTextField (inline)|label|mounted [label set or block editing]; passed initial value = _current label_; edit start enabled [selected]|
-|CommitTextField (inline)|source multiplicity|mounted [multiplicity set or block editing]; passed initial value = _current multiplicity_; edit start enabled [selected]|
-|CommitTextField (inline)|target multiplicity|mounted [multiplicity set or block editing]; passed initial value = _current multiplicity_; edit start enabled [selected]|
+|CommitTextField|label|mounted [label set or block editing]; passed initial value = _current label_; edit start enabled [selected]|
+|CommitTextField|source multiplicity|mounted [multiplicity set or block editing]; passed initial value = _current multiplicity_; edit start enabled [selected]|
+|CommitTextField|target multiplicity|mounted [multiplicity set or block editing]; passed initial value = _current multiplicity_; edit start enabled [selected]|
 
 SVG-hosted — conditional library admission as a CommitTextField variant, pending unification with the HTML-hosted field at refactor.
 
 ### ToolPane
 
-**PaneFrame › PaneSection** ("Class elements")
+**PaneFrame › PaneSection** ("Diagram nodes")
 
-ToggleButtons arranged in a column
+ToggleButtons with icon + label, arranged in a column
 
-| Element                     | Label                 | Application behavior                 |
-| --------------------------- | --------------------- | ------------------------------------ |
-| ToggleButton (icon + label) | "Class"               | pressed [class placement active]     |
-| ToggleButton (icon + label) | "Namespace/group"     | pressed [namespace placement active] |
-| ToggleButton (icon + label) | "Note/comment object" | pressed [note placement active]      |
+| Element      | Label                 | Application behavior                 |
+| ------------ | --------------------- | ------------------------------------ |
+| ToggleButton | "Class"               | pressed [class placement active]     |
+| ToggleButton | "Namespace"           | pressed [namespace placement active] |
+| ToggleButton | "Note"                | pressed [note placement active]      |
 
 **PaneFrame › PaneSection** ("Relationships")
 
-ToggleButtons arranged in two columns
+ToggleButtons icon-only, arranged in two columns
 
-| Element             | Label                                                                                                                                        | Application behavior                                       |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| ToggleButton (icon) | "Association", "Directed association", "Bidirectional association", "Dependency", "Inheritance", "Realization", "Aggregation", "Composition" | pressed [relationship placement active with matching seed] |
+| Element      | Label                                                                                                                                        | Application behavior                                       |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| ToggleButton | "Association", "Directed association", "Bidirectional association", "Dependency", "Inheritance", "Realization", "Aggregation", "Composition" | pressed [relationship placement active with matching seed] |
 
+---
 # Organization
 
 ### Structure of View/ui/

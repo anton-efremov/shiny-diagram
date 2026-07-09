@@ -6,8 +6,17 @@
 import type { ReactElement } from "react";
 import type { RelationshipType } from "../../../../../shared/uml";
 import type { NodePlacementState, RelationshipSeed } from "../../../../state/editorStates";
-import ControlButton from "../../../../ui/ControlButton/ControlButton";
-import styles from "./RelationshipTools.module.css";
+import ToggleButton from "../../../../ui/primitives/ToggleButton/ToggleButton";
+import {
+  AggregationGlyph,
+  AssociationGlyph,
+  BidirectionalAssociationGlyph,
+  CompositionGlyph,
+  DependencyGlyph,
+  DirectedAssociationGlyph,
+  InheritanceGlyph,
+  RealizationGlyph,
+} from "./icons";
 
 type RelationshipToolsProps = {
   readonly relationshipPlacementState: Extract<NodePlacementState, { kind: "relationship" }> | null;
@@ -16,7 +25,7 @@ type RelationshipToolsProps = {
 
 type ToolPaneItem = {
   readonly relationshipType: RelationshipType;
-  readonly icon: string;
+  readonly icon: () => ReactElement;
   readonly name: string;
   readonly seed: RelationshipSeed;
 };
@@ -24,7 +33,7 @@ type ToolPaneItem = {
 const relationshipTools: readonly ToolPaneItem[] = [
   {
     relationshipType: "association",
-    icon: "--",
+    icon: AssociationGlyph,
     name: "Association",
     seed: {
       sourceEndpointKind: "none",
@@ -37,7 +46,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "directedAssociation",
-    icon: "-->",
+    icon: DirectedAssociationGlyph,
     name: "Directed association",
     seed: {
       sourceEndpointKind: "none",
@@ -50,7 +59,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "bidirectionalAssociation",
-    icon: "<-->",
+    icon: BidirectionalAssociationGlyph,
     name: "Bidirectional association",
     seed: {
       sourceEndpointKind: "arrow",
@@ -63,7 +72,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "dependency",
-    icon: "..>",
+    icon: DependencyGlyph,
     name: "Dependency",
     seed: {
       sourceEndpointKind: "none",
@@ -76,7 +85,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "inheritance",
-    icon: "<|--",
+    icon: InheritanceGlyph,
     name: "Inheritance",
     seed: {
       sourceEndpointKind: "triangle",
@@ -89,7 +98,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "realization",
-    icon: "..|>",
+    icon: RealizationGlyph,
     name: "Realization",
     seed: {
       sourceEndpointKind: "none",
@@ -102,7 +111,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "aggregation",
-    icon: "o--",
+    icon: AggregationGlyph,
     name: "Aggregation",
     seed: {
       sourceEndpointKind: "aggregation",
@@ -115,7 +124,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "composition",
-    icon: "*--",
+    icon: CompositionGlyph,
     name: "Composition",
     seed: {
       sourceEndpointKind: "composition",
@@ -133,28 +142,22 @@ export default function RelationshipTools({
   onRelationshipPlacementStart,
 }: RelationshipToolsProps): ReactElement {
   return (
-    <div className={styles.toolGroup} aria-label="Relationship elements">
+    <>
       {relationshipTools.map((tool) => {
         const isActive = seedsEqual(relationshipPlacementState?.seed ?? null, tool.seed);
+        const Icon = tool.icon;
+
         return (
-          <ControlButton
+          <ToggleButton
             key={tool.relationshipType}
-            className={styles.toolButton}
-            variant="compact"
-            icon={
-              <span className={styles.toolIcon} aria-hidden="true">
-                {tool.icon}
-              </span>
-            }
-            aria-label={tool.name}
-            active={isActive}
+            icon={<Icon />}
             pressed={isActive}
             title={tool.name}
             onClick={() => onRelationshipPlacementStart(tool.seed)}
           />
         );
       })}
-    </div>
+    </>
   );
 }
 
