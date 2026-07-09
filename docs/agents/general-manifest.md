@@ -16,6 +16,7 @@ Before implementing a brief, read:
 * `docs/engineering/architecture/architectural-standards.md`
 * `docs/engineering/architecture/react-standards.md` - this is the bible, you should follow it fanatically
 * `docs/engineering/architecture/system-architecture.md`
+* `docs/engineering/architecture/UI-library-architecture.md` - mandatory for any work touching `webview/src/View/ui` or chrome components
 any additional documents named in the brief
 * the files and functions named in the brief
 

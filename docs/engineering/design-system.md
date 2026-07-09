@@ -12,20 +12,22 @@ A central library of parametrized UI components (`webview/src/View/ui/`) — `Bu
 states (hover/focus/disabled). Feature components compose these instead of
 writing ad-hoc markup/CSS for recurring UI elements.
 
-This library is built gradually, not upfront (see Rule 2).
+The library's tiers, admission rules, and import/export boundaries are defined
+in [UI Library Architecture](./architecture/UI-library-architecture.md).
 
 ## Current system — rules
 
 - **Rule 1: Colocated CSS Modules (static components)** — every component owns a
   sibling `.module.css`; no inline style declarations, no shared style fragments.
-- **Rule 2: Promote on repetition** — stay local until a UI element genuinely
-  repeats, then extract a parametrized component to `webview/src/View/ui/`.
+- **Rule 2: Library-first UI elements** — library admission and the prohibition
+  on inlining are governed by UI Library Architecture; repetition is not the
+  admission bar.
 - **Rule 3: Two-tier design tokens, palette-first** — `--vscode-*` tokens map to
   a small `--shiny-*` palette (named by color character, not application) in
-  `styles.css`; components pick palette entries directly.
-- **Rule 4: Theme-dependent values use tokens** — colors and other
-  theme-dependent values are VS Code or `--shiny-*` tokens; layout values are
-  literals.
+  `View/ui/tokens.css`; components pick palette entries directly.
+- **Rule 4: Brand values use tokens; structural values are literals** — shared
+  visual-identity values are `--shiny-*` tokens; per-component layout mechanics
+  are literals.
 - **Rule 5: Global stylesheet scope** — `styles.css` contains the React Flow
   base import, `--shiny-*` token definitions, base document defaults, and
   browser resets.
@@ -55,28 +57,26 @@ import styles from "./ToolPane.module.css";
 No shared style fragments (`composes`, primitives files). Each `.module.css` is
 self-contained.
 
-### Rule 2 — Promote on repetition
+### Rule 2 — Library-first UI elements
 
-Stay local until a UI element — not just a style pattern — genuinely repeats: same
-structure, same behavior, a second real instance. Then extract a component (`.tsx`
-
-- `.module.css`) into `webview/src/View/ui/`. The shared thing is always a component,
-  never a bare CSS class or fragment — a component bundles structure, style, and
-  behavior, which a CSS-only primitive can't capture without duplicating the
-  behavioral part anyway.
+UI elements are not extracted on repetition; admission to the library and the
+prohibition on inlining are governed by
+[UI Library Architecture](./architecture/UI-library-architecture.md).
 
 Small duplicated style snippets (e.g. text-truncation ellipsis, 3 lines, appearing
-in 2 places) are not worth promoting on their own — accept the duplication for now.
+in 2 places) are still not promoted — accept the duplication; the shared thing is
+always a library component, never a bare CSS class or fragment.
 
 ### Rule 3 — Two-tier design tokens, palette-first
 
 VS Code injects `--vscode-*` custom properties into every WebView. `--shiny-*`
-tokens are Shiny's own vocabulary, defined once in `styles.css` as either an alias
+tokens are Shiny's own vocabulary, defined once in `View/ui/tokens.css` (imported
+once by `styles.css`) as either an alias
 to a `--vscode-*` token or a per-theme-kind value when no VS Code equivalent exists.
 
 **Components reference `--shiny-*` only — never `--vscode-*` directly**, anywhere
-outside `styles.css`. This keeps VS Code's variable naming fully isolated to one
-file; if VS Code renames/restructures tokens, only `styles.css` changes.
+outside `tokens.css`. This keeps VS Code's variable naming fully isolated to one
+file; if VS Code renames/restructures tokens, only `tokens.css` changes.
 
 **Naming: palette tokens, not application-named tokens.** `--shiny-*` tokens name
 the _character_ of a color (`--shiny-surface`, `--shiny-accent`,
@@ -92,7 +92,7 @@ Each token name is flat and complete — `--shiny-overlay-faint` and
 modifiers expected to combine.
 
 ```css
-/* styles.css — Case 1: alias a VS Code token to a palette role. :root is the
+/* tokens.css — Case 1: alias a VS Code token to a palette role. :root is the
    standard place for global custom-property definitions. */
 :root {
   --shiny-surface: var(--vscode-editorWidget-background);
@@ -127,16 +127,17 @@ A component picks whichever palette entries fit:
 New `--shiny-*` tokens require justification — confirm no existing palette entry
 already covers the use case before adding one.
 
-### Rule 4 — Theme-dependent values use tokens
+### Rule 4 — Brand values use tokens; structural values are literals
 
-Any value that varies by VS Code theme — color, but also things like
-`--shiny-code-font-family` (aliasing `--vscode-editor-font-family`) — is a VS Code
-token (only inside `styles.css`, per Rule 3) or a `--shiny-*` token. No literal
-hex/rgb/hsl values in component `.module.css` files.
+Any value expressing shared visual identity — colors, typography (e.g.
+`--shiny-code-font-family`), corner radius, elevation, control density — is a
+`--shiny-*` token (VS Code tokens only inside `tokens.css`, per Rule 3). No
+literal hex/rgb/hsl values in component `.module.css` files.
 
-Layout values (widths, gaps, padding, font-sizes, border-radii) are literals as
-needed — they aren't theme-dependent and don't need token indirection. A one-off
-`width: 104px` for a single component doesn't warrant a `--shiny-*` token.
+Structural values — internal offsets, arrangement, hit-area sizes — are literals
+in the component's own `.module.css`: they are meaningless outside their
+component and survive a rebrand untouched. A one-off `width: 104px` for a single
+component doesn't warrant a `--shiny-*` token.
 
 ### Rule 5 — Global stylesheet scope
 
@@ -145,7 +146,7 @@ needed — they aren't theme-dependent and don't need token indirection. A one-o
 1. `@xyflow/react` base import — React Flow's own required CSS (node
    positioning, edge paths, handle rendering, controls layout). This is loading
    the library's stylesheet, not overriding it — see Rule 7 for the distinction.
-2. `--shiny-*` token definitions (Rule 3)
+2. `View/ui/tokens.css` import — the single `--shiny-*` definition point (Rule 3)
 3. Base/default styles — sizing reset (`* { box-sizing: border-box }`), body
    margin reset, and cascading defaults (`font-family`/`color` on `body` from
    `--shiny-*` tokens, inherited by the whole tree). Component `.module.css`
@@ -174,7 +175,9 @@ This binds a _data value_ to a variable name — the CSS rules themselves stay
 static in `.module.css`. It is not the kind of inline styling Rule 1 prohibits
 (literal style declarations like `style={{ color: "red" }}`), and not CSS-in-JS:
 no stylesheets are generated at runtime, only three custom-property values
-(fill, stroke, color) are passed through.
+(fill, stroke, color) are passed through. This is the **design-system binding
+pattern** referenced by other documents: inline `style` may carry data bindings
+to custom properties, never styling decisions.
 
 ### Rule 7 — React Flow defaults accepted as-is
 

@@ -235,9 +235,9 @@ View/
 ├── EditorRoot/
 │   └── index.ts
 ├── ui/
-│   ├── ControlButton/
-│   ├── ColorSelector/
-│   └── icons/
+│   ├── primitives/
+│   ├── composites/
+│   └── templates/
 ├── commands/
 │   ├── index.ts
 │   └── editorCommands.ts
@@ -246,7 +246,7 @@ View/
 ```
 
 - `EditorRoot/` owns the React Shiny editor tree. Its `index.ts` exports only the `EditorView` runtime entry point.
-- `ui/` owns shared presentation-only controls and icons used inside the View layer. It must not define editor state, commands, render contracts, or application behavior.
+- `ui/` owns the UI library — tiered, editor-blind shared UI elements ([UI Library Architecture](./UI-library-architecture.md)). It must not define editor state, commands, render contracts, or application semantics.
 - `commands/` exposes the canonical View-to-Controller command registry and dispatch contract. `views/` exposes the centralized View render schema to Controller.
 - The View root must not contain `index.ts`.
 - Controller must not import the nested React component tree directly.
@@ -262,7 +262,7 @@ View/
 - Controller must consume View APIs through `View/EditorRoot`, `View/commands`, and `View/views`.
 - Controller command handlers may narrow `EditorCommand` through helper types exported by `View/commands`; they must not import component-local command helpers.
 - View internals use direct imports from the defining modules and must not import their own public facades.
-- `View/ui` is an internal View-layer UI package for reusable presentation-only components. It is not a facade, must not contain a root `index.ts`, and must not be imported by Shell, Controller, Extension Bridge, or Mermaid Renderer modules.
+- `View/ui` is the internal View-layer UI library (editor-blind shared UI elements). It is not a facade, must not contain a root `index.ts`, and must not be imported by Shell, Controller, Extension Bridge, or Mermaid Renderer modules.
 
 #### 6.1.3 Permitted deviations
 
@@ -283,6 +283,7 @@ A component folder may use the following roles:
 | `useInteractions.ts` | Constructs the component's event handlers, state updates, and transaction dispatches. |
 | `transactions.ts` | Derives `EditorCommandTransaction` values from component-owned interactions using command shapes from the canonical command registry. It must not define command shapes. |
 | `frameworkAdapters.ts` | Translates framework-shaped values at a framework boundary into View-owned vocabulary, or View-owned values into framework props. |
+| `icons.tsx` | Defines component-owned SVG glyph components passed into library icon slots. |
 | `OwnedChild/` | Contains a child component used exclusively by this component. |
 
 - Files are optional; their responsibilities are fixed.

@@ -3,7 +3,7 @@
 > **Scope:** `webview/src/View/**`  
 > **Audience:** Coding agents  
 > **Last reviewed:** 2026-06-29  
-> **Goal** Must-follow rules of organization of code, dependencies and implementation patterns of a React component in a component tree rooted at EditorRoot. Other React components in the repo (e.g. shared UI components) may not comply
+> **Goal** Must-follow rules of organization of code, dependencies and implementation patterns of a React component in a component tree rooted at EditorRoot. Library components under `webview/src/View/ui` are governed by [UI Library Architecture](./UI-library-architecture.md) instead; other React components outside the EditorRoot tree may not comply
 
 # 0. About the file
 
@@ -48,6 +48,7 @@
 	- [7.7 `useStateReconciliation.ts`](#77-usestatereconciliationts)
 	- [7.8 `frameworkAdapters.ts`](#78-frameworkadaptersts)
 	- [7.9 `<Component>.module.css`](#79-componentmodulecss)
+	- [7.10 `icons.tsx`](#710-iconstsx)
 - [8. Component annotations](#8-component-annotations)
 	- [8.1 File annotation](#81-file-annotation)
 	- [8.2 Inline annotations](#82-inline-annotations)
@@ -129,8 +130,9 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 	- command and transaction types are **never** defined locally
 	- a primitive command **may** be added **only** if it cannot be expressed as a combination of existing primitives
 
-5. `webview/src/View/ui` — shared View presentational primitives: reusable presentational components with no editor state or decisions.
+5. `webview/src/View/ui` — the UI library: tiered, editor-blind UI elements owning shared visuals and interaction behavior; governed by [UI Library Architecture](./UI-library-architecture.md)
 	- the **only** source of cross-component shared visual components
+	- a library component and its boundary types are importable; its owned children, internal files, and `.module.css` are not
 
 6. `webview/src/View/config` — static View configuration read by components and support files.
 	- `editorUiConfig.ts` defines static scalar UI tuning constants: e.g. fixed offsets, sizes. These scalar constants **must** be defined here and read from here, **never** hard-coded at the use site. Component-owned static content catalogs — typed `readonly` domain literals — are **not** UI constants and stay in their component's static catalog area.
@@ -150,7 +152,7 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 
 11. **React and browser APIs** — rendering, lifecycle, focus, measurement, event registration.
 
-12. **own support files** — `state.ts`, `transactions.ts`, `useInteractions.ts`, `*.module.css`, `childProps.ts`, `useStateReconciliation.ts`, `frameworkAdapters.ts` sitting flat beside the component file
+12. **own support files** — `state.ts`, `transactions.ts`, `useInteractions.ts`, `*.module.css`, `childProps.ts`, `useStateReconciliation.ts`, `frameworkAdapters.ts`, `icons.tsx` sitting flat beside the component file
 	- a component imports **only** its own support files, **never** another component's.
 
 ### 2.2 Forbidden import sources
@@ -762,6 +764,21 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
 ```css
 /**
  * @render <visual surface styled by this file>
+ */
+```
+
+### 7.10 `icons.tsx`
+
+**Responsibilities:** Rendering
+
+**Patterns:** none fixed yet
+
+Component-owned SVG glyph components passed into library icon slots. Glyphs use `currentColor` exclusively; any literal or token color is a violation. Justified only when in-file glyphs would bloat the static catalog area.
+
+**Structure:**
+```ts
+/**
+ * @render <glyphs this file defines and the component that renders them>
  */
 ```
 
