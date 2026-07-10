@@ -1,72 +1,197 @@
 /**
- * @render Color preset dropdown styling.
+ * @render Color glyph trigger and document/preset swatch popup.
  */
 
 .colorSelect {
   position: relative;
+  width: 100%;
   min-width: 0;
 }
 
 .trigger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16px;
+  align-items: center;
   width: 100%;
   min-width: 0;
-  padding: 0;
   min-height: var(--shiny-field-height);
+  padding: 5px 7px;
   border: 1px solid var(--shiny-field-border);
   border-radius: var(--shiny-field-radius);
   color: var(--shiny-field-fg);
   background: var(--shiny-field-bg);
-  box-shadow: 0 1px 1px var(--shiny-overlay-faint);
-  font: inherit;
-  text-align: left;
   cursor: pointer;
 }
 
 .trigger:hover:not(:disabled) {
-  border-color: var(--shiny-accent);
-  color: var(--shiny-field-fg);
+  border-color: var(--shiny-field-hover-border);
+  color: var(--shiny-field-hover-fg);
   background: var(--shiny-surface);
 }
 
 .trigger:focus-visible,
-.option:focus-visible {
+.colorOption:focus-visible,
+.defaultOption:focus-visible {
   outline: 2px solid var(--shiny-field-focus-border);
   outline-offset: 1px;
 }
 
 .trigger:disabled {
-  color: var(--shiny-text-muted);
-  cursor: default;
   opacity: 0.58;
+  cursor: default;
 }
 
-.palette {
-  position: absolute;
-  z-index: 10;
-  right: 0;
-  left: 0;
+.arrow {
+  place-self: center;
+}
+
+.arrow::before {
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 5px solid currentColor;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+  content: "";
+}
+
+.glyph {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 4px;
-  padding: 6px;
-  border: 1px solid var(--shiny-border);
-  border-radius: 4px;
-  background: var(--shiny-surface);
-  box-shadow: 0 4px 10px var(--shiny-overlay-faint);
+  place-items: center;
+  width: 22px;
+  height: 18px;
+  color: var(--color-select-value, var(--shiny-text-muted));
 }
 
-.option {
-  min-width: 0;
-  height: 30px;
+.fill {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--shiny-overlay-strong);
+  border-radius: 3px;
+  background: currentColor;
+}
+
+.stroke::before {
+  width: 22px;
+  height: 3px;
+  background: currentColor;
+  content: "";
+}
+
+.text {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.emphasized {
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px var(--shiny-text-muted);
+}
+
+.stroke.emphasized,
+.text.emphasized {
+  box-shadow: none;
+}
+
+.multiple {
+  border: 1px solid var(--shiny-border);
+  background: linear-gradient(135deg, var(--shiny-surface) 50%, var(--shiny-text-muted) 50%);
+  color: transparent;
+}
+
+.popup {
+  position: fixed;
+  z-index: 100;
+  top: var(--color-select-popup-top);
+  left: var(--color-select-popup-left);
+  display: grid;
+  gap: 8px;
+  width: var(--color-select-popup-width);
+  padding: 9px;
+  border: 1px solid var(--shiny-border);
+  border-radius: var(--shiny-button-radius);
+  background: var(--shiny-surface);
+  box-shadow: 0 6px 18px var(--shiny-overlay-strong);
+}
+
+.section {
+  display: grid;
+  gap: 6px;
+}
+
+.heading,
+.defaultOption {
+  color: var(--shiny-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.documentGrid,
+.paletteGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 18px);
+  gap: 5px;
+}
+
+.paletteGrid {
+  justify-content: center;
+}
+
+.documentGrid {
+  grid-template-columns: repeat(auto-fill, 18px);
+}
+
+.paletteGrid > :nth-child(n + 25) {
+  margin-top: 5px;
+}
+
+.colorOption {
+  width: 18px;
+  height: 18px;
   padding: 0;
-  border: 1px solid var(--shiny-button-border);
-  border-radius: 4px;
-  color: var(--shiny-text);
-  background: var(--shiny-button-secondary-bg);
+  border: 1px solid var(--shiny-overlay-strong);
+  border-radius: 3px;
+  background: var(--color-select-value);
   cursor: pointer;
 }
 
-.option:hover,
-.option[aria-pressed="true"] {
-  border-color: var(--shiny-accent);
+.colorOption[aria-pressed="true"] {
+  outline: 2px solid var(--shiny-accent);
+  outline-offset: 1px;
+}
+
+.defaultOption {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 7px;
+  align-items: center;
+  min-height: 26px;
+  padding: 3px;
+  border: 0;
+  border-radius: 3px;
+  color: var(--shiny-text-muted);
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.defaultSwatch {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--shiny-overlay-strong);
+  border-radius: 3px;
+  background: var(--shiny-field-bg);
+}
+
+.defaultOption[aria-pressed="true"] .defaultSwatch {
+  outline: 2px solid var(--shiny-accent);
+  outline-offset: 1px;
+}
+
+.divider {
+  height: 1px;
+  background: var(--shiny-border);
 }

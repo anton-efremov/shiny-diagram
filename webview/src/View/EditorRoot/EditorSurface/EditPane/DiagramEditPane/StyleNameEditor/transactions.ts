@@ -3,11 +3,11 @@
  */
 
 import type { EditorCommandTransaction } from "../../../../../commands/editorCommands";
-import type { StyleView } from "../../../../../views/schema";
+import type { DeclaredStyleView } from "../../../../../views/schema";
 
 export function toStyleNameSetTransaction(
-  style: StyleView,
+  style: DeclaredStyleView,
   name: string
 ): EditorCommandTransaction {
-  return [{ type: "style.definition.name.set", styleDefId: style.styleId, name }];
+  return [{ type: "style.definition.name.set", styleDefId: style.styleDefId, name }];
 }

@@ -7,11 +7,17 @@ import styles from "./ControlGroup.module.css";
 
 type ControlGroupProps = {
   readonly columns?: 1 | 2;
+  readonly spacing?: "default" | "wide";
   readonly children: ReactNode;
 };
 
-export default function ControlGroup({ columns = 1, children }: ControlGroupProps): ReactElement {
-  return (
-    <div className={columns === 2 ? styles.twoColumnGroup : styles.oneColumnGroup}>{children}</div>
-  );
+export default function ControlGroup({
+  columns = 1,
+  spacing = "default",
+  children,
+}: ControlGroupProps): ReactElement {
+  const columnClass = columns === 2 ? styles.twoColumnGroup : styles.oneColumnGroup;
+  const className = spacing === "wide" ? `${columnClass} ${styles.wideSpacing}` : columnClass;
+
+  return <div className={className}>{children}</div>;
 }

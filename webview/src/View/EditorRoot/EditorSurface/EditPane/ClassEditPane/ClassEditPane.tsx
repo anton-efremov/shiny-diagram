@@ -16,6 +16,12 @@ import { useInteractions } from "./useInteractions";
 import PaneSection from "../../../../ui/templates/PaneSection/PaneSection";
 import Button from "../../../../ui/primitives/Button/Button";
 import ControlGroup from "../../../../ui/templates/ControlGroup/ControlGroup";
+import { COLOR_PRESETS } from "../../../../config/stylePresets";
+import {
+  CLASS_DEFAULT_STROKE_WIDTH,
+  DEFAULT_STROKE_DASHARRAY,
+} from "../../../../config/editorUiConfig";
+import { toDocumentColors, toStrokeSelectUIProps } from "./childProps";
 
 type ClassEditPaneProps = {
   readonly view: Pick<DiagramView, "classes" | "styles">;
@@ -38,13 +44,14 @@ export default function ClassEditPane({
 }: ClassEditPaneProps): ReactElement {
   // View and State slice props derivation
   const selectedClassIds = new Set(selectionState.classIds);
+  const declaredStyles = view.styles.filter((styleView) => styleView.kind === "declared");
   const selectedClasses = view.classes.filter((classView) =>
     selectedClassIds.has(classView.classId)
   );
   const selectedNamedStyleId =
     selectedClasses.length === 1 ? selectedClasses[0]?.appliedStyleId : undefined;
   const selectedNamedStyle = selectedNamedStyleId
-    ? view.styles.find((styleView) => styleView.styleId === selectedNamedStyleId)
+    ? declaredStyles.find((styleView) => styleView.styleDefId === selectedNamedStyleId)
     : undefined;
   const selectedDirectStyle =
     selectedClasses.length === 1 && !selectedClasses[0]?.appliedStyleId && selectedClasses[0]?.style
@@ -54,10 +61,21 @@ export default function ClassEditPane({
 
   // UI props derivation
   const styleActionLabel = selectedNamedStyle ? "Edit style" : "Save style";
+  const documentColors = toDocumentColors(view.styles);
+  const widthSelectUIProps = toStrokeSelectUIProps(
+    view.styles,
+    "strokeWidth",
+    CLASS_DEFAULT_STROKE_WIDTH
+  );
+  const dashSelectUIProps = toStrokeSelectUIProps(
+    view.styles,
+    "strokeDasharray",
+    DEFAULT_STROKE_DASHARRAY
+  );
 
   // Event handler props derivation
   const { onNameCommit, onAnnotationCommit, onLabelCommit, onStyleAction } = useInteractions({
-    styles: view.styles,
+    styles: declaredStyles,
     selectedNamedStyle,
     selectedDirectStyle,
     origin,
@@ -73,7 +91,7 @@ export default function ClassEditPane({
             view={selectedClasses[0]}
             styleControl={
               <ControlGroup>
-                <NamedStyleSelector view={selectedClasses} styles={view.styles} />
+                <NamedStyleSelector view={selectedClasses} styles={declaredStyles} />
                 <Button
                   label={styleActionLabel}
                   size="compact"
@@ -90,7 +108,13 @@ export default function ClassEditPane({
         </PaneSection>
       ) : null}
       <PaneSection label="Configure style">
-        <ChangeStylePalette view={selectedClasses} />
+        <ChangeStylePalette
+          view={selectedClasses}
+          presets={COLOR_PRESETS}
+          documentColors={documentColors}
+          widthSelectUIProps={widthSelectUIProps}
+          dashSelectUIProps={dashSelectUIProps}
+        />
       </PaneSection>
       <PaneSection label="Actions">
         <ClassActions view={selectedClasses} />

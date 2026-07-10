@@ -72,12 +72,18 @@
 /* No VS Code equivalent for a subtle hover wash — define per theme kind. */
 body[data-vscode-theme-kind="vscode-light"] {
   --shiny-overlay-faint: rgba(0, 0, 0, 0.03);
+  --shiny-overlay-strong: rgba(0, 0, 0, 0.28);
+  --shiny-selection-stripe: rgba(0, 0, 0, 0.12);
 }
 
 body[data-vscode-theme-kind="vscode-dark"] {
   --shiny-overlay-faint: rgba(255, 255, 255, 0.03);
+  --shiny-overlay-strong: rgba(255, 255, 255, 0.32);
+  --shiny-selection-stripe: rgba(255, 255, 255, 0.14);
 }
 
 body[data-vscode-theme-kind="vscode-high-contrast"] {
   --shiny-overlay-faint: transparent;
+  --shiny-overlay-strong: var(--shiny-text);
+  --shiny-selection-stripe: var(--shiny-accent);
 }

@@ -4,7 +4,7 @@
 
 import type { StyleProperties } from "../../../../../shared/style";
 import type { EditorCommandTransaction } from "../../../../commands/editorCommands";
-import type { StyleView } from "../../../../views/schema";
+import type { DeclaredStyleView } from "../../../../views/schema";
 
 const INITIAL_STYLE: StyleProperties = {
   fill: "#ffffff",
@@ -14,7 +14,9 @@ const INITIAL_STYLE: StyleProperties = {
   color: null,
 };
 
-export function toStyleCreateTransaction(styles: readonly StyleView[]): EditorCommandTransaction {
+export function toStyleCreateTransaction(
+  styles: readonly DeclaredStyleView[]
+): EditorCommandTransaction {
   return [
     {
       type: "style.definition.create",
@@ -27,8 +29,8 @@ export function toStyleCreateTransaction(styles: readonly StyleView[]): EditorCo
 }
 
 export function toDefaultStyleSetTransaction(
-  style: StyleView,
-  defaultStyle: StyleView | undefined
+  style: DeclaredStyleView,
+  defaultStyle: DeclaredStyleView | undefined
 ): EditorCommandTransaction {
   if (!defaultStyle) {
     return [
@@ -36,25 +38,25 @@ export function toDefaultStyleSetTransaction(
         type: "style.definition.create",
         name: "default",
         sourceKind: "classDef",
-        properties: style.style,
+        properties: style.properties,
         applyToClassIds: [],
       },
     ];
   }
-  return Object.entries(style.style).map(([property, value]) => ({
+  return Object.entries(style.properties).map(([property, value]) => ({
     type: "style.definition.property.set" as const,
-    styleDefId: defaultStyle.styleId,
+    styleDefId: defaultStyle.styleDefId,
     property: property as keyof StyleProperties,
     value,
   }));
 }
 
-export function toStyleDeleteTransaction(style: StyleView): EditorCommandTransaction {
-  return [{ type: "style.definition.delete", styleDefId: style.styleId }];
+export function toStyleDeleteTransaction(style: DeclaredStyleView): EditorCommandTransaction {
+  return [{ type: "style.definition.delete", styleDefId: style.styleDefId }];
 }
 
 // Private helpers
-function toUniqueStyleName(styles: readonly StyleView[]): string {
+function toUniqueStyleName(styles: readonly DeclaredStyleView[]): string {
   const names = new Set(styles.map((styleView) => styleView.name));
   let index = 1;
   while (names.has(`style${index}`)) index += 1;

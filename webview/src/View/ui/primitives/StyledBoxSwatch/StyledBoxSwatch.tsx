@@ -20,29 +20,27 @@ export default function StyledBoxSwatch({
     "--styled-box-stroke"?: string;
     "--styled-box-color"?: string;
     "--styled-box-stroke-width"?: string;
-    "--styled-box-stroke-dasharray"?: string;
+    "--styled-box-border-style"?: "solid" | "dashed";
   } = {
     "--styled-box-fill": styleValues.fill ?? undefined,
     "--styled-box-stroke": styleValues.stroke ?? undefined,
     "--styled-box-color": styleValues.color ?? undefined,
     "--styled-box-stroke-width": styleValues.strokeWidth ?? undefined,
-    "--styled-box-stroke-dasharray": styleValues.strokeDasharray ?? undefined,
+    "--styled-box-border-style": toBorderStyle(styleValues.strokeDasharray),
   };
 
   return (
     <div className={styles.swatch} style={swatchStyle} aria-label={label}>
-      {styleValues.strokeWidth || styleValues.strokeDasharray ? (
-        <svg className={styles.lineSample} viewBox="0 0 44 10" aria-hidden="true" focusable="false">
-          <path
-            d="M2 5h40"
-            stroke="currentColor"
-            strokeWidth={styleValues.strokeWidth ?? "1px"}
-            strokeDasharray={styleValues.strokeDasharray ?? undefined}
-            strokeLinecap="round"
-          />
-        </svg>
-      ) : null}
       <span className={styles.label}>{label}</span>
     </div>
   );
+}
+
+function toBorderStyle(strokeDasharray: string | null | undefined): "solid" | "dashed" {
+  return strokeDasharray === undefined ||
+    strokeDasharray === null ||
+    strokeDasharray === "" ||
+    strokeDasharray === "none"
+    ? "solid"
+    : "dashed";
 }

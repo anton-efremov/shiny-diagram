@@ -20,6 +20,7 @@ import type {
   NoteNode,
   RelationshipEdge,
   StyleApplicationEdge,
+  StyleOccurrence,
   StyleDefNode,
 } from "../../model/diagramGraph";
 import type {
@@ -56,6 +57,7 @@ type MutableGraphBuild = {
   readonly notes: Map<NoteNode["id"], NoteNode>;
   readonly lollipopInterfaces: Map<ClassNode["id"], LollipopInterface[]>;
   readonly styleApplications: Map<StyleApplicationEdge["id"], StyleApplicationEdge>;
+  readonly styleOccurrences: StyleOccurrence[];
   readonly inNamespaceEdges: InNamespaceEdge[];
   readonly diagnostics: EditorDiagnostic[];
   readonly directStyleProperties: Map<ClassNode["id"], StyleProperties>;
@@ -98,6 +100,7 @@ export function buildSpatiallyUnawareDiagramGraph(tokens: ParseToken[]): GraphBu
     notes: new Map(),
     lollipopInterfaces: new Map(),
     styleApplications: new Map(),
+    styleOccurrences: [],
     inNamespaceEdges: [],
     diagnostics: [],
     directStyleProperties: new Map(),
@@ -185,6 +188,11 @@ function traverseTokens(
         const parsed = parseClassDirectStyle(token);
         if (parsed) {
           build.directStyleProperties.set(parsed.classId, parsed.properties);
+          build.styleOccurrences.push({
+            kind: "direct",
+            classId: parsed.classId,
+            properties: parsed.properties,
+          });
           build.provenance.classDirectStyles.set(parsed.classId, parsed.record);
           const existing = build.classes.get(parsed.classId);
           if (existing) {
@@ -205,6 +213,12 @@ function traverseTokens(
         const parsed = buildStyleDefNode(token);
         if (parsed) {
           build.styleDefinitions.set(parsed.node.id, parsed.node);
+          build.styleOccurrences.push({
+            kind: "declared",
+            styleDefId: parsed.node.id,
+            name: parsed.node.name,
+            properties: parsed.node.properties,
+          });
           build.provenance.styleDefinitions.set(parsed.node.id, toStyleDefRecord(token));
         }
         break;
@@ -256,6 +270,11 @@ function traverseTokens(
         const parsed = parseNamespaceStyleAnnotation(token);
         if (parsed) {
           build.namespaceStyleProperties.set(parsed.namespaceId, parsed.properties);
+          build.styleOccurrences.push({
+            kind: "namespace",
+            namespaceId: parsed.namespaceId,
+            properties: parsed.properties,
+          });
           build.provenance.namespaceStyles.set(parsed.namespaceId, parsed.record);
         }
         break;
@@ -394,6 +413,7 @@ function toDiagramGraph(build: MutableGraphBuild): DiagramGraph {
     notes: build.notes,
     styleDefinitions: build.styleDefinitions,
     styleApplications: build.styleApplications,
+    styleOccurrences: build.styleOccurrences,
   };
 }
 

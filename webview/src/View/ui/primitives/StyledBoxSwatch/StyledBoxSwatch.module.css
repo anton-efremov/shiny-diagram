@@ -4,23 +4,15 @@
 
 .swatch {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 6px;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   min-width: 0;
   min-height: 34px;
   padding: 6px 8px;
   border: var(--styled-box-stroke-width, 1px) solid var(--styled-box-stroke, var(--shiny-border));
-  border-style: var(--styled-box-stroke-dasharray, solid);
+  border-style: var(--styled-box-border-style, solid);
   color: var(--styled-box-color, var(--shiny-text));
   background: var(--styled-box-fill, var(--shiny-surface));
-}
-
-.lineSample {
-  display: block;
-  width: 44px;
-  height: 10px;
-  color: var(--styled-box-stroke, currentColor);
 }
 
 .label {

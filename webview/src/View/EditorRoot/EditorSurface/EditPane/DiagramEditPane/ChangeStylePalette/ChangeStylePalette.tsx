@@ -5,16 +5,32 @@
 
 import type { ReactElement } from "react";
 import { STYLE_PROPERTIES, type StylePropertyName } from "../../../../../../shared/style";
-import type { StyleView } from "../../../../../views/schema";
+import type { DeclaredStyleView } from "../../../../../views/schema";
 import FieldGrid from "../../../../../ui/templates/FieldGrid/FieldGrid";
 import StylePropertyControl from "./StylePropertyControl/StylePropertyControl";
 import { useInteractions } from "./useInteractions";
+import type { ColorSelectPresetCatalog } from "../../../../../ui/composites/ColorSelect/ColorSelect";
 
 type ChangeStylePaletteProps = {
-  readonly view: StyleView;
+  readonly view: DeclaredStyleView;
+  readonly presets: ColorSelectPresetCatalog;
+  readonly documentColors: readonly string[];
+  readonly widthSelectUIProps: StrokeSelectUIProps;
+  readonly dashSelectUIProps: StrokeSelectUIProps;
 };
 
-export default function ChangeStylePalette({ view }: ChangeStylePaletteProps): ReactElement {
+type StrokeSelectUIProps = {
+  readonly defaultValue: string;
+  readonly documentValues: readonly string[];
+};
+
+export default function ChangeStylePalette({
+  view,
+  presets,
+  documentColors,
+  widthSelectUIProps,
+  dashSelectUIProps,
+}: ChangeStylePaletteProps): ReactElement {
   // Event handler props derivation
   const { onPropertyChange } = useInteractions(view);
 
@@ -27,7 +43,19 @@ export default function ChangeStylePalette({ view }: ChangeStylePaletteProps): R
         control: (
           <StylePropertyControl
             property={name}
-            value={view.style[name]}
+            value={view.properties[name]}
+            presets={presets}
+            documentColors={documentColors}
+            defaultValue={
+              name === "strokeWidth"
+                ? widthSelectUIProps.defaultValue
+                : dashSelectUIProps.defaultValue
+            }
+            documentValues={
+              name === "strokeWidth"
+                ? widthSelectUIProps.documentValues
+                : dashSelectUIProps.documentValues
+            }
             onChange={(value) => onPropertyChange(name, value)}
           />
         ),

@@ -70,11 +70,25 @@ export type NamespaceView = {
   readonly style?: StyleProperties;
 };
 
-export type StyleView = {
-  readonly styleId: StyleDefId;
+export type DeclaredStyleView = {
+  readonly kind: "declared";
+  readonly styleDefId: StyleDefId;
   readonly name: string;
-  readonly style: StyleProperties;
+  readonly properties: StyleProperties;
 };
+
+export type StyleView =
+  | DeclaredStyleView
+  | {
+      readonly kind: "direct";
+      readonly classId: ClassId;
+      readonly properties: StyleProperties;
+    }
+  | {
+      readonly kind: "namespace";
+      readonly namespaceId: NamespaceId;
+      readonly properties: StyleProperties;
+    };
 
 export type RelationshipView = {
   readonly relationshipId: RelationshipId;

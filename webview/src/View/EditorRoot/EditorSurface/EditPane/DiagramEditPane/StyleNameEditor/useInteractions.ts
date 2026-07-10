@@ -6,11 +6,11 @@ import { useCallback } from "react";
 import type { StyleDefId } from "../../../../../../shared/ids";
 import type { TransactionResult } from "../../../../../commands/editorCommands";
 import { useDispatchTransaction } from "../../../../../contexts";
-import type { StyleView } from "../../../../../views/schema";
+import type { DeclaredStyleView } from "../../../../../views/schema";
 import { toStyleNameSetTransaction } from "./transactions";
 
 type UseInteractionsInput = {
-  readonly view: StyleView | undefined;
+  readonly view: DeclaredStyleView | undefined;
   readonly onRenameCommitted: (result: TransactionResult, previousStyleDefId: StyleDefId) => void;
 };
 
@@ -28,7 +28,7 @@ export function useInteractions({ view, onRenameCommitted }: UseInteractionsInpu
       const name = toStyleName(draft);
       if (name === "" || name === view.name) return;
       const result = dispatchTransaction(toStyleNameSetTransaction(view, name));
-      onRenameCommitted(result, view.styleId);
+      onRenameCommitted(result, view.styleDefId);
     },
     [dispatchTransaction, onRenameCommitted, view]
   );

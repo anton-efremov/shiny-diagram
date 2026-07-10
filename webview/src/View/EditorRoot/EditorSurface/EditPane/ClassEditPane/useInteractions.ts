@@ -8,7 +8,7 @@ import type { SelectionState } from "../../../../state/editorStates";
 import type { ClassAnnotation } from "../../../../../shared/uml";
 import { useDispatchTransaction } from "../../../../contexts";
 import type { TransactionResult } from "../../../../commands/editorCommands";
-import type { ClassView, StyleView } from "../../../../views/schema";
+import type { ClassView, DeclaredStyleView } from "../../../../views/schema";
 import {
   toClassAnnotationCommitTransaction,
   toClassLabelCommitTransaction,
@@ -17,12 +17,12 @@ import {
 } from "./transactions";
 
 type UseInteractionsInput = {
-  readonly styles: readonly StyleView[];
-  readonly selectedNamedStyle: StyleView | undefined;
+  readonly styles: readonly DeclaredStyleView[];
+  readonly selectedNamedStyle: DeclaredStyleView | undefined;
   readonly selectedDirectStyle: ClassView | undefined;
   readonly origin: Extract<SelectionState, { readonly kind: "classes" }>;
   readonly onStyleSelect: (
-    styleDefId: StyleView["styleId"],
+    styleDefId: DeclaredStyleView["styleDefId"],
     origin: Extract<SelectionState, { readonly kind: "classes" }>
   ) => void;
   readonly onStyleCreateCommitted: (
@@ -78,7 +78,7 @@ export function useInteractions({
 
   const onStyleAction = useCallback(() => {
     if (selectedNamedStyle) {
-      onStyleSelect(selectedNamedStyle.styleId, origin);
+      onStyleSelect(selectedNamedStyle.styleDefId, origin);
       return;
     }
     if (selectedDirectStyle) {

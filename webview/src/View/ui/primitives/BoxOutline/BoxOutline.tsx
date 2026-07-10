@@ -6,9 +6,15 @@ import type { ReactElement } from "react";
 import styles from "./BoxOutline.module.css";
 
 type BoxOutlineProps = {
-  readonly variant: "selected" | "pending";
+  readonly variant: "selected" | "selectedStripe" | "pending";
 };
 
 export default function BoxOutline({ variant }: BoxOutlineProps): ReactElement {
-  return <span className={variant === "selected" ? styles.selected : styles.pending} />;
+  const className =
+    variant === "selected"
+      ? styles.selected
+      : variant === "selectedStripe"
+        ? styles.selectedStripe
+        : styles.pending;
+  return <span className={className} />;
 }

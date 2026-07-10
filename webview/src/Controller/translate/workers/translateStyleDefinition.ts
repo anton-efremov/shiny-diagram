@@ -18,13 +18,16 @@ import {
 } from "../anchors/statementAnchors";
 import { composeStyleEntries, composeStyleEntry } from "../syntax/styleSyntax";
 import { spellIdentity } from "../../model/identitySpelling";
+import type { TranslateContext } from "../translateContext";
 
 export function translateStyleDefinitionCreate(
   command: EditorCommandOf<"style.definition.create">,
   graph: DiagramGraph,
-  provenance: ProvenanceIndex
+  provenance: ProvenanceIndex,
+  context: TranslateContext
 ): WriteIntent[] {
   const styleDefId = toStyleDefId(command.name);
+  context.recordStyleCreated(styleDefId);
   const classDef = composeStyleDefinition(styleDefId, command.properties);
   return [
     {
@@ -71,8 +74,10 @@ export function translateStyleDefinitionDelete(
 
 export function translateStyleDefinitionNameSet(
   command: EditorCommandOf<"style.definition.name.set">,
-  graph: DiagramGraph
+  graph: DiagramGraph,
+  context: TranslateContext
 ): WriteIntent[] {
+  context.recordStyleRenamed(command.styleDefId, toStyleDefId(command.name));
   return [
     {
       kind: "replaceValue",

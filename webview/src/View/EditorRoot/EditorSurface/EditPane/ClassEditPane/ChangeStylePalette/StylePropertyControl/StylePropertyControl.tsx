@@ -1,6 +1,6 @@
 /**
- * @behavior Named-style color and line preset normalization.
- * @render One named-style property selector.
+ * @behavior Class style color and stroke preset normalization.
+ * @render One class style property selector.
  */
 
 import type { ReactElement } from "react";
@@ -12,7 +12,7 @@ import StrokeSelect from "../../../../../../ui/composites/StrokeSelect/StrokeSel
 
 type StylePropertyControlProps = {
   readonly property: StylePropertyName;
-  readonly value: string | null;
+  readonly value: string | null | "multiple";
   readonly presets: ColorSelectPresetCatalog;
   readonly documentColors: readonly string[];
   readonly defaultValue: string;

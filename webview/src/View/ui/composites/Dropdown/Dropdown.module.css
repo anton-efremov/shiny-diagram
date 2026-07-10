@@ -174,8 +174,16 @@
   place-items: center;
   min-height: var(--shiny-field-height);
   color: var(--dropdown-arrow-color, var(--shiny-text-muted));
-  font-size: 10px;
-  font-weight: 700;
+}
+
+.arrow::before {
+  display: block;
+  width: 0;
+  height: 0;
+  border-top: 5px solid currentColor;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+  content: "";
 }
 
 .boxLabelTrigger .arrow {

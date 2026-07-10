@@ -10,14 +10,9 @@ import {
   type StylePropertyName,
 } from "../../../../../../shared/style";
 import type { ClassView } from "../../../../../views/schema";
-import {
-  STYLE_COLOR_PRESETS,
-  STYLE_STROKE_DASHARRAY_PRESETS,
-  STYLE_STROKE_WIDTH_PRESETS,
-} from "../../../../../config/editorUiConfig";
-import Dropdown from "../../../../../ui/composites/Dropdown/Dropdown";
-import type { DropdownOption } from "../../../../../ui/composites/Dropdown/Dropdown";
+import type { ColorSelectPresetCatalog } from "../../../../../ui/composites/ColorSelect/ColorSelect";
 import FieldGrid from "../../../../../ui/templates/FieldGrid/FieldGrid";
+import StylePropertyControl from "./StylePropertyControl/StylePropertyControl";
 import { useInteractions } from "./useInteractions";
 
 const EMPTY_STYLE_PROPERTIES: StyleProperties = {
@@ -30,9 +25,24 @@ const EMPTY_STYLE_PROPERTIES: StyleProperties = {
 
 type ChangeStylePaletteProps = {
   readonly view: readonly ClassView[];
+  readonly presets: ColorSelectPresetCatalog;
+  readonly documentColors: readonly string[];
+  readonly widthSelectUIProps: StrokeSelectUIProps;
+  readonly dashSelectUIProps: StrokeSelectUIProps;
 };
 
-export default function ChangeStylePalette({ view }: ChangeStylePaletteProps): ReactElement {
+type StrokeSelectUIProps = {
+  readonly defaultValue: string;
+  readonly documentValues: readonly string[];
+};
+
+export default function ChangeStylePalette({
+  view,
+  presets,
+  documentColors,
+  widthSelectUIProps,
+  dashSelectUIProps,
+}: ChangeStylePaletteProps): ReactElement {
   // Event handler props derivation
   const { onPropertyChange } = useInteractions(view);
 
@@ -46,29 +56,22 @@ export default function ChangeStylePalette({ view }: ChangeStylePaletteProps): R
           <StylePropertyControl
             property={name}
             value={toCommonPropertyValue(view, name)}
+            presets={presets}
+            documentColors={documentColors}
+            defaultValue={
+              name === "strokeWidth"
+                ? widthSelectUIProps.defaultValue
+                : dashSelectUIProps.defaultValue
+            }
+            documentValues={
+              name === "strokeWidth"
+                ? widthSelectUIProps.documentValues
+                : dashSelectUIProps.documentValues
+            }
             onChange={(value) => onPropertyChange(name, value)}
           />
         ),
       }))}
-    />
-  );
-}
-
-function StylePropertyControl({
-  property,
-  value,
-  onChange,
-}: {
-  readonly property: StylePropertyName;
-  readonly value: string | null | "multiple";
-  readonly onChange: (value: string | null) => void;
-}): ReactElement {
-  const selectedValue = value ?? "";
-  return (
-    <Dropdown
-      options={toStylePresetOptions(property, value)}
-      value={selectedValue}
-      onChange={(nextValue) => nextValue !== "multiple" && onChange(toNullableValue(nextValue))}
     />
   );
 }
@@ -86,62 +89,6 @@ function toCommonPropertyValue(
     : "multiple";
 }
 
-function toStylePresetOptions(
-  property: StylePropertyName,
-  value: string | null | "multiple"
-): readonly DropdownOption[] {
-  if (property === "strokeWidth" || property === "strokeDasharray") {
-    return toStrokePresetOptions(property, value);
-  }
-
-  return [
-    ...(value === "multiple" ? [toMultipleOption(property)] : []),
-    ...STYLE_COLOR_PRESETS.map((preset) => {
-      return {
-        value: preset.value,
-        label: preset.label,
-        isLabelVisible: false,
-        swatchKind: toSwatchKind(property),
-        swatchStyle: {
-          fill: property === "fill" ? toSwatchColor(preset.value) : null,
-          stroke: property === "stroke" ? toSwatchColor(preset.value) : null,
-          color: property === "color" ? toSwatchColor(preset.value) : null,
-        },
-      };
-    }),
-  ];
-}
-
-function toStrokePresetOptions(
-  property: StylePropertyName,
-  value: string | null | "multiple"
-): readonly DropdownOption[] {
-  const presets =
-    property === "strokeWidth" ? STYLE_STROKE_WIDTH_PRESETS : STYLE_STROKE_DASHARRAY_PRESETS;
-
-  return [
-    ...(value === "multiple" ? [toMultipleOption(property)] : []),
-    ...presets.map((preset) => ({
-      value: preset.value,
-      label: preset.label,
-      isLabelVisible: false,
-      swatchKind: toSwatchKind(property),
-      swatchStyle: {
-        strokeWidth: property === "strokeWidth" ? preset.value || null : null,
-        strokeDasharray: property === "strokeDasharray" ? preset.value || null : null,
-      },
-    })),
-  ];
-}
-
-function toSwatchColor(value: string): string | null {
-  return value === "" ? null : value;
-}
-
-function toNullableValue(value: string): string | null {
-  return value === "" ? null : value;
-}
-
 function toFieldLabel(property: StylePropertyName): string {
   switch (property) {
     case "fill":
@@ -155,28 +102,4 @@ function toFieldLabel(property: StylePropertyName): string {
     case "color":
       return "Text color";
   }
-}
-
-function toSwatchKind(property: StylePropertyName): DropdownOption["swatchKind"] {
-  switch (property) {
-    case "fill":
-      return "box";
-    case "stroke":
-    case "strokeWidth":
-      return "line";
-    case "strokeDasharray":
-      return "dash";
-    case "color":
-      return "text";
-  }
-}
-
-function toMultipleOption(property: StylePropertyName): DropdownOption {
-  return {
-    value: "multiple",
-    label: "multiple",
-    isLabelVisible: false,
-    swatchKind: toSwatchKind(property),
-    swatchStyle: {},
-  };
 }

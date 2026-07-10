@@ -53,6 +53,7 @@ describe("deriveClassBoxViews", () => {
       notes: new Map(),
       styleDefinitions: new Map(),
       styleApplications: new Map(),
+      styleOccurrences: [],
     };
 
     expect(deriveClassBoxViews(graph)[0].members).toEqual([

@@ -134,9 +134,7 @@ export default function CommitComboBox({
           aria-expanded={isOpen}
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => setIsOpen((current) => !current)}
-        >
-          v
-        </button>
+        />
         {isOpen ? (
           <div className={styles.menu} role="listbox">
             {renderedOptions.map((option) => (

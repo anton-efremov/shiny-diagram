@@ -3,8 +3,10 @@
  */
 
 .toggle {
+  position: relative;
+  width: 100%;
   min-width: 0;
-  padding: 4px;
+  padding: 6px;
   border: 1px solid var(--shiny-border);
   border-radius: 4px;
   color: var(--shiny-text);
@@ -12,9 +14,12 @@
   cursor: pointer;
 }
 
-.toggle[aria-pressed="true"] {
+.toggle[aria-pressed="true"]:not(:disabled) {
   border-color: var(--shiny-accent);
-  background: var(--shiny-overlay-faint);
+  background: var(--shiny-surface);
+  box-shadow:
+    inset 0 0 0 1px var(--shiny-accent),
+    inset 0 1px 0 var(--shiny-overlay-faint);
 }
 
 .toggle:focus-visible {

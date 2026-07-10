@@ -205,11 +205,11 @@ function translateCommand(
     case "namespace.parentNamespace.set":
       return translateNamespaceParentNamespaceSet(command, graph, provenance, sourceText, context);
     case "style.definition.create":
-      return translateStyleDefinitionCreate(command, graph, provenance);
+      return translateStyleDefinitionCreate(command, graph, provenance, context);
     case "style.definition.delete":
       return translateStyleDefinitionDelete(command, graph, provenance);
     case "style.definition.name.set":
-      return translateStyleDefinitionNameSet(command, graph);
+      return translateStyleDefinitionNameSet(command, graph, context);
     case "style.definition.property.set":
       return translateStyleDefinitionPropertySet(command, provenance);
     default:

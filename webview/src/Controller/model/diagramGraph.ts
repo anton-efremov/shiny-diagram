@@ -81,7 +81,26 @@ export type DiagramGraph = {
   readonly notes: ReadonlyMap<NoteId, NoteNode>;
   readonly styleDefinitions: ReadonlyMap<StyleDefId, StyleDefNode>;
   readonly styleApplications: ReadonlyMap<StyleApplicationId, StyleApplicationEdge>;
+  readonly styleOccurrences: readonly StyleOccurrence[];
 };
+
+export type StyleOccurrence =
+  | {
+      readonly kind: "declared";
+      readonly styleDefId: StyleDefId;
+      readonly name: string;
+      readonly properties: StyleProperties;
+    }
+  | {
+      readonly kind: "direct";
+      readonly classId: ClassId;
+      readonly properties: StyleProperties;
+    }
+  | {
+      readonly kind: "namespace";
+      readonly namespaceId: NamespaceId;
+      readonly properties: StyleProperties;
+    };
 
 // ============================================================================
 // Nodes

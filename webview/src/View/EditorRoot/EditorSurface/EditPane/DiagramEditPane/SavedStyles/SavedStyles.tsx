@@ -6,16 +6,15 @@
 import type { ReactElement } from "react";
 import type { StyleDefId } from "../../../../../../shared/ids";
 import type { SelectionState } from "../../../../../state/editorStates";
-import type { StyleView } from "../../../../../views/schema";
+import type { DeclaredStyleView } from "../../../../../views/schema";
 import Button from "../../../../../ui/primitives/Button/Button";
 import StyledBoxSwatch from "../../../../../ui/primitives/StyledBoxSwatch/StyledBoxSwatch";
-import TextBlock from "../../../../../ui/primitives/TextBlock/TextBlock";
 import ControlGroup from "../../../../../ui/templates/ControlGroup/ControlGroup";
 import PaneSection from "../../../../../ui/templates/PaneSection/PaneSection";
 import StyleChip from "./StyleChip/StyleChip";
 
 type SavedStylesProps = {
-  readonly view: readonly StyleView[];
+  readonly view: readonly DeclaredStyleView[];
   readonly selectionState: SelectionState;
   readonly onStyleSelect: (styleDefId: StyleDefId) => void;
   readonly onCreate: () => void;
@@ -36,20 +35,22 @@ export default function SavedStyles({
 
   return (
     <PaneSection label="Saved styles">
-      {defaultStyle ? (
-        <StyledBoxSwatch styleValues={defaultStyle.style} label="Default" />
-      ) : (
-        <TextBlock text="No default style" />
-      )}
-      <ControlGroup columns={2}>
-        {namedStyles.map((styleView) => (
-          <StyleChip
-            key={styleView.styleId}
-            view={styleView}
-            pressed={styleView.styleId === selectedStyleId}
-            onStyleSelect={onStyleSelect}
-          />
-        ))}
+      <ControlGroup spacing="wide">
+        {defaultStyle ? (
+          <StyledBoxSwatch styleValues={defaultStyle.properties} label="Default" />
+        ) : (
+          <StyledBoxSwatch styleValues={{}} label="No default style" />
+        )}
+        <ControlGroup>
+          {namedStyles.map((styleView) => (
+            <StyleChip
+              key={styleView.styleDefId}
+              view={styleView}
+              pressed={styleView.styleDefId === selectedStyleId}
+              onStyleSelect={onStyleSelect}
+            />
+          ))}
+        </ControlGroup>
       </ControlGroup>
       <Button label="+ New style" onClick={onCreate} />
     </PaneSection>

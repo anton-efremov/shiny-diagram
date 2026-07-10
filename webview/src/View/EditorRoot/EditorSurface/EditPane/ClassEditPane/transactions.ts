@@ -6,7 +6,7 @@ import type { ClassId } from "../../../../../shared/ids";
 import type { StyleProperties } from "../../../../../shared/style";
 import type { ClassAnnotation } from "../../../../../shared/uml";
 import type { EditorCommandTransaction } from "../../../../commands/editorCommands";
-import type { ClassView, StyleView } from "../../../../views/schema";
+import type { ClassView, DeclaredStyleView } from "../../../../views/schema";
 
 export function toClassNameCommitTransaction(
   classId: ClassId,
@@ -31,7 +31,7 @@ export function toClassLabelCommitTransaction(
 
 export function toClassStyleSaveTransaction(
   classView: ClassView,
-  styles: readonly StyleView[]
+  styles: readonly DeclaredStyleView[]
 ): EditorCommandTransaction {
   return [
     {
@@ -54,7 +54,7 @@ const EMPTY_STYLE: StyleProperties = {
   color: null,
 };
 
-function toUniqueStyleName(styles: readonly StyleView[]): string {
+function toUniqueStyleName(styles: readonly DeclaredStyleView[]): string {
   const names = new Set(styles.map((styleView) => styleView.name));
   let index = 1;
   while (names.has(`style${index}`)) index += 1;

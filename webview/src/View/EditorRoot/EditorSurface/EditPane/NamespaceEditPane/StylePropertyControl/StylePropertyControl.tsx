@@ -1,14 +1,14 @@
 /**
- * @behavior Named-style color and line preset normalization.
- * @render One named-style property selector.
+ * @behavior Namespace style color and line preset normalization.
+ * @render One namespace style property selector.
  */
 
 import type { ReactElement } from "react";
-import type { StylePropertyName } from "../../../../../../../shared/style";
-import { DASH_PRESETS, WIDTH_PRESETS } from "../../../../../../config/stylePresets";
-import ColorSelect from "../../../../../../ui/composites/ColorSelect/ColorSelect";
-import type { ColorSelectPresetCatalog } from "../../../../../../ui/composites/ColorSelect/ColorSelect";
-import StrokeSelect from "../../../../../../ui/composites/StrokeSelect/StrokeSelect";
+import type { StylePropertyName } from "../../../../../../shared/style";
+import { DASH_PRESETS, WIDTH_PRESETS } from "../../../../../config/stylePresets";
+import ColorSelect from "../../../../../ui/composites/ColorSelect/ColorSelect";
+import type { ColorSelectPresetCatalog } from "../../../../../ui/composites/ColorSelect/ColorSelect";
+import StrokeSelect from "../../../../../ui/composites/StrokeSelect/StrokeSelect";
 
 type StylePropertyControlProps = {
   readonly property: StylePropertyName;
@@ -34,9 +34,9 @@ export default function StylePropertyControl({
     return (
       <ColorSelect
         glyph={property === "color" ? "text" : property}
-        value={value}
         presets={presets}
         documentColors={documentColors}
+        value={value}
         onChange={onChange}
       />
     );

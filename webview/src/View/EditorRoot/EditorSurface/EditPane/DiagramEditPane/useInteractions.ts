@@ -6,7 +6,7 @@ import { useCallback } from "react";
 import type { TransactionResult } from "../../../../commands/editorCommands";
 import { useDispatchTransaction } from "../../../../contexts";
 import type { SelectionState } from "../../../../state/editorStates";
-import type { StyleView } from "../../../../views/schema";
+import type { DeclaredStyleView } from "../../../../views/schema";
 import {
   toDefaultStyleSetTransaction,
   toStyleCreateTransaction,
@@ -14,8 +14,8 @@ import {
 } from "./transactions";
 
 type UseInteractionsInput = {
-  readonly styles: readonly StyleView[];
-  readonly selectedStyle: StyleView | undefined;
+  readonly styles: readonly DeclaredStyleView[];
+  readonly selectedStyle: DeclaredStyleView | undefined;
   readonly origin: Extract<SelectionState, { readonly kind: "classes" }> | undefined;
   readonly onSelectionRestore: (selectionState: SelectionState) => void;
   readonly onStyleCreateCommitted: (result: TransactionResult) => void;

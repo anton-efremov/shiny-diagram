@@ -6,13 +6,13 @@
 import type { ReactElement } from "react";
 import { toStyleDefId } from "../../../../../../shared/ids";
 import type { StyleProperties } from "../../../../../../shared/style";
-import type { ClassView, StyleView } from "../../../../../views/schema";
+import type { ClassView, DeclaredStyleView } from "../../../../../views/schema";
 import Dropdown from "../../../../../ui/composites/Dropdown/Dropdown";
 import { useInteractions } from "./useInteractions";
 
 type NamedStyleSelectorProps = {
   readonly view: readonly ClassView[];
-  readonly styles: readonly StyleView[];
+  readonly styles: readonly DeclaredStyleView[];
 };
 
 export default function NamedStyleSelector({
@@ -54,10 +54,10 @@ export default function NamedStyleSelector({
           : []),
         { value: "none", label: "No style", swatchKind: "boxLabel", swatchStyle: {} },
         ...styleViews.map((styleView) => ({
-          value: styleView.styleId,
+          value: styleView.styleDefId,
           label: styleView.name,
           swatchKind: "boxLabel" as const,
-          swatchStyle: styleView.style,
+          swatchStyle: styleView.properties,
         })),
       ]}
       onChange={onChange}

@@ -79,7 +79,15 @@
   padding: 0;
   border-radius: 0 var(--shiny-field-radius) var(--shiny-field-radius) 0;
   color: var(--shiny-text-muted);
-  font-weight: 700;
+}
+
+.menuButton::before {
+  width: 0;
+  height: 0;
+  border-top: 5px solid currentColor;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+  content: "";
 }
 
 .valueButton:hover:not(:disabled),

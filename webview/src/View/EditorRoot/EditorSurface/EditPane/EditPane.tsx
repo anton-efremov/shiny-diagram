@@ -13,7 +13,7 @@ import type { NamespaceId, NoteId, RelationshipId, StyleDefId } from "../../../.
 import type { TransactionResult } from "../../../commands/editorCommands";
 import type { RelationshipSeed } from "../../../state/editorStates";
 import type { SelectionState } from "../../../state/editorStates";
-import type { DiagramView, NoteView, RelationshipView, NamespaceView } from "../../../views/schema";
+import type { DiagramView, NoteView, RelationshipView } from "../../../views/schema";
 import { EDIT_PANE_WIDTH } from "../../../config/editorUiConfig";
 import PaneFrame from "../../../ui/templates/PaneFrame/PaneFrame";
 
@@ -62,7 +62,7 @@ type EditPaneScenario =
     }
   | {
       readonly kind: "namespace";
-      readonly selectedNamespace: NamespaceView;
+      readonly selectionState: Extract<SelectionState, { readonly kind: "namespace" }>;
     };
 
 export default function EditPane({
@@ -127,7 +127,8 @@ export default function EditPane({
     case "namespace":
       editPaneContent = (
         <NamespaceEditPane
-          view={editPaneScenario.selectedNamespace}
+          view={view}
+          selectionState={editPaneScenario.selectionState}
           onNamespaceRenameCommitted={onNamespaceRenameCommitted}
         />
       );
@@ -154,7 +155,8 @@ function toEditPaneScenario(
     }
     case "style": {
       const selectedStyle = view.styles.find(
-        (styleView) => styleView.styleId === selectionState.styleDefId
+        (styleView) =>
+          styleView.kind === "declared" && styleView.styleDefId === selectionState.styleDefId
       );
       return selectedStyle
         ? { kind: "diagram", selectionState }
@@ -177,7 +179,7 @@ function toEditPaneScenario(
         (namespaceView) => namespaceView.namespaceId === selectionState.namespaceId
       );
       return selectedNamespace
-        ? { kind: "namespace", selectedNamespace }
+        ? { kind: "namespace", selectionState }
         : { kind: "diagram", selectionState };
     }
   }

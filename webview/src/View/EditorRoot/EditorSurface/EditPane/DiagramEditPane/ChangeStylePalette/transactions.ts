@@ -3,13 +3,13 @@
  */
 
 import type { EditorCommandTransaction } from "../../../../../commands/editorCommands";
-import type { StyleView } from "../../../../../views/schema";
+import type { DeclaredStyleView } from "../../../../../views/schema";
 import type { StylePropertyName } from "../../../../../../shared/style";
 
 export function toStylePropertySetTransaction(
-  style: StyleView,
+  style: DeclaredStyleView,
   property: StylePropertyName,
   value: string | null
 ): EditorCommandTransaction {
-  return [{ type: "style.definition.property.set", styleDefId: style.styleId, property, value }];
+  return [{ type: "style.definition.property.set", styleDefId: style.styleDefId, property, value }];
 }

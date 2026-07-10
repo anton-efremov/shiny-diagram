@@ -3,11 +3,18 @@
  */
 
 .selected,
+.selectedStripe,
 .pending {
   position: absolute;
   inset: 0;
   box-sizing: border-box;
   pointer-events: none;
+}
+
+.selectedStripe {
+  inset: 4px -4px -4px 4px;
+  border-right: 4px solid var(--shiny-selection-stripe);
+  border-bottom: 4px solid var(--shiny-selection-stripe);
 }
 
 .selected {

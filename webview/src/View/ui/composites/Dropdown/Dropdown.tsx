@@ -61,9 +61,7 @@ export default function Dropdown({
           ) : (
             <span className={styles.triggerLabel}>{selectedOption?.label ?? ""}</span>
           )}
-          <span className={styles.arrow} aria-hidden="true">
-            v
-          </span>
+          <span className={styles.arrow} aria-hidden="true" />
         </span>
       </button>
       {isOpen ? (

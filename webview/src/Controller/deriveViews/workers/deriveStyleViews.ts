@@ -6,12 +6,8 @@ import type { DiagramGraph } from "../../model/diagramGraph";
 import type { StyleView } from "../../../View/views";
 
 /**
- * Derives style views for declared style definitions.
+ * Derives source-ordered views for every style occurrence.
  */
 export function deriveStyleViews(model: DiagramGraph): StyleView[] {
-  return [...model.styleDefinitions.values()].map((styleDef) => ({
-    styleId: styleDef.id,
-    name: styleDef.name,
-    style: styleDef.properties,
-  }));
+  return model.styleOccurrences.map((occurrence) => ({ ...occurrence }));
 }

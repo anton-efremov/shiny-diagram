@@ -18,6 +18,10 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.wideSpacing {
+  gap: 12px;
+}
+
 .oneColumnGroup > *,
 .twoColumnGroup > * {
   min-width: 0;

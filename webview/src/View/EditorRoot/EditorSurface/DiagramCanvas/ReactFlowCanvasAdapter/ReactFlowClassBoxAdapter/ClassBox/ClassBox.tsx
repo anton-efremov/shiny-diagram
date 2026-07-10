@@ -83,7 +83,13 @@ export default function ClassBox({
   const { onClassBoxClick, onHeaderCommit } = useInteractions(view.classId, onClassSelect);
 
   // UI props derivation
-  const className = [styles.classBox, isDragging ? styles.dragging : ""].filter(Boolean).join(" ");
+  const className = [
+    styles.classBox,
+    isSelected ? styles.selectedClass : "",
+    isDragging ? styles.dragging : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const dynamicVars = {
     "--class-fill": view.style?.fill ?? undefined,
@@ -101,7 +107,7 @@ export default function ClassBox({
     <div className={className} style={dynamicVars} title={view.classId} onClick={onClassBoxClick}>
       {haloColor ? <HaloRing tint={haloColor} /> : null}
       {isPendingMember ? <BoxOutline variant="pending" /> : null}
-      {isSelected ? <BoxOutline variant="selected" /> : null}
+      {isSelected ? <BoxOutline variant="selectedStripe" /> : null}
       {isResizeVisible ? (
         <div className="nodrag nopan">
           <ResizeAffordance onGrab={onResizeGrab} />
