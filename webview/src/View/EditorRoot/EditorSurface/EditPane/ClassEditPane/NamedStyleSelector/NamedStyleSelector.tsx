@@ -5,6 +5,7 @@
 
 import type { ReactElement } from "react";
 import { toStyleDefId } from "../../../../../../shared/ids";
+import type { StyleProperties } from "../../../../../../shared/style";
 import type { ClassView, StyleView } from "../../../../../views/schema";
 import Dropdown from "../../../../../ui/composites/Dropdown/Dropdown";
 import { useInteractions } from "./useInteractions";
@@ -23,7 +24,7 @@ export default function NamedStyleSelector({
   const selectedValue = toSelectedValue(view);
 
   function onChange(value: string): void {
-    if (value === "multiple") return;
+    if (value === "multiple" || value === "custom") return;
     onStyleChange(value === "none" ? null : toStyleDefId(value));
   }
 
@@ -31,13 +32,14 @@ export default function NamedStyleSelector({
     <Dropdown
       value={selectedValue}
       options={[
-        ...(selectedValue === "multiple"
-          ? [{ value: "multiple", label: "Saved styles: Multiple" }]
+        ...(selectedValue === "multiple" ? [{ value: "multiple", label: "Multiple" }] : []),
+        ...(selectedValue === "custom"
+          ? [{ value: "custom", label: "Custom style", swatchStyle: toCustomSwatchStyle(view) }]
           : []),
-        { value: "none", label: "Saved styles: No style" },
+        { value: "none", label: "No style", swatchStyle: {} },
         ...styleViews.map((styleView) => ({
           value: styleView.styleId,
-          label: `Saved styles: ${styleView.name}`,
+          label: styleView.name,
           swatchStyle: styleView.style,
         })),
       ]}
@@ -47,10 +49,15 @@ export default function NamedStyleSelector({
 }
 
 // Private helpers
+function toCustomSwatchStyle(classes: readonly ClassView[]): Partial<StyleProperties> {
+  return classes.length === 1 ? (classes[0]?.style ?? {}) : {};
+}
+
 function toSelectedValue(classes: readonly ClassView[]): string {
   const first = classes[0]?.appliedStyleId;
   if (classes.every((classView) => classView.appliedStyleId === first)) {
-    return first ?? "none";
+    if (first) return first;
+    return classes.some((classView) => classView.style !== undefined) ? "custom" : "none";
   }
   return "multiple";
 }

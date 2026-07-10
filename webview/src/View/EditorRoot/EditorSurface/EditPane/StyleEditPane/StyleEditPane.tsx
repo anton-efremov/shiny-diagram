@@ -7,6 +7,7 @@ import type { ReactElement } from "react";
 import type { StyleView } from "../../../../views/schema";
 import Button from "../../../../ui/primitives/Button/Button";
 import PaneSection from "../../../../ui/templates/PaneSection/PaneSection";
+import ControlGroup from "../../../../ui/templates/ControlGroup/ControlGroup";
 import ChangeStylePalette from "./ChangeStylePalette/ChangeStylePalette";
 import StyleNameEditor from "./StyleNameEditor/StyleNameEditor";
 import { useInteractions } from "./useInteractions";
@@ -25,14 +26,17 @@ export default function StyleEditPane({
 
   return (
     <>
-      <PaneSection label="Style name">
+      <PaneSection label="Selected style">
         <StyleNameEditor view={view} styles={styleViews} />
       </PaneSection>
-      <PaneSection label="Change style">
+      <PaneSection label="Configure named style">
         <ChangeStylePalette view={view} />
       </PaneSection>
-      <PaneSection label="">
-        <Button label="Delete style" tone="danger" onClick={onDelete} />
+      <PaneSection label="Actions">
+        <ControlGroup columns={2}>
+          <Button label="Rename style" disabled />
+          <Button label="Delete style" tone="danger" onClick={onDelete} />
+        </ControlGroup>
       </PaneSection>
     </>
   );

@@ -453,21 +453,17 @@ function toToggledClassIds(
     : [...selectedClassIds, classId];
 }
 
+function clearSelectionState(selectionState: SelectionState): SelectionState {
+  return selectionState.kind === "none" ? selectionState : { kind: "none" };
+}
+
 function updateSelectedStyleDefId(
   selectionState: SelectionState,
   styleDefId: StyleDefId
 ): SelectionState {
   return selectionState.kind === "style" && selectionState.styleDefId === styleDefId
     ? selectionState
-    : toStyleSelectionState(styleDefId);
-}
-
-function clearSelectionState(selectionState: SelectionState): SelectionState {
-  return selectionState.kind === "none" ? selectionState : { kind: "none" };
-}
-
-function toStyleSelectionState(styleDefId: StyleDefId): SelectionState {
-  return { kind: "style", styleDefId };
+    : { kind: "style", styleDefId };
 }
 
 function toClassSelectionState(classIds: readonly ClassId[]): SelectionState {

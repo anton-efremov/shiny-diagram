@@ -11,9 +11,9 @@ import {
   STYLE_STROKE_DASHARRAY_PRESETS,
   STYLE_STROKE_WIDTH_PRESETS,
 } from "../../../../../config/editorUiConfig";
-import ColorSelect from "../../../../../ui/composites/ColorSelect/ColorSelect";
 import Dropdown from "../../../../../ui/composites/Dropdown/Dropdown";
 import type { DropdownOption } from "../../../../../ui/composites/Dropdown/Dropdown";
+import FieldGrid from "../../../../../ui/templates/FieldGrid/FieldGrid";
 import { useInteractions } from "./useInteractions";
 
 type ChangeStylePaletteProps = {
@@ -25,16 +25,18 @@ export default function ChangeStylePalette({ view }: ChangeStylePaletteProps): R
   const { onPropertyChange } = useInteractions(view);
 
   return (
-    <>
-      {STYLE_PROPERTIES.map(({ name }) => (
-        <StylePropertyControl
-          key={name}
-          property={name}
-          value={view.style[name]}
-          onChange={(value) => onPropertyChange(name, value)}
-        />
-      ))}
-    </>
+    <FieldGrid
+      rows={STYLE_PROPERTIES.map(({ name }) => ({
+        label: toFieldLabel(name),
+        control: (
+          <StylePropertyControl
+            property={name}
+            value={view.style[name]}
+            onChange={(value) => onPropertyChange(name, value)}
+          />
+        ),
+      }))}
+    />
   );
 }
 
@@ -49,27 +51,25 @@ function StylePropertyControl({
 }): ReactElement {
   const selectedValue = value ?? "";
 
-  return isColorProperty(property) ? (
-    <ColorSelect
-      presets={toColorPresetOptions(property)}
-      value={selectedValue}
-      onChange={(nextValue) => onChange(toNullableValue(nextValue))}
-    />
-  ) : (
+  return (
     <Dropdown
-      options={toStrokePresetOptions(property)}
+      options={toStylePresetOptions(property)}
       value={selectedValue}
       onChange={(nextValue) => onChange(toNullableValue(nextValue))}
     />
   );
 }
 
-function toColorPresetOptions(property: StylePropertyName): readonly DropdownOption[] {
+function toStylePresetOptions(property: StylePropertyName): readonly DropdownOption[] {
+  if (property === "strokeWidth" || property === "strokeDasharray") {
+    return toStrokePresetOptions(property);
+  }
+
   return STYLE_COLOR_PRESETS.map((preset) => {
-    const label = `${toLabel(property)}: ${preset.label}`;
     return {
       value: preset.value,
-      label,
+      label: preset.label,
+      swatchKind: toSwatchKind(property),
       swatchStyle: {
         fill: property === "fill" ? toSwatchColor(preset.value) : null,
         stroke: property === "stroke" ? toSwatchColor(preset.value) : null,
@@ -85,7 +85,8 @@ function toStrokePresetOptions(property: StylePropertyName): readonly DropdownOp
 
   return presets.map((preset) => ({
     value: preset.value,
-    label: `${toLabel(property)}: ${preset.label}`,
+    label: preset.label,
+    swatchKind: toSwatchKind(property),
     swatchStyle: {
       strokeWidth: property === "strokeWidth" ? preset.value || null : null,
       strokeDasharray: property === "strokeDasharray" ? preset.value || null : null,
@@ -101,21 +102,31 @@ function toNullableValue(value: string): string | null {
   return value === "" ? null : value;
 }
 
-function isColorProperty(property: StylePropertyName): boolean {
-  return property === "fill" || property === "stroke" || property === "color";
-}
-
-function toLabel(property: StylePropertyName): string {
+function toFieldLabel(property: StylePropertyName): string {
   switch (property) {
     case "fill":
       return "Fill";
     case "stroke":
       return "Stroke";
     case "strokeWidth":
-      return "Stroke width";
+      return "Width";
     case "strokeDasharray":
-      return "Stroke dasharray";
+      return "Dash";
     case "color":
       return "Text";
+  }
+}
+
+function toSwatchKind(property: StylePropertyName): DropdownOption["swatchKind"] {
+  switch (property) {
+    case "fill":
+      return "box";
+    case "stroke":
+    case "strokeWidth":
+      return "line";
+    case "strokeDasharray":
+      return "dash";
+    case "color":
+      return "text";
   }
 }

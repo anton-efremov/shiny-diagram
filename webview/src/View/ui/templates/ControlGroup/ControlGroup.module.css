@@ -1,0 +1,25 @@
+/**
+ * @render Form control group styling.
+ */
+
+.oneColumnGroup,
+.twoColumnGroup {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.oneColumnGroup {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.twoColumnGroup {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.oneColumnGroup > *,
+.twoColumnGroup > * {
+  width: 100%;
+  min-width: 0;
+}

@@ -16,6 +16,7 @@ type CommitComboBoxProps = {
   readonly validate: (draft: string) => readonly string[];
   readonly disabled?: boolean;
   readonly ariaLabel?: string;
+  readonly isLabelVisible?: boolean;
   readonly onCommit: (value: string) => void;
   readonly onDiscard: (messages: readonly string[]) => void;
   readonly onCancel: () => void;
@@ -27,6 +28,7 @@ export default function CommitComboBox({
   validate,
   disabled = false,
   ariaLabel,
+  isLabelVisible = true,
   onCommit,
   onDiscard,
   onCancel,
@@ -94,9 +96,11 @@ export default function CommitComboBox({
     onCommit(nextValue);
   }
 
+  const visibleLabel = isLabelVisible ? ariaLabel : undefined;
+
   return (
-    <div className={styles.combo}>
-      {ariaLabel === undefined ? null : <span className={styles.label}>{ariaLabel}</span>}
+    <div className={visibleLabel === undefined ? styles.comboWithoutLabel : styles.combo}>
+      {visibleLabel === undefined ? null : <span className={styles.label}>{visibleLabel}</span>}
       <div className={styles.comboBox}>
         {isCustom ? (
           <TextField

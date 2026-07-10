@@ -1,0 +1,32 @@
+/**
+ * @render Label/control row grid styling.
+ */
+
+.grid {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--shiny-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.control {
+  min-width: 0;
+}

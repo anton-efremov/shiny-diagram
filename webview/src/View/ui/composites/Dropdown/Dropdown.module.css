@@ -41,7 +41,8 @@
 }
 
 .triggerLabel,
-.optionLabel {
+.optionLabel,
+.optionContent {
   display: block;
   min-height: 32px;
   padding: 7px 10px;
@@ -51,6 +52,67 @@
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.triggerContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16px;
+  align-items: center;
+  min-width: 0;
+}
+
+.triggerContent > .triggerLabel,
+.triggerContent > .optionContent {
+  padding-right: 4px;
+}
+
+.optionContent {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.swatch {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: var(--dropdown-swatch-stroke-width, 1px) solid
+    var(--dropdown-swatch-stroke, var(--shiny-border));
+  border-style: var(--dropdown-swatch-stroke-dasharray, solid);
+  color: var(--dropdown-swatch-color, var(--dropdown-swatch-stroke, var(--shiny-text)));
+  background: var(--dropdown-swatch-fill, transparent);
+}
+
+.lineSample {
+  display: block;
+  width: 18px;
+  height: 10px;
+  color: var(--dropdown-swatch-stroke, var(--shiny-text-muted));
+}
+
+.textSample {
+  color: var(--dropdown-swatch-color, var(--shiny-text-muted));
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.optionText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arrow {
+  display: grid;
+  place-items: center;
+  min-height: 32px;
+  color: var(--shiny-text-muted);
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .menu {

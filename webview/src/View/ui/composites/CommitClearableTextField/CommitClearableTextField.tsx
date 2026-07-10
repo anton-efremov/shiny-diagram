@@ -14,6 +14,7 @@ type CommitClearableTextFieldProps = {
   readonly validate: (draft: string) => readonly string[];
   readonly disabled?: boolean;
   readonly ariaLabel?: string;
+  readonly isLabelVisible?: boolean;
   readonly onCommit: (value: string) => void;
   readonly onClear: () => void;
   readonly onDiscard: (messages: readonly string[]) => void;
@@ -25,6 +26,7 @@ export default function CommitClearableTextField({
   validate,
   disabled = false,
   ariaLabel,
+  isLabelVisible = true,
   onCommit,
   onClear,
   onDiscard,
@@ -81,9 +83,11 @@ export default function CommitClearableTextField({
     onClear();
   }
 
+  const visibleLabel = isLabelVisible ? ariaLabel : undefined;
+
   return (
-    <div className={styles.field}>
-      {ariaLabel === undefined ? null : <span className={styles.label}>{ariaLabel}</span>}
+    <div className={visibleLabel === undefined ? styles.fieldWithoutLabel : styles.field}>
+      {visibleLabel === undefined ? null : <span className={styles.label}>{visibleLabel}</span>}
       <div className={styles.inputHost}>
         <TextField
           value={draft}

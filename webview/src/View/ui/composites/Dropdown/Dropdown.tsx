@@ -5,13 +5,15 @@
 
 import { useState } from "react";
 import type { ReactElement } from "react";
-import StyledBoxSwatch from "../../primitives/StyledBoxSwatch/StyledBoxSwatch";
+import type { CSSProperties } from "react";
+import type { StyleProperties } from "../../../../shared/style";
 import styles from "./Dropdown.module.css";
 
 export type DropdownOption = {
   readonly value: string;
   readonly label: string;
-  readonly swatchStyle?: Parameters<typeof StyledBoxSwatch>[0]["styleValues"];
+  readonly swatchStyle?: Partial<StyleProperties>;
+  readonly swatchKind?: "box" | "line" | "dash" | "text";
 };
 
 type DropdownProps = {
@@ -45,11 +47,16 @@ export default function Dropdown({
         aria-expanded={isOpen}
         onClick={() => setIsOpen((current) => !current)}
       >
-        {selectedOption?.swatchStyle ? (
-          <StyledBoxSwatch styleValues={selectedOption.swatchStyle} label={selectedOption.label} />
-        ) : (
-          <span className={styles.triggerLabel}>{selectedOption?.label ?? ""}</span>
-        )}
+        <span className={styles.triggerContent}>
+          {selectedOption?.swatchStyle ? (
+            <OptionContent option={selectedOption} />
+          ) : (
+            <span className={styles.triggerLabel}>{selectedOption?.label ?? ""}</span>
+          )}
+          <span className={styles.arrow} aria-hidden="true">
+            v
+          </span>
+        </span>
       </button>
       {isOpen ? (
         <div className={styles.menu} role="listbox">
@@ -63,7 +70,7 @@ export default function Dropdown({
               onClick={() => selectValue(option.value)}
             >
               {option.swatchStyle ? (
-                <StyledBoxSwatch styleValues={option.swatchStyle} label={option.label} />
+                <OptionContent option={option} />
               ) : (
                 <span className={styles.optionLabel}>{option.label}</span>
               )}
@@ -72,5 +79,50 @@ export default function Dropdown({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function OptionContent({ option }: { readonly option: DropdownOption }): ReactElement {
+  const swatchStyle: CSSProperties & {
+    "--dropdown-swatch-fill"?: string;
+    "--dropdown-swatch-stroke"?: string;
+    "--dropdown-swatch-color"?: string;
+    "--dropdown-swatch-stroke-width"?: string;
+    "--dropdown-swatch-stroke-dasharray"?: string;
+  } = {
+    "--dropdown-swatch-fill": option.swatchStyle?.fill ?? undefined,
+    "--dropdown-swatch-stroke": option.swatchStyle?.stroke ?? undefined,
+    "--dropdown-swatch-color": option.swatchStyle?.color ?? undefined,
+    "--dropdown-swatch-stroke-width": option.swatchStyle?.strokeWidth ?? undefined,
+    "--dropdown-swatch-stroke-dasharray": option.swatchStyle?.strokeDasharray ?? undefined,
+  };
+
+  return (
+    <span className={styles.optionContent}>
+      <span className={styles.swatch} style={swatchStyle} aria-hidden="true">
+        {option.swatchKind === "line" || option.swatchKind === "dash" ? (
+          <svg
+            className={styles.lineSample}
+            viewBox="0 0 18 10"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path
+              d="M2 5h14"
+              stroke="currentColor"
+              strokeWidth={option.swatchStyle?.strokeWidth ?? "1.5px"}
+              strokeDasharray={
+                option.swatchKind === "dash"
+                  ? (option.swatchStyle?.strokeDasharray ?? "3 3")
+                  : undefined
+              }
+              strokeLinecap="round"
+            />
+          </svg>
+        ) : null}
+        {option.swatchKind === "text" ? <span className={styles.textSample}>A</span> : null}
+      </span>
+      <span className={styles.optionText}>{option.label}</span>
+    </span>
   );
 }

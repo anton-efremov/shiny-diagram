@@ -2,12 +2,20 @@
  * @render Clearable commit text field styling.
  */
 
-.field {
+.field,
+.fieldWithoutLabel {
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
   gap: 8px;
   align-items: center;
   min-width: 0;
+}
+
+.field {
+  grid-template-columns: 76px minmax(0, 1fr);
+}
+
+.fieldWithoutLabel {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .label {

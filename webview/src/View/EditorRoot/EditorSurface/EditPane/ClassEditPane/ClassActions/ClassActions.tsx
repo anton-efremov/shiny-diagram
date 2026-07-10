@@ -7,6 +7,7 @@ import { useEffect, type ReactElement } from "react";
 import type { ClassView } from "../../../../../views/schema";
 import { shouldIgnoreKeyboardShortcutEvent } from "../../../../../utils/keyboardEvents";
 import Button from "../../../../../ui/primitives/Button/Button";
+import ControlGroup from "../../../../../ui/templates/ControlGroup/ControlGroup";
 import { useInteractions } from "./useInteractions";
 
 type ClassActionsProps = {
@@ -30,9 +31,9 @@ export default function ClassActions({ view }: ClassActionsProps): ReactElement 
   }, [onDelete]);
 
   return (
-    <>
+    <ControlGroup columns={2}>
       <Button label="Duplicate" onClick={onDuplicate} />
       <Button label="Delete" tone="danger" onClick={onDelete} />
-    </>
+    </ControlGroup>
   );
 }
