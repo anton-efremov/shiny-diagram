@@ -5,7 +5,9 @@
 
 import type { ReactElement } from "react";
 import type { StyleDefId } from "../../../../../shared/ids";
-import type { ClassView, StyleView } from "../../../../views/schema";
+import type { SelectionState } from "../../../../state/editorStates";
+import type { TransactionResult } from "../../../../commands/editorCommands";
+import type { DiagramView } from "../../../../views/schema";
 import ChangeStylePalette from "./ChangeStylePalette/ChangeStylePalette";
 import ClassActions from "./ClassActions/ClassActions";
 import HeaderTextControls from "./HeaderTextControls/HeaderTextControls";
@@ -16,35 +18,68 @@ import Button from "../../../../ui/primitives/Button/Button";
 import ControlGroup from "../../../../ui/templates/ControlGroup/ControlGroup";
 
 type ClassEditPaneProps = {
-  readonly view: readonly ClassView[];
-  readonly styles: readonly StyleView[];
-  readonly onStyleSelect: (styleDefId: StyleDefId) => void;
+  readonly view: Pick<DiagramView, "classes" | "styles">;
+  readonly selectionState: Extract<SelectionState, { readonly kind: "classes" }>;
+  readonly onStyleSelect: (
+    styleDefId: StyleDefId,
+    origin: Extract<SelectionState, { readonly kind: "classes" }>
+  ) => void;
+  readonly onStyleCreateCommitted: (
+    result: TransactionResult,
+    origin: Extract<SelectionState, { readonly kind: "classes" }>
+  ) => void;
 };
 
 export default function ClassEditPane({
   view,
-  styles: styleViews,
+  selectionState,
   onStyleSelect,
+  onStyleCreateCommitted,
 }: ClassEditPaneProps): ReactElement {
+  // View and State slice props derivation
+  const selectedClassIds = new Set(selectionState.classIds);
+  const selectedClasses = view.classes.filter((classView) =>
+    selectedClassIds.has(classView.classId)
+  );
+  const selectedNamedStyleId =
+    selectedClasses.length === 1 ? selectedClasses[0]?.appliedStyleId : undefined;
+  const selectedNamedStyle = selectedNamedStyleId
+    ? view.styles.find((styleView) => styleView.styleId === selectedNamedStyleId)
+    : undefined;
+  const selectedDirectStyle =
+    selectedClasses.length === 1 && !selectedClasses[0]?.appliedStyleId && selectedClasses[0]?.style
+      ? selectedClasses[0]
+      : undefined;
+  const origin = selectionState;
+
+  // UI props derivation
+  const styleActionLabel = selectedNamedStyle ? "Edit style" : "Save style";
+
   // Event handler props derivation
-  const { onNameCommit, onAnnotationCommit, onLabelCommit } = useInteractions();
-  const selectedNamedStyle = toSelectedNamedStyle(view, styleViews);
+  const { onNameCommit, onAnnotationCommit, onLabelCommit, onStyleAction } = useInteractions({
+    styles: view.styles,
+    selectedNamedStyle,
+    selectedDirectStyle,
+    origin,
+    onStyleSelect,
+    onStyleCreateCommitted,
+  });
 
   return (
     <>
-      {view.length === 1 ? (
+      {selectedClasses.length === 1 ? (
         <PaneSection label="Class properties">
           <HeaderTextControls
-            view={view[0]}
+            view={selectedClasses[0]}
             styleControl={
               <ControlGroup>
-                <NamedStyleSelector view={view} styles={styleViews} />
+                <NamedStyleSelector view={selectedClasses} styles={view.styles} />
                 <Button
-                  label="Edit style"
-                  disabled={selectedNamedStyle === null}
-                  onClick={() => {
-                    if (selectedNamedStyle) onStyleSelect(selectedNamedStyle.styleId);
-                  }}
+                  label={styleActionLabel}
+                  size="compact"
+                  alignment="end"
+                  disabled={!selectedNamedStyle && !selectedDirectStyle}
+                  onClick={onStyleAction}
                 />
               </ControlGroup>
             }
@@ -55,20 +90,11 @@ export default function ClassEditPane({
         </PaneSection>
       ) : null}
       <PaneSection label="Configure style">
-        <ChangeStylePalette view={view} />
+        <ChangeStylePalette view={selectedClasses} />
       </PaneSection>
       <PaneSection label="Actions">
-        <ClassActions view={view} />
+        <ClassActions view={selectedClasses} />
       </PaneSection>
     </>
   );
-}
-
-function toSelectedNamedStyle(
-  classes: readonly ClassView[],
-  styles: readonly StyleView[]
-): StyleView | null {
-  const appliedStyleId = classes.length === 1 ? classes[0]?.appliedStyleId : null;
-  if (!appliedStyleId) return null;
-  return styles.find((styleView) => styleView.styleId === appliedStyleId) ?? null;
 }

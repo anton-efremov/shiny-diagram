@@ -13,7 +13,7 @@
 }
 
 .label {
-  margin: 0;
+  margin: 0 0 8px;
   color: var(--shiny-text);
   font: inherit;
   font-size: 12px;

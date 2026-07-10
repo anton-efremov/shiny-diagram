@@ -26,6 +26,23 @@
   --shiny-text-error: var(--vscode-errorForeground);
   --shiny-accent: var(--vscode-focusBorder);
 
+  /* Control shells */
+  --shiny-field-radius: 3px;
+  --shiny-button-radius: 6px;
+  --shiny-tile-radius: 8px;
+  --shiny-field-height: 32px;
+  --shiny-field-bg: var(--vscode-input-background);
+  --shiny-field-border: var(--vscode-input-border, var(--vscode-widget-border));
+  --shiny-field-fg: var(--vscode-input-foreground, var(--vscode-foreground));
+  --shiny-field-placeholder: var(--vscode-input-placeholderForeground);
+  --shiny-field-focus-border: var(--vscode-focusBorder);
+  --shiny-field-hover-fg: var(--vscode-list-hoverForeground, var(--shiny-field-fg));
+  --shiny-field-hover-border: color-mix(
+    in srgb,
+    var(--shiny-field-hover-fg) 35%,
+    var(--shiny-field-border)
+  );
+
   /* Typography */
   --shiny-font-family: var(--vscode-font-family);
   --shiny-code-font-family: var(--vscode-editor-font-family, monospace);
@@ -36,6 +53,7 @@
   --shiny-button-secondary-bg: var(--vscode-button-secondaryBackground);
   --shiny-button-secondary-fg: var(--vscode-button-secondaryForeground);
   --shiny-button-border: var(--vscode-button-border, transparent);
+  --shiny-button-outline: color-mix(in srgb, var(--shiny-button-secondary-fg) 70%, transparent);
 }
 
 /* --- ClassBox layout metrics — shared with formatters/classDiagram/layout/ ---

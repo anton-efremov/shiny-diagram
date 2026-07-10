@@ -2,18 +2,42 @@
  * @render Label/control row grid styling.
  */
 
-.grid {
+.grid,
+.insetGrid {
   display: grid;
   gap: 8px;
+  width: 100%;
   min-width: 0;
 }
 
-.row {
+.insetGrid {
+  padding-inline: 8px;
+}
+
+.row,
+.startAlignedRow,
+.standardRow,
+.standardStartAlignedRow {
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
-  gap: 8px;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 4px;
   align-items: center;
   min-width: 0;
+}
+
+.standardRow,
+.standardStartAlignedRow {
+  grid-template-columns: 76px minmax(0, 1fr);
+}
+
+.startAlignedRow,
+.standardStartAlignedRow {
+  align-items: start;
+}
+
+.startAlignedRow .label,
+.standardStartAlignedRow .label {
+  padding-top: 10px;
 }
 
 .label {
@@ -27,6 +51,12 @@
   white-space: nowrap;
 }
 
-.control {
+.control,
+.halfControl {
   min-width: 0;
+}
+
+.halfControl {
+  justify-self: center;
+  width: 50%;
 }

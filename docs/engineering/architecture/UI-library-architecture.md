@@ -62,30 +62,34 @@ Behavior lists only augmentation beyond the bare pattern; "—" means pattern-de
 
 | Element                  | Composes                                                      | Behavior                                                                                                                                                                                                                                                                | Props                                                                                                                                        |
 | ------------------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| CommitTextField          | TextField (prim)<br>ValidationPopup (prim)                    | validation runs on commit attempt only<br>Enter: valid → commit; invalid → popup, stays editing<br>Blur: valid → commit; invalid → discard, draft dropped, feedback escalates to consumer<br>Esc → cancel; no validation, no feedback<br>empty draft commits as a value | `initialValue`<br>`validate(draft)→messages`<br>`disabled`<br>`onCommit(value)`<br>`onDiscard(messages)`<br>`onCancel`                       |
-| CommitTextArea           | Button (prim)<br>textarea (nat)                               | no validation<br>Save button commits<br>Enter inserts newline<br>Blur commits<br>Esc → cancel                                                                                                                                                                           | `initialValue`<br>`disabled`<br>`onCommit(value)`<br>`onCancel`                                                                              |
-| CommitClearableTextField | CommitTextField (comp)<br>Button (prim)                       | Clear visible when value set<br>Clear commits empty value without entering editing                                                                                                                                                                                      | same as CommitTextField                                                                                                                      |
-| EmphasisCommitTextField  | CommitTextField (comp)<br>ToggleButton (prim)                 | two ToggleButtons (underline, italic) anchored above the field while mounted; mutually exclusive — pressing one clears the other<br>emphasis is part of the local draft: toggles never emit per press<br>commit emits text and emphasis atomically; Esc discards both<br>inherits the CommitTextField lifecycle otherwise | `initialValue`<br>`initialEmphasis`<br>`validate(draft)→messages`<br>`disabled`<br>`onCommit(value, emphasis)`<br>`onDiscard(messages)`<br>`onCancel` |
-| CommitComboBox           | TextField (prim)<br>Dropdown (comp)<br>ValidationPopup (prim) | option select commits natively<br>typed custom value follows CommitTextField lifecycle                                                                                                                                                                                  | `initialValue`<br>`options`<br>`validate(draft)→messages`<br>`disabled`<br>`onCommit(value)`<br>`onDiscard(messages)`<br>`onCancel`          |
-| Dropdown                 | StyledBoxSwatch (prim)<br>button (nat)                        | —                                                                                                                                                                                                                                                                       | `options` (label, optional swatch style)<br>`value`<br>`disabled`<br>`onChange(value)`                                                       |
-| ColorSelect              | Dropdown (comp)<br>StyledBoxSwatch (prim)                     | —                                                                                                                                                                                                                                                                       | `presets`<br>`value`<br>`disabled`<br>`onChange(value)`                                                                                      |
-| EditableList             | EmphasisCommitTextField (comp)<br>button (nat)                | row enters editing on click [edit start enabled]<br>emphasis toolbar gated by `isEmphasisEditable`; off → rows behave as plain CommitTextField<br>trailing add affordance opens an empty editor row, visible [edit start enabled]<br>row drag reorder within the list with drop indicator                                                                                                           | `rows` (text, optional `emphasis`: underline \| italic, mutually exclusive by type)<br>`addLabel`<br>`validate(draft)→messages`<br>`isEditStartEnabled`<br>`isEmphasisEditable`<br>`onRowCommit(index, value, emphasis)`<br>`onRowAdd(value)`<br>`onRowReorder(from, to)` |
+| CommitTextField          | TextField (prim)<br>ValidationPopup (prim)                    | validation runs on commit attempt only<br>Enter: valid → commit; invalid → popup, stays editing<br>Blur: valid → commit; invalid → discard, draft dropped, feedback escalates to consumer<br>Esc → cancel; no validation, no feedback<br>empty draft commits as a value | `initialValue`<br>`validate(draft)→messages`<br>`disabled`<br>`ariaLabel`<br>`isLabelVisible`<br>`autoFocus`<br>`onCommit(value)`<br>`onDiscard(messages)`<br>`onCancel` |
+| CommitTextArea           | Button (prim)<br>textarea (nat)                               | no validation<br>Save button commits<br>Enter inserts newline<br>Blur commits<br>Esc → cancel                                                                                                                                                                           | `initialValue`<br>`disabled`<br>`autoFocus`<br>`onCommit(value)`<br>`onCancel` |
+| CommitClearableTextField | TextField (prim)<br>ValidationPopup (prim)<br>button (nat)    | CommitTextField lifecycle<br>Clear visible when value set<br>Clear commits empty value without entering editing                                                                                                                                                         | `initialValue`<br>`validate(draft)→messages`<br>`disabled`<br>`ariaLabel`<br>`isLabelVisible`<br>`onCommit(value)`<br>`onClear`<br>`onDiscard(messages)`<br>`onCancel` |
+| EmphasisCommitTextField  | TextField (prim)<br>ToggleButton (prim)<br>ValidationPopup (prim) | two ToggleButtons (underline, italic) anchored above the field while mounted; mutually exclusive — pressing one clears the other<br>emphasis is part of the local draft: toggles never emit per press<br>commit emits text and emphasis atomically; Esc discards both<br>inherits the CommitTextField lifecycle otherwise | `initialValue`<br>`initialEmphasis`<br>`validate(draft)→messages`<br>`disabled`<br>`autoFocus`<br>`onCommit(value, emphasis)`<br>`onDiscard(messages)`<br>`onCancel` |
+| CommitComboBox           | TextField (prim)<br>ValidationPopup (prim)<br>button (nat)    | option select commits natively<br>typed custom value follows CommitTextField lifecycle                                                                                                                                                                                  | `initialValue`<br>`options`<br>`validate(draft)→messages`<br>`disabled`<br>`ariaLabel`<br>`isLabelVisible`<br>`onCommit(value)`<br>`onDiscard(messages)`<br>`onCancel` |
+| Dropdown                 | button (nat)                                                  | —                                                                                                                                                                                                                                                                       | `options` (value, label, optional swatch style, kind, and label visibility)<br>`value`<br>`disabled`<br>`onChange(value)` |
+| ColorSelect              | StyledBoxSwatch (prim)<br>button (nat)                        | —                                                                                                                                                                                                                                                                       | `presets`<br>`value`<br>`disabled`<br>`onChange(value)` |
+| SwatchToggle             | StyledBoxSwatch (prim)<br>button (nat)                        | reports activation and exposes pressed state                                                                                                                                                                                                                            | `styleValues`<br>`label`<br>`pressed`<br>`disabled`<br>`onClick` |
+| EditableList             | EmphasisCommitTextField (comp)<br>Button (prim)<br>button (nat) | row enters editing on click [edit start enabled]<br>emphasis toolbar gated by `isEmphasisEditable`; off → rows behave as plain CommitTextField<br>trailing add affordance opens an empty editor row, visible [edit start enabled]<br>row drag reorder within the list with drop indicator | `rows` (text, optional `emphasis`: underline \| italic, mutually exclusive by type)<br>`addLabel`<br>`validate(draft)→messages`<br>`isEditStartEnabled`<br>`isEmphasisEditable`<br>`onRowCommit(index, value, emphasis)`<br>`onRowAdd(value, emphasis)`<br>`onRowReorder(from, to)` |
 
 ### Templates
 
-|Element|UI|Props|
-|---|---|---|
-|PaneFrame|vertical stack of PaneSections in a side pane|children|
-|PaneSection|labeled group framing library elements|`label`<br>children|
+| Element      | UI                                          | Props                              |
+| ------------ | ------------------------------------------- | ---------------------------------- |
+| PaneFrame    | fixed-width vertical stack in a side pane   | `width`<br>`children`              |
+| PaneSection  | optionally labeled 1–2 column content group | `label`<br>`columns`<br>`children` |
+| FieldGrid    | optionally inset rows of label + control    | `rows` (label, control, optional alignment)<br>`inset`<br>`controlWidth` (full \| half)<br>`labelWidth` (compact \| standard) |
+| ControlGroup | 1–2 column grouping of controls             | `columns`<br>`children`            |
 
 ### Primitives
 
 | Element          | Composes     | Props                                                     |
 | ---------------- | ------------ | --------------------------------------------------------- |
-| TextField        | input (nat)  | `value`<br>`disabled`<br>`invalid`<br>`onChange`          |
+| TextField        | input (nat)  | `value`<br>`disabled`<br>`invalid`<br>`ariaLabel`<br>`autoFocus`<br>`hasEndAction`<br>`onChange`<br>`onBlur`<br>`onKeyDown` |
 | ValidationPopup  | button (nat) | `messages`<br>`onDismiss`                                 |
-| Button           | button (nat) | `label`<br>`icon`<br>`disabled`<br>`onClick`              |
-| ToggleButton     | button (nat) | `icon`<br>`label` (optional)<br>`title`<br>`pressed`<br>`disabled`<br>`onClick` |
+| TextBlock        | —            | `text`                                                     |
+| Button           | button (nat) | `label`<br>`icon`<br>`disabled`<br>`tone` (neutral \| danger)<br>`size` (default \| compact)<br>`alignment` (stretch \| end)<br>`onClick` |
+| ToggleButton     | button (nat) | `icon`<br>`label` (optional)<br>`title`<br>`pressed`<br>`disabled`<br>`size` (compact \| nodeTile \| relationshipTile)<br>`onClick` |
 | StyledBoxSwatch  | —            | `styleValues`<br>`label`                                  |
 | BoxOutline       | —            | `variant`                                                 |
 | HaloRing         | —            | `tint`                                                    |
@@ -101,45 +105,38 @@ Mapping of library components to domain components. Behaviors described are beha
 
 Multiple boxes with different styles might be selected
 
-**PaneFrame › PaneSection** ("Selected Class")
+**PaneFrame › PaneSection** ("Class properties", single selection only)
 
-| Element                  | Label        | Single class                                        | Multiple classes                                                        |
-| ------------------------ | ------------ | --------------------------------------------------- | ----------------------------------------------------------------------- |
-| CommitTextField          | "Class name" | *class name incl. generics* — editable              | "Multiple classes" — disabled                                           |
-| CommitComboBox           | "Annotation" | *current annotation* or empty — editable            | "Multiple annotations" or *current annotation* (if the same) — editable |
-| CommitClearableTextField | "Label"      | *label* or empty — editable; Clear visible when set | "" — disabled                                                           |
+| Element                  | FieldGrid label | Value / behavior |
+| ------------------------ | --------------- | ---------------- |
+| CommitComboBox           | ""              | current annotation or "No annotaion" — preset/custom editable; positioned above Name |
+| CommitTextField          | "Name"          | class name — editable |
+| CommitClearableTextField | "Label"         | class label or empty — editable and clearable |
+| Dropdown                 | "Style"         | named style, "No style", or "Custom style" — editable; options render the name inside a full-width swatch |
+| Button                   | "Style"         | "Edit style" for an applied named style; "Save style" for a direct style; disabled when neither action applies |
 
-**PaneFrame › PaneSection** ("Current style")
+The controls are arranged by an inset `FieldGrid`; the Style row uses start alignment so its label aligns with the Dropdown above the Button. The Dropdown and Button share a one-column `ControlGroup`. Edit/Save selects the named style with the class selection as its return origin.
 
-| Element                     | Same named style "S" (incl. "No style"/"Default")              | Same direct style                       | Mixed styles (property values differ) | Mixed named/direct, same properties           |
-| --------------------------- | -------------------------------------------------------------- | --------------------------------------- | ------------------------------------- | --------------------------------------------- |
-| StyledBoxSwatch | swatch of S + "S"                                              | swatch of direct style + "Custom style" | neutral swatch + "Multiple styles"    | swatch of selected styles + "Multiple styles" |
-| Button                      | "Edit style S" — enabled; "Edit style" disabled for "No style" | "Save style" — enabled                  | "Save style" — disabled               | "Save style" — disabled                       |
+**PaneFrame › PaneSection** ("Configure style")
 
-**PaneFrame › PaneSection** ("Select style")
+| Element  | FieldGrid label | Same style property | Different style property |
+| -------- | --------------- | ------------------- | ------------------------ |
+| Dropdown | "Fill"          | common preset — editable | "multiple" — editable |
+| Dropdown | "Stroke"        | common preset — editable | "multiple" — editable |
+| Dropdown | "Width"         | common preset — editable | "multiple" — editable |
+| Dropdown | "Dash"          | common preset — editable | "multiple" — editable |
+| Dropdown | "Text color"    | common preset — editable | "multiple" — editable |
 
-| Element  | Label          | Same named style "S"    | Direct style(s) and/or multiple named styles |
-| -------- | -------------- | ----------------------- | -------------------------------------------- |
-| Dropdown | "Saved styles" | "S" selected — editable | none selected — editable                     |
+Preset names remain accessible but are visually hidden; the dropdowns show only property swatches.
 
-Options render swatch + name (Dropdown option swatch style).
+**PaneFrame › PaneSection** ("Actions")
 
-**PaneFrame › PaneSection** ("Change style")
+| Element | Label       | Behavior |
+| ------- | ----------- | -------- |
+| Button  | "Duplicate" | enabled |
+| Button  | "Delete"    | danger tone; Delete key binding |
 
-| Element     | Label              | Same style property              | Different style property |
-| ----------- | ------------------ | -------------------------------- | ------------------------ |
-| ColorSelect | "Fill"             | *common value* preset — editable | "multiple" — editable    |
-| ColorSelect | "Stroke"           | *common value* preset — editable | "multiple" — editable    |
-| ColorSelect | "Text"             | *common value* preset — editable | "multiple" — editable    |
-| Dropdown    | "Stroke width"     | *common value* preset — editable | "multiple" — editable    |
-| Dropdown    | "Stroke dasharray" | *common value* preset — editable | "multiple" — editable    |
-
-**PaneFrame › PaneSection**("")
-
-| Element | Label       |                             |
-| ------- | ----------- | --------------------------- |
-| Button  | "Duplicate" | enabled                     |
-| Button  | "Delete"    | enabled; Delete key binding |
+Buttons are arranged in a two-column `ControlGroup`.
 
 ### EditPane/RelationshipEditPane
 
@@ -173,34 +170,52 @@ Single relationship selection only
 | ------- | ----------- | ------- |
 | Button  | "Duplicate" | enabled |
 | Button  | "Delete"    | enabled |
-### EditPane/StyleEditPane
+### EditPane/DiagramEditPane
 
-Single named-style selection only.
+No selection represents the diagram; a named-style selection expands the same pane into style editing. The default `classDef` is displayed separately and is never a selectable named-style chip.
 
-**PaneFrame › PaneSection** ("Style name")
+**PaneFrame top affordance** (style selected with class origin only)
 
-| Element         | Label        | Selected style                          |
-| --------------- | ------------ | ---------------------------------------- |
-| StyledBoxSwatch |              | swatch of _selected style_               |
-| CommitTextField | "Style name" | _style name_ — editable                  |
+| Element | Label | Behavior |
+| ------- | ----- | -------- |
+| Button | "← <ClassName>" | restores the originating class selection |
 
-Name renders inside the swatch's label area via the CommitTextField — domain arrangement, not a library composite.
+**PaneFrame › PaneSection** ("Saved styles", always mounted)
 
-**PaneFrame › PaneSection** ("Change style")
+| Element | No style selected | Named style selected |
+| ------- | ----------------- | -------------------- |
+| StyledBoxSwatch / TextBlock | default style swatch, or "No default style" | same |
+| SwatchToggle | one per named style, none pressed | one per named style; selected style pressed; click selects without an origin |
+| Button | "+ New style" creates a uniquely named initialized style and selects it | same |
 
-| Element     | Label              | Selected style            |
-| ----------- | ------------------ | ------------------------- |
-| ColorSelect | "Fill"             | _style's value_ preset    |
-| ColorSelect | "Stroke"           | _style's value_ preset    |
-| ColorSelect | "Text"             | _style's value_ preset    |
-| Dropdown    | "Stroke width"     | _style's preset_ selected |
-| Dropdown    | "Stroke dasharray" | _style's preset_ selected |
+Style chips are arranged by `ControlGroup`.
 
-**PaneFrame › PaneSection** ("")
+**PaneFrame › PaneSection** ("Style name", named-style selection only)
 
-| Element | Label          |          |
-| ------- | -------------- | -------- |
-| Button  | "Delete style" | enabled  |
+| Element | Label | Selected style |
+| ------- | ----- | -------------- |
+| CommitTextField | "Style name" | style name — editable |
+
+**PaneFrame › PaneSection** ("Configure style", named-style selection only)
+
+| Element | FieldGrid label | Selected style |
+| ------- | --------------- | -------------- |
+| Dropdown | "Fill" | style preset — editable |
+| Dropdown | "Stroke" | style preset — editable |
+| Dropdown | "Width" | style preset — editable |
+| Dropdown | "Dash" | style preset — editable |
+| Dropdown | "Text color" | style preset — editable |
+
+Preset names remain accessible but are visually hidden; the dropdowns show only property swatches.
+
+**PaneFrame › PaneSection** ("Actions", named-style selection only)
+
+| Element | Label | Behavior |
+| ------- | ----- | -------- |
+| Button | "Set as default" | copies the selected style properties into an independent `classDef default` |
+| Button | "Delete style" | danger tone; deletes the definition and its applications |
+
+Buttons are arranged in a two-column `ControlGroup`.
 
 ### EditPane/NamespaceEditPane
 
@@ -224,7 +239,7 @@ Name renders inside the swatch's label area via the CommitTextField — domain a
 | ColorSelect | "Text"             | _style's value_ preset — editable    | _default value_ preset — editable    |
 | Dropdown    | "Stroke width"     | _style's preset_ selected — editable | _default preset_ selected — editable |
 | Dropdown    | "Stroke dasharray" | _style's preset_ selected — editable | _default preset_ selected — editable |
-| Button      | "Reset style"      | enabled                              | disabled                             |
+| Button      | "Reset style"      | enabled                              | enabled (reset is a no-op)           |
 
 **PaneFrame › PaneSection** ("")
 
@@ -240,15 +255,9 @@ Single note selection only.
 
 | Element | Label                                          | Free note                   | Attached note                        |
 | ------- | ---------------------------------------------- | --------------------------- | ------------------------------------ |
-| Button  | "Attach to class" / "Detach from \<classname>" | "Attach to class" — enabled | "Detach from \<classname>" — enabled |
+| Button  | "Attach to class" / "Detach from class" | "Attach to class" — enabled | "Detach from class" — enabled |
 | Button  | "Duplicate"                                    | enabled                     | enabled                              |
 | Button  | "Delete"                                       | enabled                     | enabled                              |
-
-### EditPane/EmptyEditPane
-
-No selection.
-
-**PaneFrame › PaneSection** ("")
 
 ### DiagramCanvas/.../ClassBox
 

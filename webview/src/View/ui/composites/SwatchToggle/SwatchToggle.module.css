@@ -1,0 +1,28 @@
+/**
+ * @render Pressable styled-box swatch.
+ */
+
+.toggle {
+  min-width: 0;
+  padding: 4px;
+  border: 1px solid var(--shiny-border);
+  border-radius: 4px;
+  color: var(--shiny-text);
+  background: var(--shiny-surface);
+  cursor: pointer;
+}
+
+.toggle[aria-pressed="true"] {
+  border-color: var(--shiny-accent);
+  background: var(--shiny-overlay-faint);
+}
+
+.toggle:focus-visible {
+  outline: 1px solid var(--shiny-accent);
+  outline-offset: 1px;
+}
+
+.toggle:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

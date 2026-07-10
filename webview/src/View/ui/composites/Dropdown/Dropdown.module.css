@@ -4,18 +4,20 @@
 
 .dropdown {
   position: relative;
+  width: 100%;
   min-width: 0;
 }
 
 .trigger,
+.boxLabelTrigger,
 .option {
   width: 100%;
   min-width: 0;
   padding: 0;
-  border: 1px solid var(--shiny-button-border);
-  border-radius: 4px;
-  color: var(--shiny-button-secondary-fg);
-  background: var(--shiny-button-secondary-bg);
+  border: 1px solid var(--shiny-field-border);
+  border-radius: var(--shiny-field-radius);
+  color: var(--shiny-field-fg);
+  background: var(--shiny-field-bg);
   box-shadow: 0 1px 1px var(--shiny-overlay-faint);
   font: inherit;
   text-align: left;
@@ -23,18 +25,26 @@
 }
 
 .trigger:hover:not(:disabled),
+.boxLabelTrigger:hover:not(:disabled) {
+  border-color: var(--shiny-field-hover-border);
+  color: var(--shiny-field-hover-fg);
+  background: var(--shiny-surface);
+}
+
 .option:hover {
-  color: var(--shiny-button-fg);
-  background: var(--shiny-button-bg);
+  color: var(--shiny-field-hover-fg);
+  background: var(--shiny-surface);
 }
 
 .trigger:focus-visible,
+.boxLabelTrigger:focus-visible,
 .option:focus-visible {
-  outline: 2px solid var(--shiny-accent);
-  outline-offset: 2px;
+  outline: 2px solid var(--shiny-field-focus-border);
+  outline-offset: 1px;
 }
 
-.trigger:disabled {
+.trigger:disabled,
+.boxLabelTrigger:disabled {
   color: var(--shiny-text-muted);
   cursor: default;
   opacity: 0.58;
@@ -42,9 +52,11 @@
 
 .triggerLabel,
 .optionLabel,
-.optionContent {
+.optionContent,
+.swatchOnlyContent,
+.boxLabelContent {
   display: block;
-  min-height: 32px;
+  min-height: var(--shiny-field-height);
   padding: 7px 10px;
   overflow: hidden;
   font-size: 12px;
@@ -55,34 +67,85 @@
 }
 
 .triggerContent {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 16px;
   align-items: center;
   min-width: 0;
 }
 
+.boxLabelTrigger .triggerContent {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .triggerContent > .triggerLabel,
-.triggerContent > .optionContent {
+.triggerContent > .optionContent,
+.triggerContent > .swatchOnlyContent,
+.triggerContent > .boxLabelContent {
   padding-right: 4px;
 }
 
-.optionContent {
+.boxLabelTrigger .triggerContent > .boxLabelContent {
+  padding-right: 0;
+}
+
+.optionContent,
+.swatchOnlyContent,
+.boxLabelContent {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
   gap: 8px;
   align-items: center;
 }
 
+.swatchOnlyContent {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.boxLabelContent {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 0;
+}
+
 .swatch {
   display: grid;
   place-items: center;
-  width: 16px;
+  width: 18px;
   height: 16px;
+}
+
+.boxSwatch {
+  width: 16px;
   border: var(--dropdown-swatch-stroke-width, 1px) solid
     var(--dropdown-swatch-stroke, var(--shiny-border));
   border-style: var(--dropdown-swatch-stroke-dasharray, solid);
   color: var(--dropdown-swatch-color, var(--dropdown-swatch-stroke, var(--shiny-text)));
   background: var(--dropdown-swatch-fill, transparent);
+}
+
+.boxLabelSwatch {
+  justify-items: start;
+  width: 100%;
+  height: var(--shiny-field-height);
+  padding: 6px 24px 6px 8px;
+  border-radius: var(--shiny-field-radius);
+}
+
+.embeddedLabel {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dropdown-swatch-color, var(--shiny-text));
+  font-size: 11px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sampleSwatch {
+  border: 0;
+  background: transparent;
 }
 
 .lineSample {
@@ -109,10 +172,18 @@
 .arrow {
   display: grid;
   place-items: center;
-  min-height: 32px;
-  color: var(--shiny-text-muted);
+  min-height: var(--shiny-field-height);
+  color: var(--dropdown-arrow-color, var(--shiny-text-muted));
   font-size: 10px;
   font-weight: 700;
+}
+
+.boxLabelTrigger .arrow {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: var(--shiny-field-height);
 }
 
 .menu {

@@ -38,6 +38,8 @@ export default function ChangeStylePalette({ view }: ChangeStylePaletteProps): R
 
   return (
     <FieldGrid
+      inset
+      controlWidth="half"
       rows={STYLE_PROPERTIES.map(({ name }) => ({
         label: toFieldLabel(name),
         control: (
@@ -98,6 +100,7 @@ function toStylePresetOptions(
       return {
         value: preset.value,
         label: preset.label,
+        isLabelVisible: false,
         swatchKind: toSwatchKind(property),
         swatchStyle: {
           fill: property === "fill" ? toSwatchColor(preset.value) : null,
@@ -121,6 +124,7 @@ function toStrokePresetOptions(
     ...presets.map((preset) => ({
       value: preset.value,
       label: preset.label,
+      isLabelVisible: false,
       swatchKind: toSwatchKind(property),
       swatchStyle: {
         strokeWidth: property === "strokeWidth" ? preset.value || null : null,
@@ -149,7 +153,7 @@ function toFieldLabel(property: StylePropertyName): string {
     case "strokeDasharray":
       return "Dash";
     case "color":
-      return "Text";
+      return "Text color";
   }
 }
 
@@ -171,6 +175,7 @@ function toMultipleOption(property: StylePropertyName): DropdownOption {
   return {
     value: "multiple",
     label: "multiple",
+    isLabelVisible: false,
     swatchKind: toSwatchKind(property),
     swatchStyle: {},
   };

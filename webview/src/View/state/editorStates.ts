@@ -45,6 +45,7 @@ export type SelectionState =
   | {
       readonly kind: "style";
       readonly styleDefId: StyleDefId;
+      readonly origin?: Extract<SelectionState, { readonly kind: "classes" }>;
     }
   | {
       readonly kind: "namespace";

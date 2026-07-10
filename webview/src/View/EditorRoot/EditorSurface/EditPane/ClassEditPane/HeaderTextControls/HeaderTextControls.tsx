@@ -37,28 +37,15 @@ export default function HeaderTextControls({
 
   return (
     <FieldGrid
+      inset
       rows={[
         {
-          label: "Name",
-          control: (
-            <CommitTextField
-              initialValue={view.header.name}
-              validate={() => []}
-              ariaLabel="Name"
-              isLabelVisible={false}
-              onCommit={(draft) => onNameCommit(view.classId, draft.trim())}
-              onDiscard={() => undefined}
-              onCancel={() => undefined}
-            />
-          ),
-        },
-        {
-          label: "Annotation",
+          label: "",
           control: (
             <CommitComboBox
               initialValue={view.header.stereotype ?? ""}
               options={[
-                { value: "", label: "None" },
+                { value: "", label: "No annotaion" },
                 ...ANNOTATION_PRESETS.map((preset) => ({
                   value: preset,
                   label: preset,
@@ -68,6 +55,20 @@ export default function HeaderTextControls({
               ariaLabel="Annotation"
               isLabelVisible={false}
               onCommit={(draft) => onAnnotationCommit(view.classId, draft.trim() || null)}
+              onDiscard={() => undefined}
+              onCancel={() => undefined}
+            />
+          ),
+        },
+        {
+          label: "Name",
+          control: (
+            <CommitTextField
+              initialValue={view.header.name}
+              validate={() => []}
+              ariaLabel="Name"
+              isLabelVisible={false}
+              onCommit={(draft) => onNameCommit(view.classId, draft.trim())}
               onDiscard={() => undefined}
               onCancel={() => undefined}
             />
@@ -90,6 +91,7 @@ export default function HeaderTextControls({
         },
         {
           label: "Style",
+          alignment: "start",
           control: styleControl,
         },
       ]}

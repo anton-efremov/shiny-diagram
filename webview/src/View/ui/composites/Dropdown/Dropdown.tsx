@@ -13,7 +13,8 @@ export type DropdownOption = {
   readonly value: string;
   readonly label: string;
   readonly swatchStyle?: Partial<StyleProperties>;
-  readonly swatchKind?: "box" | "line" | "dash" | "text";
+  readonly swatchKind?: "box" | "boxLabel" | "line" | "dash" | "text";
+  readonly isLabelVisible?: boolean;
 };
 
 type DropdownProps = {
@@ -31,6 +32,9 @@ export default function Dropdown({
 }: DropdownProps): ReactElement {
   const [isOpen, setIsOpen] = useState(false);
   const selectedOption = options.find((option) => option.value === value) ?? options[0];
+  const triggerStyle: CSSProperties & { "--dropdown-arrow-color"?: string } = {
+    "--dropdown-arrow-color": selectedOption?.swatchStyle?.color ?? undefined,
+  };
 
   function selectValue(nextValue: string): void {
     setIsOpen(false);
@@ -41,10 +45,14 @@ export default function Dropdown({
     <div className={styles.dropdown}>
       <button
         type="button"
-        className={styles.trigger}
+        className={
+          selectedOption?.swatchKind === "boxLabel" ? styles.boxLabelTrigger : styles.trigger
+        }
+        style={triggerStyle}
         disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
+        aria-label={selectedOption?.isLabelVisible === false ? selectedOption.label : undefined}
         onClick={() => setIsOpen((current) => !current)}
       >
         <span className={styles.triggerContent}>
@@ -67,6 +75,7 @@ export default function Dropdown({
               className={styles.option}
               role="option"
               aria-selected={option.value === value}
+              aria-label={option.isLabelVisible === false ? option.label : undefined}
               onClick={() => selectValue(option.value)}
             >
               {option.swatchStyle ? (
@@ -83,6 +92,9 @@ export default function Dropdown({
 }
 
 function OptionContent({ option }: { readonly option: DropdownOption }): ReactElement {
+  const swatchKind = option.swatchKind ?? "box";
+  const isBoxLabel = swatchKind === "boxLabel";
+  const isLabelVisible = option.isLabelVisible !== false;
   const swatchStyle: CSSProperties & {
     "--dropdown-swatch-fill"?: string;
     "--dropdown-swatch-stroke"?: string;
@@ -98,9 +110,22 @@ function OptionContent({ option }: { readonly option: DropdownOption }): ReactEl
   };
 
   return (
-    <span className={styles.optionContent}>
-      <span className={styles.swatch} style={swatchStyle} aria-hidden="true">
-        {option.swatchKind === "line" || option.swatchKind === "dash" ? (
+    <span
+      className={
+        isBoxLabel
+          ? styles.boxLabelContent
+          : isLabelVisible
+            ? styles.optionContent
+            : styles.swatchOnlyContent
+      }
+    >
+      <span
+        className={`${styles.swatch} ${swatchKind === "box" || isBoxLabel ? styles.boxSwatch : styles.sampleSwatch} ${isBoxLabel ? styles.boxLabelSwatch : ""}`}
+        style={swatchStyle}
+        aria-hidden="true"
+      >
+        {isBoxLabel ? <span className={styles.embeddedLabel}>{option.label}</span> : null}
+        {swatchKind === "line" || swatchKind === "dash" ? (
           <svg
             className={styles.lineSample}
             viewBox="0 0 18 10"
@@ -112,17 +137,17 @@ function OptionContent({ option }: { readonly option: DropdownOption }): ReactEl
               stroke="currentColor"
               strokeWidth={option.swatchStyle?.strokeWidth ?? "1.5px"}
               strokeDasharray={
-                option.swatchKind === "dash"
-                  ? (option.swatchStyle?.strokeDasharray ?? "3 3")
-                  : undefined
+                swatchKind === "dash" ? (option.swatchStyle?.strokeDasharray ?? "3 3") : undefined
               }
               strokeLinecap="round"
             />
           </svg>
         ) : null}
-        {option.swatchKind === "text" ? <span className={styles.textSample}>A</span> : null}
+        {swatchKind === "text" ? <span className={styles.textSample}>A</span> : null}
       </span>
-      <span className={styles.optionText}>{option.label}</span>
+      {isLabelVisible && !isBoxLabel ? (
+        <span className={styles.optionText}>{option.label}</span>
+      ) : null}
     </span>
   );
 }

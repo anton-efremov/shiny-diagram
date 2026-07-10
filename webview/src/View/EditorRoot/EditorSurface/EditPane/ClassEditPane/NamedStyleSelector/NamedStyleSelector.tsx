@@ -32,14 +32,31 @@ export default function NamedStyleSelector({
     <Dropdown
       value={selectedValue}
       options={[
-        ...(selectedValue === "multiple" ? [{ value: "multiple", label: "Multiple" }] : []),
-        ...(selectedValue === "custom"
-          ? [{ value: "custom", label: "Custom style", swatchStyle: toCustomSwatchStyle(view) }]
+        ...(selectedValue === "multiple"
+          ? [
+              {
+                value: "multiple",
+                label: "Multiple",
+                swatchKind: "boxLabel" as const,
+                swatchStyle: {},
+              },
+            ]
           : []),
-        { value: "none", label: "No style", swatchStyle: {} },
+        ...(selectedValue === "custom"
+          ? [
+              {
+                value: "custom",
+                label: "Custom style",
+                swatchKind: "boxLabel" as const,
+                swatchStyle: toCustomSwatchStyle(view),
+              },
+            ]
+          : []),
+        { value: "none", label: "No style", swatchKind: "boxLabel", swatchStyle: {} },
         ...styleViews.map((styleView) => ({
           value: styleView.styleId,
           label: styleView.name,
+          swatchKind: "boxLabel" as const,
           swatchStyle: styleView.style,
         })),
       ]}

@@ -82,6 +82,9 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
     onRelationshipSelect,
     onRelationshipDuplicate,
     onStyleSelect,
+    onSelectionRestore,
+    onStyleCreateCommitted,
+    onStyleRenameCommitted,
     onBackgroundClick,
     onConnectAborted,
     onPlacementComplete,
@@ -177,6 +180,9 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
         view={view}
         selectionState={selectionState}
         onStyleSelect={onStyleSelect}
+        onSelectionRestore={onSelectionRestore}
+        onStyleCreateCommitted={onStyleCreateCommitted}
+        onStyleRenameCommitted={onStyleRenameCommitted}
         onNoteAttachStart={onNoteAttachStart}
         onNoteDuplicateCommitted={onNoteDuplicateCommitted}
         onNamespaceRenameCommitted={onNamespaceRenameCommitted}

@@ -5,35 +5,46 @@
 
 import type { ReactElement } from "react";
 import type { StyleView } from "../../../../../views/schema";
+import type { SelectionState } from "../../../../../state/editorStates";
+import type { TransactionResult } from "../../../../../commands/editorCommands";
 import CommitTextField from "../../../../../ui/composites/CommitTextField/CommitTextField";
 import StyledBoxSwatch from "../../../../../ui/primitives/StyledBoxSwatch/StyledBoxSwatch";
-import { toStyleNameSetTransaction } from "./transactions";
-import { useDispatchTransaction } from "../../../../../contexts";
+import { useInteractions } from "./useInteractions";
 
 type StyleNameEditorProps = {
-  readonly view: StyleView;
-  readonly styles: readonly StyleView[];
+  readonly view: readonly StyleView[];
+  readonly selectionState: Extract<SelectionState, { readonly kind: "style" }>;
+  readonly onRenameCommitted: (
+    result: TransactionResult,
+    previousStyleDefId: StyleView["styleId"]
+  ) => void;
 };
 
 export default function StyleNameEditor({
   view,
-  styles: styleViews,
+  selectionState,
+  onRenameCommitted,
 }: StyleNameEditorProps): ReactElement {
-  const dispatchTransaction = useDispatchTransaction();
+  // View and State slice props derivation
+  const selectedStyle = view.find((styleView) => styleView.styleId === selectionState.styleDefId);
+
+  // Event handler props derivation
+  const { onNameCommit } = useInteractions({
+    view: selectedStyle,
+    onRenameCommitted,
+  });
+
+  // Child component routing
+  if (!selectedStyle) return <></>;
 
   return (
     <>
-      <StyledBoxSwatch styleValues={view.style} label={view.name} />
+      <StyledBoxSwatch styleValues={selectedStyle.style} label={selectedStyle.name} />
       <CommitTextField
-        initialValue={view.name}
-        validate={(draft) => validateStyleName(draft, view, styleViews)}
+        initialValue={selectedStyle.name}
+        validate={(draft) => validateStyleName(draft, selectedStyle, view)}
         ariaLabel="Style name"
-        onCommit={(draft) => {
-          const name = toCamelCaseName(draft);
-          if (name !== "" && name !== view.name) {
-            dispatchTransaction(toStyleNameSetTransaction(view, name));
-          }
-        }}
+        onCommit={onNameCommit}
         onDiscard={() => undefined}
         onCancel={() => undefined}
       />
@@ -47,14 +58,14 @@ function validateStyleName(
   view: StyleView,
   styles: readonly StyleView[]
 ): readonly string[] {
-  const name = toCamelCaseName(draft);
+  const name = toStyleName(draft);
   if (name === "") return [];
   return styles.some((styleView) => styleView.styleId !== view.styleId && styleView.name === name)
     ? [`Style "${name}" already exists.`]
     : [];
 }
 
-function toCamelCaseName(value: string): string {
+function toStyleName(value: string): string {
   return value
     .trim()
     .split(/[^A-Za-z0-9]+/)

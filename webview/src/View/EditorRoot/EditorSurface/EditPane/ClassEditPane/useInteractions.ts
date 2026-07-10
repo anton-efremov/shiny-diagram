@@ -4,13 +4,32 @@
 
 import { useCallback } from "react";
 import type { ClassId } from "../../../../../shared/ids";
+import type { SelectionState } from "../../../../state/editorStates";
 import type { ClassAnnotation } from "../../../../../shared/uml";
 import { useDispatchTransaction } from "../../../../contexts";
+import type { TransactionResult } from "../../../../commands/editorCommands";
+import type { ClassView, StyleView } from "../../../../views/schema";
 import {
   toClassAnnotationCommitTransaction,
   toClassLabelCommitTransaction,
   toClassNameCommitTransaction,
+  toClassStyleSaveTransaction,
 } from "./transactions";
+
+type UseInteractionsInput = {
+  readonly styles: readonly StyleView[];
+  readonly selectedNamedStyle: StyleView | undefined;
+  readonly selectedDirectStyle: ClassView | undefined;
+  readonly origin: Extract<SelectionState, { readonly kind: "classes" }>;
+  readonly onStyleSelect: (
+    styleDefId: StyleView["styleId"],
+    origin: Extract<SelectionState, { readonly kind: "classes" }>
+  ) => void;
+  readonly onStyleCreateCommitted: (
+    result: TransactionResult,
+    origin: Extract<SelectionState, { readonly kind: "classes" }>
+  ) => void;
+};
 
 type Interactions = {
   readonly onNameCommit: (classId: ClassId, name: string) => readonly string[];
@@ -19,11 +38,20 @@ type Interactions = {
     annotation: ClassAnnotation | null
   ) => readonly string[];
   readonly onLabelCommit: (classId: ClassId, label: string | null) => readonly string[];
+  readonly onStyleAction: () => void;
 };
 
-export function useInteractions(): Interactions {
+export function useInteractions({
+  styles,
+  selectedNamedStyle,
+  selectedDirectStyle,
+  origin,
+  onStyleSelect,
+  onStyleCreateCommitted,
+}: UseInteractionsInput): Interactions {
   const dispatchTransaction = useDispatchTransaction();
 
+  // Event handler props derivation
   const onNameCommit = useCallback(
     (classId: ClassId, name: string) => {
       const result = dispatchTransaction(toClassNameCommitTransaction(classId, name));
@@ -48,5 +76,24 @@ export function useInteractions(): Interactions {
     [dispatchTransaction]
   );
 
-  return { onNameCommit, onAnnotationCommit, onLabelCommit };
+  const onStyleAction = useCallback(() => {
+    if (selectedNamedStyle) {
+      onStyleSelect(selectedNamedStyle.styleId, origin);
+      return;
+    }
+    if (selectedDirectStyle) {
+      const result = dispatchTransaction(toClassStyleSaveTransaction(selectedDirectStyle, styles));
+      onStyleCreateCommitted(result, origin);
+    }
+  }, [
+    dispatchTransaction,
+    onStyleCreateCommitted,
+    onStyleSelect,
+    origin,
+    selectedDirectStyle,
+    selectedNamedStyle,
+    styles,
+  ]);
+
+  return { onNameCommit, onAnnotationCommit, onLabelCommit, onStyleAction };
 }

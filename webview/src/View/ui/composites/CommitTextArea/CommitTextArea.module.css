@@ -19,16 +19,20 @@
   resize: none;
   box-sizing: border-box;
   padding: 8px;
-  border: 1px solid var(--shiny-button-border);
-  border-radius: 4px;
-  color: var(--shiny-text);
-  background: var(--shiny-surface);
+  border: 1px solid var(--shiny-field-border);
+  border-radius: var(--shiny-field-radius);
+  color: var(--shiny-field-fg);
+  background: var(--shiny-field-bg);
   font: inherit;
   font-size: 12px;
   line-height: 1.35;
 }
 
+.input::placeholder {
+  color: var(--shiny-field-placeholder);
+}
+
 .input:focus-visible {
-  outline: 2px solid var(--shiny-accent);
-  outline-offset: 2px;
+  outline: 2px solid var(--shiny-field-focus-border);
+  outline-offset: 1px;
 }

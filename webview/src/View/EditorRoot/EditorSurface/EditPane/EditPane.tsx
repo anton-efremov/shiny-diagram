@@ -4,31 +4,35 @@
  */
 
 import type { ReactElement } from "react";
-import EmptyEditPane from "./EmptyEditPane/EmptyEditPane";
+import DiagramEditPane from "./DiagramEditPane/DiagramEditPane";
 import ClassEditPane from "./ClassEditPane/ClassEditPane";
 import NoteEditPane from "./NoteEditPane/NoteEditPane";
 import RelationshipEditPane from "./RelationshipEditPane/RelationshipEditPane";
-import StyleEditPane from "./StyleEditPane/StyleEditPane";
 import NamespaceEditPane from "./NamespaceEditPane/NamespaceEditPane";
 import type { NamespaceId, NoteId, RelationshipId, StyleDefId } from "../../../../shared/ids";
 import type { TransactionResult } from "../../../commands/editorCommands";
 import type { RelationshipSeed } from "../../../state/editorStates";
 import type { SelectionState } from "../../../state/editorStates";
-import type {
-  ClassView,
-  DiagramView,
-  NoteView,
-  RelationshipView,
-  NamespaceView,
-  StyleView,
-} from "../../../views/schema";
+import type { DiagramView, NoteView, RelationshipView, NamespaceView } from "../../../views/schema";
 import { EDIT_PANE_WIDTH } from "../../../config/editorUiConfig";
 import PaneFrame from "../../../ui/templates/PaneFrame/PaneFrame";
 
 type EditPaneProps = {
   readonly view: Pick<DiagramView, "classes" | "relationships" | "notes" | "styles" | "namespaces">;
   readonly selectionState: SelectionState;
-  readonly onStyleSelect: (styleDefId: StyleDefId) => void;
+  readonly onStyleSelect: (
+    styleDefId: StyleDefId,
+    origin?: Extract<SelectionState, { readonly kind: "classes" }>
+  ) => void;
+  readonly onSelectionRestore: (selectionState: SelectionState) => void;
+  readonly onStyleCreateCommitted: (
+    result: TransactionResult,
+    origin?: Extract<SelectionState, { readonly kind: "classes" }>
+  ) => void;
+  readonly onStyleRenameCommitted: (
+    result: TransactionResult,
+    previousStyleDefId: StyleDefId
+  ) => void;
   readonly onNoteAttachStart: (noteId: NoteId) => void;
   readonly onNoteDuplicateCommitted: (result: TransactionResult) => void;
   readonly onNamespaceRenameCommitted: (
@@ -41,15 +45,12 @@ type EditPaneProps = {
 
 type EditPaneScenario =
   | {
-      readonly kind: "style";
-      readonly selectedStyle: StyleView;
-    }
-  | {
-      readonly kind: "empty";
+      readonly kind: "diagram";
+      readonly selectionState: SelectionState;
     }
   | {
       readonly kind: "classes";
-      readonly selectedClasses: readonly ClassView[];
+      readonly selectionState: Extract<SelectionState, { readonly kind: "classes" }>;
     }
   | {
       readonly kind: "relationship";
@@ -68,6 +69,9 @@ export default function EditPane({
   view,
   selectionState,
   onStyleSelect,
+  onSelectionRestore,
+  onStyleCreateCommitted,
+  onStyleRenameCommitted,
   onNoteAttachStart,
   onNoteDuplicateCommitted,
   onNamespaceRenameCommitted,
@@ -80,20 +84,25 @@ export default function EditPane({
   // Child component routing
   let editPaneContent: ReactElement;
   switch (editPaneScenario.kind) {
-    case "style":
+    case "diagram":
       editPaneContent = (
-        <StyleEditPane view={editPaneScenario.selectedStyle} styles={view.styles} />
+        <DiagramEditPane
+          view={view}
+          selectionState={editPaneScenario.selectionState}
+          onSelectionRestore={onSelectionRestore}
+          onStyleSelect={onStyleSelect}
+          onStyleCreateCommitted={onStyleCreateCommitted}
+          onStyleRenameCommitted={onStyleRenameCommitted}
+        />
       );
-      break;
-    case "empty":
-      editPaneContent = <EmptyEditPane />;
       break;
     case "classes":
       editPaneContent = (
         <ClassEditPane
-          view={editPaneScenario.selectedClasses}
-          styles={view.styles}
+          view={view}
+          selectionState={editPaneScenario.selectionState}
           onStyleSelect={onStyleSelect}
+          onStyleCreateCommitted={onStyleCreateCommitted}
         />
       );
       break;
@@ -135,19 +144,21 @@ function toEditPaneScenario(
 ): EditPaneScenario {
   switch (selectionState.kind) {
     case "none":
-      return { kind: "empty" };
+      return { kind: "diagram", selectionState };
     case "classes": {
       const selected = new Set(selectionState.classIds);
       const selectedClasses = view.classes.filter((classView) => selected.has(classView.classId));
       return selectedClasses.length === 0
-        ? { kind: "empty" }
-        : { kind: "classes", selectedClasses };
+        ? { kind: "diagram", selectionState }
+        : { kind: "classes", selectionState };
     }
     case "style": {
       const selectedStyle = view.styles.find(
         (styleView) => styleView.styleId === selectionState.styleDefId
       );
-      return selectedStyle ? { kind: "style", selectedStyle } : { kind: "empty" };
+      return selectedStyle
+        ? { kind: "diagram", selectionState }
+        : { kind: "diagram", selectionState };
     }
     case "relationship": {
       const selectedRelationship = view.relationships.find(
@@ -155,17 +166,19 @@ function toEditPaneScenario(
       );
       return selectedRelationship
         ? { kind: "relationship", selectedRelationship }
-        : { kind: "empty" };
+        : { kind: "diagram", selectionState };
     }
     case "note": {
       const selectedNote = view.notes.find((noteView) => noteView.noteId === selectionState.noteId);
-      return selectedNote ? { kind: "note", selectedNote } : { kind: "empty" };
+      return selectedNote ? { kind: "note", selectedNote } : { kind: "diagram", selectionState };
     }
     case "namespace": {
       const selectedNamespace = view.namespaces.find(
         (namespaceView) => namespaceView.namespaceId === selectionState.namespaceId
       );
-      return selectedNamespace ? { kind: "namespace", selectedNamespace } : { kind: "empty" };
+      return selectedNamespace
+        ? { kind: "namespace", selectedNamespace }
+        : { kind: "diagram", selectionState };
     }
   }
 }

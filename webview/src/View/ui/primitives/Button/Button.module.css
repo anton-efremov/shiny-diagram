@@ -12,7 +12,7 @@
   min-height: 32px;
   padding: 7px 10px;
   border: 1px solid var(--shiny-button-border);
-  border-radius: 4px;
+  border-radius: var(--shiny-button-radius);
   color: var(--shiny-button-secondary-fg);
   background: var(--shiny-button-secondary-bg);
   box-shadow:
@@ -28,6 +28,10 @@
   border-color: var(--shiny-accent);
   color: var(--shiny-button-fg);
   background: var(--shiny-button-bg);
+}
+
+.button {
+  border-color: var(--shiny-button-outline);
 }
 
 .button:active:not(:disabled),
@@ -71,5 +75,17 @@
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
   white-space: nowrap;
+}
+
+.compact {
+  min-height: 26px;
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.endAligned {
+  justify-self: end;
+  width: auto;
 }

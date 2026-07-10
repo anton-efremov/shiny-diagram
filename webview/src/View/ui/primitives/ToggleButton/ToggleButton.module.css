@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid var(--shiny-layout-border);
-  border-radius: 6px;
+  border-radius: var(--shiny-button-radius);
   color: var(--shiny-text-muted);
   background: var(--shiny-pane-bg);
   box-shadow: inset 0 1px 0 var(--shiny-overlay-faint);
@@ -86,6 +86,7 @@
   min-height: 72px;
   padding: 9px 6px 8px;
   text-align: center;
+  border-radius: var(--shiny-tile-radius);
 }
 
 .relationshipTileButton {
@@ -95,6 +96,7 @@
   height: 34px;
   min-height: 34px;
   padding: 0;
+  border-radius: var(--shiny-tile-radius);
 }
 
 .icon {
