@@ -43,7 +43,7 @@ export default function ToolPane({
 
   return (
     <PaneFrame width={TOOL_PANE_WIDTH}>
-      <PaneSection label="Classbox">
+      <PaneSection label="Nodes">
         <NodePlacementTools
           kind="class"
           isClassPlacementActive={isClassPlacementActive}
@@ -53,8 +53,6 @@ export default function ToolPane({
           onNotePlacementStart={onNotePlacementStart}
           onNamespacePlacementStart={onNamespacePlacementStart}
         />
-      </PaneSection>
-      <PaneSection label="Namespace">
         <NodePlacementTools
           kind="namespace"
           isClassPlacementActive={isClassPlacementActive}
@@ -64,8 +62,6 @@ export default function ToolPane({
           onNotePlacementStart={onNotePlacementStart}
           onNamespacePlacementStart={onNamespacePlacementStart}
         />
-      </PaneSection>
-      <PaneSection label="Note">
         <NodePlacementTools
           kind="note"
           isClassPlacementActive={isClassPlacementActive}
@@ -76,7 +72,7 @@ export default function ToolPane({
           onNamespacePlacementStart={onNamespacePlacementStart}
         />
       </PaneSection>
-      <PaneSection label="Relationships">
+      <PaneSection label="Edges" columns={2}>
         <RelationshipTools
           relationshipPlacementState={relationshipPlacementState}
           onRelationshipPlacementStart={onRelationshipPlacementStart}

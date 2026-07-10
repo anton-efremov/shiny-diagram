@@ -10,7 +10,7 @@ export const GENERATE_CLASS_MARGIN = 40;
 
 export const PLACEMENT_OVERLAY_DRAG_THRESHOLD = 4;
 export const PLACEMENT_OVERLAY_Z_INDEX = 20;
-export const TOOL_PANE_WIDTH = 88;
+export const TOOL_PANE_WIDTH = 96;
 export const EDIT_PANE_WIDTH = 220;
 export const STYLE_COLOR_PRESETS = [
   { label: "Default", value: "" },

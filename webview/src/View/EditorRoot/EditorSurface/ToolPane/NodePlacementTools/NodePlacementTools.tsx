@@ -53,5 +53,14 @@ export default function NodePlacementTools({
       : onNamespacePlacementStart;
   const Icon = tool.icon;
 
-  return <ToggleButton icon={<Icon />} pressed={isPressed} title={tool.name} onClick={onClick} />;
+  return (
+    <ToggleButton
+      icon={<Icon />}
+      label={tool.name}
+      pressed={isPressed}
+      title={tool.name}
+      size="nodeTile"
+      onClick={onClick}
+    />
+  );
 }

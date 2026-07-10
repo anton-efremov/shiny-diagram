@@ -5,8 +5,11 @@
   --shiny-app-bg: var(--vscode-editor-background);
   --shiny-header-bg: var(--vscode-editorGroupHeader-tabsBackground, var(--vscode-panel-background));
   --shiny-canvas-bg: var(--vscode-editor-background);
-  --shiny-pane-bg: var(--vscode-editorWidget-background, var(--vscode-panel-background));
-  --shiny-layout-border: var(--vscode-editorGroup-border, var(--vscode-widget-border));
+  --shiny-pane-bg: var(--vscode-sideBar-background, var(--vscode-panel-background));
+  --shiny-layout-border: var(
+    --vscode-sideBar-border,
+    var(--vscode-editorGroup-border, var(--vscode-widget-border))
+  );
   --shiny-grid-dot: var(
     --vscode-editorWhitespace-foreground,
     var(--vscode-editorIndentGuide-background1, var(--vscode-editorLineNumber-foreground))

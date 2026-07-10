@@ -1,4 +1,12 @@
 classDiagram
+						  				class ConversationThread_1 {
+						  						+UUID id
+						  						+List~TextMessage~ messages
+						  						+List~UserContact~ participants
+						  						+addMessage(TextMessage message) void
+						  						+addParticipant(UserContact participant) void
+						  				}
+						  				class NewClass
 			class ConversationThread {
 				+UUID id
 				+List~TextMessage~ messages
@@ -13,13 +21,6 @@ classDiagram
 				+String name
 				+removeCommunicationChannel(UUID channelId) void
 			}
-				class ConversationThread_1 {
-						+UUID id
-						+List~TextMessage~ messages
-						+List~UserContact~ participants
-						+addMessage(TextMessage message) void
-						+addParticipant(UserContact participant) void
-				}
 
 direction TB
 
@@ -27,6 +28,7 @@ direction TB
 	ConversationThread_1 --> UserContact
 	UserContact *-- ConversationThread_1
 	UserContact *-- ConversationThread
+	ConversationThread_1 -- ConversationThread
 
 
     %% Native Style Applications
@@ -50,9 +52,10 @@ direction TB
 
     														%% @spatial:ConversationThread x=-12 y=50 w=204 h=274
 
-    														%% @spatial:UserContact x=262 y=33 w=278 h=321
+    														%% @spatial:UserContact x=240 y=262 w=278 h=321
 
     														%% @spatial:ConversationThread_1 x=572 y=25 w=203 h=302
+    														%% @spatial:NewClass x=286 y=-343 w=269.2700224289527 h=153.23798076923075
 
 
 
