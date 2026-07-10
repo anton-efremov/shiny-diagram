@@ -5,10 +5,27 @@
 .editorShell {
   display: grid;
   grid-template-columns: var(--editor-tool-pane-width) minmax(0, 1fr) var(--editor-edit-pane-width);
-  gap: 12px;
   align-items: stretch;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  background: var(--shiny-canvas-bg);
+  background-image: radial-gradient(circle, var(--shiny-grid-dot) 1px, transparent 1px);
+  background-position: 0 0;
+  background-size: 20px 20px;
+}
+
+.editorShell > :first-child {
+  border-right: 1px solid var(--shiny-layout-border);
+}
+
+.editorShell > :last-child {
+  border-left: 1px solid var(--shiny-layout-border);
 }
 
 .canvasRegion {
   min-width: 0;
+  min-height: 0;
 }

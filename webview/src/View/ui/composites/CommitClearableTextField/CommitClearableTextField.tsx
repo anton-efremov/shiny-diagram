@@ -3,9 +3,10 @@
  * @render Commit text field with clear action.
  */
 
-import type { ReactElement } from "react";
-import Button from "../../primitives/Button/Button";
-import CommitTextField from "../CommitTextField/CommitTextField";
+import { useEffect, useState } from "react";
+import type { KeyboardEvent, MouseEvent, ReactElement } from "react";
+import TextField from "../../primitives/TextField/TextField";
+import ValidationPopup from "../../primitives/ValidationPopup/ValidationPopup";
 import styles from "./CommitClearableTextField.module.css";
 
 type CommitClearableTextFieldProps = {
@@ -29,22 +30,88 @@ export default function CommitClearableTextField({
   onDiscard,
   onCancel,
 }: CommitClearableTextFieldProps): ReactElement {
+  const [draft, setDraft] = useState(initialValue);
+  const [messages, setMessages] = useState<readonly string[]>([]);
+
+  useEffect(() => {
+    setDraft(initialValue);
+    setMessages([]);
+  }, [initialValue]);
+
+  function commit(): void {
+    const nextMessages = validate(draft);
+    if (nextMessages.length > 0) {
+      setMessages(nextMessages);
+      return;
+    }
+    setMessages([]);
+    onCommit(draft);
+  }
+
+  function discardIfInvalid(): void {
+    const nextMessages = validate(draft);
+    if (nextMessages.length === 0) {
+      setMessages([]);
+      onCommit(draft);
+      return;
+    }
+    setDraft(initialValue);
+    setMessages([]);
+    onDiscard(nextMessages);
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commit();
+      return;
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setDraft(initialValue);
+      setMessages([]);
+      onCancel();
+    }
+  }
+
+  function handleClear(event: MouseEvent<HTMLButtonElement>): void {
+    event.preventDefault();
+    setDraft("");
+    setMessages([]);
+    onClear();
+  }
+
   return (
     <div className={styles.field}>
       {ariaLabel === undefined ? null : <span className={styles.label}>{ariaLabel}</span>}
-      <div className={styles.controls}>
-        <CommitTextField
-          initialValue={initialValue}
-          validate={validate}
+      <div className={styles.inputHost}>
+        <TextField
+          value={draft}
           disabled={disabled}
+          invalid={messages.length > 0}
           ariaLabel={ariaLabel}
-          isLabelVisible={false}
-          onCommit={onCommit}
-          onDiscard={onDiscard}
-          onCancel={onCancel}
+          hasEndAction={draft !== ""}
+          onChange={setDraft}
+          onBlur={discardIfInvalid}
+          onKeyDown={handleKeyDown}
         />
-        <Button label="Clear" disabled={disabled || initialValue === ""} onClick={onClear} />
+        {draft === "" ? null : (
+          <button
+            type="button"
+            className={styles.clearButton}
+            disabled={disabled}
+            aria-label={`Clear ${ariaLabel ?? "value"}`}
+            title="Clear"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={handleClear}
+          >
+            x
+          </button>
+        )}
       </div>
+      {messages.length > 0 ? (
+        <ValidationPopup messages={messages} onDismiss={() => setMessages([])} />
+      ) : null}
     </div>
   );
 }

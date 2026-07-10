@@ -1,10 +1,22 @@
 /* --- Design tokens: palette --- */
 
 :root {
+  /* Top-level editor hierarchy */
+  --shiny-app-bg: var(--vscode-editor-background);
+  --shiny-header-bg: var(--vscode-editorGroupHeader-tabsBackground, var(--vscode-panel-background));
+  --shiny-canvas-bg: var(--vscode-editor-background);
+  --shiny-pane-bg: var(--vscode-editorWidget-background, var(--vscode-panel-background));
+  --shiny-layout-border: var(--vscode-editorGroup-border, var(--vscode-widget-border));
+  --shiny-grid-dot: var(
+    --vscode-editorWhitespace-foreground,
+    var(--vscode-editorIndentGuide-background1, var(--vscode-editorLineNumber-foreground))
+  );
+  --shiny-pane-border: var(--shiny-layout-border);
+
   /* Color palette — named by character, not by where they're applied.
      Components pick whichever entry fits. */
   --shiny-surface: var(--vscode-editorWidget-background);
-  --shiny-page-bg: var(--vscode-editor-background);
+  --shiny-page-bg: var(--shiny-app-bg);
   --shiny-border: var(--vscode-panel-border);
   --shiny-text: var(--vscode-editor-foreground);
   --shiny-text-muted: var(--vscode-descriptionForeground);

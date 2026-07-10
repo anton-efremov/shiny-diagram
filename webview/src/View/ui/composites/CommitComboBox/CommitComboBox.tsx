@@ -3,10 +3,11 @@
  * @render Commit combo box.
  */
 
-import type { ReactElement } from "react";
-import Dropdown from "../Dropdown/Dropdown";
+import { useEffect, useState } from "react";
+import type { KeyboardEvent, ReactElement } from "react";
 import type { DropdownOption } from "../Dropdown/Dropdown";
-import CommitTextField from "../CommitTextField/CommitTextField";
+import TextField from "../../primitives/TextField/TextField";
+import ValidationPopup from "../../primitives/ValidationPopup/ValidationPopup";
 import styles from "./CommitComboBox.module.css";
 
 type CommitComboBoxProps = {
@@ -30,35 +31,137 @@ export default function CommitComboBox({
   onDiscard,
   onCancel,
 }: CommitComboBoxProps): ReactElement {
-  const value = options.some((option) => option.value === initialValue) ? initialValue : "__custom";
-  const renderedOptions =
-    value === "__custom" && initialValue !== ""
-      ? [...options, { value: "__custom", label: `Custom: ${initialValue}` }]
-      : [...options, { value: "__custom", label: "Custom" }];
+  const [draft, setDraft] = useState(initialValue);
+  const [isCustom, setIsCustom] = useState(() => !hasPresetValue(options, initialValue));
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<readonly string[]>([]);
+  const selectedOption = options.find((option) => option.value === initialValue);
+  const renderedOptions = [...options, { value: "__custom", label: "Custom" }];
+
+  useEffect(() => {
+    setDraft(initialValue);
+    setIsCustom(!hasPresetValue(options, initialValue));
+    setMessages([]);
+  }, [initialValue, options]);
+
+  function commitCustom(): void {
+    const nextMessages = validate(draft);
+    if (nextMessages.length > 0) {
+      setMessages(nextMessages);
+      return;
+    }
+    setMessages([]);
+    onCommit(draft);
+  }
+
+  function discardIfInvalid(): void {
+    if (!isCustom) return;
+    const nextMessages = validate(draft);
+    if (nextMessages.length === 0) {
+      setMessages([]);
+      onCommit(draft);
+      return;
+    }
+    setDraft(initialValue);
+    setMessages([]);
+    onDiscard(nextMessages);
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commitCustom();
+      return;
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setDraft(initialValue);
+      setMessages([]);
+      onCancel();
+    }
+  }
+
+  function selectValue(nextValue: string): void {
+    setIsOpen(false);
+    if (nextValue === "__custom") {
+      setIsCustom(true);
+      setDraft(hasPresetValue(options, initialValue) ? "" : initialValue);
+      return;
+    }
+    setIsCustom(false);
+    setDraft(nextValue);
+    setMessages([]);
+    onCommit(nextValue);
+  }
 
   return (
     <div className={styles.combo}>
       {ariaLabel === undefined ? null : <span className={styles.label}>{ariaLabel}</span>}
-      <div className={styles.controls}>
-        <Dropdown
-          options={renderedOptions}
-          value={value}
+      <div className={styles.comboBox}>
+        {isCustom ? (
+          <TextField
+            value={draft}
+            disabled={disabled}
+            invalid={messages.length > 0}
+            ariaLabel={ariaLabel}
+            hasEndAction
+            onChange={setDraft}
+            onBlur={discardIfInvalid}
+            onKeyDown={handleKeyDown}
+          />
+        ) : (
+          <button
+            type="button"
+            className={styles.valueButton}
+            disabled={disabled}
+            aria-haspopup="listbox"
+            aria-expanded={isOpen}
+            onClick={() => setIsOpen((current) => !current)}
+          >
+            {selectedOption?.label ?? ""}
+          </button>
+        )}
+        <button
+          type="button"
+          className={styles.menuButton}
           disabled={disabled}
-          onChange={(nextValue) => {
-            if (nextValue !== "__custom") onCommit(nextValue);
-          }}
-        />
-        <CommitTextField
-          initialValue={initialValue}
-          validate={validate}
-          disabled={disabled}
-          ariaLabel={ariaLabel}
-          isLabelVisible={false}
-          onCommit={onCommit}
-          onDiscard={onDiscard}
-          onCancel={onCancel}
-        />
+          aria-label={ariaLabel === undefined ? "Options" : `${ariaLabel} options`}
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => setIsOpen((current) => !current)}
+        >
+          v
+        </button>
+        {isOpen ? (
+          <div className={styles.menu} role="listbox">
+            {renderedOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={styles.option}
+                role="option"
+                aria-selected={
+                  option.value === "__custom"
+                    ? isCustom
+                    : !isCustom && option.value === initialValue
+                }
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => selectValue(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        {messages.length > 0 ? (
+          <ValidationPopup messages={messages} onDismiss={() => setMessages([])} />
+        ) : null}
       </div>
     </div>
   );
+}
+
+function hasPresetValue(options: readonly DropdownOption[], value: string): boolean {
+  return options.some((option) => option.value === value);
 }

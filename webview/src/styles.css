@@ -9,9 +9,14 @@
   box-sizing: border-box;
 }
 
-/* Browser default ~8px margin on body, removed. */
-body {
+/* VS Code webview/body defaults add outer spacing; the editor owns its frame. */
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
   margin: 0;
+  padding: 0;
 }
 
 /* Inherited defaults: every element gets Shiny's theme font/color unless it

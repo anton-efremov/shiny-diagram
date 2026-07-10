@@ -8,6 +8,7 @@ import ToggleButton from "../../../../ui/primitives/ToggleButton/ToggleButton";
 import { ClassGlyph, NamespaceGlyph, NoteGlyph } from "./icons";
 
 type NodePlacementToolsProps = {
+  readonly kind: "class" | "note" | "namespace";
   readonly isClassPlacementActive: boolean;
   readonly isNotePlacementActive: boolean;
   readonly isNamespacePlacementActive: boolean;
@@ -29,6 +30,7 @@ const nodeTools: readonly ToolPaneItem[] = [
 ];
 
 export default function NodePlacementTools({
+  kind,
   isClassPlacementActive,
   isNotePlacementActive,
   isNamespacePlacementActive,
@@ -36,34 +38,20 @@ export default function NodePlacementTools({
   onNotePlacementStart,
   onNamespacePlacementStart,
 }: NodePlacementToolsProps): ReactElement {
-  return (
-    <>
-      {nodeTools.map((tool) => {
-        const isClassTool = tool.kind === "class";
-        const isNoteTool = tool.kind === "note";
-        const isNamespaceTool = tool.kind === "namespace";
-        const isPressed =
-          (isClassTool && isClassPlacementActive) ||
-          (isNoteTool && isNotePlacementActive) ||
-          (isNamespaceTool && isNamespacePlacementActive);
-        const onClick = isClassTool
-          ? onClassPlacementStart
-          : isNoteTool
-            ? onNotePlacementStart
-            : onNamespacePlacementStart;
-        const Icon = tool.icon;
+  const tool = nodeTools.find((candidate) => candidate.kind === kind) ?? nodeTools[0];
+  const isClassTool = tool.kind === "class";
+  const isNoteTool = tool.kind === "note";
+  const isNamespaceTool = tool.kind === "namespace";
+  const isPressed =
+    (isClassTool && isClassPlacementActive) ||
+    (isNoteTool && isNotePlacementActive) ||
+    (isNamespaceTool && isNamespacePlacementActive);
+  const onClick = isClassTool
+    ? onClassPlacementStart
+    : isNoteTool
+      ? onNotePlacementStart
+      : onNamespacePlacementStart;
+  const Icon = tool.icon;
 
-        return (
-          <ToggleButton
-            key={tool.name}
-            icon={<Icon />}
-            label={tool.name}
-            pressed={isPressed}
-            title={tool.name}
-            onClick={onClick}
-          />
-        );
-      })}
-    </>
-  );
+  return <ToggleButton icon={<Icon />} pressed={isPressed} title={tool.name} onClick={onClick} />;
 }

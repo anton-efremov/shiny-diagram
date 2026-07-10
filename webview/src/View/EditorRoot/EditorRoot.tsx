@@ -8,6 +8,7 @@ import { CommandDispatchProvider } from "../contexts";
 import EditorSurface from "./EditorSurface/EditorSurface";
 import ErrorSurface from "./ErrorSurface/ErrorSurface";
 import MissingAnnotationsSurface from "./MissingAnnotationsSurface/MissingAnnotationsSurface";
+import styles from "./EditorRoot.module.css";
 
 type EditorRootProps = {
   readonly view: EditorViewModel;
@@ -38,7 +39,7 @@ export default function EditorRoot({ view, onTransactionDispatch }: EditorRootPr
 
   return (
     <CommandDispatchProvider onTransactionDispatch={onTransactionDispatch}>
-      {editorInterface}
+      <div className={styles.editorRoot}>{editorInterface}</div>
     </CommandDispatchProvider>
   );
 }

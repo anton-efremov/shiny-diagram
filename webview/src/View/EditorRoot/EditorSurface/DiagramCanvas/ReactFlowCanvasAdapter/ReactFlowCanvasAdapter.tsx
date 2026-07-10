@@ -6,7 +6,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactElement } from "react";
 import {
-  Background,
   ConnectionMode,
   Controls,
   ReactFlow,
@@ -441,7 +440,12 @@ export default function ReactFlowCanvasAdapter({
         connectionMode={ConnectionMode.Loose}
         reconnectRadius={RELATIONSHIP_RECONNECT_RADIUS}
         connectionLineComponent={connectionLineComponent}
-        className={isRelationshipPlacementActive ? styles.relationshipPlacement : undefined}
+        className={[
+          styles.canvas,
+          isRelationshipPlacementActive ? styles.relationshipPlacement : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
         fitView
         nodesDraggable={!isPlacementActive && !isNamespaceGestureActive && !isSurfaceResizeActive}
         panOnDrag={!isPlacementActive && !isNamespaceGestureActive && !isSurfaceResizeActive}
@@ -449,7 +453,6 @@ export default function ReactFlowCanvasAdapter({
         // Keep last. This enforces Shiny's React Flow boundary policy.
         {...reactFlowCanvasBoundaryProps}
       >
-        <Background />
         <Controls showInteractive={false} />
         <PlacementOverlay
           nodePlacementState={nodePlacementState}

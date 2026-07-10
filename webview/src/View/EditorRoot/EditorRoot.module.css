@@ -1,0 +1,9 @@
+/**
+ * @render Editor root viewport sizing.
+ */
+
+.editorRoot {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}

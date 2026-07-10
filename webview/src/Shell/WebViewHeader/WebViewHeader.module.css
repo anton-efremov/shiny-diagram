@@ -8,7 +8,9 @@
   justify-content: space-between;
   gap: 16px;
   align-items: flex-start;
-  margin-bottom: 20px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--shiny-layout-border);
+  background: var(--shiny-header-bg);
 }
 
 .title {

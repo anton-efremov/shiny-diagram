@@ -12,6 +12,7 @@ type TextFieldProps = {
   readonly invalid?: boolean;
   readonly ariaLabel?: string;
   readonly autoFocus?: boolean;
+  readonly hasEndAction?: boolean;
   readonly onChange: (value: string) => void;
   readonly onBlur?: () => void;
   readonly onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
@@ -23,13 +24,14 @@ export default function TextField({
   invalid = false,
   ariaLabel,
   autoFocus = false,
+  hasEndAction = false,
   onChange,
   onBlur,
   onKeyDown,
 }: TextFieldProps): ReactElement {
   return (
     <input
-      className={styles.field}
+      className={hasEndAction ? styles.fieldWithEndAction : styles.field}
       value={value}
       disabled={disabled}
       aria-invalid={invalid}
