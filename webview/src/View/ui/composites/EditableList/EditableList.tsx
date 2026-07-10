@@ -102,6 +102,7 @@ export default function EditableList({
                 type="button"
                 className={[
                   styles.row,
+                  "nodrag nopan",
                   isDragged ? styles.draggedRow : "",
                   row.emphasis === "underline" ? styles.underlined : "",
                   row.emphasis === "italic" ? styles.italic : "",
@@ -111,6 +112,7 @@ export default function EditableList({
                 data-editable-list-row="true"
                 onPointerDown={(event) => {
                   if (!isEditStartEnabled) return;
+                  event.stopPropagation();
                   event.currentTarget.setPointerCapture(event.pointerId);
                   setDragState({
                     index,
@@ -121,6 +123,10 @@ export default function EditableList({
                     dropGap: 0,
                   });
                 }}
+                onMouseDown={(event) => {
+                  if (!isEditStartEnabled) return;
+                  event.stopPropagation();
+                }}
                 onPointerMove={(event) =>
                   updateDrag(event, index, dragState, setDragState, listRef.current)
                 }
@@ -128,12 +134,12 @@ export default function EditableList({
                   if (dragState?.pointerId !== event.pointerId || dragState.index !== index) {
                     return;
                   }
+                  event.stopPropagation();
                   if (event.currentTarget.hasPointerCapture(event.pointerId)) {
                     event.currentTarget.releasePointerCapture(event.pointerId);
                   }
                   if (dragState.isActive) {
                     event.preventDefault();
-                    event.stopPropagation();
                     suppressClickRef.current = true;
                     onRowReorder(index, dragState.dropGap);
                   }

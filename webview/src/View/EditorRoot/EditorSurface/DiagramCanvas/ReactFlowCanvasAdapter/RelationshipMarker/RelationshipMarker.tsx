@@ -3,7 +3,7 @@
  */
 
 import type { ReactElement } from "react";
-import type { RelationshipEndpointKind } from "../../../shared/uml";
+import type { RelationshipEndpointKind } from "../../../../../../shared/uml";
 import styles from "./RelationshipMarker.module.css";
 
 type RelationshipMarkerProps = {

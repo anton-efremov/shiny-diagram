@@ -25,14 +25,21 @@ export default function Toggle<T extends string>({
   return (
     <div className={styles.toggle} role="group" aria-label={ariaLabel}>
       {options.map((option) => (
-        <button
+        <span
           key={option.value}
-          type="button"
+          role="button"
+          tabIndex={0}
+          aria-pressed={option.value === value}
           className={option.value === value ? styles.activeOption : styles.option}
           onClick={() => onChange(option.value)}
+          onKeyDown={(event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            onChange(option.value);
+          }}
         >
           {option.label}
-        </button>
+        </span>
       ))}
     </div>
   );

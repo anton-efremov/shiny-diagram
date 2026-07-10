@@ -32,4 +32,50 @@ export default [
       "no-console": "error",
     },
   },
+  {
+    files: ["webview/src/**/*.tsx"],
+    ignores: ["webview/src/View/ui/**/*.tsx"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "JSXOpeningElement > JSXIdentifier[name=/^(input|button|select|textarea)$/]",
+          message: "Intrinsic interactive elements are allowed only inside View/ui.",
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      "webview/src/View/EditorRoot/EditorSurface/ToolPane/**/*.tsx",
+      "webview/src/View/EditorRoot/EditorSurface/EditPane/**/*.tsx",
+    ],
+    ignores: ["**/icons.tsx"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "JSXOpeningElement > JSXIdentifier[name=/^[a-z]/]",
+          message: "Chrome components must render through View/ui components, not intrinsic JSX.",
+        },
+      ],
+    },
+  },
+  {
+    files: ["**/icons.tsx"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "JSXAttribute[name.name=/^(fill|stroke)$/] > Literal[value!=/^(currentColor|none)$/]",
+          message: "Icon fill/stroke values must be currentColor or none.",
+        },
+        {
+          selector: "Literal[value=/#[0-9a-fA-F]{3,8}|rgba?\\(|hsla?\\(|var\\(--/]",
+          message: "Icon files must not contain color literals or CSS variable references.",
+        },
+      ],
+    },
+  },
 ];

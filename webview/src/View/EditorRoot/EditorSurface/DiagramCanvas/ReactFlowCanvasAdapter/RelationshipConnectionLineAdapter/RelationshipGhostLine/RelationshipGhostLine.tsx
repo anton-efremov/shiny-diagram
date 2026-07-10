@@ -6,7 +6,7 @@ import type { ReactElement } from "react";
 import type { Point } from "../../../../../../../shared/geometry";
 import type { RelationshipSeed } from "../../../../../../state/editorStates";
 import { RELATIONSHIP_EDGE_DASH_PATTERN } from "../../../../../../config/editorUiConfig";
-import RelationshipMarker from "../../../../../../ui/RelationshipMarker/RelationshipMarker";
+import RelationshipMarker from "../../RelationshipMarker/RelationshipMarker";
 import styles from "./RelationshipGhostLine.module.css";
 
 type RelationshipGhostLineProps = {

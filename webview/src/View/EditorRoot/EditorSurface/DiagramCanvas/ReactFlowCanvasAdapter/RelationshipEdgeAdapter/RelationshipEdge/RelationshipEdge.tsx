@@ -14,7 +14,7 @@ import {
   RELATIONSHIP_EDGE_TEXT_REGION_WIDTH,
 } from "../../../../../../config/editorUiConfig";
 import type { RelationshipView } from "../../../../../../views/schema";
-import RelationshipMarker from "../../../../../../ui/RelationshipMarker/RelationshipMarker";
+import RelationshipMarker from "../../RelationshipMarker/RelationshipMarker";
 import CommitTextField from "../../../../../../ui/composites/CommitTextField/CommitTextField";
 import type { EditTarget } from "./state";
 import { useInteractions } from "./useInteractions";
