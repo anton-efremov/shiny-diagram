@@ -10,9 +10,11 @@ type ButtonProps = {
   readonly label: string;
   readonly icon?: ReactNode;
   readonly disabled?: boolean;
-  readonly tone?: "neutral" | "danger";
+  readonly tone?: "neutral" | "danger" | "accent";
   readonly size?: "default" | "compact";
+  readonly shape?: "rounded" | "pill";
   readonly alignment?: "stretch" | "end";
+  readonly visible?: boolean;
   readonly onClick?: () => void;
 };
 
@@ -22,19 +24,34 @@ export default function Button({
   disabled = false,
   tone = "neutral",
   size = "default",
+  shape = "rounded",
   alignment = "stretch",
+  visible = true,
   onClick,
 }: ButtonProps): ReactElement {
   const className = [
-    tone === "danger" ? styles.dangerButton : styles.button,
+    tone === "danger"
+      ? styles.dangerButton
+      : tone === "accent"
+        ? styles.accentButton
+        : styles.button,
     size === "compact" ? styles.compact : "",
+    shape === "pill" ? styles.pill : "",
     alignment === "end" ? styles.endAligned : "",
+    visible ? "" : styles.hidden,
   ]
     .filter(Boolean)
     .join(" ");
 
   return (
-    <button type="button" className={className} disabled={disabled} onClick={onClick}>
+    <button
+      type="button"
+      className={className}
+      disabled={disabled || !visible}
+      aria-hidden={!visible}
+      tabIndex={visible ? undefined : -1}
+      onClick={onClick}
+    >
       {icon === undefined ? null : (
         <span className={styles.icon} aria-hidden="true">
           {icon}

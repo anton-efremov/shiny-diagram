@@ -3,11 +3,16 @@
  * @render Namespace hull box.
  */
 
-import type { CSSProperties, MouseEvent, ReactElement } from "react";
+import { useState } from "react";
+import type { CSSProperties, ReactElement } from "react";
 import type { NamespaceId } from "../../../../../../../shared/ids";
 import type { Point, Rect } from "../../../../../../../shared/geometry";
 import type { NamespaceView } from "../../../../../../views/schema";
+import type { EditingState } from "../../../../../../state/editorStates";
+import type { TransactionResult } from "../../../../../../commands/editorCommands";
 import BoxOutline from "../../../../../../ui/primitives/BoxOutline/BoxOutline";
+import CommitTextField from "../../../../../../ui/composites/CommitTextField/CommitTextField";
+import ValidationPopup from "../../../../../../ui/primitives/ValidationPopup/ValidationPopup";
 import ResizeAffordance from "../../../../../../ui/primitives/ResizeAffordance/ResizeAffordance";
 import type { ResizeHandle } from "../../../../../../ui/primitives/ResizeAffordance/ResizeAffordance";
 import {
@@ -19,14 +24,11 @@ import {
   NAMESPACE_LABEL_PADDING_X,
   NAMESPACE_LABEL_PADDING_Y,
   NAMESPACE_DEFAULT_STROKE_WIDTH,
-  NAMESPACE_SELECTION_RING_WIDTH,
   NAMESPACE_DEFAULT_FILL,
   NAMESPACE_DEFAULT_STROKE,
-  NAMESPACE_PENDING_STROKE,
-  NAMESPACE_PENDING_OUTLINE_OFFSET,
-  NAMESPACE_PENDING_STROKE_WIDTH,
 } from "../../../../../../config/editorUiConfig";
 import styles from "./NamespaceBox.module.css";
+import { useInteractions } from "./useInteractions";
 
 type NamespaceBoxProps = {
   readonly view: NamespaceView;
@@ -40,6 +42,15 @@ type NamespaceBoxProps = {
     handle: ResizeHandle,
     screenPoint: Point
   ) => void;
+  readonly editingState: EditingState;
+  readonly onTextBlockEditStart: (
+    editingState: Exclude<EditingState, { readonly kind: "none" }>
+  ) => void;
+  readonly onTextBlockEditCancel: () => void;
+  readonly onNamespaceRenameCommitted: (
+    result: TransactionResult,
+    previousNamespaceId: NamespaceId
+  ) => void;
 };
 
 export default function NamespaceBox({
@@ -49,7 +60,14 @@ export default function NamespaceBox({
   isPendingMember,
   onNamespaceSelect,
   onNamespaceResizeHandlePress,
+  editingState,
+  onTextBlockEditStart,
+  onTextBlockEditCancel,
+  onNamespaceRenameCommitted,
 }: NamespaceBoxProps): ReactElement {
+  // State creation: local state - blur-discard validation messages for namespace name edits
+  const [discardErrors, setDiscardErrors] = useState<readonly string[]>([]);
+
   // UI props derivation
   const className = [styles.namespaceBox].filter(Boolean).join(" ");
   const strokeWidth = toCssLength(
@@ -66,23 +84,22 @@ export default function NamespaceBox({
     "--namespace-fill": view.style?.fill ?? NAMESPACE_DEFAULT_FILL,
     "--namespace-stroke": view.style?.stroke ?? NAMESPACE_DEFAULT_STROKE,
     "--namespace-stroke-width": strokeWidth,
-    "--namespace-selection-ring-width": `${NAMESPACE_SELECTION_RING_WIDTH}px`,
-    "--namespace-stroke-dasharray": view.style?.strokeDasharray ?? undefined,
+    "--namespace-stroke-style": toCssLineStyle(view.style?.strokeDasharray),
     "--namespace-color": view.style?.color ?? undefined,
-    "--namespace-pending-stroke": NAMESPACE_PENDING_STROKE,
-    "--namespace-pending-stroke-width": `${NAMESPACE_PENDING_STROKE_WIDTH}px`,
-    "--namespace-pending-outline-offset": `${NAMESPACE_PENDING_OUTLINE_OFFSET}px`,
+    "--shiny-inline-surface": view.style?.fill ?? NAMESPACE_DEFAULT_FILL,
     "--shiny-box-selection-center-offset": `calc(${strokeWidth} + 2px)`,
   } as CSSProperties;
 
   // Event handler props derivation
-  const onNamespaceClick = (event: MouseEvent<HTMLDivElement>) => {
-    event.stopPropagation();
-    onNamespaceSelect(view.namespaceId);
-  };
-  const onNamespacePress = () => {
-    onNamespaceSelect(view.namespaceId);
-  };
+  const { onNamespaceClick, onNamespacePress, onLabelClick, onLabelDoubleClick, onNameCommit } =
+    useInteractions({
+      namespaceId: view.namespaceId,
+      isSelected,
+      onNamespaceSelect,
+      onTextBlockEditStart,
+      onTextBlockEditCancel,
+      onNamespaceRenameCommitted,
+    });
   const onResizeGrab = (handle: ResizeHandle, point: Point) => {
     onNamespaceResizeHandlePress(view.namespaceId, bounds, handle, point);
   };
@@ -95,7 +112,31 @@ export default function NamespaceBox({
       onMouseDown={onNamespacePress}
       onClick={onNamespaceClick}
     >
-      <div className={styles.labelBand}>{view.label}</div>
+      {discardErrors.length > 0 ? (
+        <ValidationPopup messages={discardErrors} onDismiss={() => setDiscardErrors([])} />
+      ) : null}
+      {editingState.kind === "namespaceName" && editingState.namespaceId === view.namespaceId ? (
+        <div className={`${styles.labelBand} ${styles.inlineEditor} nodrag nopan`}>
+          <CommitTextField
+            initialValue={view.label}
+            validate={onNameCommit}
+            ariaLabel="Namespace name"
+            isLabelVisible={false}
+            autoFocus
+            appearance="inline"
+            onCommit={onTextBlockEditCancel}
+            onDiscard={(messages) => {
+              setDiscardErrors(messages);
+              onTextBlockEditCancel();
+            }}
+            onCancel={onTextBlockEditCancel}
+          />
+        </div>
+      ) : (
+        <div className={styles.labelBand} onClick={onLabelClick} onDoubleClick={onLabelDoubleClick}>
+          {view.label}
+        </div>
+      )}
       {isPendingMember ? <BoxOutline variant="pending" /> : null}
       {isSelected ? <BoxOutline variant="selected" /> : <BoxOutline variant="hover" />}
       {isSelected ? (
@@ -109,4 +150,10 @@ export default function NamespaceBox({
 
 function toCssLength(value: string): string {
   return /^-?(?:\d+|\d*\.\d+)$/.test(value.trim()) ? `${value.trim()}px` : value;
+}
+
+function toCssLineStyle(value: string | null | undefined): "solid" | "dashed" | "dotted" {
+  const normalized = value?.trim().replace(/\s+/g, " ");
+  if (!normalized || normalized === "0" || normalized === "none") return "solid";
+  return normalized.startsWith("1 ") ? "dotted" : "dashed";
 }

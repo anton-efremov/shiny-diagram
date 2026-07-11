@@ -405,6 +405,8 @@ export function useInteractions({
     (nextEditingState: Exclude<EditingState, { readonly kind: "none" }>) => {
       if (nextEditingState.kind === "noteText") {
         setSelectionState({ kind: "note", noteId: nextEditingState.noteId });
+      } else if (nextEditingState.kind === "namespaceName") {
+        setSelectionState({ kind: "namespace", namespaceId: nextEditingState.namespaceId });
       } else {
         setSelectionState({ kind: "classes", classIds: [nextEditingState.classId] });
       }

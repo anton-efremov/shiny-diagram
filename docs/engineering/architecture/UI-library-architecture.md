@@ -71,7 +71,7 @@ Behavior lists only augmentation beyond the bare pattern; "—" means pattern-de
 | Element                  | Composes                                                      | Behavior                                                                                                                                                                                                                                                                | Props                                                                                                                                        |
 | ------------------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | CommitTextField          | TextField (prim)<br>DismissButton (prim)<br>ValidationPopup (prim) | validation runs on commit attempt only<br>Enter: valid → commit; invalid → anchored popup, stays editing<br>first draft change dismisses popup<br>Blur: valid → commit; invalid → discard, draft dropped, feedback escalates to consumer<br>Esc or optional cancel button → cancel and dismiss popup; no validation, no feedback<br>empty draft commits as a value | `initialValue`<br>`validate(draft)→messages`<br>`disabled`<br>`ariaLabel`<br>`isLabelVisible`<br>`autoFocus`<br>`appearance` (pane \| inline)<br>`isCancelVisible`<br>`onDraftChange(value)` (optional)<br>`onCommit(value)`<br>`onDiscard(messages)`<br>`onCancel` |
-| CommitTextArea           | Button (prim)<br>textarea (nat)                               | no validation<br>Save button commits<br>Enter inserts newline<br>Blur commits<br>Esc → cancel                                                                                                                                                                           | `initialValue`<br>`disabled`<br>`autoFocus`<br>`onCommit(value)`<br>`onCancel` |
+| CommitTextArea           | Button (prim)<br>textarea (nat)                               | no validation<br>Save button commits; inline appearance renders it as a compact accent pill over the bottom-right corner<br>Enter inserts newline<br>Blur commits<br>Esc → cancel                                                                                           | `initialValue`<br>`disabled`<br>`autoFocus`<br>`appearance` (pane \| inline)<br>`onCommit(value)`<br>`onCancel` |
 | CommitClearableTextField | TextField (prim)<br>DismissButton (prim)<br>ValidationPopup (prim) | CommitTextField lifecycle<br>30%-smaller Clear control visible only while the populated field has focus<br>Clear commits empty value without entering editing | `initialValue`<br>`validate(draft)→messages`<br>`disabled`<br>`ariaLabel`<br>`isLabelVisible`<br>`onCommit(value)`<br>`onClear`<br>`onDiscard(messages)`<br>`onCancel` |
 | EmphasisCommitTextField  | TextArea (prim)<br>ToggleButton (prim)<br>ValidationPopup (prim) | visually wrapping editor auto-sized to rendered lines while its value remains single-line; newline input and pasted line breaks are blocked<br>two micro ToggleButtons (underline, italic) overlay above without layout participation and are mutually exclusive<br>emphasis is part of the local draft: toggles never emit per press<br>Enter commits text and emphasis atomically; Esc discards both<br>inherits the CommitTextField validation lifecycle otherwise | `initialValue`<br>`initialEmphasis`<br>`validate(draft)→messages`<br>`disabled`<br>`autoFocus`<br>`appearance` (pane \| inline)<br>`onCommit(value, emphasis)`<br>`onDiscard(messages)`<br>`onCancel` |
 | CommitComboBox           | TextField (prim)<br>ValidationPopup (prim)<br>button (nat)    | option select commits natively<br>typed custom value follows CommitTextField lifecycle                                                                                                                                                                                  | `initialValue`<br>`options`<br>`validate(draft)→messages`<br>`disabled`<br>`ariaLabel`<br>`isLabelVisible`<br>`onCommit(value)`<br>`onDiscard(messages)`<br>`onCancel` |
@@ -86,7 +86,7 @@ Behavior lists only augmentation beyond the bare pattern; "—" means pattern-de
 | Element      | UI                                          | Props                              |
 | ------------ | ------------------------------------------- | ---------------------------------- |
 | PaneFrame    | fixed-width or zero-width vertical stack in a side pane | `width`<br>`collapsed`<br>`edgeControl`<br>`children` |
-| PaneSection  | optionally labeled 1–2 column content group | `label`<br>`columns`<br>`children` |
+| PaneSection  | optionally labeled 1–2 column content group | `label`<br>`columns`<br>`spacingAfter` (default \| compact)<br>`children` |
 | FieldGrid    | optionally inset rows of label + control    | `rows` (label, control, optional alignment)<br>`inset`<br>`controlWidth` (full \| half \| wide [80%])<br>`labelWidth` (compact \| standard) |
 | ControlGroup | 1–2 column grouping of controls             | `columns`<br>`spacing` (default \| wide)<br>`children` |
 
@@ -98,7 +98,7 @@ Behavior lists only augmentation beyond the bare pattern; "—" means pattern-de
 | TextArea         | textarea (nat) | `value`<br>`rows`<br>`disabled`<br>`invalid`<br>`autoFocus`<br>`appearance` (pane \| inline)<br>`onChange`<br>`onBlur`<br>`onKeyDown` |
 | ValidationPopup  | popover (nat)<br>button (nat) | red pill with centered single-line white text and a small tail; exact cross-only dismiss glyph in a square surface-backed hit target; anchored above and flipped below when top-clipped; no layout participation; dismiss button, Escape, or the next outside pointer press requests dismissal; browser top layer escapes local clipping and stacking contexts | `messages`<br>`onDismiss` |
 | TextBlock        | —            | `text`                                                     |
-| Button           | button (nat) | `label`<br>`icon`<br>`disabled`<br>`tone` (neutral \| danger)<br>`size` (default \| compact)<br>`alignment` (stretch \| end)<br>`onClick` |
+| Button           | button (nat) | `label`<br>`icon`<br>`disabled`<br>`tone` (neutral \| danger \| accent)<br>`size` (default \| compact)<br>`shape` (rounded \| pill)<br>`alignment` (stretch \| end)<br>`visible` (hidden state reserves layout space)<br>`onClick` |
 | DismissButton    | button (nat) | exact cross-only glyph; circular surface-backed target | `label`<br>`small`<br>`onClick`<br>`onMouseDown` |
 | BackAffordance   | button (nat) | `label`<br>`visible` (hidden state reserves layout space)<br>`onClick` |
 | PaneCollapseTab  | button (nat) | edge-mounted chevron flips between collapse and expand direction | `collapsed`<br>`onToggle` |
@@ -248,43 +248,57 @@ Buttons are arranged as full-width rows in a one-column `ControlGroup`.
 
 Single namespace selection only.
 
-**PaneFrame › PaneSection** ("Selected namespace")
+**PaneFrame › PaneSection** ("Namespace name")
 
-| Element         | Label            | Selected namespace                                                     |
-| --------------- | ---------------- | ----------------------------------------------------------------------- |
-| StyledBoxSwatch |                  | swatch of _namespace style_ if annotation present / *neutral style*     |
-| CommitTextField | "Namespace name" | _namespace name_ — editable                                             |
+| Element         | Label | Selected namespace        |
+| --------------- | ----- | ------------------------- |
+| CommitTextField | —     | full-width namespace name — editable |
 
-Name renders inside the swatch's label area via the CommitTextField — domain arrangement, not a library composite.
+The field spans the pane content width.
 
-**PaneFrame › PaneSection** ("Namespace style")
+**PaneFrame › PaneSection** ("Configure style")
 
 | Element     | Label              | @style annotation present            | No @style annotation                 |
 | ----------- | ------------------ | ------------------------------------ | ------------------------------------ |
 | ColorSelect | "Fill"             | current/base/document/preset color — editable | quiet token-resolved glyph; Base selected |
 | ColorSelect | "Stroke"           | current/base/document/preset color — editable | quiet token-resolved glyph; Base selected |
-| ColorSelect | "Text"             | current/base/document/preset color — editable | quiet token-resolved glyph; Base selected |
-| StrokeSelect | "Stroke width"     | current/base/document/standard literal — editable | base or pure-default sample; Base selected |
-| StrokeSelect | "Stroke dasharray" | current/base/document/standard literal — editable | base or pure-default sample; Base selected |
-| Button      | "Reset style"      | enabled                              | enabled (reset is a no-op)           |
+| ColorSelect | "Text color"       | current/base/document/preset color — editable | quiet token-resolved glyph; Base selected |
+| StrokeSelect | "Width"            | current/base/document/standard literal — editable | base or pure-default sample; Base selected |
+| StrokeSelect | "Dash"             | current/base/document/standard literal — editable | base or pure-default sample; Base selected |
 
-**PaneFrame › PaneSection** ("")
+The controls are arranged by an inset half-width `FieldGrid`.
 
-| Element | Label    |          |
-| ------- | -------- | -------- |
-| Button  | "Delete" | enabled  |
+**PaneFrame › PaneSection** ("Actions")
+
+| Element | Label         | Behavior                                    |
+| ------- | ------------- | ------------------------------------------- |
+| Button  | "Reset style" | disabled when no direct namespace style exists |
+| Button  | "Delete"      | danger tone                                 |
+
+Buttons are arranged in a two-column `ControlGroup`.
 
 ### EditPane/NoteEditPane
 
 Single note selection only.
 
-**PaneFrame › PaneSection** ("")
+**PaneFrame › PaneSection** ("Attachment")
 
-| Element | Label                                          | Free note                   | Attached note                        |
-| ------- | ---------------------------------------------- | --------------------------- | ------------------------------------ |
-| Button  | "Attach to class" / "Detach from class" | "Attach to class" — enabled | "Detach from class" — enabled |
-| Button  | "Duplicate"                                    | enabled                     | enabled                              |
-| Button  | "Delete"                                       | enabled                     | enabled                              |
+| Element         | Free note                                    | Attached note                                                        |
+| --------------- | -------------------------------------------- | -------------------------------------------------------------------- |
+| StyledBoxSwatch | not mounted                                  | full-width pill resolved in the attached class style, labeled by its class name; non-interactive |
+| Button          | full-width "Attach to class" button in the swatch row; hidden compact button reserves the action row | compact end-aligned "Detach" button                                 |
+
+Both states reserve the same two rows, so the following Actions section does not shift when attachment changes.
+The Attachment section uses compact trailing spacing before Actions.
+
+**PaneFrame › PaneSection** ("Actions")
+
+| Element | Label       | Behavior    |
+| ------- | ----------- | ----------- |
+| Button  | "Duplicate" | enabled     |
+| Button  | "Delete"    | danger tone |
+
+Buttons are arranged in a two-column `ControlGroup`.
 
 ### DiagramCanvas/.../ClassBox
 
@@ -324,7 +338,7 @@ Classifiers map to emphasis in the domain (static → underline, abstract → it
 |---|---|
 |BoxOutline|mounted [hovered and not selected] with variant `hover`; mounted [selected] with variant `selected`|
 |ResizeAffordance|mounted [selected]|
-|CommitTextArea|mounted [text editing]; passed initial value = _note text_|
+|CommitTextArea|mounted [text editing] with inline appearance; passed initial value = _note text_|
 
 ### DiagramCanvas/.../NamespaceBox
 
@@ -334,7 +348,7 @@ Classifiers map to emphasis in the domain (static → underline, abstract → it
 | ---------------- | -------------------------------------------------------------------------------------------------------------------- |
 | BoxOutline       | mounted [hovered and not selected] with variant `hover`; mounted [selected] with variant `selected`; mounted [pending member during namespace gesture] with variant `pending` |
 | ResizeAffordance | mounted [selected]                                                                                                   |
-| CommitTextField  | mounted [name editing]; passed initial value = _namespace name_                                                      |
+| CommitTextField  | mounted [name editing] with inline appearance; passed initial value = _namespace name_                               |
 
 Resize is a membership gesture, not a bounds edit: the dragged rect selects pending members by overlap; on release bounds re-derive from the new member hull, and the rect itself is never persisted (no-empty-namespace rule applies).
 

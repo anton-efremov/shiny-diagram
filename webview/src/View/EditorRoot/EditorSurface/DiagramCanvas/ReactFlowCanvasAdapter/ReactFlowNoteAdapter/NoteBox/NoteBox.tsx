@@ -96,6 +96,7 @@ export default function NoteBox({
           <CommitTextArea
             initialValue={view.text.trim()}
             autoFocus
+            appearance="inline"
             onCommit={(text) => {
               const errors = onTextCommit(text.trim());
               if (errors.length > 0) onTextDiscard(errors);

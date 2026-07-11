@@ -172,6 +172,7 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
           onNamespaceResizeStart={onNamespaceResizeStart}
           onNamespaceResizeCommitted={onNamespaceResizeCommitted}
           onNamespaceSelect={onNamespaceSelect}
+          onNamespaceRenameCommitted={onNamespaceRenameCommitted}
           onTextBlockEditStart={onTextBlockEditStart}
           onTextBlockEditCancel={onTextBlockEditCancel}
         />

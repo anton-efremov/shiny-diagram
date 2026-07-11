@@ -12,6 +12,7 @@ type CommitTextAreaProps = {
   readonly initialValue: string;
   readonly disabled?: boolean;
   readonly autoFocus?: boolean;
+  readonly appearance?: "pane" | "inline";
   readonly onCommit: (value: string) => void;
   readonly onCancel: () => void;
 };
@@ -20,6 +21,7 @@ export default function CommitTextArea({
   initialValue,
   disabled = false,
   autoFocus = false,
+  appearance = "pane",
   onCommit,
   onCancel,
 }: CommitTextAreaProps): ReactElement {
@@ -38,7 +40,7 @@ export default function CommitTextArea({
   }
 
   return (
-    <div className={styles.editor}>
+    <div className={`${styles.editor} ${appearance === "inline" ? styles.inline : ""}`}>
       <textarea
         className={styles.input}
         value={draft}
@@ -48,7 +50,16 @@ export default function CommitTextArea({
         onBlur={() => onCommit(draft)}
         onKeyDown={handleKeyDown}
       />
-      <Button label="Save" disabled={disabled} onClick={() => onCommit(draft)} />
+      <div className={styles.saveAction}>
+        <Button
+          label="Save"
+          disabled={disabled}
+          tone={appearance === "inline" ? "accent" : "neutral"}
+          size={appearance === "inline" ? "compact" : "default"}
+          shape={appearance === "inline" ? "pill" : "rounded"}
+          onClick={() => onCommit(draft)}
+        />
+      </div>
     </div>
   );
 }

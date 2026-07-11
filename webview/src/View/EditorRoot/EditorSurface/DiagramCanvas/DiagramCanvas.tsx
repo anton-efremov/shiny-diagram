@@ -51,6 +51,10 @@ type DiagramCanvasProps = {
   readonly onNamespaceResizeStart: (namespaceId: NamespaceId, rect: Rect) => void;
   readonly onNamespaceResizeCommitted: (result: TransactionResult | null) => void;
   readonly onNamespaceSelect: (namespaceId: NamespaceId) => void;
+  readonly onNamespaceRenameCommitted: (
+    result: TransactionResult,
+    previousNamespaceId: NamespaceId
+  ) => void;
   readonly onTextBlockEditStart: (
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
@@ -81,6 +85,7 @@ export default function DiagramCanvas({
   onNamespaceResizeStart,
   onNamespaceResizeCommitted,
   onNamespaceSelect,
+  onNamespaceRenameCommitted,
   onTextBlockEditStart,
   onTextBlockEditCancel,
 }: DiagramCanvasProps): ReactElement {
@@ -143,6 +148,7 @@ export default function DiagramCanvas({
           onNamespaceResizeStart={onNamespaceResizeStart}
           onNamespaceResizeCommitted={onNamespaceResizeCommitted}
           onNamespaceSelect={onNamespaceSelect}
+          onNamespaceRenameCommitted={onNamespaceRenameCommitted}
           onTextBlockEditStart={onTextBlockEditStart}
           onTextBlockEditCancel={onTextBlockEditCancel}
         />

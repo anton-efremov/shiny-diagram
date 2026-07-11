@@ -24,9 +24,13 @@
   height: 13px;
 }
 
-.button:hover,
-.small:hover {
+.button:hover {
   color: var(--shiny-surface);
+  background: var(--shiny-text-error);
+}
+
+.small:hover {
+  color: var(--shiny-inline-surface, var(--shiny-surface));
   background: var(--shiny-text-error);
 }
 

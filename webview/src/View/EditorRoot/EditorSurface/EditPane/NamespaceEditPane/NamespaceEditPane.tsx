@@ -15,16 +15,16 @@ import {
   DEFAULT_STROKE_DASHARRAY,
   NAMESPACE_DEFAULT_STROKE_WIDTH,
 } from "../../../../config/editorUiConfig";
-import StyledBoxSwatch from "../../../../ui/primitives/StyledBoxSwatch/StyledBoxSwatch";
 import PaneSection from "../../../../ui/templates/PaneSection/PaneSection";
 import FieldGrid from "../../../../ui/templates/FieldGrid/FieldGrid";
+import ControlGroup from "../../../../ui/templates/ControlGroup/ControlGroup";
 import type { DiagramView } from "../../../../views/schema";
 import { toDocumentColors, toSelectedNamespace, toStrokeSelectUIProps } from "./childProps";
 import { useInteractions } from "./useInteractions";
 import StylePropertyControl from "./StylePropertyControl/StylePropertyControl";
 
 type NamespaceEditPaneProps = {
-  readonly view: Pick<DiagramView, "namespaces" | "styles">;
+  readonly view: Pick<DiagramView, "namespaces" | "styles" | "baseStyle">;
   readonly selectionState: Extract<SelectionState, { readonly kind: "namespace" }>;
   readonly onNamespaceRenameCommitted: (
     result: TransactionResult,
@@ -53,13 +53,13 @@ export default function NamespaceEditPane({
   const documentColors = toDocumentColors(view.styles);
   const widthSelectUIProps = toStrokeSelectUIProps(
     view.styles,
-    {},
+    view.baseStyle,
     "strokeWidth",
     `${NAMESPACE_DEFAULT_STROKE_WIDTH}px`
   );
   const dashSelectUIProps = toStrokeSelectUIProps(
     view.styles,
-    {},
+    view.baseStyle,
     "strokeDasharray",
     DEFAULT_STROKE_DASHARRAY
   );
@@ -72,20 +72,21 @@ export default function NamespaceEditPane({
 
   return (
     <>
-      <PaneSection label="Selected namespace">
-        <StyledBoxSwatch styleValues={style} label={selectedNamespace.label} />
+      <PaneSection label="Namespace name">
         <CommitTextField
           initialValue={selectedNamespace.label}
-          validate={() => []}
+          validate={onNameCommit}
           ariaLabel="Namespace name"
-          onCommit={onNameCommit}
+          isLabelVisible={false}
+          onCommit={() => undefined}
           onDiscard={() => undefined}
           onCancel={() => undefined}
         />
       </PaneSection>
-      <PaneSection label="Namespace style">
+      <PaneSection label="Configure style">
         <FieldGrid
-          labelWidth="standard"
+          inset
+          controlWidth="half"
           rows={STYLE_PROPERTIES.map(({ name }) => ({
             label: toPropertyLabel(name),
             control: (
@@ -94,6 +95,7 @@ export default function NamespaceEditPane({
                 value={style[name]}
                 presets={COLOR_PRESETS}
                 documentColors={documentColors}
+                baseValue={view.baseStyle[name]}
                 defaultValue={
                   name === "strokeWidth"
                     ? widthSelectUIProps.defaultValue
@@ -109,10 +111,16 @@ export default function NamespaceEditPane({
             ),
           }))}
         />
-        <Button label="Reset style" disabled={selectedNamespace.style === null} onClick={onReset} />
       </PaneSection>
-      <PaneSection label="">
-        <Button label="Delete" tone="danger" onClick={onDelete} />
+      <PaneSection label="Actions">
+        <ControlGroup columns={2}>
+          <Button
+            label="Reset style"
+            disabled={selectedNamespace.style === null}
+            onClick={onReset}
+          />
+          <Button label="Delete" tone="danger" onClick={onDelete} />
+        </ControlGroup>
       </PaneSection>
     </>
   );
@@ -126,10 +134,10 @@ function toPropertyLabel(property: (typeof STYLE_PROPERTIES)[number]["name"]): s
     case "stroke":
       return "Stroke";
     case "strokeWidth":
-      return "Stroke width";
+      return "Width";
     case "strokeDasharray":
-      return "Stroke dasharray";
+      return "Dash";
     case "color":
-      return "Text";
+      return "Text color";
   }
 }

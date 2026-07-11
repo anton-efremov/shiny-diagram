@@ -86,7 +86,8 @@ export type EditingState =
       readonly memberId: AttributeId | MethodId;
     }
   | { readonly kind: "newMember"; readonly classId: ClassId; readonly memberKind: MemberKind }
-  | { readonly kind: "noteText"; readonly noteId: NoteId };
+  | { readonly kind: "noteText"; readonly noteId: NoteId }
+  | { readonly kind: "namespaceName"; readonly namespaceId: NamespaceId };
 
 /*
  * Owned by: EditorSurface.

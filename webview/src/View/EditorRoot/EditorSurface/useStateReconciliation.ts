@@ -109,6 +109,13 @@ function reconcileEditingStateWithElements(
       ? editingState
       : { kind: "none" };
   }
+  if (editingState.kind === "namespaceName") {
+    return diagram.namespaces.some(
+      (namespaceView) => namespaceView.namespaceId === editingState.namespaceId
+    )
+      ? editingState
+      : { kind: "none" };
+  }
   const classView = diagram.classes.find((candidate) => candidate.classId === editingState.classId);
   if (!classView) return { kind: "none" };
   if (editingState.kind === "header" || editingState.kind === "newMember") return editingState;

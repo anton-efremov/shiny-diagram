@@ -7,9 +7,9 @@
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow: visible;
   border: var(--namespace-stroke-width) solid var(--namespace-stroke, var(--shiny-border));
-  border-style: var(--namespace-stroke-dasharray, solid);
+  border-style: var(--namespace-stroke-style, solid);
   background: var(--namespace-fill, var(--shiny-overlay-faint));
   color: var(--namespace-color, var(--shiny-text));
   font-family: var(--shiny-font-family);
@@ -32,4 +32,8 @@
   line-height: var(--namespace-label-line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.inlineEditor {
+  overflow: visible;
 }

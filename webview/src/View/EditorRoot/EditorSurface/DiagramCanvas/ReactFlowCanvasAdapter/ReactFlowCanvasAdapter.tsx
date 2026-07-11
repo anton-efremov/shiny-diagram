@@ -115,6 +115,10 @@ type ReactFlowCanvasAdapterProps = {
   readonly onNamespaceResizeStart: (namespaceId: NamespaceId, rect: Rect) => void;
   readonly onNamespaceResizeCommitted: (result: TransactionResult | null) => void;
   readonly onNamespaceSelect: (namespaceId: NamespaceId) => void;
+  readonly onNamespaceRenameCommitted: (
+    result: TransactionResult,
+    previousNamespaceId: NamespaceId
+  ) => void;
   readonly onTextBlockEditStart: (
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
@@ -150,6 +154,7 @@ export default function ReactFlowCanvasAdapter({
   onNamespaceResizeStart,
   onNamespaceResizeCommitted,
   onNamespaceSelect,
+  onNamespaceRenameCommitted,
   onTextBlockEditStart,
   onTextBlockEditCancel,
 }: ReactFlowCanvasAdapterProps): ReactElement {
@@ -317,7 +322,11 @@ export default function ReactFlowCanvasAdapter({
       renderedNamespaceGeometry,
       selectionState,
       onNamespaceSelect,
-      onNamespaceResizeHandlePress
+      onNamespaceResizeHandlePress,
+      editingState,
+      onTextBlockEditStart,
+      onTextBlockEditCancel,
+      onNamespaceRenameCommitted
     );
     const classNodes = toClassBoxNodeDescriptors(
       view.classes,
@@ -357,6 +366,7 @@ export default function ReactFlowCanvasAdapter({
     onNoteResizeHandlePress,
     onClassResizeHandlePress,
     onNamespaceSelect,
+    onNamespaceRenameCommitted,
     onNamespaceResizeHandlePress,
     editingState,
     onTextBlockEditStart,

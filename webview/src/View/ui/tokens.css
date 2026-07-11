@@ -32,6 +32,9 @@
   --shiny-base-text: var(--vscode-editor-foreground);
   --shiny-base-stroke-width: 1px;
   --shiny-base-stroke-style: solid;
+  --shiny-warm-paper: #fff4b8;
+  --shiny-warm-border: #c59f25;
+  --shiny-warm-ink: #2f2a18;
 
   /* Control shells */
   --shiny-field-radius: 3px;

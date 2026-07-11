@@ -16,6 +16,7 @@ import type { RelationshipSeed } from "../../../state/editorStates";
 import type { SelectionState } from "../../../state/editorStates";
 import type { DiagramView, NoteView, RelationshipView } from "../../../views/schema";
 import { EDIT_PANE_WIDTH } from "../../../config/editorUiConfig";
+import { PURE_STYLE_DEFAULTS } from "../../../config/stylePresets";
 import PaneFrame from "../../../ui/templates/PaneFrame/PaneFrame";
 import PaneCollapseTab from "../../../ui/primitives/PaneCollapseTab/PaneCollapseTab";
 
@@ -126,15 +127,27 @@ export default function EditPane({
         />
       );
       break;
-    case "note":
+    case "note": {
+      const attachedClass = editPaneScenario.selectedNote.attachedToClassId
+        ? view.classes.find(
+            (classView) => classView.classId === editPaneScenario.selectedNote.attachedToClassId
+          )
+        : undefined;
       editPaneContent = (
         <NoteEditPane
           view={editPaneScenario.selectedNote}
+          attachedClassLabel={attachedClass?.header.name ?? null}
+          attachedClassStyle={
+            attachedClass
+              ? { ...PURE_STYLE_DEFAULTS, ...view.baseStyle, ...attachedClass.style }
+              : null
+          }
           onNoteAttachStart={onNoteAttachStart}
           onNoteDuplicateCommitted={onNoteDuplicateCommitted}
         />
       );
       break;
+    }
     case "namespace":
       editPaneContent = (
         <NamespaceEditPane

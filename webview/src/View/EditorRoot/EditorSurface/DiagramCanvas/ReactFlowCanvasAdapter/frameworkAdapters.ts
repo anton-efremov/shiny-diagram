@@ -27,6 +27,7 @@ import type {
   NoteView,
   RelationshipView,
 } from "../../../../views/schema";
+import type { TransactionResult } from "../../../../commands/editorCommands";
 import {
   CLASS_NODE_Z_INDEX,
   NAMESPACE_LABEL_BAND_HEIGHT,
@@ -70,6 +71,15 @@ export type NamespaceNodeData = {
     bounds: Rect,
     handle: NamespaceResizeHandle,
     screenPoint: Point
+  ) => void;
+  readonly editingState: EditingState;
+  readonly onTextBlockEditStart: (
+    editingState: Exclude<EditingState, { readonly kind: "none" }>
+  ) => void;
+  readonly onTextBlockEditCancel: () => void;
+  readonly onNamespaceRenameCommitted: (
+    result: TransactionResult,
+    previousNamespaceId: NamespaceId
   ) => void;
 };
 
@@ -330,7 +340,11 @@ export function toNamespaceNodeDescriptors(
   namespaceGeometry: NamespaceGeometry,
   selectionState: SelectionState,
   onNamespaceSelect: (namespaceId: NamespaceId) => void,
-  onNamespaceResizeHandlePress: NamespaceNodeData["onNamespaceResizeHandlePress"]
+  onNamespaceResizeHandlePress: NamespaceNodeData["onNamespaceResizeHandlePress"],
+  editingState: EditingState,
+  onTextBlockEditStart: NamespaceNodeData["onTextBlockEditStart"],
+  onTextBlockEditCancel: () => void,
+  onNamespaceRenameCommitted: NamespaceNodeData["onNamespaceRenameCommitted"]
 ): NamespaceNodeDescriptor[] {
   return namespaces.flatMap((namespaceView) => {
     const bounds = namespaceGeometry.boundsByNamespaceId.get(namespaceView.namespaceId);
@@ -349,6 +363,10 @@ export function toNamespaceNodeDescriptors(
           isPendingMember: namespaceGeometry.pendingNamespaceIds.has(namespaceView.namespaceId),
           onNamespaceSelect,
           onNamespaceResizeHandlePress,
+          editingState,
+          onTextBlockEditStart,
+          onTextBlockEditCancel,
+          onNamespaceRenameCommitted,
         },
         selectable: false,
         focusable: false,

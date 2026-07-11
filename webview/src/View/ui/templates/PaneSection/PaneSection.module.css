@@ -12,6 +12,10 @@
   padding-top: 18px;
 }
 
+.compactAfter + .section {
+  padding-top: 6px;
+}
+
 .label {
   margin: 0 0 8px;
   color: var(--shiny-text);

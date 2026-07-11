@@ -36,3 +36,26 @@
   outline: 2px solid var(--shiny-field-focus-border);
   outline-offset: 1px;
 }
+
+.inline {
+  display: block;
+  gap: 4px;
+}
+
+.inline .input {
+  min-height: 0;
+  padding: 2px 52px 30px 2px;
+  border-color: transparent;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  outline: none;
+}
+
+.inline .saveAction {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+}

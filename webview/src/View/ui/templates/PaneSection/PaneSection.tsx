@@ -8,16 +8,20 @@ import styles from "./PaneSection.module.css";
 type PaneSectionProps = {
   readonly label?: string;
   readonly columns?: 1 | 2;
+  readonly spacingAfter?: "default" | "compact";
   readonly children?: ReactNode;
 };
 
 export default function PaneSection({
   label,
   columns = 1,
+  spacingAfter = "default",
   children,
 }: PaneSectionProps): ReactElement {
   return (
-    <section className={styles.section}>
+    <section
+      className={`${styles.section} ${spacingAfter === "compact" ? styles.compactAfter : ""}`}
+    >
       {label === undefined || label === "" ? null : <h2 className={styles.label}>{label}</h2>}
       <div className={columns === 2 ? styles.twoColumnContent : styles.oneColumnContent}>
         {children}
