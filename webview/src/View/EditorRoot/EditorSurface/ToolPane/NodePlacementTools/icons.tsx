@@ -4,41 +4,47 @@
 
 import type { ReactElement } from "react";
 
+type NodeGlyphProps = {
+  readonly children: ReactElement;
+};
+
+function NodeGlyph({ children }: NodeGlyphProps): ReactElement {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {children}
+    </svg>
+  );
+}
+
 export function ClassGlyph(): ReactElement {
   return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
-      <path
-        d="M4 4h12v12h-12zM4 8h12M4 12h12"
-        stroke="currentColor"
-        strokeWidth="0.85"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <NodeGlyph>
+      <path d="M2.5 2.5h11v11h-11ZM2.5 6.5h11M2.5 10h11" />
+    </NodeGlyph>
   );
 }
 
 export function NamespaceGlyph(): ReactElement {
   return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
-      <path
-        d="M4 4.5h12v11h-12zM6.25 7.25h3.25v3h-3.25zM10.5 10.75h3.25v3h-3.25z"
-        stroke="currentColor"
-        strokeWidth="0.85"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <NodeGlyph>
+      <path d="M2.5 3h11v10h-11ZM4.5 5.5h3v2.5h-3ZM8.5 8.5h3v2.5h-3Z" />
+    </NodeGlyph>
   );
 }
 
 export function NoteGlyph(): ReactElement {
   return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
-      <path
-        d="M4.5 3.5h8l3 3v10h-11zM12.5 3.5v3h3"
-        stroke="currentColor"
-        strokeWidth="0.85"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <NodeGlyph>
+      <path d="M3 2.5h7l3 3v8h-10ZM10 2.5v3h3" />
+    </NodeGlyph>
   );
 }

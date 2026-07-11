@@ -26,16 +26,16 @@ export default function RelationshipEditPane({
 }: RelationshipEditPaneProps): ReactElement {
   return (
     <>
+      <PaneSection label="Relationship label">
+        <LabelControls view={view} />
+      </PaneSection>
       <PaneSection label="Relationship shape">
         <EdgeShapeControls view={view} onRelationshipSelect={onRelationshipSelect} />
       </PaneSection>
       <PaneSection label="Multiplicity">
         <MultiplicityControls view={view} />
       </PaneSection>
-      <PaneSection label="Relationship label">
-        <LabelControls view={view} />
-      </PaneSection>
-      <PaneSection label="">
+      <PaneSection label="Actions">
         <EdgeActions view={view} onRelationshipDuplicate={onRelationshipDuplicate} />
       </PaneSection>
     </>

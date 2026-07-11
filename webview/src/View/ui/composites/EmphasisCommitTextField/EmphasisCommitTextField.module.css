@@ -16,6 +16,14 @@
   gap: 4px;
 }
 
+.cancelButton {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+}
+
 .underlined textarea {
   text-decoration: underline;
 }

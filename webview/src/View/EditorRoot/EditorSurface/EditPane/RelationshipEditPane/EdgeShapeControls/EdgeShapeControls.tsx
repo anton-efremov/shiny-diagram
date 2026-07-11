@@ -9,6 +9,8 @@ import type { RelationshipEndpointKind, RelationshipLineKind } from "../../../..
 import type { RelationshipView } from "../../../../../views/schema";
 import Button from "../../../../../ui/primitives/Button/Button";
 import Dropdown from "../../../../../ui/composites/Dropdown/Dropdown";
+import FieldGrid from "../../../../../ui/templates/FieldGrid/FieldGrid";
+import ControlGroup from "../../../../../ui/templates/ControlGroup/ControlGroup";
 import { useInteractions } from "./useInteractions";
 
 const endpointKinds: readonly RelationshipEndpointKind[] = [
@@ -31,39 +33,91 @@ export default function EdgeShapeControls({
   view,
   onRelationshipSelect,
 }: EdgeShapeControlsProps): ReactElement {
+  // UI props derivation
+  const endpointOptions = endpointKinds.map((endpointKind) => ({
+    value: endpointKind,
+    label: toEndpointLabel(endpointKind),
+    isLabelVisible: endpointKind === "none",
+    ...toEndpointVisual(endpointKind),
+  }));
+
   // Event handler props derivation
   const { onSourceEndpointKindChange, onLineKindChange, onTargetEndpointKindChange, onReverse } =
     useInteractions(view, onRelationshipSelect);
 
   return (
-    <>
-      <Dropdown
-        options={endpointKinds.map((endpointKind) => ({
-          value: endpointKind,
-          label: `Source endpoint: ${toEndpointLabel(endpointKind)}`,
-        }))}
-        value={view.sourceEndpointKind}
-        onChange={(value) => onSourceEndpointKindChange(value as RelationshipEndpointKind)}
-      />
-      <Dropdown
-        options={lineKinds.map((lineKind) => ({
-          value: lineKind,
-          label: `Line: ${toLineLabel(lineKind)}`,
-        }))}
-        value={view.lineKind}
-        onChange={(value) => onLineKindChange(value as RelationshipLineKind)}
-      />
-      <Dropdown
-        options={endpointKinds.map((endpointKind) => ({
-          value: endpointKind,
-          label: `Target endpoint: ${toEndpointLabel(endpointKind)}`,
-        }))}
-        value={view.targetEndpointKind}
-        onChange={(value) => onTargetEndpointKindChange(value as RelationshipEndpointKind)}
-      />
-      <Button label="Reverse" onClick={onReverse} />
-    </>
+    <FieldGrid
+      inset
+      labelWidth="standard"
+      controlWidth="full"
+      rows={[
+        {
+          label: "Source\nendpoint",
+          control: (
+            <Dropdown
+              options={endpointOptions}
+              value={view.sourceEndpointKind}
+              onChange={(value) => onSourceEndpointKindChange(value as RelationshipEndpointKind)}
+            />
+          ),
+        },
+        {
+          label: "Line",
+          control: (
+            <Dropdown
+              options={lineKinds.map((lineKind) => ({
+                value: lineKind,
+                label: toLineLabel(lineKind),
+                isLabelVisible: false,
+                swatchKind: lineKind === "solid" ? ("line" as const) : ("dash" as const),
+                swatchStyle: { strokeDasharray: lineKind === "solid" ? "0" : "4 4" },
+              }))}
+              value={view.lineKind}
+              onChange={(value) => onLineKindChange(value as RelationshipLineKind)}
+            />
+          ),
+        },
+        {
+          label: "Target\nendpoint",
+          control: (
+            <Dropdown
+              options={endpointOptions}
+              value={view.targetEndpointKind}
+              onChange={(value) => onTargetEndpointKindChange(value as RelationshipEndpointKind)}
+            />
+          ),
+        },
+        {
+          label: "",
+          control: (
+            <ControlGroup>
+              <Button label="Reverse" size="compact" alignment="end" onClick={onReverse} />
+            </ControlGroup>
+          ),
+        },
+      ]}
+    />
   );
+}
+
+function toEndpointVisual(endpointKind: RelationshipEndpointKind): {
+  readonly swatchKind?: "none" | "arrow" | "triangle" | "diamond" | "circle";
+  readonly swatchStyle?: { readonly fill?: string };
+} {
+  switch (endpointKind) {
+    case "none":
+      return {};
+    case "arrow":
+      return { swatchKind: "arrow" };
+    case "triangle":
+      return { swatchKind: "triangle" };
+    case "composition":
+      return { swatchKind: "diamond", swatchStyle: { fill: "currentColor" } };
+    case "aggregation":
+      return { swatchKind: "diamond" };
+    case "lollipop":
+      return { swatchKind: "circle" };
+  }
 }
 
 // Private helpers

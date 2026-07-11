@@ -23,7 +23,22 @@ export default function PaneCollapseTab({
       title={collapsed ? "Expand pane" : "Collapse pane"}
       onClick={onToggle}
     >
-      <span className={collapsed ? styles.inward : styles.outward} aria-hidden="true" />
+      <svg
+        className={collapsed ? styles.inward : styles.outward}
+        viewBox="0 0 16 16"
+        fill="none"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path
+          d="m6 4 4 4-4 4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
     </button>
   );
 }

@@ -13,7 +13,17 @@ export type DropdownOption = {
   readonly value: string;
   readonly label: string;
   readonly swatchStyle?: Partial<StyleProperties>;
-  readonly swatchKind?: "box" | "boxLabel" | "line" | "dash" | "text";
+  readonly swatchKind?:
+    | "box"
+    | "boxLabel"
+    | "line"
+    | "dash"
+    | "text"
+    | "none"
+    | "arrow"
+    | "triangle"
+    | "diamond"
+    | "circle";
   readonly isLabelVisible?: boolean;
 };
 
@@ -66,12 +76,16 @@ export default function Dropdown({
         onClick={() => setIsOpen((current) => !current)}
       >
         <span className={styles.triggerContent}>
-          {selectedOption?.swatchStyle ? (
+          {selectedOption?.swatchStyle || selectedOption?.swatchKind ? (
             <OptionContent option={selectedOption} />
           ) : (
             <span className={styles.triggerLabel}>{selectedOption?.label ?? ""}</span>
           )}
-          <span className={styles.arrow} aria-hidden="true" />
+          <span className={styles.arrow} aria-hidden="true">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M4 6h8l-4 5Z" fill="currentColor" />
+            </svg>
+          </span>
         </span>
       </button>
       {isOpen ? (
@@ -80,13 +94,13 @@ export default function Dropdown({
             <button
               key={option.value}
               type="button"
-              className={styles.option}
+              className={`${styles.option} ${option.isLabelVisible === false ? styles.iconOption : ""}`}
               role="option"
               aria-selected={option.value === value}
               aria-label={option.isLabelVisible === false ? option.label : undefined}
               onClick={() => selectValue(option.value)}
             >
-              {option.swatchStyle ? (
+              {option.swatchStyle || option.swatchKind ? (
                 <OptionContent option={option} />
               ) : (
                 <span className={styles.optionLabel}>{option.label}</span>
@@ -102,6 +116,8 @@ export default function Dropdown({
 function OptionContent({ option }: { readonly option: DropdownOption }): ReactElement {
   const swatchKind = option.swatchKind ?? "box";
   const isBoxLabel = swatchKind === "boxLabel";
+  const isEndpointSample = ["none", "arrow", "triangle", "diamond", "circle"].includes(swatchKind);
+  const isLineSample = swatchKind === "line" || swatchKind === "dash";
   const isLabelVisible = option.isLabelVisible !== false;
   const swatchStyle: CSSProperties & {
     "--dropdown-swatch-fill"?: string;
@@ -128,7 +144,7 @@ function OptionContent({ option }: { readonly option: DropdownOption }): ReactEl
       }
     >
       <span
-        className={`${styles.swatch} ${swatchKind === "box" || isBoxLabel ? styles.boxSwatch : styles.sampleSwatch} ${isBoxLabel ? styles.boxLabelSwatch : ""}`}
+        className={`${styles.swatch} ${swatchKind === "box" || isBoxLabel ? styles.boxSwatch : styles.sampleSwatch} ${isBoxLabel ? styles.boxLabelSwatch : ""} ${isEndpointSample ? styles.endpointSwatch : ""} ${isLineSample ? styles.longLineSwatch : ""}`}
         style={swatchStyle}
         aria-hidden="true"
       >
@@ -136,12 +152,12 @@ function OptionContent({ option }: { readonly option: DropdownOption }): ReactEl
         {swatchKind === "line" || swatchKind === "dash" ? (
           <svg
             className={styles.lineSample}
-            viewBox="0 0 18 10"
+            viewBox="0 0 36 10"
             aria-hidden="true"
             focusable="false"
           >
             <path
-              d="M2 5h14"
+              d="M2 5h32"
               stroke="currentColor"
               strokeWidth={option.swatchStyle?.strokeWidth ?? "1.5px"}
               strokeDasharray={
@@ -149,6 +165,35 @@ function OptionContent({ option }: { readonly option: DropdownOption }): ReactEl
               }
               strokeLinecap="round"
             />
+          </svg>
+        ) : null}
+        {swatchKind === "none" ||
+        swatchKind === "arrow" ||
+        swatchKind === "triangle" ||
+        swatchKind === "diamond" ||
+        swatchKind === "circle" ? (
+          <svg
+            className={styles.endpointSample}
+            viewBox="0 0 32 16"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M2 8h18" className={styles.endpointLine} />
+            {swatchKind === "none" ? (
+              <path d="m23 4 7 8M30 4l-7 8" className={styles.endpointOpen} />
+            ) : null}
+            {swatchKind === "arrow" ? (
+              <path d="m22 3 8 5-8 5" className={styles.endpointOpen} />
+            ) : null}
+            {swatchKind === "triangle" ? (
+              <path d="m21 2 9 6-9 6Z" className={styles.endpointOpen} />
+            ) : null}
+            {swatchKind === "diamond" ? (
+              <path d="m20 8 5-5 5 5-5 5Z" className={styles.endpointOpen} />
+            ) : null}
+            {swatchKind === "circle" ? (
+              <circle cx="25" cy="8" r="4" className={styles.endpointOpen} />
+            ) : null}
           </svg>
         ) : null}
         {swatchKind === "text" ? <span className={styles.textSample}>A</span> : null}

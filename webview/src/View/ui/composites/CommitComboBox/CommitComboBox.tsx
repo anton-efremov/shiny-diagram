@@ -36,6 +36,7 @@ export default function CommitComboBox({
   const [draft, setDraft] = useState(initialValue);
   const [isCustom, setIsCustom] = useState(() => !hasPresetValue(options, initialValue));
   const [isOpen, setIsOpen] = useState(false);
+  const comboBoxRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const [messages, setMessages] = useState<readonly string[]>([]);
   const selectedOption = options.find((option) => option.value === initialValue);
@@ -46,6 +47,29 @@ export default function CommitComboBox({
     setIsCustom(!hasPresetValue(options, initialValue));
     setMessages([]);
   }, [initialValue, options]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    function handlePointerDown(event: PointerEvent): void {
+      if (comboBoxRef.current?.contains(event.target as Node)) return;
+      setIsOpen(false);
+    }
+
+    function handleWindowKeyDown(event: globalThis.KeyboardEvent): void {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setIsOpen(false);
+      menuButtonRef.current?.focus();
+    }
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleWindowKeyDown);
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleWindowKeyDown);
+    };
+  }, [isOpen]);
 
   function commitCustom(): void {
     const nextMessages = validate(draft);
@@ -110,7 +134,7 @@ export default function CommitComboBox({
   return (
     <div className={visibleLabel === undefined ? styles.comboWithoutLabel : styles.combo}>
       {visibleLabel === undefined ? null : <span className={styles.label}>{visibleLabel}</span>}
-      <div className={styles.comboBox} onKeyDown={handleComboKeyDown}>
+      <div ref={comboBoxRef} className={styles.comboBox} onKeyDown={handleComboKeyDown}>
         {isCustom ? (
           <TextField
             value={draft}

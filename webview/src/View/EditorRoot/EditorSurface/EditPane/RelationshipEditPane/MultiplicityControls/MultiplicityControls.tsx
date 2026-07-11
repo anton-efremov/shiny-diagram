@@ -7,6 +7,7 @@ import type { ReactElement } from "react";
 import type { RelationshipView } from "../../../../../views/schema";
 import { useDispatchTransaction } from "../../../../../contexts";
 import CommitComboBox from "../../../../../ui/composites/CommitComboBox/CommitComboBox";
+import FieldGrid from "../../../../../ui/templates/FieldGrid/FieldGrid";
 import { toRelationshipMultiplicitySetTransaction } from "./transactions";
 
 const multiplicityPresets = ["1", "0..1", "*", "0..*", "1..*"] as const;
@@ -19,49 +20,66 @@ export default function MultiplicityControls({ view }: MultiplicityControlsProps
   const dispatchTransaction = useDispatchTransaction();
 
   return (
-    <>
-      <CommitComboBox
-        initialValue={view.sourceMultiplicity ?? ""}
-        options={toMultiplicityOptions("Source")}
-        validate={() => []}
-        ariaLabel="Source multiplicity"
-        onCommit={(value) =>
-          dispatchTransaction(
-            toRelationshipMultiplicitySetTransaction(
-              view.relationshipId,
-              "source",
-              value.trim() === "" ? null : value.trim()
-            )
-          )
-        }
-        onDiscard={() => undefined}
-        onCancel={() => undefined}
-      />
-      <CommitComboBox
-        initialValue={view.targetMultiplicity ?? ""}
-        options={toMultiplicityOptions("Target")}
-        validate={() => []}
-        ariaLabel="Target multiplicity"
-        onCommit={(value) =>
-          dispatchTransaction(
-            toRelationshipMultiplicitySetTransaction(
-              view.relationshipId,
-              "target",
-              value.trim() === "" ? null : value.trim()
-            )
-          )
-        }
-        onDiscard={() => undefined}
-        onCancel={() => undefined}
-      />
-    </>
+    <FieldGrid
+      inset
+      labelWidth="standard"
+      controlWidth="full"
+      rows={[
+        {
+          label: "Source",
+          control: (
+            <CommitComboBox
+              initialValue={view.sourceMultiplicity ?? ""}
+              options={toMultiplicityOptions()}
+              validate={() => []}
+              ariaLabel="Source"
+              isLabelVisible={false}
+              onCommit={(value) =>
+                dispatchTransaction(
+                  toRelationshipMultiplicitySetTransaction(
+                    view.relationshipId,
+                    "source",
+                    value.trim() === "" ? null : value.trim()
+                  )
+                )
+              }
+              onDiscard={() => undefined}
+              onCancel={() => undefined}
+            />
+          ),
+        },
+        {
+          label: "Target",
+          control: (
+            <CommitComboBox
+              initialValue={view.targetMultiplicity ?? ""}
+              options={toMultiplicityOptions()}
+              validate={() => []}
+              ariaLabel="Target"
+              isLabelVisible={false}
+              onCommit={(value) =>
+                dispatchTransaction(
+                  toRelationshipMultiplicitySetTransaction(
+                    view.relationshipId,
+                    "target",
+                    value.trim() === "" ? null : value.trim()
+                  )
+                )
+              }
+              onDiscard={() => undefined}
+              onCancel={() => undefined}
+            />
+          ),
+        },
+      ]}
+    />
   );
 }
 
 // Private helpers
-function toMultiplicityOptions(label: string): readonly { value: string; label: string }[] {
+function toMultiplicityOptions(): readonly { value: string; label: string }[] {
   return [
-    { value: "", label: `${label}: none` },
-    ...multiplicityPresets.map((preset) => ({ value: preset, label: `${label}: ${preset}` })),
+    { value: "", label: "None" },
+    ...multiplicityPresets.map((preset) => ({ value: preset, label: preset })),
   ];
 }

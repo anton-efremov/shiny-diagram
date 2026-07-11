@@ -10,6 +10,10 @@ import {
   RELATIONSHIP_EDGE_DASH_PATTERN,
   RELATIONSHIP_EDGE_HIT_PATH_STROKE_WIDTH,
   RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION,
+  RELATIONSHIP_EDGE_MULTIPLICITY_NORMAL_OFFSET,
+  RELATIONSHIP_EDGE_TEXT_CANCEL_ALLOWANCE,
+  RELATIONSHIP_EDGE_TEXT_CHARACTER_WIDTH,
+  RELATIONSHIP_EDGE_TEXT_MIN_WIDTH,
   RELATIONSHIP_EDGE_TEXT_REGION_HEIGHT,
   RELATIONSHIP_EDGE_TEXT_REGION_WIDTH,
 } from "../../../../../../config/editorUiConfig";
@@ -72,6 +76,13 @@ export default function RelationshipEdge({
     targetX + (labelX - targetX) * RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION;
   const targetMultiplicityY =
     targetY + (labelY - targetY) * RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION;
+  const multiplicityNormal = toNormalOffset(
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    RELATIONSHIP_EDGE_MULTIPLICITY_NORMAL_OFFSET
+  );
 
   return (
     <g
@@ -85,11 +96,13 @@ export default function RelationshipEdge({
           id={sourceMarkerId}
           endpointKind={view.sourceEndpointKind}
           side="source"
+          selected={isSelected}
         />
         <RelationshipMarker
           id={targetMarkerId}
           endpointKind={view.targetEndpointKind}
           side="target"
+          selected={isSelected}
         />
       </defs>
       <path
@@ -109,14 +122,14 @@ export default function RelationshipEdge({
       />
       {isSelected ? (
         <>
-          <circle className={styles.reconnectEndpoint} cx={sourceX} cy={sourceY} r={4} />
-          <circle className={styles.reconnectEndpoint} cx={targetX} cy={targetY} r={4} />
+          <circle className={styles.reconnectEndpoint} cx={sourceX} cy={sourceY} r={2.5} />
+          <circle className={styles.reconnectEndpoint} cx={targetX} cy={targetY} r={2.5} />
         </>
       ) : null}
       {view.sourceMultiplicity || isSourceMultiplicityEditing ? (
         <EdgeText
-          x={sourceMultiplicityX}
-          y={sourceMultiplicityY}
+          x={sourceMultiplicityX + multiplicityNormal.x}
+          y={sourceMultiplicityY + multiplicityNormal.y}
           text={view.sourceMultiplicity ?? ""}
           tone="dark"
           isEditing={isSourceMultiplicityEditing}
@@ -129,8 +142,8 @@ export default function RelationshipEdge({
       ) : null}
       {view.targetMultiplicity || isTargetMultiplicityEditing ? (
         <EdgeText
-          x={targetMultiplicityX}
-          y={targetMultiplicityY}
+          x={targetMultiplicityX + multiplicityNormal.x}
+          y={targetMultiplicityY + multiplicityNormal.y}
           text={view.targetMultiplicity ?? ""}
           tone="dark"
           isEditing={isTargetMultiplicityEditing}
@@ -187,12 +200,15 @@ function EdgeText({
   readonly onCommit: (value: string) => void;
   readonly onDraftDiscard: () => void;
 }): ReactElement {
+  const [editorText, setEditorText] = useState(text);
+
   if (isEditing) {
+    const editorWidth = toEditorWidth(editorText);
     return (
       <foreignObject
-        x={x - RELATIONSHIP_EDGE_TEXT_REGION_WIDTH / 2}
+        x={x - editorWidth / 2}
         y={y - RELATIONSHIP_EDGE_TEXT_REGION_HEIGHT / 2}
-        width={RELATIONSHIP_EDGE_TEXT_REGION_WIDTH}
+        width={editorWidth}
         height={RELATIONSHIP_EDGE_TEXT_REGION_HEIGHT}
         className={styles.textObject}
       >
@@ -206,6 +222,8 @@ function EdgeText({
             isLabelVisible={false}
             autoFocus
             appearance="inline"
+            isCancelVisible
+            onDraftChange={setEditorText}
             onCommit={onCommit}
             onDiscard={onDraftDiscard}
             onCancel={onDraftDiscard}
@@ -215,13 +233,9 @@ function EdgeText({
     );
   }
 
+  const surfaceWidth = Math.max(24, text.length * 7 + 12);
   return (
-    <text
-      x={x}
-      y={y}
-      className={tone === "light" ? styles.lightText : styles.darkText}
-      textAnchor="middle"
-      dominantBaseline="middle"
+    <g
       onClick={(event) => {
         event.stopPropagation();
         onSelect();
@@ -233,7 +247,47 @@ function EdgeText({
         onEditStart();
       }}
     >
-      {text}
-    </text>
+      <rect
+        x={x - surfaceWidth / 2}
+        y={y - 9}
+        width={surfaceWidth}
+        height={18}
+        className={tone === "light" ? styles.lightTextSurface : styles.darkTextSurface}
+      />
+      <text
+        x={x}
+        y={y}
+        className={tone === "light" ? styles.lightText : styles.darkText}
+        textAnchor="middle"
+        dominantBaseline="middle"
+      >
+        {text}
+      </text>
+    </g>
   );
+}
+
+function toEditorWidth(text: string): number {
+  return Math.min(
+    RELATIONSHIP_EDGE_TEXT_REGION_WIDTH,
+    Math.max(
+      RELATIONSHIP_EDGE_TEXT_MIN_WIDTH,
+      text.length * RELATIONSHIP_EDGE_TEXT_CHARACTER_WIDTH + RELATIONSHIP_EDGE_TEXT_CANCEL_ALLOWANCE
+    )
+  );
+}
+
+function toNormalOffset(
+  sourceX: number,
+  sourceY: number,
+  targetX: number,
+  targetY: number,
+  distance: number
+): { readonly x: number; readonly y: number } {
+  const dx = targetX - sourceX;
+  const dy = targetY - sourceY;
+  const length = Math.hypot(dx, dy);
+  return length === 0
+    ? { x: 0, y: -distance }
+    : { x: (-dy / length) * distance, y: (dx / length) * distance };
 }

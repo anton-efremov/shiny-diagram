@@ -1,0 +1,41 @@
+/**
+ * @render Compact cross button styling.
+ */
+
+.button,
+.small {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  color: var(--shiny-text-error);
+  background: transparent;
+  cursor: pointer;
+}
+
+.button {
+  width: 20px;
+  height: 20px;
+}
+
+.small {
+  width: 13px;
+  height: 13px;
+}
+
+.button:hover,
+.small:hover {
+  color: var(--shiny-surface);
+  background: var(--shiny-text-error);
+}
+
+.button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.small svg {
+  width: 11px;
+  height: 11px;
+}

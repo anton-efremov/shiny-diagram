@@ -36,6 +36,23 @@
   background: var(--shiny-surface);
 }
 
+.iconOption {
+  border-color: transparent;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.iconOption .swatchOnlyContent {
+  place-items: center;
+  padding: 4px 8px;
+}
+
+.iconOption:hover {
+  color: var(--shiny-field-hover-fg);
+  background: var(--shiny-surface);
+}
+
 .trigger:focus-visible,
 .boxLabelTrigger:focus-visible,
 .option:focus-visible {
@@ -150,9 +167,34 @@
 
 .lineSample {
   display: block;
-  width: 18px;
+  width: 36px;
   height: 10px;
   color: var(--dropdown-swatch-stroke, var(--shiny-text-muted));
+}
+
+.longLineSwatch {
+  width: 36px;
+}
+
+.endpointSample {
+  display: block;
+  width: 32px;
+  height: 16px;
+  overflow: visible;
+  color: var(--dropdown-swatch-stroke, var(--shiny-text-muted));
+}
+
+.endpointSwatch {
+  width: 32px;
+}
+
+.endpointLine,
+.endpointOpen {
+  fill: var(--dropdown-swatch-fill, var(--shiny-field-bg));
+  stroke: currentColor;
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .textSample {
@@ -176,14 +218,10 @@
   color: var(--dropdown-arrow-color, var(--shiny-text-muted));
 }
 
-.arrow::before {
+.arrow svg {
   display: block;
-  width: 0;
-  height: 0;
-  border-top: 5px solid currentColor;
-  border-right: 4px solid transparent;
-  border-left: 4px solid transparent;
-  content: "";
+  width: 16px;
+  height: 16px;
 }
 
 .boxLabelTrigger .arrow {
@@ -212,4 +250,9 @@
 
 .option[aria-selected="true"] {
   border-color: var(--shiny-accent);
+}
+
+.iconOption[aria-selected="true"] {
+  border-color: transparent;
+  background: var(--shiny-overlay-faint);
 }

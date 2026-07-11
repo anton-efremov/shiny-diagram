@@ -21,6 +21,7 @@ export default function LabelControls({ view }: LabelControlsProps): ReactElemen
       initialValue={view.label ?? ""}
       validate={() => []}
       ariaLabel="Relationship label"
+      isLabelVisible={false}
       onCommit={(value) =>
         dispatchTransaction(
           toRelationshipLabelSetTransaction(

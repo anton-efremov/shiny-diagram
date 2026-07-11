@@ -8,6 +8,7 @@ import type { KeyboardEvent, ReactElement } from "react";
 import TextArea from "../../primitives/TextArea/TextArea";
 import ToggleButton from "../../primitives/ToggleButton/ToggleButton";
 import ValidationPopup from "../../primitives/ValidationPopup/ValidationPopup";
+import DismissButton from "../../primitives/DismissButton/DismissButton";
 import styles from "./EmphasisCommitTextField.module.css";
 
 export type TextEmphasis = "underline" | "italic";
@@ -117,10 +118,23 @@ export default function EmphasisCommitTextField({
         invalid={messages.length > 0}
         autoFocus={autoFocus}
         appearance={appearance}
+        hasEndAction
         onChange={onDraftChange}
         onBlur={discardIfInvalid}
         onKeyDown={handleKeyDown}
       />
+      <span className={styles.cancelButton}>
+        <DismissButton
+          label="Cancel editing"
+          small
+          onClick={() => {
+            setDraft(toSingleLine(initialValue));
+            setEmphasis(initialEmphasis);
+            setMessages([]);
+            onCancel();
+          }}
+        />
+      </span>
       {messages.length > 0 ? (
         <ValidationPopup messages={messages} onDismiss={() => setMessages([])} />
       ) : null}
@@ -138,17 +152,30 @@ function toSingleLine(value: string): string {
 
 function UnderlineIcon(): ReactElement {
   return (
-    <svg viewBox="0 0 16 16" aria-hidden="true">
-      <path d="M4 2v5a4 4 0 0 0 8 0V2" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M3 14h10" fill="none" stroke="currentColor" strokeWidth="1.8" />
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+      <path
+        d="M4 3v4a4 4 0 0 0 8 0V3M3 13h10"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 
 function ItalicIcon(): ReactElement {
   return (
-    <svg viewBox="0 0 16 16" aria-hidden="true">
-      <path d="M7 2h6M3 14h6M10 2 6 14" fill="none" stroke="currentColor" strokeWidth="1.8" />
+    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+      <path
+        d="M7 3h5M4 13h5M10 3 6 13"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

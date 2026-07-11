@@ -34,6 +34,18 @@
   white-space: nowrap;
 }
 
+.inputHost {
+  position: relative;
+  min-width: 0;
+}
+
+.cancelButton {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+}
+
 .field > :global([role="alert"]) {
   grid-column: 1 / -1;
 }

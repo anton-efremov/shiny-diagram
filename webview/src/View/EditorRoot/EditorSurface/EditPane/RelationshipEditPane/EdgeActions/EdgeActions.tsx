@@ -8,6 +8,7 @@ import type { RelationshipSeed } from "../../../../../state/editorStates";
 import type { RelationshipView } from "../../../../../views/schema";
 import { shouldIgnoreKeyboardShortcutEvent } from "../../../../../utils/keyboardEvents";
 import Button from "../../../../../ui/primitives/Button/Button";
+import ControlGroup from "../../../../../ui/templates/ControlGroup/ControlGroup";
 import { useInteractions } from "./useInteractions";
 
 type EdgeActionsProps = {
@@ -35,9 +36,9 @@ export default function EdgeActions({
   }, [onDelete]);
 
   return (
-    <>
+    <ControlGroup columns={2}>
       <Button label="Duplicate" onClick={onDuplicate} />
       <Button label="Delete" tone="danger" onClick={onDelete} />
-    </>
+    </ControlGroup>
   );
 }

@@ -14,7 +14,7 @@ type FieldGridRow = {
 type FieldGridProps = {
   readonly rows: readonly FieldGridRow[];
   readonly inset?: boolean;
-  readonly controlWidth?: "full" | "half";
+  readonly controlWidth?: "full" | "half" | "wide";
   readonly labelWidth?: "compact" | "standard";
 };
 
@@ -40,7 +40,15 @@ export default function FieldGrid({
           }
         >
           <span className={styles.label}>{row.label}</span>
-          <div className={controlWidth === "half" ? styles.halfControl : styles.control}>
+          <div
+            className={
+              controlWidth === "half"
+                ? styles.halfControl
+                : controlWidth === "wide"
+                  ? styles.wideControl
+                  : styles.control
+            }
+          >
             {row.control}
           </div>
         </div>

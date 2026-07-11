@@ -1,11 +1,11 @@
 classDiagram
 	namespace NewNamespace {
-		class ConversationThread_1 {
-				+addMessage(TextMessage message)
+		class ConversationThread_1["addd"] {
 				+addParticipant(UserContact participant) void
-				+List~TextMessage~ messages
-				+List~UserContact~ participants
+				+addMessage(TextMessage message)
 				+UUID id
+				+List~UserContact~ participants
+				+List~TextMessage~ messages
 		}
 	}
 	class ConversationThread {
@@ -27,9 +27,7 @@ classDiagram
 direction TB
 
 
-	ConversationThread_1 --> UserContact
-	UserContact *-- ConversationThread_1
-	ConversationThread_1 *-- ConversationThread
+	UserContact "0..1" <--> "0..*" ConversationThread_1 : hahaddkkkkk
 
 
     %% Native Style Applications

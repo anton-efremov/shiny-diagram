@@ -14,6 +14,7 @@ type TextAreaProps = {
   readonly invalid?: boolean;
   readonly autoFocus?: boolean;
   readonly appearance?: "pane" | "inline";
+  readonly hasEndAction?: boolean;
   readonly onChange: (value: string) => void;
   readonly onBlur?: () => void;
   readonly onKeyDown?: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
@@ -26,6 +27,7 @@ export default function TextArea({
   invalid = false,
   autoFocus = false,
   appearance = "pane",
+  hasEndAction = false,
   onChange,
   onBlur,
   onKeyDown,
@@ -41,7 +43,7 @@ export default function TextArea({
   return (
     <textarea
       ref={areaRef}
-      className={`${styles.area} ${appearance === "inline" ? styles.inline : ""}`}
+      className={`${styles.area} ${appearance === "inline" ? styles.inline : ""} ${hasEndAction ? styles.withEndAction : ""}`}
       value={value}
       rows={rows}
       disabled={disabled}

@@ -4,9 +4,10 @@
  */
 
 import { useEffect, useState } from "react";
-import type { KeyboardEvent, MouseEvent, ReactElement } from "react";
+import type { KeyboardEvent, ReactElement } from "react";
 import TextField from "../../primitives/TextField/TextField";
 import ValidationPopup from "../../primitives/ValidationPopup/ValidationPopup";
+import DismissButton from "../../primitives/DismissButton/DismissButton";
 import styles from "./CommitClearableTextField.module.css";
 
 type CommitClearableTextFieldProps = {
@@ -76,8 +77,7 @@ export default function CommitClearableTextField({
     }
   }
 
-  function handleClear(event: MouseEvent<HTMLButtonElement>): void {
-    event.preventDefault();
+  function handleClear(): void {
     setDraft("");
     setMessages([]);
     onClear();
@@ -102,18 +102,10 @@ export default function CommitClearableTextField({
           onBlur={discardIfInvalid}
           onKeyDown={handleKeyDown}
         />
-        {draft === "" ? null : (
-          <button
-            type="button"
-            className={styles.clearButton}
-            disabled={disabled}
-            aria-label={`Clear ${ariaLabel ?? "value"}`}
-            title="Clear"
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={handleClear}
-          >
-            x
-          </button>
+        {draft === "" || disabled ? null : (
+          <span className={styles.clearButton}>
+            <DismissButton label={`Clear ${ariaLabel ?? "value"}`} small onClick={handleClear} />
+          </span>
         )}
       </div>
       {messages.length > 0 ? (

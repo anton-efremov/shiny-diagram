@@ -4,119 +4,90 @@
 
 import type { ReactElement } from "react";
 
+type RelationshipGlyphProps = {
+  readonly children: ReactElement | readonly ReactElement[];
+};
+
+function RelationshipGlyph({ children }: RelationshipGlyphProps): ReactElement {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {children}
+    </svg>
+  );
+}
+
 export function AssociationGlyph(): ReactElement {
   return (
-    <svg viewBox="0 0 28 20" fill="none" aria-hidden="true" focusable="false">
-      <path d="M5 10h18" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
+    <RelationshipGlyph>
+      <path d="M2 8h12" />
+    </RelationshipGlyph>
   );
 }
 
 export function DirectedAssociationGlyph(): ReactElement {
   return (
-    <svg viewBox="0 0 28 20" fill="none" aria-hidden="true" focusable="false">
-      <path
-        d="M5 10h18M18 5l5 5-5 5"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <RelationshipGlyph>
+      <path d="M2 8h12M10 4l4 4-4 4" />
+    </RelationshipGlyph>
   );
 }
 
 export function BidirectionalAssociationGlyph(): ReactElement {
   return (
-    <svg viewBox="0 0 28 20" fill="none" aria-hidden="true" focusable="false">
-      <path
-        d="M5 10h18M10 5l-5 5 5 5M18 5l5 5-5 5"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <RelationshipGlyph>
+      <path d="M2 8h12M6 4 2 8l4 4M10 4l4 4-4 4" />
+    </RelationshipGlyph>
   );
 }
 
 export function DependencyGlyph(): ReactElement {
   return (
-    <svg viewBox="0 0 28 20" fill="none" aria-hidden="true" focusable="false">
-      <path
-        d="M5 10h18"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        strokeDasharray="3 3"
-      />
-      <path
-        d="M18 5l5 5-5 5"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <RelationshipGlyph>
+      <path d="M2 8h12" strokeDasharray="2 2" />
+      <path d="m10 4 4 4-4 4" />
+    </RelationshipGlyph>
   );
 }
 
 export function InheritanceGlyph(): ReactElement {
   return (
-    <svg viewBox="0 0 28 20" fill="none" aria-hidden="true" focusable="false">
-      <path d="M5 10h13" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-      <path
-        d="M18 4.5 24 10l-6 5.5z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <RelationshipGlyph>
+      <path d="M2 8h7M9 3.5 14 8l-5 4.5Z" />
+    </RelationshipGlyph>
   );
 }
 
 export function RealizationGlyph(): ReactElement {
   return (
-    <svg viewBox="0 0 28 20" fill="none" aria-hidden="true" focusable="false">
-      <path
-        d="M5 10h13"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        strokeDasharray="3 3"
-      />
-      <path
-        d="M18 4.5 24 10l-6 5.5z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <RelationshipGlyph>
+      <path d="M2 8h7" strokeDasharray="2 2" />
+      <path d="M9 3.5 14 8l-5 4.5Z" />
+    </RelationshipGlyph>
   );
 }
 
 export function AggregationGlyph(): ReactElement {
   return (
-    <svg viewBox="0 0 28 20" fill="none" aria-hidden="true" focusable="false">
-      <path d="M11 10h12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-      <path
-        d="M4 10 10 5l6 5-6 5z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <RelationshipGlyph>
+      <path d="M7 8h7M2 8l3-3 3 3-3 3Z" />
+    </RelationshipGlyph>
   );
 }
 
 export function CompositionGlyph(): ReactElement {
   return (
-    <svg viewBox="0 0 28 20" fill="none" aria-hidden="true" focusable="false">
-      <path d="M11 10h12" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-      <path d="M4 10 10 5l6 5-6 5z" fill="currentColor" />
-    </svg>
+    <RelationshipGlyph>
+      <path d="M7 8h7" />
+      <path d="M2 8l3-3 3 3-3 3Z" fill="currentColor" />
+    </RelationshipGlyph>
   );
 }

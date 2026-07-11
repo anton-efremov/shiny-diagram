@@ -32,16 +32,14 @@
 
 .inward,
 .outward {
-  width: 7px;
-  height: 7px;
-  border-top: 2px solid currentColor;
-  border-right: 2px solid currentColor;
+  width: 16px;
+  height: 16px;
 }
 
 .outward {
-  transform: rotate(45deg);
+  transform: none;
 }
 
 .inward {
-  transform: rotate(225deg);
+  transform: rotate(180deg);
 }

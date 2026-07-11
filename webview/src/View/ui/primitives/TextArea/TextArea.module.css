@@ -43,3 +43,7 @@
 .inline[aria-invalid="true"] {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--shiny-text-error) 65%, transparent);
 }
+
+.inline.withEndAction {
+  padding-right: 28px;
+}

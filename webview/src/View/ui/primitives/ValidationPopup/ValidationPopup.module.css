@@ -14,7 +14,10 @@
   position: fixed;
   inset: auto;
   z-index: 10000;
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px;
+  gap: 6px;
+  align-items: center;
   max-width: calc(100vw - 16px);
   padding: 6px 12px;
   overflow: hidden;
@@ -29,9 +32,46 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   filter: drop-shadow(0 4px 10px rgb(0 0 0 / 35%));
-  pointer-events: none;
+  pointer-events: auto;
   transform: translate(-50%, -100%);
   margin: 0;
+}
+
+.message {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dismiss {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  min-height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.dismiss:hover,
+.dismiss:active {
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.dismiss:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 1px;
+}
+
+.dismiss svg {
+  display: block;
+  width: 16px;
+  height: 16px;
 }
 
 .popup::after {

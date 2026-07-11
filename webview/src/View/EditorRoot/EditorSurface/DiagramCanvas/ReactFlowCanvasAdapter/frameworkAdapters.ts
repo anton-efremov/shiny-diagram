@@ -482,6 +482,7 @@ export function toRelationshipEdgeDescriptors(
           onRelationshipSelect,
         },
         type: "relationship",
+        zIndex: isSelected ? 1001 : 0,
         reconnectable: isSelected && !isRelationshipPlacementArmed,
         selectable: false,
         focusable: false,
