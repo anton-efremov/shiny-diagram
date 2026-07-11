@@ -16,6 +16,7 @@ type CommitTextFieldProps = {
   readonly ariaLabel?: string;
   readonly isLabelVisible?: boolean;
   readonly autoFocus?: boolean;
+  readonly appearance?: "pane" | "inline";
   readonly onCommit: (value: string) => void;
   readonly onDiscard: (messages: readonly string[]) => void;
   readonly onCancel: () => void;
@@ -28,6 +29,7 @@ export default function CommitTextField({
   ariaLabel,
   isLabelVisible = true,
   autoFocus = false,
+  appearance = "pane",
   onCommit,
   onDiscard,
   onCancel,
@@ -76,6 +78,11 @@ export default function CommitTextField({
     }
   }
 
+  function onDraftChange(value: string): void {
+    setDraft(value);
+    setMessages([]);
+  }
+
   const visibleLabel = isLabelVisible ? ariaLabel : undefined;
 
   return (
@@ -87,7 +94,8 @@ export default function CommitTextField({
         invalid={messages.length > 0}
         ariaLabel={ariaLabel}
         autoFocus={autoFocus}
-        onChange={setDraft}
+        appearance={appearance}
+        onChange={onDraftChange}
         onBlur={discardIfInvalid}
         onKeyDown={handleKeyDown}
       />

@@ -23,6 +23,9 @@ type MemberTableProps = {
   readonly view: Pick<ClassView, "classId" | "members">;
   readonly isSelected: boolean;
   readonly editingState: EditingState;
+  readonly separatorColor: string;
+  readonly separatorThickness: string;
+  readonly separatorLineStyle: "solid" | "dashed" | "dotted";
   readonly onTextBlockEditStart: (
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
@@ -33,6 +36,9 @@ type MemberTableProps = {
 export default function MemberTable({
   view,
   isSelected,
+  separatorColor,
+  separatorThickness,
+  separatorLineStyle,
   onTextBlockEditCancel,
 }: MemberTableProps): ReactElement {
   const [discardErrors, setDiscardErrors] = useState<readonly string[]>([]);
@@ -52,6 +58,7 @@ export default function MemberTable({
       <EditableList
         rows={toRows(fields)}
         addLabel="+ attribute"
+        addTitle="Add attribute"
         validate={() => []}
         isEditStartEnabled={isSelected}
         isEmphasisEditable
@@ -73,10 +80,17 @@ export default function MemberTable({
           onMemberMove("field", fields, member.memberId, to);
         }}
       />
-      {hasFieldsAndMethods ? <Divider /> : null}
+      {hasFieldsAndMethods ? (
+        <Divider
+          color={separatorColor}
+          thickness={separatorThickness}
+          lineStyle={separatorLineStyle}
+        />
+      ) : null}
       <EditableList
         rows={toRows(methods)}
         addLabel="+ method"
+        addTitle="Add member"
         validate={() => []}
         isEditStartEnabled={isSelected}
         isEmphasisEditable

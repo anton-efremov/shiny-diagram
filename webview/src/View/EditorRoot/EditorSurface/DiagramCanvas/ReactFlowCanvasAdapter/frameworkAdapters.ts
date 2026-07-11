@@ -74,7 +74,7 @@ export type NamespaceNodeData = {
 };
 
 export type NamespaceNodeDescriptor = ReactFlowNode<NamespaceNodeData, "namespaceBox">;
-export type NamespaceResizeHandle = "nw" | "ne" | "sw" | "se";
+export type NamespaceResizeHandle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
 export type NoteBoxNodeData = {
   readonly view: NoteView;
   readonly bounds: Rect;
@@ -465,6 +465,9 @@ export function toRelationshipEdgeDescriptors(
 
     const sourceSide = chooseSourceSide(sourceEntry, targetEntry);
     const targetSide = oppositeSide(sourceSide);
+    const isSelected =
+      selectionState.kind === "relationship" &&
+      selectionState.relationshipId === rel.relationshipId;
 
     return [
       {
@@ -475,13 +478,11 @@ export function toRelationshipEdgeDescriptors(
         targetHandle: `target-${targetSide}`,
         data: {
           view: rel,
-          isSelected:
-            selectionState.kind === "relationship" &&
-            selectionState.relationshipId === rel.relationshipId,
+          isSelected,
           onRelationshipSelect,
         },
         type: "relationship",
-        reconnectable: !isRelationshipPlacementArmed,
+        reconnectable: isSelected && !isRelationshipPlacementArmed,
         selectable: false,
         focusable: false,
       },

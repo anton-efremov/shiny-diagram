@@ -65,10 +65,10 @@ export default function HeaderTextControls({
           control: (
             <CommitTextField
               initialValue={view.header.name}
-              validate={() => []}
+              validate={(draft) => onNameCommit(view.classId, draft.trim())}
               ariaLabel="Name"
               isLabelVisible={false}
-              onCommit={(draft) => onNameCommit(view.classId, draft.trim())}
+              onCommit={() => undefined}
               onDiscard={() => undefined}
               onCancel={() => undefined}
             />

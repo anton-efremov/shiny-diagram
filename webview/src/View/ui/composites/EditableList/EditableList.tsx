@@ -5,7 +5,6 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import type { PointerEvent, ReactElement } from "react";
-import Button from "../../primitives/Button/Button";
 import EmphasisCommitTextField from "../EmphasisCommitTextField/EmphasisCommitTextField";
 import type { TextEmphasis } from "../EmphasisCommitTextField/EmphasisCommitTextField";
 import styles from "./EditableList.module.css";
@@ -29,6 +28,7 @@ type DragState = {
 type EditableListProps = {
   readonly rows: readonly EditableListRow[];
   readonly addLabel: string;
+  readonly addTitle: string;
   readonly validate: (draft: string) => readonly string[];
   readonly isEditStartEnabled: boolean;
   readonly isEmphasisEditable: boolean;
@@ -42,6 +42,7 @@ const DRAG_THRESHOLD = 4;
 export default function EditableList({
   rows,
   addLabel,
+  addTitle,
   validate,
   isEditStartEnabled,
   isEmphasisEditable,
@@ -162,22 +163,32 @@ export default function EditableList({
         );
       })}
       {dragState?.isActive && dragState.dropGap === rows.length ? <DropIndicator /> : null}
-      {editingIndex === "new" ? (
-        <Editor
-          initialValue=""
-          initialEmphasis={null}
-          validate={validate}
-          onCommit={(value, emphasis) => {
-            if (value.trim() !== "") onRowAdd(value.trim(), isEmphasisEditable ? emphasis : null);
-            setEditingIndex(null);
-          }}
-          onDiscard={() => setEditingIndex(null)}
-          onCancel={() => setEditingIndex(null)}
-        />
-      ) : null}
-      {isEditStartEnabled && editingIndex !== "new" ? (
-        <Button label={addLabel} onClick={() => setEditingIndex("new")} />
-      ) : null}
+      <div className={styles.addCell}>
+        {editingIndex === "new" ? (
+          <Editor
+            initialValue=""
+            initialEmphasis={null}
+            validate={validate}
+            onCommit={(value, emphasis) => {
+              if (value.trim() !== "") onRowAdd(value.trim(), isEmphasisEditable ? emphasis : null);
+              setEditingIndex(null);
+            }}
+            onDiscard={() => setEditingIndex(null)}
+            onCancel={() => setEditingIndex(null)}
+          />
+        ) : (
+          <button
+            type="button"
+            className={styles.addAffordance}
+            disabled={!isEditStartEnabled}
+            aria-label={addLabel}
+            title={addTitle}
+            onClick={() => setEditingIndex("new")}
+          >
+            +
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -198,12 +209,13 @@ function Editor({
   readonly onCancel: () => void;
 }): ReactElement {
   return (
-    <div className="nodrag nopan">
+    <div className={`${styles.editorHost} nodrag nopan`}>
       <EmphasisCommitTextField
         initialValue={initialValue}
         initialEmphasis={initialEmphasis}
         validate={validate}
         autoFocus
+        appearance="inline"
         onCommit={onCommit}
         onDiscard={onDiscard}
         onCancel={onCancel}

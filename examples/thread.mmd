@@ -1,17 +1,18 @@
 classDiagram
 	namespace NewNamespace {
 		class ConversationThread_1 {
+				+addMessage(TextMessage message)
 				+addParticipant(UserContact participant) void
 				+List~TextMessage~ messages
 				+List~UserContact~ participants
 				+UUID id
-				+addMessage(TextMessage message) void
 		}
 	}
 	class ConversationThread {
 		+UUID id
 		+List~TextMessage~ messages
 		+List~UserContact~ participants
+		+ ListShmist
 		+addMessage(TextMessage message) void
 		+addParticipant(UserContact participant) void
 	}
@@ -28,34 +29,35 @@ direction TB
 
 	ConversationThread_1 --> UserContact
 	UserContact *-- ConversationThread_1
-	UserContact *-- ConversationThread
-	ConversationThread_1 -- ConversationThread
+	ConversationThread_1 *-- ConversationThread
 
 
     %% Native Style Applications
-    class ConversationThread:::PineSelected
 
     style UserContact stroke:#FFFFFF,color:#ccefeb,stroke-width:4
-    style ConversationThread_1 fill:#ed8936,stroke:#ed8936,stroke-width:4,color:#ffffff,stroke-dasharray:4 4
+    style ConversationThread fill:#ccefeb,stroke:#275340,stroke-width:1px,color:#50317f
 
 
     %% Native Style Definitions
     classDef PineSelected stroke-width:1px,stroke:#275340,fill:#779c8c,color:#FFFFFF
     classDef style2 fill:#50317f,stroke:#ed8936,stroke-width:1px,stroke-dasharray:none,color:#ffffff
+    classDef style1 fill:#ed8936,stroke:#ffffff,stroke-width:4,stroke-dasharray:4 4,color:#ffffff
+
+    class ConversationThread_1:::style2
 
 
     %% @style:`NewNamespace.NewNamespace2` fill=#934343
 
-    %% @note: x=-7 y=-178 w=376 h=137
+    %% @note: x=84 y=-213 w=376 h=137
     note for ConversationThread "Note"
     %% @note: x=-324 y=1106 w=18426=96639300393
 
 
-	%% @spatial:ConversationThread x=122 y=-13 w=254 h=295
+	%% @spatial:ConversationThread x=144 y=-30 w=243 h=256
 
-	%% @spatial:UserContact x=77 y=324 w=358 h=358
+	%% @spatial:UserContact x=69 y=336 w=358 h=358
 
-	%% @spatial:ConversationThread_1 x=536 y=30 w=225 h=331
+	%% @spatial:ConversationThread_1 x=555 y=52 w=211 h=318
 
 
 

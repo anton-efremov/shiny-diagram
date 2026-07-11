@@ -7,9 +7,9 @@
   width: 100%;
   height: 100%;
   overflow: visible;
-  border: var(--class-stroke-width, var(--shiny-base-stroke-width)) solid
+  border: var(--class-stroke-width, var(--shiny-base-stroke-width))
+    var(--class-stroke-style, var(--shiny-base-stroke-style))
     var(--class-stroke, var(--shiny-base-stroke));
-  border-style: var(--class-stroke-dasharray, var(--shiny-base-stroke-style));
   background: var(--class-fill, var(--shiny-base-fill));
   color: var(--class-color, var(--shiny-base-text));
   display: flex;
@@ -18,14 +18,6 @@
   font-size: 13px;
   position: relative;
   cursor: grab;
-}
-
-.classBox:hover {
-  border-color: var(--shiny-accent);
-}
-
-.selectedClass:hover {
-  border-color: var(--class-stroke, var(--shiny-base-stroke));
 }
 
 .dragging {
@@ -64,7 +56,9 @@
   justify-content: center;
   min-height: 42px;
   padding: 8px 10px;
-  border-bottom: 1px solid var(--class-stroke, var(--shiny-base-stroke));
+  border-bottom: var(--class-stroke-width, var(--shiny-base-stroke-width))
+    var(--class-stroke-style, var(--shiny-base-stroke-style))
+    var(--class-stroke, var(--shiny-base-stroke));
   text-align: center;
 }
 
@@ -96,4 +90,9 @@
   color: var(--shiny-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.inlineEditor {
+  width: 100%;
+  overflow: visible;
 }

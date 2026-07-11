@@ -1,48 +1,110 @@
 /**
- * @render Corner resize handle styling.
+ * @render Eight resize squares and invisible full-edge hit zones.
  */
 
-.handle {
+.handle,
+.edge {
   position: absolute;
-  z-index: 2;
   box-sizing: border-box;
-  width: 10px;
-  height: 10px;
   padding: 0;
-  border: 1px solid var(--shiny-accent);
-  background: var(--shiny-surface);
-  box-shadow: 0 0 0 1px var(--shiny-page-bg);
 }
 
-.handle:hover {
-  background: var(--shiny-accent);
+.edge {
+  z-index: 2;
+  border: 0;
+  background: transparent;
 }
 
-.handle:focus-visible {
-  outline: 2px solid var(--shiny-focus);
+.handle {
+  z-index: 3;
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--shiny-surface);
+  background: var(--shiny-selection);
+}
+
+.handle:focus-visible,
+.edge:focus-visible {
+  outline: 2px solid var(--shiny-selection);
   outline-offset: 2px;
 }
 
-.nw {
-  top: -5px;
-  left: -5px;
-  cursor: nwse-resize;
-}
-
+.nw,
+.n,
 .ne {
-  top: -5px;
-  right: -5px;
-  cursor: nesw-resize;
+  top: calc(-1 * var(--shiny-box-selection-center-offset, 3px) - 3px);
 }
 
-.sw {
-  bottom: -5px;
-  left: -5px;
-  cursor: nesw-resize;
-}
-
+.sw,
+.s,
 .se {
-  right: -5px;
-  bottom: -5px;
+  bottom: calc(-1 * var(--shiny-box-selection-center-offset, 3px) - 3px);
+}
+
+.nw,
+.w,
+.sw {
+  left: calc(-1 * var(--shiny-box-selection-center-offset, 3px) - 3px);
+}
+
+.ne,
+.e,
+.se {
+  right: calc(-1 * var(--shiny-box-selection-center-offset, 3px) - 3px);
+}
+
+.n,
+.s {
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.e,
+.w {
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+
+.nw,
+.se {
   cursor: nwse-resize;
+}
+
+.ne,
+.sw {
+  cursor: nesw-resize;
+}
+
+.edgeN,
+.edgeS {
+  left: 0;
+  width: 100%;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.edgeE,
+.edgeW {
+  top: 0;
+  width: 8px;
+  height: 100%;
+  cursor: ew-resize;
+}
+
+.edgeN {
+  top: calc(-1 * var(--shiny-box-selection-center-offset, 3px) - 4px);
+}
+
+.edgeE {
+  right: calc(-1 * var(--shiny-box-selection-center-offset, 3px) - 4px);
+}
+
+.edgeS {
+  bottom: calc(-1 * var(--shiny-box-selection-center-offset, 3px) - 4px);
+}
+
+.edgeW {
+  left: calc(-1 * var(--shiny-box-selection-center-offset, 3px) - 4px);
 }

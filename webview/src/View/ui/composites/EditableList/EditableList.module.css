@@ -19,6 +19,7 @@
   line-height: 1.25;
   text-align: left;
   cursor: default;
+  white-space: pre-wrap;
 }
 
 .row:disabled {
@@ -52,4 +53,43 @@
 
 .isDragging {
   user-select: none;
+}
+
+.addCell {
+  display: flex;
+  min-height: 10px;
+  padding: 2px 0;
+  align-items: stretch;
+}
+
+.addCell > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.editorHost {
+  width: 100%;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.addAffordance {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 14px;
+  text-align: center;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.addCell:hover .addAffordance:not(:disabled) {
+  opacity: 1;
 }

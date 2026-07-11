@@ -3,6 +3,7 @@
  * @render Style inspector pane.
  */
 
+import { useState } from "react";
 import type { ReactElement } from "react";
 import DiagramEditPane from "./DiagramEditPane/DiagramEditPane";
 import ClassEditPane from "./ClassEditPane/ClassEditPane";
@@ -16,6 +17,7 @@ import type { SelectionState } from "../../../state/editorStates";
 import type { DiagramView, NoteView, RelationshipView } from "../../../views/schema";
 import { EDIT_PANE_WIDTH } from "../../../config/editorUiConfig";
 import PaneFrame from "../../../ui/templates/PaneFrame/PaneFrame";
+import PaneCollapseTab from "../../../ui/primitives/PaneCollapseTab/PaneCollapseTab";
 
 type EditPaneProps = {
   readonly view: Pick<
@@ -81,8 +83,14 @@ export default function EditPane({
   onRelationshipSelect,
   onRelationshipDuplicate,
 }: EditPaneProps): ReactElement {
+  // State creation: local state - user-controlled pane collapse persists across selection changes
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   // View and State slice props derivation
   const editPaneScenario = toEditPaneScenario(view, selectionState);
+
+  // Event handler props derivation
+  const onCollapseToggle = () => setIsCollapsed((collapsed) => !collapsed);
 
   // Child component routing
   let editPaneContent: ReactElement;
@@ -138,7 +146,15 @@ export default function EditPane({
       break;
   }
 
-  return <PaneFrame width={EDIT_PANE_WIDTH}>{editPaneContent}</PaneFrame>;
+  return (
+    <PaneFrame
+      width={EDIT_PANE_WIDTH}
+      collapsed={isCollapsed}
+      edgeControl={<PaneCollapseTab collapsed={isCollapsed} onToggle={onCollapseToggle} />}
+    >
+      {editPaneContent}
+    </PaneFrame>
+  );
 }
 
 // Private helpers

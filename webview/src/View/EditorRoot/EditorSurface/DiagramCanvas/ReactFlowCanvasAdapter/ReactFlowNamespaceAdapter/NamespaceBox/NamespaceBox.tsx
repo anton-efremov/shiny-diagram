@@ -52,6 +52,9 @@ export default function NamespaceBox({
 }: NamespaceBoxProps): ReactElement {
   // UI props derivation
   const className = [styles.namespaceBox].filter(Boolean).join(" ");
+  const strokeWidth = toCssLength(
+    view.style?.strokeWidth ?? String(NAMESPACE_DEFAULT_STROKE_WIDTH)
+  );
   const dynamicVars = {
     "--namespace-label-band-height": `${NAMESPACE_LABEL_BAND_HEIGHT}px`,
     "--namespace-label-font-size": `${NAMESPACE_LABEL_FONT_SIZE}px`,
@@ -62,13 +65,14 @@ export default function NamespaceBox({
     "--namespace-label-band-fill-mix": `${NAMESPACE_LABEL_BAND_FILL_MIX_PERCENT}%`,
     "--namespace-fill": view.style?.fill ?? NAMESPACE_DEFAULT_FILL,
     "--namespace-stroke": view.style?.stroke ?? NAMESPACE_DEFAULT_STROKE,
-    "--namespace-stroke-width": view.style?.strokeWidth ?? `${NAMESPACE_DEFAULT_STROKE_WIDTH}px`,
+    "--namespace-stroke-width": strokeWidth,
     "--namespace-selection-ring-width": `${NAMESPACE_SELECTION_RING_WIDTH}px`,
     "--namespace-stroke-dasharray": view.style?.strokeDasharray ?? undefined,
     "--namespace-color": view.style?.color ?? undefined,
     "--namespace-pending-stroke": NAMESPACE_PENDING_STROKE,
     "--namespace-pending-stroke-width": `${NAMESPACE_PENDING_STROKE_WIDTH}px`,
     "--namespace-pending-outline-offset": `${NAMESPACE_PENDING_OUTLINE_OFFSET}px`,
+    "--shiny-box-selection-center-offset": `calc(${strokeWidth} + 2px)`,
   } as CSSProperties;
 
   // Event handler props derivation
@@ -93,7 +97,7 @@ export default function NamespaceBox({
     >
       <div className={styles.labelBand}>{view.label}</div>
       {isPendingMember ? <BoxOutline variant="pending" /> : null}
-      {isSelected ? <BoxOutline variant="selected" /> : null}
+      {isSelected ? <BoxOutline variant="selected" /> : <BoxOutline variant="hover" />}
       {isSelected ? (
         <div className="nodrag nopan">
           <ResizeAffordance onGrab={onResizeGrab} />
@@ -101,4 +105,8 @@ export default function NamespaceBox({
       ) : null}
     </div>
   );
+}
+
+function toCssLength(value: string): string {
+  return /^-?(?:\d+|\d*\.\d+)$/.test(value.trim()) ? `${value.trim()}px` : value;
 }

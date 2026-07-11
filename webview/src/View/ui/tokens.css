@@ -25,6 +25,8 @@
   --shiny-text-muted: var(--vscode-descriptionForeground);
   --shiny-text-error: var(--vscode-errorForeground);
   --shiny-accent: var(--vscode-focusBorder);
+  --shiny-selection: var(--vscode-focusBorder);
+  --shiny-box-selection-center-offset: 3px;
   --shiny-base-fill: var(--vscode-editor-background);
   --shiny-base-stroke: var(--vscode-editor-foreground);
   --shiny-base-text: var(--vscode-editor-foreground);

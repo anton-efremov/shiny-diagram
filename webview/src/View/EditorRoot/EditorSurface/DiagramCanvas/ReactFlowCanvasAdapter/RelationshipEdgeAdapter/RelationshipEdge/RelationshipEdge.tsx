@@ -107,6 +107,12 @@ export default function RelationshipEdge({
         markerEnd={toMarkerUrl(targetMarkerId, view.targetEndpointKind)}
         strokeDasharray={view.lineKind === "dashed" ? RELATIONSHIP_EDGE_DASH_PATTERN : undefined}
       />
+      {isSelected ? (
+        <>
+          <circle className={styles.reconnectEndpoint} cx={sourceX} cy={sourceY} r={4} />
+          <circle className={styles.reconnectEndpoint} cx={targetX} cy={targetY} r={4} />
+        </>
+      ) : null}
       {view.sourceMultiplicity || isSourceMultiplicityEditing ? (
         <EdgeText
           x={sourceMultiplicityX}
@@ -190,13 +196,16 @@ function EdgeText({
         height={RELATIONSHIP_EDGE_TEXT_REGION_HEIGHT}
         className={styles.textObject}
       >
-        <div className={`${styles.editorHost} nodrag nopan`}>
+        <div
+          className={`${styles.editorHost} ${tone === "light" ? styles.lightEditor : styles.darkEditor} nodrag nopan`}
+        >
           <CommitTextField
             initialValue={text}
             validate={() => []}
             ariaLabel="Relationship text"
             isLabelVisible={false}
             autoFocus
+            appearance="inline"
             onCommit={onCommit}
             onDiscard={onDraftDiscard}
             onCancel={onDraftDiscard}

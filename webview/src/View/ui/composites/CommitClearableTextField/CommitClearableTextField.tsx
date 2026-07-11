@@ -95,7 +95,10 @@ export default function CommitClearableTextField({
           invalid={messages.length > 0}
           ariaLabel={ariaLabel}
           hasEndAction={draft !== ""}
-          onChange={setDraft}
+          onChange={(value) => {
+            setDraft(value);
+            setMessages([]);
+          }}
           onBlur={discardIfInvalid}
           onKeyDown={handleKeyDown}
         />

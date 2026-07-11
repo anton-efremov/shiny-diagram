@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from "react";
 import type { KeyboardEvent, ReactElement } from "react";
-import TextField from "../../primitives/TextField/TextField";
+import TextArea from "../../primitives/TextArea/TextArea";
 import ToggleButton from "../../primitives/ToggleButton/ToggleButton";
 import ValidationPopup from "../../primitives/ValidationPopup/ValidationPopup";
 import styles from "./EmphasisCommitTextField.module.css";
@@ -18,6 +18,7 @@ type EmphasisCommitTextFieldProps = {
   readonly validate: (draft: string) => readonly string[];
   readonly disabled?: boolean;
   readonly autoFocus?: boolean;
+  readonly appearance?: "pane" | "inline";
   readonly onCommit: (value: string, emphasis: TextEmphasis | null) => void;
   readonly onDiscard: (messages: readonly string[]) => void;
   readonly onCancel: () => void;
@@ -29,16 +30,17 @@ export default function EmphasisCommitTextField({
   validate,
   disabled = false,
   autoFocus = false,
+  appearance = "pane",
   onCommit,
   onDiscard,
   onCancel,
 }: EmphasisCommitTextFieldProps): ReactElement {
-  const [draft, setDraft] = useState(initialValue);
+  const [draft, setDraft] = useState(() => toSingleLine(initialValue));
   const [emphasis, setEmphasis] = useState<TextEmphasis | null>(initialEmphasis);
   const [messages, setMessages] = useState<readonly string[]>([]);
 
   useEffect(() => {
-    setDraft(initialValue);
+    setDraft(toSingleLine(initialValue));
     setEmphasis(initialEmphasis);
     setMessages([]);
   }, [initialEmphasis, initialValue]);
@@ -60,13 +62,13 @@ export default function EmphasisCommitTextField({
       onCommit(draft, emphasis);
       return;
     }
-    setDraft(initialValue);
+    setDraft(toSingleLine(initialValue));
     setEmphasis(initialEmphasis);
     setMessages([]);
     onDiscard(nextMessages);
   }
 
-  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
+  function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>): void {
     if (event.key === "Enter") {
       event.preventDefault();
       commit();
@@ -74,21 +76,29 @@ export default function EmphasisCommitTextField({
     }
     if (event.key === "Escape") {
       event.preventDefault();
-      setDraft(initialValue);
+      setDraft(toSingleLine(initialValue));
       setEmphasis(initialEmphasis);
       setMessages([]);
       onCancel();
     }
   }
 
+  function onDraftChange(value: string): void {
+    setDraft(toSingleLine(value));
+    setMessages([]);
+  }
+
   return (
-    <div className={styles.editor}>
-      <div className={styles.toolbar}>
+    <div
+      className={`${styles.editor} ${emphasis === "underline" ? styles.underlined : ""} ${emphasis === "italic" ? styles.italic : ""}`}
+    >
+      <div className={styles.toolbar} onMouseDown={(event) => event.preventDefault()}>
         <ToggleButton
           icon={<UnderlineIcon />}
           title="Underline"
           pressed={emphasis === "underline"}
           disabled={disabled}
+          size="micro"
           onClick={() => setEmphasis((value) => (value === "underline" ? null : "underline"))}
         />
         <ToggleButton
@@ -96,15 +106,18 @@ export default function EmphasisCommitTextField({
           title="Italic"
           pressed={emphasis === "italic"}
           disabled={disabled}
+          size="micro"
           onClick={() => setEmphasis((value) => (value === "italic" ? null : "italic"))}
         />
       </div>
-      <TextField
+      <TextArea
         value={draft}
+        rows={toLineCount(draft)}
         disabled={disabled}
         invalid={messages.length > 0}
         autoFocus={autoFocus}
-        onChange={setDraft}
+        appearance={appearance}
+        onChange={onDraftChange}
         onBlur={discardIfInvalid}
         onKeyDown={handleKeyDown}
       />
@@ -113,6 +126,14 @@ export default function EmphasisCommitTextField({
       ) : null}
     </div>
   );
+}
+
+function toLineCount(value: string): number {
+  return Math.max(1, value.split("\n").length);
+}
+
+function toSingleLine(value: string): string {
+  return value.replace(/[\r\n]+/g, " ");
 }
 
 function UnderlineIcon(): ReactElement {

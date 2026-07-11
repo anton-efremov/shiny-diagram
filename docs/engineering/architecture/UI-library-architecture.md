@@ -62,22 +62,22 @@ Behavior lists only augmentation beyond the bare pattern; "—" means pattern-de
 
 | Element                  | Composes                                                      | Behavior                                                                                                                                                                                                                                                                | Props                                                                                                                                        |
 | ------------------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| CommitTextField          | TextField (prim)<br>ValidationPopup (prim)                    | validation runs on commit attempt only<br>Enter: valid → commit; invalid → popup, stays editing<br>Blur: valid → commit; invalid → discard, draft dropped, feedback escalates to consumer<br>Esc → cancel; no validation, no feedback<br>empty draft commits as a value | `initialValue`<br>`validate(draft)→messages`<br>`disabled`<br>`ariaLabel`<br>`isLabelVisible`<br>`autoFocus`<br>`onCommit(value)`<br>`onDiscard(messages)`<br>`onCancel` |
+| CommitTextField          | TextField (prim)<br>ValidationPopup (prim)                    | validation runs on commit attempt only<br>Enter: valid → commit; invalid → anchored popup, stays editing<br>first draft change dismisses popup<br>Blur: valid → commit; invalid → discard, draft dropped, feedback escalates to consumer<br>Esc → cancel and dismiss popup; no validation, no feedback<br>empty draft commits as a value | `initialValue`<br>`validate(draft)→messages`<br>`disabled`<br>`ariaLabel`<br>`isLabelVisible`<br>`autoFocus`<br>`appearance` (pane \| inline)<br>`onCommit(value)`<br>`onDiscard(messages)`<br>`onCancel` |
 | CommitTextArea           | Button (prim)<br>textarea (nat)                               | no validation<br>Save button commits<br>Enter inserts newline<br>Blur commits<br>Esc → cancel                                                                                                                                                                           | `initialValue`<br>`disabled`<br>`autoFocus`<br>`onCommit(value)`<br>`onCancel` |
 | CommitClearableTextField | TextField (prim)<br>ValidationPopup (prim)<br>button (nat)    | CommitTextField lifecycle<br>Clear visible when value set<br>Clear commits empty value without entering editing                                                                                                                                                         | `initialValue`<br>`validate(draft)→messages`<br>`disabled`<br>`ariaLabel`<br>`isLabelVisible`<br>`onCommit(value)`<br>`onClear`<br>`onDiscard(messages)`<br>`onCancel` |
-| EmphasisCommitTextField  | TextField (prim)<br>ToggleButton (prim)<br>ValidationPopup (prim) | two ToggleButtons (underline, italic) anchored above the field while mounted; mutually exclusive — pressing one clears the other<br>emphasis is part of the local draft: toggles never emit per press<br>commit emits text and emphasis atomically; Esc discards both<br>inherits the CommitTextField lifecycle otherwise | `initialValue`<br>`initialEmphasis`<br>`validate(draft)→messages`<br>`disabled`<br>`autoFocus`<br>`onCommit(value, emphasis)`<br>`onDiscard(messages)`<br>`onCancel` |
+| EmphasisCommitTextField  | TextArea (prim)<br>ToggleButton (prim)<br>ValidationPopup (prim) | visually wrapping editor auto-sized to rendered lines while its value remains single-line; newline input and pasted line breaks are blocked<br>two micro ToggleButtons (underline, italic) overlay above without layout participation and are mutually exclusive<br>emphasis is part of the local draft: toggles never emit per press<br>Enter commits text and emphasis atomically; Esc discards both<br>inherits the CommitTextField validation lifecycle otherwise | `initialValue`<br>`initialEmphasis`<br>`validate(draft)→messages`<br>`disabled`<br>`autoFocus`<br>`appearance` (pane \| inline)<br>`onCommit(value, emphasis)`<br>`onDiscard(messages)`<br>`onCancel` |
 | CommitComboBox           | TextField (prim)<br>ValidationPopup (prim)<br>button (nat)    | option select commits natively<br>typed custom value follows CommitTextField lifecycle                                                                                                                                                                                  | `initialValue`<br>`options`<br>`validate(draft)→messages`<br>`disabled`<br>`ariaLabel`<br>`isLabelVisible`<br>`onCommit(value)`<br>`onDiscard(messages)`<br>`onCancel` |
 | Dropdown                 | button (nat)                                                  | —                                                                                                                                                                                                                                                                       | `options` (value, label, optional swatch style, kind, and label visibility)<br>`value`<br>`disabled`<br>`onChange(value)` |
 | ColorSelect              | button (nat) trigger and swatches                             | immediate swatch commit and close<br>document colors wrap without scrolling<br>Base clears the value at the editing layer and shows its inherited value<br>Esc/click-outside cancel and return focus to trigger<br>APG grid arrow navigation with Enter selection<br>multiple state has no selected ring<br>preset catalog supplied from `View/config/stylePresets.ts` | `glyph` (fill \| stroke \| text)<br>`value` (color \| null \| multiple)<br>`baseValue`<br>`presets` (24 hue shades in a 6 × 4 grid plus a separated 6-swatch grayscale row)<br>`documentColors`<br>`disabled`<br>`onChange(value)` |
 | StrokeSelect             | svg line sample<br>button (nat) trigger and options           | one width/dash selector selected by `kind`<br>literal-only full-width sample rows<br>Base clears the value at the editing layer<br>document-authored values take precedence over normalized Standard duplicates<br>immediate commit and close<br>Esc/click-outside cancel and return focus<br>APG vertical-list arrow navigation with Enter selection<br>multiple state has no selected ring | `kind` (width \| dash)<br>`value` (literal \| null \| multiple)<br>`defaultValue` (inherited Base value)<br>`presets`<br>`documentValues`<br>`popupWidth`<br>`disabled`<br>`onChange(value)` |
 | SwatchToggle             | StyledBoxSwatch (prim)<br>button (nat)                        | reports activation and exposes pressed state                                                                                                                                                                                                                            | `styleValues`<br>`label`<br>`pressed`<br>`disabled`<br>`onClick` |
-| EditableList             | EmphasisCommitTextField (comp)<br>Button (prim)<br>button (nat) | row enters editing on click [edit start enabled]<br>emphasis toolbar gated by `isEmphasisEditable`; off → rows behave as plain CommitTextField<br>trailing add affordance opens an empty editor row, visible [edit start enabled]<br>row drag reorder within the list with drop indicator | `rows` (text, optional `emphasis`: underline \| italic, mutually exclusive by type)<br>`addLabel`<br>`validate(draft)→messages`<br>`isEditStartEnabled`<br>`isEmphasisEditable`<br>`onRowCommit(index, value, emphasis)`<br>`onRowAdd(value, emphasis)`<br>`onRowReorder(from, to)` |
+| EditableList             | EmphasisCommitTextField (comp)<br>button (nat) | row enters inline editing on click [edit start enabled]<br>emphasis toolbar gated by `isEmphasisEditable`; off → rows behave as plain CommitTextField<br>trailing add cell always reserves compact height; full-width tinted plus pill appears on cell hover [edit start enabled] and opens an empty editor row<br>row drag reorder within the list with drop indicator | `rows` (text, optional `emphasis`: underline \| italic, mutually exclusive by type)<br>`addLabel`<br>`addTitle`<br>`validate(draft)→messages`<br>`isEditStartEnabled`<br>`isEmphasisEditable`<br>`onRowCommit(index, value, emphasis)`<br>`onRowAdd(value, emphasis)`<br>`onRowReorder(from, to)` |
 
 ### Templates
 
 | Element      | UI                                          | Props                              |
 | ------------ | ------------------------------------------- | ---------------------------------- |
-| PaneFrame    | fixed-width vertical stack in a side pane   | `width`<br>`children`              |
+| PaneFrame    | fixed-width or zero-width vertical stack in a side pane | `width`<br>`collapsed`<br>`edgeControl`<br>`children` |
 | PaneSection  | optionally labeled 1–2 column content group | `label`<br>`columns`<br>`children` |
 | FieldGrid    | optionally inset rows of label + control    | `rows` (label, control, optional alignment)<br>`inset`<br>`controlWidth` (full \| half)<br>`labelWidth` (compact \| standard) |
 | ControlGroup | 1–2 column grouping of controls             | `columns`<br>`spacing` (default \| wide)<br>`children` |
@@ -86,16 +86,18 @@ Behavior lists only augmentation beyond the bare pattern; "—" means pattern-de
 
 | Element          | Composes     | Props                                                     |
 | ---------------- | ------------ | --------------------------------------------------------- |
-| TextField        | input (nat)  | `value`<br>`disabled`<br>`invalid`<br>`ariaLabel`<br>`autoFocus`<br>`hasEndAction`<br>`onChange`<br>`onBlur`<br>`onKeyDown` |
-| ValidationPopup  | button (nat) | `messages`<br>`onDismiss`                                 |
+| TextField        | input (nat)  | `value`<br>`disabled`<br>`invalid`<br>`ariaLabel`<br>`autoFocus`<br>`hasEndAction`<br>`appearance` (pane \| inline)<br>`onChange`<br>`onBlur`<br>`onKeyDown` |
+| TextArea         | textarea (nat) | `value`<br>`rows`<br>`disabled`<br>`invalid`<br>`autoFocus`<br>`appearance` (pane \| inline)<br>`onChange`<br>`onBlur`<br>`onKeyDown` |
+| ValidationPopup  | popover (nat) | red pill with centered single-line white text and a small tail; anchored above and flipped below when top-clipped; no layout participation; Escape or the next outside pointer press requests dismissal; browser top layer escapes local clipping and stacking contexts | `messages`<br>`onDismiss` |
 | TextBlock        | —            | `text`                                                     |
 | Button           | button (nat) | `label`<br>`icon`<br>`disabled`<br>`tone` (neutral \| danger)<br>`size` (default \| compact)<br>`alignment` (stretch \| end)<br>`onClick` |
 | BackAffordance   | button (nat) | `label`<br>`visible` (hidden state reserves layout space)<br>`onClick` |
-| ToggleButton     | button (nat) | `icon`<br>`label` (optional)<br>`title`<br>`pressed`<br>`disabled`<br>`size` (compact \| nodeTile \| relationshipTile)<br>`onClick` |
+| PaneCollapseTab  | button (nat) | edge-mounted chevron flips between collapse and expand direction | `collapsed`<br>`onToggle` |
+| ToggleButton     | button (nat) | `icon`<br>`label` (optional)<br>`title`<br>`pressed`<br>`disabled`<br>`size` (micro \| compact \| nodeTile \| relationshipTile)<br>`onClick` |
 | StyledBoxSwatch  | —            | `styleValues`<br>`label`                                  |
-| BoxOutline       | —            | `variant` (selected \| selectedStripe \| pending)         |
+| BoxOutline       | —            | `variant` (hover \| selected \| pending)                 |
 | HaloRing         | —            | `tint`                                                    |
-| ResizeAffordance | button (nat) | `onGrab(handle, point)` — handle: nw \| ne \| sw \| se |
+| ResizeAffordance | button (nat) | eight visible squares plus four invisible full-edge hit zones; `onGrab(handle, point)` — handle: nw \| n \| ne \| e \| se \| s \| sw \| w |
 | Divider          | —            | —                                                         |
 
 ---
@@ -106,6 +108,8 @@ Mapping of library components to domain components. Behaviors described are beha
 ### EditPane/ClassEditPane
 
 Multiple boxes with different styles might be selected
+
+The EditPane's PaneFrame receives a PaneCollapseTab as its edge control. Collapsed state is local to EditPane, persists across selection changes, and reduces the frame width to zero while leaving the tab visible at the screen edge.
 
 **PaneFrame › PaneSection** ("Class properties", single selection only)
 
@@ -275,7 +279,7 @@ Single note selection only.
 
 | Element          | Application behavior                                                                                                 |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------- |
-| BoxOutline       | mounted [selected] with variant `selected`; mounted [pending member during namespace gesture] with variant `pending` |
+| BoxOutline       | mounted [hovered and not selected] with variant `hover`; mounted [selected] with variant `selected`; mounted [pending member during namespace gesture] with variant `pending` |
 | HaloRing         | mounted [captured by a foreign hull]; passed tint = _native namespace fill_, canvas color if parentless              |
 | ResizeAffordance | mounted [selected]                                                                                                   |
 
@@ -305,7 +309,7 @@ Classifiers map to emphasis in the domain (static → underline, abstract → it
 
 |Element|Application behavior|
 |---|---|
-|BoxOutline|mounted [selected] with variant `selected`|
+|BoxOutline|mounted [hovered and not selected] with variant `hover`; mounted [selected] with variant `selected`|
 |ResizeAffordance|mounted [selected]|
 |CommitTextArea|mounted [text editing]; passed initial value = _note text_|
 
@@ -315,7 +319,7 @@ Classifiers map to emphasis in the domain (static → underline, abstract → it
 
 | Element          | Application behavior                                                                                                 |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------- |
-| BoxOutline       | mounted [selected] with variant `selected`; mounted [pending member during namespace gesture] with variant `pending` |
+| BoxOutline       | mounted [hovered and not selected] with variant `hover`; mounted [selected] with variant `selected`; mounted [pending member during namespace gesture] with variant `pending` |
 | ResizeAffordance | mounted [selected]                                                                                                   |
 | CommitTextField  | mounted [name editing]; passed initial value = _namespace name_                                                      |
 
@@ -332,6 +336,8 @@ Resize is a membership gesture, not a bounds edit: the dragged rect selects pend
 |CommitTextField|target multiplicity|mounted [multiplicity set or block editing]; passed initial value = _current multiplicity_; edit start enabled [selected]|
 
 Non-editing text renders as domain SVG; editing mounts CommitTextField in an HTML overlay positioned at the block. `EditableText` is deleted at the edge migration — no SVG-hosted field variant exists.
+
+Only the selected relationship is reconnectable. Its source and target endpoints render small `--shiny-selection` circles as grab-reconnect indicators; deselected relationships expose neither indicators nor reconnect mechanics.
 
 ### ToolPane
 

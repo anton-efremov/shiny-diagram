@@ -2,8 +2,8 @@
  * @render Box outline overlay styling.
  */
 
+.hover,
 .selected,
-.selectedStripe,
 .pending {
   position: absolute;
   inset: 0;
@@ -11,15 +11,19 @@
   pointer-events: none;
 }
 
-.selectedStripe {
-  inset: 4px -4px -4px 4px;
-  border-right: 4px solid var(--shiny-selection-stripe);
-  border-bottom: 4px solid var(--shiny-selection-stripe);
+.selected {
+  inset: calc(-1 * var(--shiny-box-selection-center-offset, 3px) - 1px);
+  border: 1.5px solid var(--shiny-selection);
 }
 
-.selected {
-  border: 1px solid var(--shiny-accent);
-  box-shadow: 0 0 0 1px var(--shiny-accent);
+.hover {
+  inset: calc(-1 * var(--shiny-box-selection-center-offset, 3px) - 1px);
+  border: 1.5px solid var(--shiny-selection);
+  opacity: 0;
+}
+
+:global(*:hover) > .hover {
+  opacity: 1;
 }
 
 .pending {

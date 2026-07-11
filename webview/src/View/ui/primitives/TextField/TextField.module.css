@@ -41,3 +41,26 @@
 .fieldWithEndAction[aria-invalid="true"] {
   border-color: var(--shiny-text-error);
 }
+
+.inline {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  color: inherit;
+  outline: 1px solid color-mix(in srgb, currentColor 78%, transparent);
+  outline-offset: 1px;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  font: inherit;
+  line-height: inherit;
+  text-align: inherit;
+}
+
+.inline:focus-visible {
+  outline: 1px solid color-mix(in srgb, currentColor 92%, transparent);
+  outline-offset: 1px;
+}
+
+.inline[aria-invalid="true"] {
+  outline-color: color-mix(in srgb, var(--shiny-text-error) 65%, transparent);
+}

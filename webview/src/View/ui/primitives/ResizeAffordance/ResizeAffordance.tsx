@@ -1,19 +1,20 @@
 /**
  * @behavior Resize grab reporting.
- * @render Four corner resize handles.
+ * @render Eight resize handles and four full-edge hit zones.
  */
 
 import type { PointerEvent, ReactElement } from "react";
 import type { Point } from "../../../../shared/geometry";
 import styles from "./ResizeAffordance.module.css";
 
-export type ResizeHandle = "nw" | "ne" | "sw" | "se";
+export type ResizeHandle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
 
 type ResizeAffordanceProps = {
   readonly onGrab: (handle: ResizeHandle, point: Point) => void;
 };
 
-const HANDLES: readonly ResizeHandle[] = ["nw", "ne", "sw", "se"];
+const HANDLES: readonly ResizeHandle[] = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
+const EDGE_HANDLES: readonly Extract<ResizeHandle, "n" | "e" | "s" | "w">[] = ["n", "e", "s", "w"];
 
 export default function ResizeAffordance({ onGrab }: ResizeAffordanceProps): ReactElement {
   // Event handler props derivation
@@ -27,12 +28,21 @@ export default function ResizeAffordance({ onGrab }: ResizeAffordanceProps): Rea
 
   return (
     <>
+      {EDGE_HANDLES.map((handle) => (
+        <button
+          key={`edge-${handle}`}
+          className={`${styles.edge} ${styles[`edge${handle.toUpperCase()}`]}`}
+          type="button"
+          aria-label={`Resize from ${toAccessiblePosition(handle)} edge`}
+          onPointerDown={onPointerDown(handle)}
+        />
+      ))}
       {HANDLES.map((handle) => (
         <button
           key={handle}
           className={`${styles.handle} ${styles[handle]}`}
           type="button"
-          aria-label={`Resize from ${toAccessibleCorner(handle)}`}
+          aria-label={`Resize from ${toAccessiblePosition(handle)}`}
           onPointerDown={onPointerDown(handle)}
         />
       ))}
@@ -40,15 +50,23 @@ export default function ResizeAffordance({ onGrab }: ResizeAffordanceProps): Rea
   );
 }
 
-function toAccessibleCorner(handle: ResizeHandle): string {
+function toAccessiblePosition(handle: ResizeHandle): string {
   switch (handle) {
     case "nw":
       return "top left";
+    case "n":
+      return "top";
     case "ne":
       return "top right";
+    case "e":
+      return "right";
     case "sw":
       return "bottom left";
     case "se":
       return "bottom right";
+    case "s":
+      return "bottom";
+    case "w":
+      return "left";
   }
 }

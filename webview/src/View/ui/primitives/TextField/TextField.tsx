@@ -13,6 +13,7 @@ type TextFieldProps = {
   readonly ariaLabel?: string;
   readonly autoFocus?: boolean;
   readonly hasEndAction?: boolean;
+  readonly appearance?: "pane" | "inline";
   readonly onChange: (value: string) => void;
   readonly onBlur?: () => void;
   readonly onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
@@ -25,13 +26,14 @@ export default function TextField({
   ariaLabel,
   autoFocus = false,
   hasEndAction = false,
+  appearance = "pane",
   onChange,
   onBlur,
   onKeyDown,
 }: TextFieldProps): ReactElement {
   return (
     <input
-      className={hasEndAction ? styles.fieldWithEndAction : styles.field}
+      className={`${hasEndAction ? styles.fieldWithEndAction : styles.field} ${appearance === "inline" ? styles.inline : ""}`}
       value={value}
       disabled={disabled}
       aria-invalid={invalid}

@@ -4,14 +4,22 @@
 
 .editor {
   position: relative;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 6px;
-  align-items: center;
   width: 100%;
 }
 
 .toolbar {
+  position: absolute;
+  z-index: 2;
+  bottom: calc(100% + 5px);
+  right: 0;
   display: flex;
   gap: 4px;
+}
+
+.underlined textarea {
+  text-decoration: underline;
+}
+
+.italic textarea {
+  font-style: italic;
 }

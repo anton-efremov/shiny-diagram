@@ -12,7 +12,7 @@ type ToggleButtonProps = {
   readonly title: string;
   readonly pressed: boolean;
   readonly disabled?: boolean;
-  readonly size?: "compact" | "nodeTile" | "relationshipTile";
+  readonly size?: "micro" | "compact" | "nodeTile" | "relationshipTile";
   readonly onClick?: () => void;
 };
 
@@ -26,13 +26,15 @@ export default function ToggleButton({
   onClick,
 }: ToggleButtonProps): ReactElement {
   const className =
-    size === "nodeTile"
-      ? styles.nodeTileButton
-      : size === "relationshipTile"
-        ? styles.relationshipTileButton
-        : label === undefined
-          ? styles.iconOnlyButton
-          : styles.labeledButton;
+    size === "micro"
+      ? styles.microButton
+      : size === "nodeTile"
+        ? styles.nodeTileButton
+        : size === "relationshipTile"
+          ? styles.relationshipTileButton
+          : label === undefined
+            ? styles.iconOnlyButton
+            : styles.labeledButton;
 
   return (
     <button

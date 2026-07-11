@@ -118,7 +118,10 @@ export default function CommitComboBox({
             invalid={messages.length > 0}
             ariaLabel={ariaLabel}
             hasEndAction
-            onChange={setDraft}
+            onChange={(value) => {
+              setDraft(value);
+              setMessages([]);
+            }}
             onBlur={discardIfInvalid}
             onKeyDown={handleKeyDown}
           />

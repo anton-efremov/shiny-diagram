@@ -17,6 +17,13 @@
   pointer-events: stroke;
 }
 
+.reconnectEndpoint {
+  fill: var(--shiny-selection);
+  stroke: var(--shiny-surface);
+  stroke-width: 1px;
+  pointer-events: none;
+}
+
 .lightText,
 .darkText {
   font: 12px var(--shiny-font-family);
@@ -47,4 +54,14 @@
   height: 100%;
   align-items: center;
   justify-content: center;
+  font: 12px var(--shiny-font-family);
+  text-align: center;
+}
+
+.lightEditor {
+  color: #000000;
+}
+
+.darkEditor {
+  color: #ffffff;
 }

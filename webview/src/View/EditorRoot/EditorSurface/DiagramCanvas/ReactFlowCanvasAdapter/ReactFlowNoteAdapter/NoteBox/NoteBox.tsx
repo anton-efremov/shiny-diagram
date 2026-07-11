@@ -87,7 +87,7 @@ export default function NoteBox({
           <ResizeAffordance onGrab={onResizeGrab} />
         </div>
       ) : null}
-      {isSelected ? <BoxOutline variant="selected" /> : null}
+      {isSelected ? <BoxOutline variant="selected" /> : <BoxOutline variant="hover" />}
       {discardErrors.length > 0 ? (
         <ValidationPopup messages={discardErrors} onDismiss={onDiscardDismiss} />
       ) : null}

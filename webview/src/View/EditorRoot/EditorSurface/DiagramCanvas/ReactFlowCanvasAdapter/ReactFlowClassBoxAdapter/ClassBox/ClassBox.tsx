@@ -100,12 +100,17 @@ export default function ClassBox({
       return value === undefined ? [] : [[name, value]];
     })
   );
+  const separatorColor = resolvedStyle.stroke ?? "var(--shiny-base-stroke)";
+  const separatorThickness = toCssLength(resolvedStyle.strokeWidth);
+  const separatorLineStyle = toCssLineStyle(resolvedStyle.strokeDasharray);
   const dynamicVars = {
     "--class-fill": resolvedStyle.fill ?? undefined,
     "--class-stroke": resolvedStyle.stroke ?? undefined,
-    "--class-stroke-width": resolvedStyle.strokeWidth ?? undefined,
-    "--class-stroke-dasharray": resolvedStyle.strokeDasharray ?? undefined,
+    "--class-stroke-width": separatorThickness,
+    "--class-stroke-style": separatorLineStyle,
     "--class-color": resolvedStyle.color ?? undefined,
+    "--shiny-inline-surface": resolvedStyle.fill ?? "var(--shiny-base-fill)",
+    "--shiny-box-selection-center-offset": `calc(${separatorThickness} + 2px)`,
   } as CSSProperties;
 
   const onResizeGrab = (handle: ResizeHandle, point: Point) => {
@@ -116,7 +121,7 @@ export default function ClassBox({
     <div className={className} style={dynamicVars} title={view.classId} onClick={onClassBoxClick}>
       {haloColor ? <HaloRing tint={haloColor} /> : null}
       {isPendingMember ? <BoxOutline variant="pending" /> : null}
-      {isSelected ? <BoxOutline variant="selectedStripe" /> : null}
+      {isSelected ? <BoxOutline variant="selected" /> : <BoxOutline variant="hover" />}
       {isResizeVisible ? (
         <div className="nodrag nopan">
           <ResizeAffordance onGrab={onResizeGrab} />
@@ -137,13 +142,14 @@ export default function ClassBox({
         ) : null}
         {view.header.stereotype ? (
           isHeaderEditing(editingState, view.classId, "annotation") ? (
-            <div className="nodrag nopan">
+            <div className={`${styles.stereotype} ${styles.inlineEditor} nodrag nopan`}>
               <CommitTextField
                 initialValue={view.header.stereotype}
                 validate={(text) => onHeaderCommit("annotation", text.trim() || null)}
                 ariaLabel="Annotation"
                 isLabelVisible={false}
                 autoFocus
+                appearance="inline"
                 onCommit={onTextBlockEditCancel}
                 onDiscard={(messages) => {
                   setHeaderDiscardErrors(messages);
@@ -182,13 +188,14 @@ export default function ClassBox({
           )
         ) : null}
         {isHeaderEditing(editingState, view.classId, "name") ? (
-          <div className="nodrag nopan">
+          <div className={`${styles.className} ${styles.inlineEditor} nodrag nopan`}>
             <CommitTextField
               initialValue={view.header.name}
               validate={(text) => onHeaderCommit("name", text.trim())}
               ariaLabel="Class name"
               isLabelVisible={false}
               autoFocus
+              appearance="inline"
               onCommit={onTextBlockEditCancel}
               onCancel={onTextBlockEditCancel}
               onDiscard={(messages) => {
@@ -219,13 +226,14 @@ export default function ClassBox({
         )}
         {view.header.label !== view.header.name ? (
           isHeaderEditing(editingState, view.classId, "label") ? (
-            <div className="nodrag nopan">
+            <div className={`${styles.classLabel} ${styles.inlineEditor} nodrag nopan`}>
               <CommitTextField
                 initialValue={view.header.label}
                 validate={(text) => onHeaderCommit("label", text.trim() || null)}
                 ariaLabel="Class label"
                 isLabelVisible={false}
                 autoFocus
+                appearance="inline"
                 onCommit={onTextBlockEditCancel}
                 onCancel={onTextBlockEditCancel}
                 onDiscard={(messages) => {
@@ -263,6 +271,9 @@ export default function ClassBox({
       <MemberTable
         view={{ classId: view.classId, members: view.members }}
         isSelected={isSelected}
+        separatorColor={separatorColor}
+        separatorThickness={separatorThickness}
+        separatorLineStyle={separatorLineStyle}
         editingState={editingState}
         onTextBlockEditStart={onTextBlockEditStart}
         onTextBlockEditCancel={onTextBlockEditCancel}
@@ -270,6 +281,17 @@ export default function ClassBox({
       />
     </div>
   );
+}
+
+function toCssLength(value: string | null | undefined): string {
+  if (!value) return "var(--shiny-base-stroke-width)";
+  return /^-?(?:\d+|\d*\.\d+)$/.test(value.trim()) ? `${value.trim()}px` : value;
+}
+
+function toCssLineStyle(value: string | null | undefined): "solid" | "dashed" | "dotted" {
+  const normalized = value?.trim().replace(/\s+/g, " ");
+  if (!normalized || normalized === "0" || normalized === "none") return "solid";
+  return normalized.startsWith("1 ") ? "dotted" : "dashed";
 }
 
 function isHeaderEditing(

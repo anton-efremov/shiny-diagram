@@ -1,0 +1,45 @@
+/**
+ * @render Shared multiline text area styling.
+ */
+
+.area {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  resize: none;
+  border: 1px solid var(--shiny-field-border);
+  border-radius: var(--shiny-field-radius);
+  color: var(--shiny-field-fg);
+  background: var(--shiny-field-bg);
+  font: inherit;
+}
+
+.area:focus-visible {
+  outline: 2px solid var(--shiny-field-focus-border);
+  outline-offset: 1px;
+}
+
+.inline {
+  min-height: 0;
+  padding: 4px 10px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 2px;
+  color: inherit;
+  outline: 0;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 78%, transparent);
+  line-height: inherit;
+  text-align: inherit;
+}
+
+.inline:focus-visible {
+  outline: 0;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 92%, transparent);
+}
+
+.inline[aria-invalid="true"] {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--shiny-text-error) 65%, transparent);
+}
