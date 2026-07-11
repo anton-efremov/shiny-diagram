@@ -183,7 +183,7 @@
   height: 18px;
   border: 1px solid var(--shiny-overlay-strong);
   border-radius: 3px;
-  background: var(--shiny-field-bg);
+  background: var(--color-select-value, var(--shiny-field-bg));
 }
 
 .defaultOption[aria-pressed="true"] .defaultSwatch {

@@ -47,7 +47,7 @@ describe("toDocumentColors", () => {
       },
     ];
 
-    expect(toStrokeSelectUIProps(styles, "strokeWidth", "1px")).toEqual({
+    expect(toStrokeSelectUIProps(styles, { strokeWidth: "3.5" }, "strokeWidth", "1px")).toEqual({
       defaultValue: "3.5",
       documentValues: ["3.5", "1px"],
     });
@@ -67,7 +67,7 @@ describe("toDocumentColors", () => {
       },
     ];
 
-    expect(toStrokeSelectUIProps(styles, "strokeDasharray", "0")).toEqual({
+    expect(toStrokeSelectUIProps(styles, {}, "strokeDasharray", "0")).toEqual({
       defaultValue: "0",
       documentValues: ["0", "5  5"],
     });

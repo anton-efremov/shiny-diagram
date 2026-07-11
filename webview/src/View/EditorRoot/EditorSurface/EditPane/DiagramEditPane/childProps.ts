@@ -1,8 +1,8 @@
 /**
- * @behavior Source-ordered document color derivation from all style occurrence kinds.
+ * @behavior Source-ordered document color and stroke-selector UI prop derivation for diagram style editing.
  */
 
-import type { StyleView } from "../../../../views/schema";
+import type { BaseStyleView, StyleView } from "../../../../views/schema";
 import type { StylePropertyName } from "../../../../../shared/style";
 
 type StrokeSelectUIProps = {
@@ -30,13 +30,11 @@ export function toDocumentColors(styles: readonly StyleView[]): readonly string[
 
 export function toStrokeSelectUIProps(
   styles: readonly StyleView[],
+  baseStyle: BaseStyleView,
   property: Extract<StylePropertyName, "strokeWidth" | "strokeDasharray">,
   rendererDefault: string
 ): StrokeSelectUIProps {
-  const defaultStyle = styles.find(
-    (style) => style.kind === "declared" && style.name === "default"
-  );
-  const defaultValue = defaultStyle?.properties[property] ?? rendererDefault;
+  const defaultValue = baseStyle[property] ?? rendererDefault;
   const seen = new Set<string>();
   const documentValues: string[] = [];
 

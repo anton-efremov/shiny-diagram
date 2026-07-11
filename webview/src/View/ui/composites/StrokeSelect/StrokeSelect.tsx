@@ -149,7 +149,7 @@ export default function StrokeSelect({
       </button>
       {isOpen ? (
         <div ref={popupRef} className={styles.popup} style={popupStyle} role="listbox">
-          <span className={styles.heading}>Default</span>
+          <span className={styles.heading}>Base</span>
           <StrokeOption
             kind={kind}
             value={defaultValue}

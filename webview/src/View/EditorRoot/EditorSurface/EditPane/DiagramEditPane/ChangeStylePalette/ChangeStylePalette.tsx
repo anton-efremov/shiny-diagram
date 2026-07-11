@@ -1,22 +1,24 @@
 /**
- * @behavior Named style property edit routing.
+ * @behavior Style property control routing.
  * @render Named style property controls.
  */
 
 import type { ReactElement } from "react";
 import { STYLE_PROPERTIES, type StylePropertyName } from "../../../../../../shared/style";
-import type { DeclaredStyleView } from "../../../../../views/schema";
+import type { BaseStyleView, DeclaredStyleView } from "../../../../../views/schema";
+import { PURE_STYLE_DEFAULTS } from "../../../../../config/stylePresets";
 import FieldGrid from "../../../../../ui/templates/FieldGrid/FieldGrid";
 import StylePropertyControl from "./StylePropertyControl/StylePropertyControl";
-import { useInteractions } from "./useInteractions";
 import type { ColorSelectPresetCatalog } from "../../../../../ui/composites/ColorSelect/ColorSelect";
 
 type ChangeStylePaletteProps = {
-  readonly view: DeclaredStyleView;
+  readonly view: BaseStyleView | DeclaredStyleView["properties"];
   readonly presets: ColorSelectPresetCatalog;
   readonly documentColors: readonly string[];
   readonly widthSelectUIProps: StrokeSelectUIProps;
   readonly dashSelectUIProps: StrokeSelectUIProps;
+  readonly baseStyle: BaseStyleView;
+  readonly onPropertyChange: (property: StylePropertyName, value: string | null) => void;
 };
 
 type StrokeSelectUIProps = {
@@ -30,10 +32,9 @@ export default function ChangeStylePalette({
   documentColors,
   widthSelectUIProps,
   dashSelectUIProps,
+  baseStyle,
+  onPropertyChange,
 }: ChangeStylePaletteProps): ReactElement {
-  // Event handler props derivation
-  const { onPropertyChange } = useInteractions(view);
-
   return (
     <FieldGrid
       controlWidth="half"
@@ -43,9 +44,10 @@ export default function ChangeStylePalette({
         control: (
           <StylePropertyControl
             property={name}
-            value={view.properties[name]}
+            value={view[name] ?? null}
             presets={presets}
             documentColors={documentColors}
+            baseValue={baseStyle[name] ?? PURE_STYLE_DEFAULTS[name]}
             defaultValue={
               name === "strokeWidth"
                 ? widthSelectUIProps.defaultValue

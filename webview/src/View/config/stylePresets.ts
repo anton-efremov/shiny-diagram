@@ -96,6 +96,14 @@ export const COLOR_PRESETS: ColorPresetCatalog = {
 export const WIDTH_PRESETS = ["1", "2", "4"] as const;
 export const DASH_PRESETS = ["0", "4 4", "1 3"] as const;
 
+export const PURE_STYLE_DEFAULTS = {
+  fill: "var(--shiny-base-fill)",
+  stroke: "var(--shiny-base-stroke)",
+  strokeWidth: "1",
+  strokeDasharray: "0",
+  color: "var(--shiny-base-text)",
+} as const satisfies Readonly<Record<StylePropertyName, string>>;
+
 export const STYLE_PRESETS = {
   fill: COLOR_PRESETS,
   stroke: COLOR_PRESETS,

@@ -9,7 +9,8 @@ import {
   type StyleProperties,
   type StylePropertyName,
 } from "../../../../../../shared/style";
-import type { ClassView } from "../../../../../views/schema";
+import type { BaseStyleView, ClassView } from "../../../../../views/schema";
+import { PURE_STYLE_DEFAULTS } from "../../../../../config/stylePresets";
 import type { ColorSelectPresetCatalog } from "../../../../../ui/composites/ColorSelect/ColorSelect";
 import FieldGrid from "../../../../../ui/templates/FieldGrid/FieldGrid";
 import StylePropertyControl from "./StylePropertyControl/StylePropertyControl";
@@ -29,6 +30,7 @@ type ChangeStylePaletteProps = {
   readonly documentColors: readonly string[];
   readonly widthSelectUIProps: StrokeSelectUIProps;
   readonly dashSelectUIProps: StrokeSelectUIProps;
+  readonly baseStyle: BaseStyleView;
 };
 
 type StrokeSelectUIProps = {
@@ -42,6 +44,7 @@ export default function ChangeStylePalette({
   documentColors,
   widthSelectUIProps,
   dashSelectUIProps,
+  baseStyle,
 }: ChangeStylePaletteProps): ReactElement {
   // Event handler props derivation
   const { onPropertyChange } = useInteractions(view);
@@ -58,6 +61,7 @@ export default function ChangeStylePalette({
             value={toCommonPropertyValue(view, name)}
             presets={presets}
             documentColors={documentColors}
+            baseValue={baseStyle[name] ?? PURE_STYLE_DEFAULTS[name]}
             defaultValue={
               name === "strokeWidth"
                 ? widthSelectUIProps.defaultValue

@@ -18,7 +18,10 @@ import { EDIT_PANE_WIDTH } from "../../../config/editorUiConfig";
 import PaneFrame from "../../../ui/templates/PaneFrame/PaneFrame";
 
 type EditPaneProps = {
-  readonly view: Pick<DiagramView, "classes" | "relationships" | "notes" | "styles" | "namespaces">;
+  readonly view: Pick<
+    DiagramView,
+    "classes" | "relationships" | "notes" | "styles" | "namespaces" | "baseStyle"
+  >;
   readonly selectionState: SelectionState;
   readonly onStyleSelect: (
     styleDefId: StyleDefId,
@@ -140,7 +143,10 @@ export default function EditPane({
 
 // Private helpers
 function toEditPaneScenario(
-  view: Pick<DiagramView, "classes" | "relationships" | "notes" | "styles" | "namespaces">,
+  view: Pick<
+    DiagramView,
+    "classes" | "relationships" | "notes" | "styles" | "namespaces" | "baseStyle"
+  >,
   selectionState: SelectionState
 ): EditPaneScenario {
   switch (selectionState.kind) {
@@ -158,7 +164,7 @@ function toEditPaneScenario(
         (styleView) =>
           styleView.kind === "declared" && styleView.styleDefId === selectionState.styleDefId
       );
-      return selectedStyle
+      return selectedStyle || selectionState.styleDefId === "default"
         ? { kind: "diagram", selectionState }
         : { kind: "diagram", selectionState };
     }

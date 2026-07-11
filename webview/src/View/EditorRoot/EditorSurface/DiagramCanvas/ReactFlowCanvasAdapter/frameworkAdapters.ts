@@ -21,6 +21,7 @@ import type {
 } from "../../../../state/editorStates";
 import type {
   ClassView,
+  BaseStyleView,
   DiagramView,
   NamespaceView,
   NoteView,
@@ -36,6 +37,7 @@ import {
 
 export type ClassBoxNodeData = {
   readonly view: ClassView;
+  readonly baseStyle: BaseStyleView;
   readonly bounds: Rect;
   readonly isSelected: boolean;
   readonly isResizeVisible: boolean;
@@ -144,6 +146,7 @@ export type RelationshipReconnect = {
 // Framework prop and event adaptation
 export function toClassBoxNodeDescriptors(
   classes: readonly ClassView[],
+  baseStyle: BaseStyleView,
   selectedClassIds: readonly ClassId[],
   classBoxPlacementState: ClassBoxPlacementState,
   namespaceGeometry: NamespaceGeometry,
@@ -166,6 +169,7 @@ export function toClassBoxNodeDescriptors(
         position: { x: placement.x, y: placement.y },
         data: {
           view: classView,
+          baseStyle,
           bounds: placement,
           isSelected: selected.has(classView.classId),
           isResizeVisible: selected.size === 1 && selected.has(classView.classId),

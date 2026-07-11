@@ -3,8 +3,8 @@
  * @render Dropdown with optional swatch visuals.
  */
 
-import { useState } from "react";
-import type { ReactElement } from "react";
+import { useRef, useState } from "react";
+import type { KeyboardEvent, ReactElement } from "react";
 import type { CSSProperties } from "react";
 import type { StyleProperties } from "../../../../shared/style";
 import styles from "./Dropdown.module.css";
@@ -31,6 +31,7 @@ export default function Dropdown({
   onChange,
 }: DropdownProps): ReactElement {
   const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const selectedOption = options.find((option) => option.value === value) ?? options[0];
   const triggerStyle: CSSProperties & { "--dropdown-arrow-color"?: string } = {
     "--dropdown-arrow-color": selectedOption?.swatchStyle?.color ?? undefined,
@@ -41,9 +42,18 @@ export default function Dropdown({
     onChange(nextValue);
   }
 
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
+    if (!isOpen || event.key !== "Escape") return;
+    event.preventDefault();
+    event.stopPropagation();
+    setIsOpen(false);
+    triggerRef.current?.focus();
+  }
+
   return (
-    <div className={styles.dropdown}>
+    <div className={styles.dropdown} onKeyDown={handleKeyDown}>
       <button
+        ref={triggerRef}
         type="button"
         className={
           selectedOption?.swatchKind === "boxLabel" ? styles.boxLabelTrigger : styles.trigger

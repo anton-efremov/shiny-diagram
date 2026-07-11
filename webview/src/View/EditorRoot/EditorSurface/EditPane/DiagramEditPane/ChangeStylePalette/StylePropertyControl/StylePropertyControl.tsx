@@ -15,6 +15,7 @@ type StylePropertyControlProps = {
   readonly value: string | null;
   readonly presets: ColorSelectPresetCatalog;
   readonly documentColors: readonly string[];
+  readonly baseValue: string;
   readonly defaultValue: string;
   readonly documentValues: readonly string[];
   readonly onChange: (value: string | null) => void;
@@ -25,6 +26,7 @@ export default function StylePropertyControl({
   value,
   presets,
   documentColors,
+  baseValue,
   defaultValue,
   documentValues,
   onChange,
@@ -37,6 +39,7 @@ export default function StylePropertyControl({
         value={value}
         presets={presets}
         documentColors={documentColors}
+        baseValue={baseValue}
         onChange={onChange}
       />
     );

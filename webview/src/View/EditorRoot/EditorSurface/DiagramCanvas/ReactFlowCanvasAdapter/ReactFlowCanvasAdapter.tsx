@@ -321,6 +321,7 @@ export default function ReactFlowCanvasAdapter({
     );
     const classNodes = toClassBoxNodeDescriptors(
       view.classes,
+      view.baseStyle,
       selectedClassIds,
       effectiveClassBoxPlacementState,
       renderedNamespaceGeometry,

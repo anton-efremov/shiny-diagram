@@ -3,7 +3,7 @@
  * @render Commit combo box.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent, ReactElement } from "react";
 import type { DropdownOption } from "../Dropdown/Dropdown";
 import TextField from "../../primitives/TextField/TextField";
@@ -36,6 +36,7 @@ export default function CommitComboBox({
   const [draft, setDraft] = useState(initialValue);
   const [isCustom, setIsCustom] = useState(() => !hasPresetValue(options, initialValue));
   const [isOpen, setIsOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const [messages, setMessages] = useState<readonly string[]>([]);
   const selectedOption = options.find((option) => option.value === initialValue);
   const renderedOptions = [...options, { value: "__custom", label: "Custom" }];
@@ -83,6 +84,14 @@ export default function CommitComboBox({
     }
   }
 
+  function handleComboKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
+    if (!isOpen || event.key !== "Escape") return;
+    event.preventDefault();
+    event.stopPropagation();
+    setIsOpen(false);
+    menuButtonRef.current?.focus();
+  }
+
   function selectValue(nextValue: string): void {
     setIsOpen(false);
     if (nextValue === "__custom") {
@@ -101,7 +110,7 @@ export default function CommitComboBox({
   return (
     <div className={visibleLabel === undefined ? styles.comboWithoutLabel : styles.combo}>
       {visibleLabel === undefined ? null : <span className={styles.label}>{visibleLabel}</span>}
-      <div className={styles.comboBox}>
+      <div className={styles.comboBox} onKeyDown={handleComboKeyDown}>
         {isCustom ? (
           <TextField
             value={draft}
@@ -126,6 +135,7 @@ export default function CommitComboBox({
           </button>
         )}
         <button
+          ref={menuButtonRef}
           type="button"
           className={styles.menuButton}
           disabled={disabled}

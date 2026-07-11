@@ -4,6 +4,7 @@
 
 import type { DiagramGraph } from "../../model/diagramGraph";
 import type { ClassView } from "../../../View/views";
+import { STYLE_PROPERTIES, type StyleProperties } from "../../../shared/style";
 
 /**
  * Derives class-box views for classes with spatial data.
@@ -16,7 +17,7 @@ export function deriveClassBoxViews(model: DiagramGraph): ClassView[] {
 
     const styleEdge = [...model.styleApplications.values()].find((e) => e.targetId === node.id);
     const styleDef = styleEdge ? model.styleDefinitions.get(styleEdge.styleDefId) : undefined;
-    const style = node.directStyle ?? styleDef?.properties;
+    const style = toAuthoredStyle(node.directStyle, styleDef?.properties);
 
     views.push({
       classId: node.id,
@@ -52,4 +53,14 @@ export function deriveClassBoxViews(model: DiagramGraph): ClassView[] {
   }
 
   return views;
+}
+
+function toAuthoredStyle(
+  directStyle: StyleProperties | null,
+  namedStyle: StyleProperties | undefined
+): StyleProperties | undefined {
+  if (!directStyle && !namedStyle) return undefined;
+  return Object.fromEntries(
+    STYLE_PROPERTIES.map(({ name }) => [name, directStyle?.[name] ?? namedStyle?.[name] ?? null])
+  ) as unknown as StyleProperties;
 }

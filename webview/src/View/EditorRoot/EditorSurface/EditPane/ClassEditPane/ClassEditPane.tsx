@@ -24,7 +24,7 @@ import {
 import { toDocumentColors, toStrokeSelectUIProps } from "./childProps";
 
 type ClassEditPaneProps = {
-  readonly view: Pick<DiagramView, "classes" | "styles">;
+  readonly view: Pick<DiagramView, "classes" | "styles" | "baseStyle">;
   readonly selectionState: Extract<SelectionState, { readonly kind: "classes" }>;
   readonly onStyleSelect: (
     styleDefId: StyleDefId,
@@ -44,7 +44,9 @@ export default function ClassEditPane({
 }: ClassEditPaneProps): ReactElement {
   // View and State slice props derivation
   const selectedClassIds = new Set(selectionState.classIds);
-  const declaredStyles = view.styles.filter((styleView) => styleView.kind === "declared");
+  const declaredStyles = view.styles
+    .filter((styleView) => styleView.kind === "declared")
+    .filter((styleView) => styleView.name !== "default");
   const selectedClasses = view.classes.filter((classView) =>
     selectedClassIds.has(classView.classId)
   );
@@ -64,11 +66,13 @@ export default function ClassEditPane({
   const documentColors = toDocumentColors(view.styles);
   const widthSelectUIProps = toStrokeSelectUIProps(
     view.styles,
+    view.baseStyle,
     "strokeWidth",
     CLASS_DEFAULT_STROKE_WIDTH
   );
   const dashSelectUIProps = toStrokeSelectUIProps(
     view.styles,
+    view.baseStyle,
     "strokeDasharray",
     DEFAULT_STROKE_DASHARRAY
   );
@@ -114,6 +118,7 @@ export default function ClassEditPane({
           documentColors={documentColors}
           widthSelectUIProps={widthSelectUIProps}
           dashSelectUIProps={dashSelectUIProps}
+          baseStyle={view.baseStyle}
         />
       </PaneSection>
       <PaneSection label="Actions">

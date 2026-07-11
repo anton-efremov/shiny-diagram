@@ -53,11 +53,13 @@ export default function NamespaceEditPane({
   const documentColors = toDocumentColors(view.styles);
   const widthSelectUIProps = toStrokeSelectUIProps(
     view.styles,
+    {},
     "strokeWidth",
     `${NAMESPACE_DEFAULT_STROKE_WIDTH}px`
   );
   const dashSelectUIProps = toStrokeSelectUIProps(
     view.styles,
+    {},
     "strokeDasharray",
     DEFAULT_STROKE_DASHARRAY
   );

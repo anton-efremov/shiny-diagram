@@ -5,7 +5,11 @@
 
 import type { ReactElement } from "react";
 import type { StylePropertyName } from "../../../../../../shared/style";
-import { DASH_PRESETS, WIDTH_PRESETS } from "../../../../../config/stylePresets";
+import {
+  DASH_PRESETS,
+  PURE_STYLE_DEFAULTS,
+  WIDTH_PRESETS,
+} from "../../../../../config/stylePresets";
 import ColorSelect from "../../../../../ui/composites/ColorSelect/ColorSelect";
 import type { ColorSelectPresetCatalog } from "../../../../../ui/composites/ColorSelect/ColorSelect";
 import StrokeSelect from "../../../../../ui/composites/StrokeSelect/StrokeSelect";
@@ -36,6 +40,7 @@ export default function StylePropertyControl({
         glyph={property === "color" ? "text" : property}
         presets={presets}
         documentColors={documentColors}
+        baseValue={PURE_STYLE_DEFAULTS[property]}
         value={value}
         onChange={onChange}
       />

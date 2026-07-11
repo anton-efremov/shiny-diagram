@@ -17,12 +17,14 @@ import type { ResizeHandle } from "../../../../../../ui/primitives/ResizeAfforda
 import type { Point, Rect } from "../../../../../../../shared/geometry";
 import type { ClassId } from "../../../../../../../shared/ids";
 import type { EditingState } from "../../../../../../state/editorStates";
-import type { ClassView } from "../../../../../../views/schema";
+import type { BaseStyleView, ClassView } from "../../../../../../views/schema";
 import ValidationPopup from "../../../../../../ui/primitives/ValidationPopup/ValidationPopup";
+import { STYLE_PROPERTIES } from "../../../../../../../shared/style";
 import styles from "./ClassBox.module.css";
 
 type ClassBoxProps = {
   readonly view: ClassView;
+  readonly baseStyle: BaseStyleView;
   readonly bounds: Rect;
   readonly isSelected: boolean;
   readonly isDragging: boolean;
@@ -63,6 +65,7 @@ const CONNECTION_HANDLES: readonly ConnectionHandleDescriptor[] = [
 
 export default function ClassBox({
   view,
+  baseStyle,
   bounds,
   isSelected,
   isDragging,
@@ -91,12 +94,18 @@ export default function ClassBox({
     .filter(Boolean)
     .join(" ");
 
+  const resolvedStyle = Object.fromEntries(
+    STYLE_PROPERTIES.flatMap(({ name }) => {
+      const value = view.style?.[name] ?? baseStyle[name];
+      return value === undefined ? [] : [[name, value]];
+    })
+  );
   const dynamicVars = {
-    "--class-fill": view.style?.fill ?? undefined,
-    "--class-stroke": view.style?.stroke ?? undefined,
-    "--class-stroke-width": view.style?.strokeWidth ?? undefined,
-    "--class-stroke-dasharray": view.style?.strokeDasharray ?? undefined,
-    "--class-color": view.style?.color ?? undefined,
+    "--class-fill": resolvedStyle.fill ?? undefined,
+    "--class-stroke": resolvedStyle.stroke ?? undefined,
+    "--class-stroke-width": resolvedStyle.strokeWidth ?? undefined,
+    "--class-stroke-dasharray": resolvedStyle.strokeDasharray ?? undefined,
+    "--class-color": resolvedStyle.color ?? undefined,
   } as CSSProperties;
 
   const onResizeGrab = (handle: ResizeHandle, point: Point) => {

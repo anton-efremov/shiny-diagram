@@ -40,6 +40,7 @@ function toBorderStyle(strokeDasharray: string | null | undefined): "solid" | "d
   return strokeDasharray === undefined ||
     strokeDasharray === null ||
     strokeDasharray === "" ||
+    strokeDasharray === "0" ||
     strokeDasharray === "none"
     ? "solid"
     : "dashed";

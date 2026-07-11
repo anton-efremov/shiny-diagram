@@ -1,20 +1,22 @@
 /**
  * @behavior Saved style selection state interpretation and chip activation routing.
- * @render Default style row, named style chips, and style creation action.
+ * @render Base style and named-style chips plus style creation action.
  */
 
 import type { ReactElement } from "react";
-import type { StyleDefId } from "../../../../../../shared/ids";
+import { toStyleDefId, type StyleDefId } from "../../../../../../shared/ids";
 import type { SelectionState } from "../../../../../state/editorStates";
-import type { DeclaredStyleView } from "../../../../../views/schema";
+import type { BaseStyleView, DeclaredStyleView } from "../../../../../views/schema";
 import Button from "../../../../../ui/primitives/Button/Button";
-import StyledBoxSwatch from "../../../../../ui/primitives/StyledBoxSwatch/StyledBoxSwatch";
+import SwatchToggle from "../../../../../ui/composites/SwatchToggle/SwatchToggle";
 import ControlGroup from "../../../../../ui/templates/ControlGroup/ControlGroup";
 import PaneSection from "../../../../../ui/templates/PaneSection/PaneSection";
 import StyleChip from "./StyleChip/StyleChip";
+import { PURE_STYLE_DEFAULTS } from "../../../../../config/stylePresets";
 
 type SavedStylesProps = {
   readonly view: readonly DeclaredStyleView[];
+  readonly baseStyle: BaseStyleView;
   readonly selectionState: SelectionState;
   readonly onStyleSelect: (styleDefId: StyleDefId) => void;
   readonly onCreate: () => void;
@@ -22,27 +24,28 @@ type SavedStylesProps = {
 
 export default function SavedStyles({
   view,
+  baseStyle,
   selectionState,
   onStyleSelect,
   onCreate,
 }: SavedStylesProps): ReactElement {
   // View and State slice props derivation
-  const defaultStyle = view.find((styleView) => styleView.name === "default");
-  const namedStyles = view.filter((styleView) => styleView.name !== "default");
-
   // UI props derivation
   const selectedStyleId = selectionState.kind === "style" ? selectionState.styleDefId : undefined;
+  const baseStyleId = toStyleDefId("default");
+  const resolvedBaseStyle = { ...PURE_STYLE_DEFAULTS, ...baseStyle };
 
   return (
     <PaneSection label="Saved styles">
       <ControlGroup spacing="wide">
-        {defaultStyle ? (
-          <StyledBoxSwatch styleValues={defaultStyle.properties} label="Default" />
-        ) : (
-          <StyledBoxSwatch styleValues={{}} label="No default style" />
-        )}
+        <SwatchToggle
+          styleValues={resolvedBaseStyle}
+          label="Base style"
+          pressed={selectedStyleId === baseStyleId}
+          onClick={() => onStyleSelect(baseStyleId)}
+        />
         <ControlGroup>
-          {namedStyles.map((styleView) => (
+          {view.map((styleView) => (
             <StyleChip
               key={styleView.styleDefId}
               view={styleView}

@@ -65,6 +65,7 @@ export default function ShinyController({
       relationships: [],
       notes: [],
       styles: [],
+      baseStyle: {},
     };
     if (parseResult.status === "missingAnnotations") {
       return {

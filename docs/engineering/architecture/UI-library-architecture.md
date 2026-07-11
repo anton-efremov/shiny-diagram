@@ -68,8 +68,8 @@ Behavior lists only augmentation beyond the bare pattern; "—" means pattern-de
 | EmphasisCommitTextField  | TextField (prim)<br>ToggleButton (prim)<br>ValidationPopup (prim) | two ToggleButtons (underline, italic) anchored above the field while mounted; mutually exclusive — pressing one clears the other<br>emphasis is part of the local draft: toggles never emit per press<br>commit emits text and emphasis atomically; Esc discards both<br>inherits the CommitTextField lifecycle otherwise | `initialValue`<br>`initialEmphasis`<br>`validate(draft)→messages`<br>`disabled`<br>`autoFocus`<br>`onCommit(value, emphasis)`<br>`onDiscard(messages)`<br>`onCancel` |
 | CommitComboBox           | TextField (prim)<br>ValidationPopup (prim)<br>button (nat)    | option select commits natively<br>typed custom value follows CommitTextField lifecycle                                                                                                                                                                                  | `initialValue`<br>`options`<br>`validate(draft)→messages`<br>`disabled`<br>`ariaLabel`<br>`isLabelVisible`<br>`onCommit(value)`<br>`onDiscard(messages)`<br>`onCancel` |
 | Dropdown                 | button (nat)                                                  | —                                                                                                                                                                                                                                                                       | `options` (value, label, optional swatch style, kind, and label visibility)<br>`value`<br>`disabled`<br>`onChange(value)` |
-| ColorSelect              | button (nat) trigger and swatches                             | immediate swatch commit and close<br>document colors wrap without scrolling<br>Default clears the value<br>Esc/click-outside cancel and return focus to trigger<br>APG grid arrow navigation with Enter selection<br>multiple state has no selected ring<br>preset catalog supplied from `View/config/stylePresets.ts` | `glyph` (fill \| stroke \| text)<br>`value` (color \| null \| multiple)<br>`presets` (24 hue shades in a 6 × 4 grid plus a separated 6-swatch grayscale row)<br>`documentColors`<br>`disabled`<br>`onChange(value)` |
-| StrokeSelect             | svg line sample<br>button (nat) trigger and options           | one width/dash selector selected by `kind`<br>literal-only full-width sample rows<br>Default clears the value<br>document-authored values take precedence over normalized Standard duplicates<br>immediate commit and close<br>Esc/click-outside cancel and return focus<br>APG vertical-list arrow navigation with Enter selection<br>multiple state has no selected ring | `kind` (width \| dash)<br>`value` (literal \| null \| multiple)<br>`defaultValue`<br>`presets`<br>`documentValues`<br>`popupWidth`<br>`disabled`<br>`onChange(value)` |
+| ColorSelect              | button (nat) trigger and swatches                             | immediate swatch commit and close<br>document colors wrap without scrolling<br>Base clears the value at the editing layer and shows its inherited value<br>Esc/click-outside cancel and return focus to trigger<br>APG grid arrow navigation with Enter selection<br>multiple state has no selected ring<br>preset catalog supplied from `View/config/stylePresets.ts` | `glyph` (fill \| stroke \| text)<br>`value` (color \| null \| multiple)<br>`baseValue`<br>`presets` (24 hue shades in a 6 × 4 grid plus a separated 6-swatch grayscale row)<br>`documentColors`<br>`disabled`<br>`onChange(value)` |
+| StrokeSelect             | svg line sample<br>button (nat) trigger and options           | one width/dash selector selected by `kind`<br>literal-only full-width sample rows<br>Base clears the value at the editing layer<br>document-authored values take precedence over normalized Standard duplicates<br>immediate commit and close<br>Esc/click-outside cancel and return focus<br>APG vertical-list arrow navigation with Enter selection<br>multiple state has no selected ring | `kind` (width \| dash)<br>`value` (literal \| null \| multiple)<br>`defaultValue` (inherited Base value)<br>`presets`<br>`documentValues`<br>`popupWidth`<br>`disabled`<br>`onChange(value)` |
 | SwatchToggle             | StyledBoxSwatch (prim)<br>button (nat)                        | reports activation and exposes pressed state                                                                                                                                                                                                                            | `styleValues`<br>`label`<br>`pressed`<br>`disabled`<br>`onClick` |
 | EditableList             | EmphasisCommitTextField (comp)<br>Button (prim)<br>button (nat) | row enters editing on click [edit start enabled]<br>emphasis toolbar gated by `isEmphasisEditable`; off → rows behave as plain CommitTextField<br>trailing add affordance opens an empty editor row, visible [edit start enabled]<br>row drag reorder within the list with drop indicator | `rows` (text, optional `emphasis`: underline \| italic, mutually exclusive by type)<br>`addLabel`<br>`validate(draft)→messages`<br>`isEditStartEnabled`<br>`isEmphasisEditable`<br>`onRowCommit(index, value, emphasis)`<br>`onRowAdd(value, emphasis)`<br>`onRowReorder(from, to)` |
 
@@ -123,11 +123,11 @@ The controls are arranged by an inset `FieldGrid`; the Style row uses start alig
 
 | Element  | FieldGrid label | Same style property | Different style property |
 | -------- | --------------- | ------------------- | ------------------------ |
-| ColorSelect | "Fill"       | current/document/preset color — editable; Default clears | neutral multiple glyph; choosing a color applies to all |
-| ColorSelect | "Stroke"     | current/document/preset color — editable; Default clears | neutral multiple glyph; choosing a color applies to all |
-| StrokeSelect | "Width"     | current/default/document/standard literal — editable | indeterminate sample; choosing a literal applies to all |
-| StrokeSelect | "Dash"      | current/default/document/standard literal — editable | indeterminate sample; choosing a literal applies to all |
-| ColorSelect | "Text color" | current/document/preset color — editable; Default clears | neutral multiple glyph; choosing a color applies to all |
+| ColorSelect | "Fill"       | current/document/preset color — editable; Base clears | neutral multiple glyph; choosing a color applies to all |
+| ColorSelect | "Stroke"     | current/document/preset color — editable; Base clears | neutral multiple glyph; choosing a color applies to all |
+| StrokeSelect | "Width"     | current/base/document/standard literal — editable | indeterminate sample; choosing a literal applies to all |
+| StrokeSelect | "Dash"      | current/base/document/standard literal — editable | indeterminate sample; choosing a literal applies to all |
+| ColorSelect | "Text color" | current/document/preset color — editable; Base clears | neutral multiple glyph; choosing a color applies to all |
 
 Color preset names are exposed as tooltips in the popup. Width and Dash use literal values only.
 
@@ -174,9 +174,9 @@ Single relationship selection only
 | Button  | "Delete"    | enabled |
 ### EditPane/DiagramEditPane
 
-No selection represents the diagram; a named-style selection expands the same pane into style editing. The default `classDef` is displayed separately and is never a selectable named-style chip.
+No selection represents the diagram; selecting Base style or a named style expands the same pane into style editing. Base style is always present and is not an applicable/renameable/deletable named style. Semantics are defined by [Style resolution](../style-resolution.md).
 
-`DiagramView.styles` is a source-ordered discriminated union of declared, direct-class, and namespace style occurrences. Named-style management filters it explicitly to `kind === "declared"`; document-color derivation consumes all kinds.
+`DiagramView.styles` is source-ordered occurrence truth for declared, direct-class, and namespace style occurrences. `DiagramView.baseStyle` is resolved base-customization truth. Named-style management filters explicitly to `kind === "declared" && name !== "default"`; document-value derivation consumes all occurrence kinds.
 
 **PaneFrame top affordance** (style selected with class origin only)
 
@@ -186,13 +186,21 @@ No selection represents the diagram; a named-style selection expands the same pa
 
 **PaneFrame › PaneSection** ("Saved styles", always mounted)
 
-| Element | No style selected | Named style selected |
-| ------- | ----------------- | -------------------- |
-| StyledBoxSwatch | default style swatch, or a neutral "No default style" swatch | same |
-| SwatchToggle | one per named style, none pressed | one per named style; selected style pressed; click selects without an origin |
+| Element | No style selected | Base/named style selected |
+| ------- | ----------------- | ------------------------- |
+| SwatchToggle | pinned "Base style" chip resolved from customization over pure defaults | pressed for Base selection |
+| SwatchToggle | one per declared non-default named style, none pressed | selected named style pressed; click selects without an origin |
 | Button | "+ New style" creates a uniquely named initialized style and selects it | same |
 
-Style chips are arranged as full-width rows by `ControlGroup`; the default row has wide spacing before the named-style rows.
+Style chips are full-width rows; Base is visually separated and pinned first.
+
+**PaneFrame › PaneSection** ("Edit base style", Base selection only)
+
+| Element | Label | Behavior |
+| ------- | ----- | -------- |
+| TextBlock | — | quiet explanation that Base applies wherever a class style leaves a property unset |
+| ColorSelect / StrokeSelect | property labels | edits only base customizations; Base rows show pure defaults |
+| Button | "Reset base" | removes `classDef default`; disabled when `baseStyle` is empty |
 
 **PaneFrame › PaneSection** ("Edit style", named-style selection only)
 
@@ -202,11 +210,11 @@ Style chips are arranged as full-width rows by `ControlGroup`; the default row h
 
 | Element | FieldGrid label | Selected style |
 | ------- | --------------- | -------------- |
-| ColorSelect | "Fill" | current/document/preset color — editable; Default clears |
-| ColorSelect | "Stroke" | current/document/preset color — editable; Default clears |
-| StrokeSelect | "Width" | current/default/document/standard literal — editable |
-| StrokeSelect | "Dash" | current/default/document/standard literal — editable |
-| ColorSelect | "Text color" | current/document/preset color — editable; Default clears |
+| ColorSelect | "Fill" | current/document/preset color — editable; Base clears |
+| ColorSelect | "Stroke" | current/document/preset color — editable; Base clears |
+| StrokeSelect | "Width" | current/base/document/standard literal — editable |
+| StrokeSelect | "Dash" | current/base/document/standard literal — editable |
+| ColorSelect | "Text color" | current/document/preset color — editable; Base clears |
 
 Color preset names are exposed as tooltips in the popup. Width and Dash use literal values only.
 
@@ -214,7 +222,7 @@ Color preset names are exposed as tooltips in the popup. Width and Dash use lite
 
 | Element | Label | Behavior |
 | ------- | ----- | -------- |
-| Button | "Set as default" | copies the selected style properties into an independent `classDef default` |
+| Button | "Set as base" | copies the selected style properties into independent base customizations |
 | Button | "Delete style" | danger tone; deletes the definition and its applications |
 
 Buttons are arranged as full-width rows in a one-column `ControlGroup`.
@@ -236,11 +244,11 @@ Name renders inside the swatch's label area via the CommitTextField — domain a
 
 | Element     | Label              | @style annotation present            | No @style annotation                 |
 | ----------- | ------------------ | ------------------------------------ | ------------------------------------ |
-| ColorSelect | "Fill"             | current/document/preset color — editable | quiet token-resolved glyph; Default selected |
-| ColorSelect | "Stroke"           | current/document/preset color — editable | quiet token-resolved glyph; Default selected |
-| ColorSelect | "Text"             | current/document/preset color — editable | quiet token-resolved glyph; Default selected |
-| StrokeSelect | "Stroke width"     | current/default/document/standard literal — editable | renderer/classDef-default sample; Default selected |
-| StrokeSelect | "Stroke dasharray" | current/default/document/standard literal — editable | renderer/classDef-default sample; Default selected |
+| ColorSelect | "Fill"             | current/base/document/preset color — editable | quiet token-resolved glyph; Base selected |
+| ColorSelect | "Stroke"           | current/base/document/preset color — editable | quiet token-resolved glyph; Base selected |
+| ColorSelect | "Text"             | current/base/document/preset color — editable | quiet token-resolved glyph; Base selected |
+| StrokeSelect | "Stroke width"     | current/base/document/standard literal — editable | base or pure-default sample; Base selected |
+| StrokeSelect | "Stroke dasharray" | current/base/document/standard literal — editable | base or pure-default sample; Base selected |
 | Button      | "Reset style"      | enabled                              | enabled (reset is a no-op)           |
 
 **PaneFrame › PaneSection** ("")

@@ -25,6 +25,11 @@
   --shiny-text-muted: var(--vscode-descriptionForeground);
   --shiny-text-error: var(--vscode-errorForeground);
   --shiny-accent: var(--vscode-focusBorder);
+  --shiny-base-fill: var(--vscode-editor-background);
+  --shiny-base-stroke: var(--vscode-editor-foreground);
+  --shiny-base-text: var(--vscode-editor-foreground);
+  --shiny-base-stroke-width: 1px;
+  --shiny-base-stroke-style: solid;
 
   /* Control shells */
   --shiny-field-radius: 3px;

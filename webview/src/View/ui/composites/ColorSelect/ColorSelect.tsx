@@ -25,6 +25,7 @@ type ColorSelectProps = {
   readonly value: string | null | "multiple";
   readonly presets: ColorSelectPresetCatalog;
   readonly documentColors: readonly string[];
+  readonly baseValue?: string;
   readonly disabled?: boolean;
   readonly onChange: (value: string | null) => void;
 };
@@ -38,6 +39,7 @@ export default function ColorSelect({
   value,
   presets,
   documentColors,
+  baseValue = toPureBaseValue(glyph),
   disabled = false,
   onChange,
 }: ColorSelectProps): ReactElement {
@@ -191,8 +193,12 @@ export default function ColorSelect({
             aria-pressed={!isMultiple && value === null}
             onClick={() => selectValue(null)}
           >
-            <span className={styles.defaultSwatch} aria-hidden="true" />
-            <span>Default</span>
+            <span
+              className={styles.defaultSwatch}
+              style={{ "--color-select-value": baseValue } as CSSProperties}
+              aria-hidden="true"
+            />
+            <span>{isTokenValue(baseValue) ? "Base" : `Base ${baseValue}`}</span>
           </button>
           <div className={styles.divider} />
           <div className={styles.paletteGrid} role="grid" aria-label="Preset colors">
@@ -302,4 +308,13 @@ function normalizeColor(value: string): string {
   return shortHex
     ? `#${shortHex[1]}${shortHex[1]}${shortHex[2]}${shortHex[2]}${shortHex[3]}${shortHex[3]}`
     : normalized;
+}
+
+function toPureBaseValue(glyph: ColorSelectProps["glyph"]): string {
+  if (glyph === "fill") return "var(--shiny-base-fill)";
+  return glyph === "text" ? "var(--shiny-base-text)" : "var(--shiny-base-stroke)";
+}
+
+function isTokenValue(value: string): boolean {
+  return value.startsWith("var(");
 }
