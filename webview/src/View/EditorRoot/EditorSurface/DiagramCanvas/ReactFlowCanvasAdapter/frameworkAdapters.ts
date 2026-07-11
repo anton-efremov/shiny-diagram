@@ -30,7 +30,6 @@ import type {
 import type { TransactionResult } from "../../../../commands/editorCommands";
 import {
   CLASS_NODE_Z_INDEX,
-  NAMESPACE_LABEL_BAND_HEIGHT,
   NAMESPACE_MARGIN,
   NAMESPACE_NODE_Z_INDEX,
   NOTE_NODE_Z_INDEX,
@@ -725,7 +724,7 @@ function toNamespaceBoundsFor(
   ];
   if (childRects.length === 0) return null;
 
-  const bounds = expandRect(unionRects(childRects), NAMESPACE_MARGIN, NAMESPACE_LABEL_BAND_HEIGHT);
+  const bounds = expandRect(unionRects(childRects), NAMESPACE_MARGIN);
   boundsByNamespaceId.set(namespaceView.namespaceId, bounds);
   return bounds;
 }
@@ -738,12 +737,12 @@ function unionRects(rects: readonly Rect[]): Rect {
   return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
 
-function expandRect(rect: Rect, margin: number, labelBandHeight: number): Rect {
+function expandRect(rect: Rect, margin: number): Rect {
   return {
     x: rect.x - margin,
-    y: rect.y - margin - labelBandHeight,
+    y: rect.y - margin,
     w: rect.w + margin * 2,
-    h: rect.h + margin * 2 + labelBandHeight,
+    h: rect.h + margin * 2,
   };
 }
 

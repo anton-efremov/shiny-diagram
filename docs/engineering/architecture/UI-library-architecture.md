@@ -342,7 +342,7 @@ Classifiers map to emphasis in the domain (static → underline, abstract → it
 
 ### DiagramCanvas/.../NamespaceBox
 
-(domain layout; hull box and label band render as domain surface — bounds and colors are runtime values)
+(domain layout; the name overlays the hull body's upper-left corner — bounds and colors are runtime values; there is no separate header band, and hull margin is equal on all four sides)
 
 | Element          | Application behavior                                                                                                 |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------- |

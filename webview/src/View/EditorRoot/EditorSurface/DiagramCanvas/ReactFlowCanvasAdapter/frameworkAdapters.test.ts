@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { toClassId, toNamespaceId } from "../../../../../shared/ids";
 import type { ClassBoxPlacementState, NamespaceGestureState } from "../../../../state/editorStates";
 import type { ClassView, DiagramView, NamespaceView } from "../../../../views/schema";
-import { NAMESPACE_LABEL_BAND_HEIGHT, NAMESPACE_MARGIN } from "../../../../config/editorUiConfig";
+import { NAMESPACE_MARGIN } from "../../../../config/editorUiConfig";
 import {
   toNamespaceDragBoundsState,
   toNamespaceDragClassBoxPlacementState,
@@ -29,15 +29,15 @@ describe("toNamespaceGeometry", () => {
 
     expect(child).toEqual({
       x: 100 - NAMESPACE_MARGIN,
-      y: 120 - NAMESPACE_MARGIN - NAMESPACE_LABEL_BAND_HEIGHT,
+      y: 120 - NAMESPACE_MARGIN,
       w: 80 + NAMESPACE_MARGIN * 2,
-      h: 40 + NAMESPACE_MARGIN * 2 + NAMESPACE_LABEL_BAND_HEIGHT,
+      h: 40 + NAMESPACE_MARGIN * 2,
     });
     expect(root).toEqual({
       x: child.x - NAMESPACE_MARGIN,
-      y: child.y - NAMESPACE_MARGIN - NAMESPACE_LABEL_BAND_HEIGHT,
+      y: child.y - NAMESPACE_MARGIN,
       w: child.w + NAMESPACE_MARGIN * 2,
-      h: child.h + NAMESPACE_MARGIN * 2 + NAMESPACE_LABEL_BAND_HEIGHT,
+      h: child.h + NAMESPACE_MARGIN * 2,
     });
   });
 
@@ -92,11 +92,11 @@ describe("toNamespaceGeometry", () => {
     });
     expect(namespaceGeometry.boundsByNamespaceId.get(toNamespaceId("Root.Child"))).toMatchObject({
       x: 125 - NAMESPACE_MARGIN,
-      y: 110 - NAMESPACE_MARGIN - NAMESPACE_LABEL_BAND_HEIGHT,
+      y: 110 - NAMESPACE_MARGIN,
     });
     expect(namespaceGeometry.boundsByNamespaceId.get(toNamespaceId("Root"))).toMatchObject({
       x: 125 - NAMESPACE_MARGIN * 2,
-      y: 110 - NAMESPACE_MARGIN * 2 - NAMESPACE_LABEL_BAND_HEIGHT * 2,
+      y: 110 - NAMESPACE_MARGIN * 2,
     });
   });
 

@@ -16,10 +16,9 @@ import ValidationPopup from "../../../../../../ui/primitives/ValidationPopup/Val
 import ResizeAffordance from "../../../../../../ui/primitives/ResizeAffordance/ResizeAffordance";
 import type { ResizeHandle } from "../../../../../../ui/primitives/ResizeAffordance/ResizeAffordance";
 import {
-  NAMESPACE_LABEL_BAND_HEIGHT,
+  NAMESPACE_NAME_AREA_HEIGHT,
   NAMESPACE_LABEL_FONT_SIZE,
   NAMESPACE_LABEL_FONT_WEIGHT,
-  NAMESPACE_LABEL_BAND_FILL_MIX_PERCENT,
   NAMESPACE_LABEL_LINE_HEIGHT,
   NAMESPACE_LABEL_PADDING_X,
   NAMESPACE_LABEL_PADDING_Y,
@@ -74,13 +73,12 @@ export default function NamespaceBox({
     view.style?.strokeWidth ?? String(NAMESPACE_DEFAULT_STROKE_WIDTH)
   );
   const dynamicVars = {
-    "--namespace-label-band-height": `${NAMESPACE_LABEL_BAND_HEIGHT}px`,
+    "--namespace-name-area-height": `${NAMESPACE_NAME_AREA_HEIGHT}px`,
     "--namespace-label-font-size": `${NAMESPACE_LABEL_FONT_SIZE}px`,
     "--namespace-label-font-weight": NAMESPACE_LABEL_FONT_WEIGHT,
     "--namespace-label-line-height": `${NAMESPACE_LABEL_LINE_HEIGHT}px`,
     "--namespace-label-padding-x": `${NAMESPACE_LABEL_PADDING_X}px`,
     "--namespace-label-padding-y": `${NAMESPACE_LABEL_PADDING_Y}px`,
-    "--namespace-label-band-fill-mix": `${NAMESPACE_LABEL_BAND_FILL_MIX_PERCENT}%`,
     "--namespace-fill": view.style?.fill ?? NAMESPACE_DEFAULT_FILL,
     "--namespace-stroke": view.style?.stroke ?? NAMESPACE_DEFAULT_STROKE,
     "--namespace-stroke-width": strokeWidth,
@@ -116,7 +114,7 @@ export default function NamespaceBox({
         <ValidationPopup messages={discardErrors} onDismiss={() => setDiscardErrors([])} />
       ) : null}
       {editingState.kind === "namespaceName" && editingState.namespaceId === view.namespaceId ? (
-        <div className={`${styles.labelBand} ${styles.inlineEditor} nodrag nopan`}>
+        <div className={`${styles.namespaceName} ${styles.inlineEditor} nodrag nopan`}>
           <CommitTextField
             initialValue={view.label}
             validate={onNameCommit}
@@ -133,7 +131,11 @@ export default function NamespaceBox({
           />
         </div>
       ) : (
-        <div className={styles.labelBand} onClick={onLabelClick} onDoubleClick={onLabelDoubleClick}>
+        <div
+          className={styles.namespaceName}
+          onClick={onLabelClick}
+          onDoubleClick={onLabelDoubleClick}
+        >
           {view.label}
         </div>
       )}

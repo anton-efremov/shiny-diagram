@@ -47,7 +47,7 @@
 
 .lightTextSurface {
   fill: rgb(255 255 255 / 72%);
-  stroke: rgb(0 0 0 / 78%);
+  stroke: rgb(0 0 0 / 24%);
 }
 
 .darkTextSurface {
@@ -81,4 +81,20 @@
   --inline-edit-outline: rgb(255 255 255 / 85%);
 
   color: #ffffff;
+}
+
+:global(body[data-vscode-theme-kind="vscode-light"]) .darkText {
+  fill: var(--shiny-text);
+}
+
+:global(body[data-vscode-theme-kind="vscode-light"]) .darkTextSurface {
+  fill: color-mix(in srgb, var(--shiny-surface) 88%, transparent);
+  stroke: color-mix(in srgb, var(--shiny-text) 24%, transparent);
+}
+
+:global(body[data-vscode-theme-kind="vscode-light"]) .darkEditor {
+  --inline-edit-bg: color-mix(in srgb, var(--shiny-surface) 88%, transparent);
+  --inline-edit-outline: color-mix(in srgb, var(--shiny-text) 38%, transparent);
+
+  color: var(--shiny-text);
 }

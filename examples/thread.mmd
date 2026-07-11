@@ -1,27 +1,28 @@
 classDiagram
 	namespace NewNamespaceName {
 		class ConversationThread_1["addd"] {
+				<<interface>>
 				+addParticipant(UserContact participant) void
 				+addMessage(TextMessage message)
 				+UUID id
 				+List~UserContact~ participants
 				+List~TextMessage~ messages
 		}
-	}
-	class ConversationThread {
-		+UUID id
-		+List~TextMessage~ messages
-		+List~UserContact~ participants
-		+ ListShmist
-		+addMessage(TextMessage message) void
-		+addParticipant(UserContact participant) void
-	}
-	class UserContact {
-		+UUID id
-		+String emailAddress
-		+List~CommunicationChannel~ preferredChannels
-		+String name
-		+removeCommunicationChannel(UUID channelId) void
+			class ConversationThread {
+				+UUID id
+				+List~TextMessage~ messages
+				+List~UserContact~ participants
+				+ ListShmist
+				+addMessage(TextMessage message) void
+				+addParticipant(UserContact participant) void
+			}
+				class UserContact {
+					+UUID id
+					+String emailAddress
+					+List~CommunicationChannel~ preferredChannels
+					+String name
+					+removeCommunicationChannel(UUID channelId) void
+				}
 	}
 
 direction TB
@@ -51,11 +52,11 @@ direction TB
     %% @note: x=-324 y=1106 w=18426=96639300393
 
 
-	%% @spatial:ConversationThread x=144 y=-30 w=243 h=256
+	%% @spatial:ConversationThread x=266 y=-40 w=243 h=256
 
-	%% @spatial:UserContact x=69 y=336 w=358 h=358
+	%% @spatial:UserContact x=75 y=315 w=358 h=358
 
-	%% @spatial:ConversationThread_1 x=555 y=52 w=211 h=318
+	%% @spatial:ConversationThread_1 x=571 y=7 w=211 h=318
 
 
 

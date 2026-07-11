@@ -17,17 +17,11 @@
   pointer-events: auto;
 }
 
-.labelBand {
+.namespaceName {
   box-sizing: border-box;
-  height: var(--namespace-label-band-height);
+  height: var(--namespace-name-area-height);
   padding: var(--namespace-label-padding-y) var(--namespace-label-padding-x);
   overflow: hidden;
-  border-bottom: var(--namespace-stroke-width) solid var(--namespace-stroke, var(--shiny-border));
-  background: color-mix(
-    in srgb,
-    var(--namespace-fill, var(--shiny-surface)) var(--namespace-label-band-fill-mix),
-    transparent
-  );
   font-weight: var(--namespace-label-font-weight);
   line-height: var(--namespace-label-line-height);
   text-overflow: ellipsis;
