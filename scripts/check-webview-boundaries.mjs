@@ -117,6 +117,7 @@ function main() {
 
   checkCompositeImportCycles(compositeImportGraph);
   checkCSSModuleShinyTokenDefinitions();
+  checkCSSModuleLiteralColors();
 
   for (const protocolFile of PROTOCOL_FILES) {
     if (!existsSync(protocolFile.absolutePath)) {
@@ -761,6 +762,27 @@ function checkCSSModuleShinyTokenDefinitions() {
       specifier: match[0].replace(/\s*:\s*$/, ""),
       rule: "--shiny-* custom properties may be defined only in View/ui/tokens.css, not component CSS modules",
     });
+  }
+}
+
+function checkCSSModuleLiteralColors() {
+  const literalColor = /#[\da-fA-F]{3,8}\b|\b(?:rgb|rgba|hsl|hsla)\s*\(/g;
+
+  for (const absoluteFile of listFiles(sourceRoot)) {
+    if (!absoluteFile.endsWith(".module.css")) continue;
+    const file = toSourceRelative(absoluteFile);
+    const source = readFileSync(absoluteFile, "utf8");
+    for (const match of source.matchAll(literalColor)) {
+      const location = toLineColumn(source, match.index ?? 0);
+      report({
+        file,
+        line: location.line,
+        column: location.column,
+        kind: "Design system",
+        specifier: match[0],
+        rule: "literal colors are forbidden in CSS modules; use a --shiny-* token or a data-bound custom property",
+      });
+    }
   }
 }
 

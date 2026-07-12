@@ -9,6 +9,7 @@ import type { DropdownOption } from "../Dropdown/Dropdown";
 import TextField from "../../primitives/TextField/TextField";
 import ValidationPopup from "../../primitives/ValidationPopup/ValidationPopup";
 import styles from "./CommitComboBox.module.css";
+import { useCommitLifecycle } from "../commitLifecycle";
 
 type CommitComboBoxProps = {
   readonly initialValue: string;
@@ -33,19 +34,16 @@ export default function CommitComboBox({
   onDiscard,
   onCancel,
 }: CommitComboBoxProps): ReactElement {
-  const [draft, setDraft] = useState(initialValue);
   const [isCustom, setIsCustom] = useState(() => !hasPresetValue(options, initialValue));
   const [isOpen, setIsOpen] = useState(false);
   const comboBoxRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
-  const [messages, setMessages] = useState<readonly string[]>([]);
+  const lifecycle = useCommitLifecycle({ initialValue, validate, onCommit, onDiscard, onCancel });
   const selectedOption = options.find((option) => option.value === initialValue);
   const renderedOptions = [...options, { value: "__custom", label: "Custom" }];
 
   useEffect(() => {
-    setDraft(initialValue);
     setIsCustom(!hasPresetValue(options, initialValue));
-    setMessages([]);
   }, [initialValue, options]);
 
   useEffect(() => {
@@ -71,43 +69,6 @@ export default function CommitComboBox({
     };
   }, [isOpen]);
 
-  function commitCustom(): void {
-    const nextMessages = validate(draft);
-    if (nextMessages.length > 0) {
-      setMessages(nextMessages);
-      return;
-    }
-    setMessages([]);
-    onCommit(draft);
-  }
-
-  function discardIfInvalid(): void {
-    if (!isCustom) return;
-    const nextMessages = validate(draft);
-    if (nextMessages.length === 0) {
-      setMessages([]);
-      onCommit(draft);
-      return;
-    }
-    setDraft(initialValue);
-    setMessages([]);
-    onDiscard(nextMessages);
-  }
-
-  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      commitCustom();
-      return;
-    }
-    if (event.key === "Escape") {
-      event.preventDefault();
-      setDraft(initialValue);
-      setMessages([]);
-      onCancel();
-    }
-  }
-
   function handleComboKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
     if (!isOpen || event.key !== "Escape") return;
     event.preventDefault();
@@ -120,12 +81,11 @@ export default function CommitComboBox({
     setIsOpen(false);
     if (nextValue === "__custom") {
       setIsCustom(true);
-      setDraft(hasPresetValue(options, initialValue) ? "" : initialValue);
+      lifecycle.onDraftChange(hasPresetValue(options, initialValue) ? "" : initialValue);
       return;
     }
     setIsCustom(false);
-    setDraft(nextValue);
-    setMessages([]);
+    lifecycle.onDraftChange(nextValue);
     onCommit(nextValue);
   }
 
@@ -137,17 +97,14 @@ export default function CommitComboBox({
       <div ref={comboBoxRef} className={styles.comboBox} onKeyDown={handleComboKeyDown}>
         {isCustom ? (
           <TextField
-            value={draft}
+            value={lifecycle.draft}
             disabled={disabled}
-            invalid={messages.length > 0}
+            invalid={lifecycle.messages.length > 0}
             ariaLabel={ariaLabel}
             hasEndAction
-            onChange={(value) => {
-              setDraft(value);
-              setMessages([]);
-            }}
-            onBlur={discardIfInvalid}
-            onKeyDown={handleKeyDown}
+            onChange={lifecycle.onDraftChange}
+            onBlur={lifecycle.onBlur}
+            onKeyDown={lifecycle.onKeyDown}
           />
         ) : (
           <button
@@ -193,8 +150,8 @@ export default function CommitComboBox({
             ))}
           </div>
         ) : null}
-        {messages.length > 0 ? (
-          <ValidationPopup messages={messages} onDismiss={() => setMessages([])} />
+        {lifecycle.messages.length > 0 ? (
+          <ValidationPopup messages={lifecycle.messages} onDismiss={lifecycle.onPopupDismiss} />
         ) : null}
       </div>
     </div>

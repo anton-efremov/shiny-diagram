@@ -3,10 +3,10 @@
  * @render Commit textarea with save button.
  */
 
-import { useEffect, useState } from "react";
-import type { KeyboardEvent, ReactElement } from "react";
+import type { ReactElement } from "react";
 import Button from "../../primitives/Button/Button";
 import styles from "./CommitTextArea.module.css";
+import { useCommitLifecycle } from "../commitLifecycle";
 
 type CommitTextAreaProps = {
   readonly initialValue: string;
@@ -25,30 +25,23 @@ export default function CommitTextArea({
   onCommit,
   onCancel,
 }: CommitTextAreaProps): ReactElement {
-  const [draft, setDraft] = useState(initialValue);
-
-  useEffect(() => {
-    setDraft(initialValue);
-  }, [initialValue]);
-
-  function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>): void {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      setDraft(initialValue);
-      onCancel();
-    }
-  }
+  const lifecycle = useCommitLifecycle({
+    initialValue,
+    enterCommits: false,
+    onCommit,
+    onCancel,
+  });
 
   return (
     <div className={`${styles.editor} ${appearance === "inline" ? styles.inline : ""}`}>
       <textarea
         className={styles.input}
-        value={draft}
+        value={lifecycle.draft}
         disabled={disabled}
         autoFocus={autoFocus}
-        onChange={(event) => setDraft(event.currentTarget.value)}
-        onBlur={() => onCommit(draft)}
-        onKeyDown={handleKeyDown}
+        onChange={(event) => lifecycle.onDraftChange(event.currentTarget.value)}
+        onBlur={lifecycle.onBlur}
+        onKeyDown={lifecycle.onKeyDown}
       />
       <div className={styles.saveAction}>
         <Button
@@ -57,7 +50,7 @@ export default function CommitTextArea({
           tone={appearance === "inline" ? "accent" : "neutral"}
           size={appearance === "inline" ? "compact" : "default"}
           shape={appearance === "inline" ? "pill" : "rounded"}
-          onClick={() => onCommit(draft)}
+          onClick={lifecycle.onCommitAttempt}
         />
       </div>
     </div>

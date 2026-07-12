@@ -14,6 +14,7 @@ type TextFieldProps = {
   readonly autoFocus?: boolean;
   readonly hasEndAction?: boolean;
   readonly appearance?: "pane" | "inline";
+  readonly situation?: "edgeLabel" | "edgeCaption";
   readonly onChange: (value: string) => void;
   readonly onBlur?: () => void;
   readonly onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
@@ -27,13 +28,24 @@ export default function TextField({
   autoFocus = false,
   hasEndAction = false,
   appearance = "pane",
+  situation,
   onChange,
   onBlur,
   onKeyDown,
 }: TextFieldProps): ReactElement {
   return (
     <input
-      className={`${hasEndAction ? styles.fieldWithEndAction : styles.field} ${appearance === "inline" ? styles.inline : ""}`}
+      className={[
+        hasEndAction ? styles.fieldWithEndAction : styles.field,
+        appearance === "inline" ? styles.inline : "",
+        situation === "edgeLabel"
+          ? styles.edgeLabel
+          : situation === "edgeCaption"
+            ? styles.edgeCaption
+            : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
       value={value}
       disabled={disabled}
       aria-invalid={invalid}

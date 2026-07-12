@@ -9,7 +9,7 @@ import type { CSSProperties } from "react";
 import ReactFlowConnectionHandlesAdapter from "./ReactFlowConnectionHandlesAdapter/ReactFlowConnectionHandlesAdapter";
 import MemberTable from "./MemberTable/MemberTable";
 import { useInteractions } from "./useInteractions";
-import BoxOutline from "../../../../../../ui/primitives/BoxOutline/BoxOutline";
+import BoxLink from "../../../../../../ui/primitives/BoxOutline/BoxOutline";
 import CommitTextField from "../../../../../../ui/composites/CommitTextField/CommitTextField";
 import HaloRing from "../../../../../../ui/primitives/HaloRing/HaloRing";
 import ResizeAffordance from "../../../../../../ui/primitives/ResizeAffordance/ResizeAffordance";
@@ -18,6 +18,7 @@ import type { Point, Rect } from "../../../../../../../shared/geometry";
 import type { ClassId } from "../../../../../../../shared/ids";
 import type { EditingState } from "../../../../../../state/editorStates";
 import type { BaseStyleView, ClassView } from "../../../../../../views/schema";
+import { CLASS_BOX_HEADER_MIN_HEIGHT } from "../../../../../../config/editorUiConfig";
 import ValidationPopup from "../../../../../../ui/primitives/ValidationPopup/ValidationPopup";
 import { STYLE_PROPERTIES } from "../../../../../../../shared/style";
 import styles from "./ClassBox.module.css";
@@ -102,6 +103,7 @@ export default function ClassBox({
   );
   const separatorColor = resolvedStyle.stroke ?? "var(--shiny-base-stroke)";
   const separatorThickness = toCssLength(resolvedStyle.strokeWidth);
+  const selectionCenterOffset = `calc(${separatorThickness} + 2px)`;
   const separatorLineStyle = toCssLineStyle(resolvedStyle.strokeDasharray);
   const dynamicVars = {
     "--class-fill": resolvedStyle.fill ?? undefined,
@@ -109,8 +111,8 @@ export default function ClassBox({
     "--class-stroke-width": separatorThickness,
     "--class-stroke-style": separatorLineStyle,
     "--class-color": resolvedStyle.color ?? undefined,
+    "--class-header-min-height": `${CLASS_BOX_HEADER_MIN_HEIGHT}px`,
     "--shiny-inline-surface": resolvedStyle.fill ?? "var(--shiny-base-fill)",
-    "--shiny-box-selection-center-offset": `calc(${separatorThickness} + 2px)`,
   } as CSSProperties;
 
   const onResizeGrab = (handle: ResizeHandle, point: Point) => {
@@ -120,11 +122,15 @@ export default function ClassBox({
   return (
     <div className={className} style={dynamicVars} title={view.classId} onClick={onClassBoxClick}>
       {haloColor ? <HaloRing tint={haloColor} /> : null}
-      {isPendingMember ? <BoxOutline variant="pending" /> : null}
-      {isSelected ? <BoxOutline variant="selected" /> : <BoxOutline variant="hover" />}
+      {isPendingMember ? <BoxLink variant="pending" centerOffset={selectionCenterOffset} /> : null}
+      {isSelected ? (
+        <BoxLink variant="selected" centerOffset={selectionCenterOffset} />
+      ) : (
+        <BoxLink variant="hover" centerOffset={selectionCenterOffset} />
+      )}
       {isResizeVisible ? (
         <div className="nodrag nopan">
-          <ResizeAffordance onGrab={onResizeGrab} />
+          <ResizeAffordance centerOffset={selectionCenterOffset} onGrab={onResizeGrab} />
         </div>
       ) : null}
       <ReactFlowConnectionHandlesAdapter

@@ -4,10 +4,11 @@
  */
 
 import { useState } from "react";
-import type { ReactElement } from "react";
+import type { CSSProperties, ReactElement } from "react";
 import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../../../shared/ids";
 import type { Rect } from "../../../../shared/geometry";
 import type { TransactionResult } from "../../../commands/editorCommands";
+import { DIAGRAM_EMPTY_STATE_Z_INDEX } from "../../../config/editorUiConfig";
 import type { DiagramView } from "../../../views/schema";
 import type {
   EditingState,
@@ -112,9 +113,16 @@ export default function DiagramCanvas({
     setClassBoxPlacementState,
     setNoteBoxPlacementState,
   });
+  const diagramShellStyle = {
+    "--diagram-empty-state-z-index": DIAGRAM_EMPTY_STATE_Z_INDEX,
+  } as CSSProperties;
 
   return (
-    <section className={styles.diagramShell} aria-label="Static editor boxes">
+    <section
+      className={styles.diagramShell}
+      style={diagramShellStyle}
+      aria-label="Static editor boxes"
+    >
       {view.classes.length === 0 ? (
         <p className={styles.emptyState}>No spatial annotations found.</p>
       ) : null}

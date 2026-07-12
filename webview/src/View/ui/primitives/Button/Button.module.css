@@ -26,7 +26,7 @@
 }
 
 .button:hover:not(:disabled) {
-  border-color: var(--shiny-accent);
+  border-color: var(--shiny-accent-outline);
   color: var(--shiny-button-fg);
   background: var(--shiny-button-bg);
 }
@@ -55,7 +55,7 @@
 .button:focus-visible,
 .dangerButton:focus-visible,
 .accentButton:focus-visible {
-  outline: 2px solid var(--shiny-accent);
+  outline: 2px solid var(--shiny-accent-outline);
   outline-offset: 2px;
 }
 

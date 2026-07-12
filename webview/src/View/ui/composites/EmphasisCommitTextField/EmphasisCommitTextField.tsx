@@ -4,12 +4,13 @@
  */
 
 import { useEffect, useState } from "react";
-import type { KeyboardEvent, ReactElement } from "react";
+import type { ReactElement } from "react";
 import TextArea from "../../primitives/TextArea/TextArea";
 import ToggleButton from "../../primitives/ToggleButton/ToggleButton";
 import ValidationPopup from "../../primitives/ValidationPopup/ValidationPopup";
 import DismissButton from "../../primitives/DismissButton/DismissButton";
 import styles from "./EmphasisCommitTextField.module.css";
+import { useCommitLifecycle } from "../commitLifecycle";
 
 export type TextEmphasis = "underline" | "italic";
 
@@ -36,58 +37,19 @@ export default function EmphasisCommitTextField({
   onDiscard,
   onCancel,
 }: EmphasisCommitTextFieldProps): ReactElement {
-  const [draft, setDraft] = useState(() => toSingleLine(initialValue));
   const [emphasis, setEmphasis] = useState<TextEmphasis | null>(initialEmphasis);
-  const [messages, setMessages] = useState<readonly string[]>([]);
+  const lifecycle = useCommitLifecycle({
+    initialValue: toSingleLine(initialValue),
+    validate,
+    onCommit: (draft) => onCommit(draft, emphasis),
+    onDiscard,
+    onCancel,
+    onReset: () => setEmphasis(initialEmphasis),
+  });
 
   useEffect(() => {
-    setDraft(toSingleLine(initialValue));
     setEmphasis(initialEmphasis);
-    setMessages([]);
   }, [initialEmphasis, initialValue]);
-
-  function commit(): void {
-    const nextMessages = validate(draft);
-    if (nextMessages.length > 0) {
-      setMessages(nextMessages);
-      return;
-    }
-    setMessages([]);
-    onCommit(draft, emphasis);
-  }
-
-  function discardIfInvalid(): void {
-    const nextMessages = validate(draft);
-    if (nextMessages.length === 0) {
-      setMessages([]);
-      onCommit(draft, emphasis);
-      return;
-    }
-    setDraft(toSingleLine(initialValue));
-    setEmphasis(initialEmphasis);
-    setMessages([]);
-    onDiscard(nextMessages);
-  }
-
-  function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>): void {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      commit();
-      return;
-    }
-    if (event.key === "Escape") {
-      event.preventDefault();
-      setDraft(toSingleLine(initialValue));
-      setEmphasis(initialEmphasis);
-      setMessages([]);
-      onCancel();
-    }
-  }
-
-  function onDraftChange(value: string): void {
-    setDraft(toSingleLine(value));
-    setMessages([]);
-  }
 
   return (
     <div
@@ -112,31 +74,22 @@ export default function EmphasisCommitTextField({
         />
       </div>
       <TextArea
-        value={draft}
-        rows={toLineCount(draft)}
+        value={lifecycle.draft}
+        rows={toLineCount(lifecycle.draft)}
         disabled={disabled}
-        invalid={messages.length > 0}
+        invalid={lifecycle.messages.length > 0}
         autoFocus={autoFocus}
         appearance={appearance}
         hasEndAction
-        onChange={onDraftChange}
-        onBlur={discardIfInvalid}
-        onKeyDown={handleKeyDown}
+        onChange={(value) => lifecycle.onDraftChange(toSingleLine(value))}
+        onBlur={lifecycle.onBlur}
+        onKeyDown={lifecycle.onKeyDown}
       />
       <span className={styles.cancelButton}>
-        <DismissButton
-          label="Cancel editing"
-          small
-          onClick={() => {
-            setDraft(toSingleLine(initialValue));
-            setEmphasis(initialEmphasis);
-            setMessages([]);
-            onCancel();
-          }}
-        />
+        <DismissButton label="Cancel editing" small onClick={lifecycle.onCancel} />
       </span>
-      {messages.length > 0 ? (
-        <ValidationPopup messages={messages} onDismiss={() => setMessages([])} />
+      {lifecycle.messages.length > 0 ? (
+        <ValidationPopup messages={lifecycle.messages} onDismiss={lifecycle.onPopupDismiss} />
       ) : null}
     </div>
   );

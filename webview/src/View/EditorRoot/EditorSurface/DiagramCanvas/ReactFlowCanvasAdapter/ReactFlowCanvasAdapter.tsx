@@ -18,8 +18,6 @@ import type { ClassId, NamespaceId, RelationshipId } from "../../../../../shared
 import type { TransactionResult } from "../../../../commands/editorCommands";
 import {
   NAMESPACE_GESTURE_Z_INDEX,
-  NAMESPACE_PENDING_STROKE,
-  NAMESPACE_PENDING_STROKE_WIDTH,
   RELATIONSHIP_RECONNECT_RADIUS,
 } from "../../../../config/editorUiConfig";
 import { reactFlowCanvasBoundaryProps } from "../../../../config/reactFlowConfig";
@@ -502,8 +500,6 @@ function toNamespaceDraftStyle(
     width: Math.abs(bottomRight.x - topLeft.x),
     height: Math.abs(bottomRight.y - topLeft.y),
     zIndex: NAMESPACE_GESTURE_Z_INDEX,
-    "--namespace-draft-stroke": NAMESPACE_PENDING_STROKE,
-    "--namespace-draft-stroke-width": `${NAMESPACE_PENDING_STROKE_WIDTH}px`,
   } as CSSProperties;
 }
 

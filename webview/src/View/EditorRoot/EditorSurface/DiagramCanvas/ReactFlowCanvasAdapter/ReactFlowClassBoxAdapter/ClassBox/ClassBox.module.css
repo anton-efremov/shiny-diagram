@@ -15,7 +15,7 @@
   display: flex;
   flex-direction: column;
   font-family: var(--shiny-font-family);
-  font-size: 13px;
+  font-size: var(--shiny-canvas-font-size-primary);
   position: relative;
   cursor: grab;
 }
@@ -54,7 +54,7 @@
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  min-height: 42px;
+  min-height: var(--class-header-min-height);
   padding: 8px 10px;
   border-bottom: var(--class-stroke-width, var(--shiny-base-stroke-width))
     var(--class-stroke-style, var(--shiny-base-stroke-style))

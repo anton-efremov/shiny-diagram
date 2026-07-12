@@ -63,7 +63,7 @@
 }
 
 .valueButton {
-  min-height: var(--shiny-field-height);
+  min-height: var(--shiny-control-height);
   padding: 6px 8px;
   overflow: hidden;
   border-radius: var(--shiny-field-radius) 0 0 var(--shiny-field-radius);
@@ -75,7 +75,7 @@
 .menuButton {
   display: grid;
   place-items: center;
-  min-height: var(--shiny-field-height);
+  min-height: var(--shiny-control-height);
   padding: 0;
   border-radius: 0 var(--shiny-field-radius) var(--shiny-field-radius) 0;
   color: var(--shiny-text-muted);
@@ -115,7 +115,7 @@
 }
 
 .comboBox :global(input) {
-  min-height: var(--shiny-field-height);
+  min-height: var(--shiny-control-height);
   border: 0;
   border-radius: var(--shiny-field-radius) 0 0 var(--shiny-field-radius);
   background: transparent;
@@ -147,5 +147,5 @@
 }
 
 .option[aria-selected="true"] {
-  border-color: var(--shiny-accent);
+  border-color: var(--shiny-accent-outline);
 }

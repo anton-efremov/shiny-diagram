@@ -31,7 +31,7 @@
 
 .namespaceDraft {
   box-sizing: border-box;
-  border: var(--namespace-draft-stroke-width) solid var(--namespace-draft-stroke);
+  border: 2px solid var(--shiny-positive);
   background: var(--shiny-overlay-faint);
   pointer-events: none;
 }

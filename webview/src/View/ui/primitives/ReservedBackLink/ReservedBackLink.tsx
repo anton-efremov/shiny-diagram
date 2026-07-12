@@ -3,19 +3,19 @@
  */
 
 import type { ReactElement } from "react";
-import styles from "./BackAffordance.module.css";
+import styles from "./ReservedBackLink.module.css";
 
-type BackAffordanceProps = {
+type ReservedBackLinkProps = {
   readonly label: string;
   readonly visible?: boolean;
   readonly onClick?: () => void;
 };
 
-export default function BackAffordance({
+export default function ReservedBackLink({
   label,
   visible = true,
   onClick,
-}: BackAffordanceProps): ReactElement {
+}: ReservedBackLinkProps): ReactElement {
   return (
     <button
       type="button"

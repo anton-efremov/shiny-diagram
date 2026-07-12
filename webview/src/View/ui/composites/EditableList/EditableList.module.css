@@ -15,8 +15,8 @@
   color: inherit;
   background: transparent;
   font: inherit;
-  font-size: 12px;
-  line-height: 1.25;
+  font-size: var(--shiny-canvas-font-size-secondary);
+  line-height: var(--shiny-canvas-line-height-secondary);
   text-align: left;
   cursor: default;
   white-space: pre-wrap;
@@ -48,7 +48,7 @@
 
 .dropIndicator {
   height: 2px;
-  background: var(--shiny-accent);
+  background: var(--shiny-accent-tint);
 }
 
 .isDragging {
@@ -69,8 +69,8 @@
 
 .editorHost {
   width: 100%;
-  font-size: 12px;
-  line-height: 1.25;
+  font-size: var(--shiny-canvas-font-size-secondary);
+  line-height: var(--shiny-canvas-line-height-secondary);
 }
 
 .addAffordance {

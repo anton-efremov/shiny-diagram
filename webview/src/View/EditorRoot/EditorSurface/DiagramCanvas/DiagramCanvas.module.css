@@ -12,7 +12,7 @@
 
 .emptyState {
   position: absolute;
-  z-index: 5;
+  z-index: var(--diagram-empty-state-z-index);
   margin: 0;
   padding: 20px;
   color: var(--shiny-text-muted);

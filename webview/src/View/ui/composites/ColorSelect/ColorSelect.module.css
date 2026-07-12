@@ -14,7 +14,7 @@
   align-items: center;
   width: 100%;
   min-width: 0;
-  min-height: var(--shiny-field-height);
+  min-height: var(--shiny-control-height);
   padding: 5px 7px;
   border: 1px solid var(--shiny-field-border);
   border-radius: var(--shiny-field-radius);
@@ -156,7 +156,7 @@
 }
 
 .colorOption[aria-pressed="true"] {
-  outline: 2px solid var(--shiny-accent);
+  outline: 2px solid var(--shiny-accent-outline);
   outline-offset: 1px;
 }
 
@@ -187,7 +187,7 @@
 }
 
 .defaultOption[aria-pressed="true"] .defaultSwatch {
-  outline: 2px solid var(--shiny-accent);
+  outline: 2px solid var(--shiny-accent-outline);
   outline-offset: 1px;
 }
 

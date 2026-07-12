@@ -13,7 +13,7 @@
 
 .draftRect {
   position: absolute;
-  border: 1px solid var(--shiny-accent);
+  border: 1px solid var(--shiny-accent-outline);
   background: var(--shiny-overlay-faint);
   pointer-events: none;
 }

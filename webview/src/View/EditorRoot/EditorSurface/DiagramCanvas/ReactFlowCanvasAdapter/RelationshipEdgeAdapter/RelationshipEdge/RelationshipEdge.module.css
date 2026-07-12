@@ -8,7 +8,7 @@
 }
 
 .selected {
-  stroke: var(--shiny-accent);
+  stroke: var(--shiny-accent-outline);
   stroke-width: 2;
 }
 
@@ -26,17 +26,17 @@
 
 .lightText,
 .darkText {
-  font: 12px var(--shiny-font-family);
+  font: var(--shiny-canvas-font-size-secondary) var(--shiny-font-family);
   cursor: text;
   pointer-events: all;
 }
 
 .lightText {
-  fill: #000000;
+  fill: var(--shiny-edge-label-text);
 }
 
 .darkText {
-  fill: #ffffff;
+  fill: var(--shiny-edge-caption-text);
 }
 
 .lightTextSurface,
@@ -46,13 +46,13 @@
 }
 
 .lightTextSurface {
-  fill: rgb(255 255 255 / 72%);
-  stroke: rgb(0 0 0 / 24%);
+  fill: var(--shiny-edge-label-background);
+  stroke: var(--shiny-edge-label-outline);
 }
 
 .darkTextSurface {
-  fill: rgb(0 0 0 / 64%);
-  stroke: transparent;
+  fill: var(--shiny-edge-caption-background);
+  stroke: var(--shiny-edge-caption-outline);
 }
 
 .textObject {
@@ -65,36 +65,11 @@
   height: 100%;
   align-items: center;
   justify-content: center;
-  font: 12px var(--shiny-font-family);
+  font: var(--shiny-canvas-font-size-secondary) var(--shiny-font-family);
   text-align: center;
 }
 
-.lightEditor {
-  --inline-edit-bg: rgb(255 255 255 / 76%);
-  --inline-edit-outline: rgb(0 0 0 / 85%);
-
-  color: #000000;
-}
-
+.lightEditor,
 .darkEditor {
-  --inline-edit-bg: rgb(0 0 0 / 68%);
-  --inline-edit-outline: rgb(255 255 255 / 85%);
-
-  color: #ffffff;
-}
-
-:global(body[data-vscode-theme-kind="vscode-light"]) .darkText {
-  fill: var(--shiny-text);
-}
-
-:global(body[data-vscode-theme-kind="vscode-light"]) .darkTextSurface {
-  fill: color-mix(in srgb, var(--shiny-surface) 88%, transparent);
-  stroke: color-mix(in srgb, var(--shiny-text) 24%, transparent);
-}
-
-:global(body[data-vscode-theme-kind="vscode-light"]) .darkEditor {
-  --inline-edit-bg: color-mix(in srgb, var(--shiny-surface) 88%, transparent);
-  --inline-edit-outline: color-mix(in srgb, var(--shiny-text) 38%, transparent);
-
-  color: var(--shiny-text);
+  color: inherit;
 }

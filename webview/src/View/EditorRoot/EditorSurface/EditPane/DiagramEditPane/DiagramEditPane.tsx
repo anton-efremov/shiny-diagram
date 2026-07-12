@@ -8,7 +8,7 @@ import type { SelectionState } from "../../../../state/editorStates";
 import type { TransactionResult } from "../../../../commands/editorCommands";
 import type { DeclaredStyleView, DiagramView } from "../../../../views/schema";
 import Button from "../../../../ui/primitives/Button/Button";
-import BackAffordance from "../../../../ui/primitives/BackAffordance/BackAffordance";
+import ReservedBackLink from "../../../../ui/primitives/ReservedBackLink/ReservedBackLink";
 import ControlGroup from "../../../../ui/templates/ControlGroup/ControlGroup";
 import PaneSection from "../../../../ui/templates/PaneSection/PaneSection";
 import TextBlock from "../../../../ui/primitives/TextBlock/TextBlock";
@@ -91,7 +91,7 @@ export default function DiagramEditPane({
 
   return (
     <>
-      <BackAffordance label="← Back" visible={origin !== undefined} onClick={onBack} />
+      <ReservedBackLink label="← Back" visible={origin !== undefined} onClick={onBack} />
       <SavedStyles
         view={namedStyles}
         baseStyle={view.baseStyle}

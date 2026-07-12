@@ -222,6 +222,7 @@ function EdgeText({
             isLabelVisible={false}
             autoFocus
             appearance="inline"
+            situation={tone === "light" ? "edgeLabel" : "edgeCaption"}
             isCancelVisible
             onDraftChange={setEditorText}
             onCommit={onCommit}

@@ -67,7 +67,7 @@ describe("toNamespaceGeometry", () => {
     const namespaceGeometry = toNamespaceGeometry(view, placementState(), noGesture());
 
     expect(namespaceGeometry.haloColorByClassId.get(toClassId("Captured"))).toBe(
-      "var(--shiny-page-bg)"
+      "var(--shiny-app-bg)"
     );
   });
 

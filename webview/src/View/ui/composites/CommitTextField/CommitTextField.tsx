@@ -3,12 +3,12 @@
  * @render Commit text field with validation popup.
  */
 
-import { useEffect, useState } from "react";
-import type { KeyboardEvent, ReactElement } from "react";
+import type { ReactElement } from "react";
 import TextField from "../../primitives/TextField/TextField";
 import ValidationPopup from "../../primitives/ValidationPopup/ValidationPopup";
 import DismissButton from "../../primitives/DismissButton/DismissButton";
 import styles from "./CommitTextField.module.css";
+import { useCommitLifecycle } from "../commitLifecycle";
 
 type CommitTextFieldProps = {
   readonly initialValue: string;
@@ -18,6 +18,7 @@ type CommitTextFieldProps = {
   readonly isLabelVisible?: boolean;
   readonly autoFocus?: boolean;
   readonly appearance?: "pane" | "inline";
+  readonly situation?: "edgeLabel" | "edgeCaption";
   readonly isCancelVisible?: boolean;
   readonly onCommit: (value: string) => void;
   readonly onDraftChange?: (value: string) => void;
@@ -33,61 +34,21 @@ export default function CommitTextField({
   isLabelVisible = true,
   autoFocus = false,
   appearance = "pane",
+  situation,
   isCancelVisible = false,
   onCommit,
   onDraftChange,
   onDiscard,
   onCancel,
 }: CommitTextFieldProps): ReactElement {
-  const [draft, setDraft] = useState(initialValue);
-  const [messages, setMessages] = useState<readonly string[]>([]);
-
-  useEffect(() => {
-    setDraft(initialValue);
-    setMessages([]);
-  }, [initialValue]);
-
-  function commit(): void {
-    const nextMessages = validate(draft);
-    if (nextMessages.length > 0) {
-      setMessages(nextMessages);
-      return;
-    }
-    setMessages([]);
-    onCommit(draft);
-  }
-
-  function discardIfInvalid(): void {
-    const nextMessages = validate(draft);
-    if (nextMessages.length === 0) {
-      setMessages([]);
-      onCommit(draft);
-      return;
-    }
-    setDraft(initialValue);
-    setMessages([]);
-    onDiscard(nextMessages);
-  }
-
-  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      commit();
-      return;
-    }
-    if (event.key === "Escape") {
-      event.preventDefault();
-      setDraft(initialValue);
-      setMessages([]);
-      onCancel();
-    }
-  }
-
-  function handleDraftChange(value: string): void {
-    setDraft(value);
-    setMessages([]);
-    onDraftChange?.(value);
-  }
+  const lifecycle = useCommitLifecycle({
+    initialValue,
+    validate,
+    onCommit,
+    onDraftChange,
+    onDiscard,
+    onCancel,
+  });
 
   const visibleLabel = isLabelVisible ? ariaLabel : undefined;
 
@@ -96,33 +57,26 @@ export default function CommitTextField({
       {visibleLabel === undefined ? null : <span className={styles.label}>{visibleLabel}</span>}
       <div className={styles.inputHost}>
         <TextField
-          value={draft}
+          value={lifecycle.draft}
           disabled={disabled}
-          invalid={messages.length > 0}
+          invalid={lifecycle.messages.length > 0}
           ariaLabel={ariaLabel}
           autoFocus={autoFocus}
           appearance={appearance}
+          situation={situation}
           hasEndAction={isCancelVisible}
-          onChange={handleDraftChange}
-          onBlur={discardIfInvalid}
-          onKeyDown={handleKeyDown}
+          onChange={lifecycle.onDraftChange}
+          onBlur={lifecycle.onBlur}
+          onKeyDown={lifecycle.onKeyDown}
         />
         {isCancelVisible ? (
           <span className={styles.cancelButton}>
-            <DismissButton
-              label="Cancel editing"
-              small
-              onClick={() => {
-                setDraft(initialValue);
-                setMessages([]);
-                onCancel();
-              }}
-            />
+            <DismissButton label="Cancel editing" small onClick={lifecycle.onCancel} />
           </span>
         ) : null}
       </div>
-      {messages.length > 0 ? (
-        <ValidationPopup messages={messages} onDismiss={() => setMessages([])} />
+      {lifecycle.messages.length > 0 ? (
+        <ValidationPopup messages={lifecycle.messages} onDismiss={lifecycle.onPopupDismiss} />
       ) : null}
     </div>
   );

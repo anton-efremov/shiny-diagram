@@ -8,7 +8,7 @@ import type { ReactElement } from "react";
 import type { Point, Rect } from "../../../../../../../shared/geometry";
 import type { NoteId } from "../../../../../../../shared/ids";
 import type { EditingState } from "../../../../../../state/editorStates";
-import BoxOutline from "../../../../../../ui/primitives/BoxOutline/BoxOutline";
+import BoxLink from "../../../../../../ui/primitives/BoxOutline/BoxOutline";
 import CommitTextArea from "../../../../../../ui/composites/CommitTextArea/CommitTextArea";
 import ResizeAffordance from "../../../../../../ui/primitives/ResizeAffordance/ResizeAffordance";
 import type { ResizeHandle } from "../../../../../../ui/primitives/ResizeAffordance/ResizeAffordance";
@@ -87,7 +87,7 @@ export default function NoteBox({
           <ResizeAffordance onGrab={onResizeGrab} />
         </div>
       ) : null}
-      {isSelected ? <BoxOutline variant="selected" /> : <BoxOutline variant="hover" />}
+      {isSelected ? <BoxLink variant="selected" /> : <BoxLink variant="hover" />}
       {discardErrors.length > 0 ? (
         <ValidationPopup messages={discardErrors} onDismiss={onDiscardDismiss} />
       ) : null}

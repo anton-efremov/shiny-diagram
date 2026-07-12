@@ -31,7 +31,7 @@
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
-  filter: drop-shadow(0 4px 10px rgb(0 0 0 / 35%));
+  filter: drop-shadow(var(--shiny-elevation-high));
   pointer-events: auto;
   transform: translate(-50%, -100%);
   margin: 0;

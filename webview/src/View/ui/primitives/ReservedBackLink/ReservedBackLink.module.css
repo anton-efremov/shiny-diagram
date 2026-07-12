@@ -2,8 +2,8 @@
  * @render Quiet back-navigation affordance with reservable layout space.
  */
 
-.affordance,
-.hiddenAffordance {
+.link,
+.reservedBlank {
   justify-self: start;
   min-height: 26px;
   padding: 3px 2px;
@@ -15,16 +15,16 @@
   cursor: pointer;
 }
 
-.affordance:hover {
+.link:hover {
   color: var(--shiny-field-hover-fg);
 }
 
-.affordance:focus-visible {
+.link:focus-visible {
   outline: 2px solid var(--shiny-field-focus-border);
   outline-offset: 1px;
 }
 
-.hiddenAffordance {
+.reservedBlank {
   visibility: hidden;
   pointer-events: none;
 }

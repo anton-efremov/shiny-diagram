@@ -6,7 +6,7 @@
 .fieldWithEndAction {
   width: 100%;
   min-width: 0;
-  min-height: var(--shiny-field-height);
+  min-height: var(--shiny-control-height);
   padding: 6px 8px;
   border: 1px solid var(--shiny-field-border);
   border-radius: var(--shiny-field-radius);
@@ -48,23 +48,43 @@
   border: 0;
   border-radius: 2px;
   color: inherit;
-  outline: 1px solid var(--inline-edit-outline, color-mix(in srgb, currentColor 78%, transparent));
+  outline: 1px solid var(--shiny-inline-field-outline);
   outline-offset: 1px;
-  background: var(--inline-edit-bg, color-mix(in srgb, currentColor 14%, transparent));
+  background: var(--shiny-inline-field-background);
   font: inherit;
   line-height: inherit;
   text-align: inherit;
 }
 
 .inline:focus-visible {
-  outline: 1px solid var(--inline-edit-outline, color-mix(in srgb, currentColor 92%, transparent));
+  outline: 1px solid var(--shiny-inline-field-focus-outline);
   outline-offset: 1px;
 }
 
 .inline[aria-invalid="true"] {
-  outline-color: color-mix(in srgb, var(--shiny-text-error) 65%, transparent);
+  outline-color: var(--shiny-inline-field-invalid-outline);
 }
 
 .inline.fieldWithEndAction {
   padding-right: 22px;
+}
+
+.inline.edgeLabel {
+  color: var(--shiny-edge-label-text);
+  outline-color: var(--shiny-edge-label-edit-outline);
+  background: var(--shiny-edge-label-edit-background);
+}
+
+.inline.edgeCaption {
+  color: var(--shiny-edge-caption-text);
+  outline-color: var(--shiny-edge-caption-edit-outline);
+  background: var(--shiny-edge-caption-edit-background);
+}
+
+.inline.edgeLabel:focus-visible {
+  outline-color: var(--shiny-edge-label-edit-outline);
+}
+
+.inline.edgeCaption:focus-visible {
+  outline-color: var(--shiny-edge-caption-edit-outline);
 }

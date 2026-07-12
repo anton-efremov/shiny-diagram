@@ -73,7 +73,7 @@
 .swatchOnlyContent,
 .boxLabelContent {
   display: block;
-  min-height: var(--shiny-field-height);
+  min-height: var(--shiny-control-height);
   padding: 7px 10px;
   overflow: hidden;
   font-size: 12px;
@@ -143,7 +143,7 @@
 .boxLabelSwatch {
   justify-items: start;
   width: 100%;
-  height: var(--shiny-field-height);
+  height: var(--shiny-control-height);
   padding: 6px 24px 6px 8px;
   border-radius: var(--shiny-field-radius);
 }
@@ -214,7 +214,7 @@
 .arrow {
   display: grid;
   place-items: center;
-  min-height: var(--shiny-field-height);
+  min-height: var(--shiny-control-height);
   color: var(--dropdown-arrow-color, var(--shiny-text-muted));
 }
 
@@ -229,7 +229,7 @@
   top: 0;
   right: 0;
   width: 20px;
-  height: var(--shiny-field-height);
+  height: var(--shiny-control-height);
 }
 
 .menu {
@@ -249,7 +249,7 @@
 }
 
 .option[aria-selected="true"] {
-  border-color: var(--shiny-accent);
+  border-color: var(--shiny-accent-outline);
 }
 
 .iconOption[aria-selected="true"] {

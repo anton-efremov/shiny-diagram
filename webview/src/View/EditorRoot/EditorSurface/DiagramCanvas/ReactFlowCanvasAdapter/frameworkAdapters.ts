@@ -803,7 +803,7 @@ function toNamespaceHaloColor(
   parentNamespaceId: NamespaceId | null,
   namespaces: readonly NamespaceView[]
 ): string {
-  if (!parentNamespaceId) return "var(--shiny-page-bg)";
+  if (!parentNamespaceId) return "var(--shiny-app-bg)";
   const parent = namespaces.find(
     (namespaceView) => namespaceView.namespaceId === parentNamespaceId
   );

@@ -2,7 +2,7 @@
  * @render Note attachment ghost line.
  */
 
-import type { ReactElement } from "react";
+import type { CSSProperties, ReactElement } from "react";
 import type { Point } from "../../../../../../shared/geometry";
 import {
   NOTE_ATTACH_GHOST_DASH_PATTERN,
@@ -21,8 +21,12 @@ export default function NoteAttachGhostLine({
   sourcePoint,
   targetPoint,
 }: NoteAttachGhostLineProps): ReactElement {
+  const layerStyle = {
+    "--note-attach-ghost-z-index": NOTE_ATTACH_GHOST_Z_INDEX,
+  } as CSSProperties;
+
   return (
-    <svg className={styles.layer} style={{ zIndex: NOTE_ATTACH_GHOST_Z_INDEX }} aria-hidden="true">
+    <svg className={styles.layer} style={layerStyle} aria-hidden="true">
       <line
         className={styles.line}
         x1={sourcePoint.x}

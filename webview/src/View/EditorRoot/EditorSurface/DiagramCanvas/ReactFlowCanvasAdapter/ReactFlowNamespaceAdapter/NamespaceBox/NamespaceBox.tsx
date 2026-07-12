@@ -10,22 +10,12 @@ import type { Point, Rect } from "../../../../../../../shared/geometry";
 import type { NamespaceView } from "../../../../../../views/schema";
 import type { EditingState } from "../../../../../../state/editorStates";
 import type { TransactionResult } from "../../../../../../commands/editorCommands";
-import BoxOutline from "../../../../../../ui/primitives/BoxOutline/BoxOutline";
+import BoxLink from "../../../../../../ui/primitives/BoxOutline/BoxOutline";
 import CommitTextField from "../../../../../../ui/composites/CommitTextField/CommitTextField";
 import ValidationPopup from "../../../../../../ui/primitives/ValidationPopup/ValidationPopup";
 import ResizeAffordance from "../../../../../../ui/primitives/ResizeAffordance/ResizeAffordance";
 import type { ResizeHandle } from "../../../../../../ui/primitives/ResizeAffordance/ResizeAffordance";
-import {
-  NAMESPACE_NAME_AREA_HEIGHT,
-  NAMESPACE_LABEL_FONT_SIZE,
-  NAMESPACE_LABEL_FONT_WEIGHT,
-  NAMESPACE_LABEL_LINE_HEIGHT,
-  NAMESPACE_LABEL_PADDING_X,
-  NAMESPACE_LABEL_PADDING_Y,
-  NAMESPACE_DEFAULT_STROKE_WIDTH,
-  NAMESPACE_DEFAULT_FILL,
-  NAMESPACE_DEFAULT_STROKE,
-} from "../../../../../../config/editorUiConfig";
+import { NAMESPACE_DEFAULT_STROKE_WIDTH } from "../../../../../../config/editorUiConfig";
 import styles from "./NamespaceBox.module.css";
 import { useInteractions } from "./useInteractions";
 
@@ -72,20 +62,14 @@ export default function NamespaceBox({
   const strokeWidth = toCssLength(
     view.style?.strokeWidth ?? String(NAMESPACE_DEFAULT_STROKE_WIDTH)
   );
+  const selectionCenterOffset = `calc(${strokeWidth} + 2px)`;
   const dynamicVars = {
-    "--namespace-name-area-height": `${NAMESPACE_NAME_AREA_HEIGHT}px`,
-    "--namespace-label-font-size": `${NAMESPACE_LABEL_FONT_SIZE}px`,
-    "--namespace-label-font-weight": NAMESPACE_LABEL_FONT_WEIGHT,
-    "--namespace-label-line-height": `${NAMESPACE_LABEL_LINE_HEIGHT}px`,
-    "--namespace-label-padding-x": `${NAMESPACE_LABEL_PADDING_X}px`,
-    "--namespace-label-padding-y": `${NAMESPACE_LABEL_PADDING_Y}px`,
-    "--namespace-fill": view.style?.fill ?? NAMESPACE_DEFAULT_FILL,
-    "--namespace-stroke": view.style?.stroke ?? NAMESPACE_DEFAULT_STROKE,
+    "--namespace-fill": view.style?.fill ?? undefined,
+    "--namespace-stroke": view.style?.stroke ?? undefined,
     "--namespace-stroke-width": strokeWidth,
     "--namespace-stroke-style": toCssLineStyle(view.style?.strokeDasharray),
     "--namespace-color": view.style?.color ?? undefined,
-    "--shiny-inline-surface": view.style?.fill ?? NAMESPACE_DEFAULT_FILL,
-    "--shiny-box-selection-center-offset": `calc(${strokeWidth} + 2px)`,
+    "--shiny-inline-surface": view.style?.fill ?? "var(--shiny-neutral-wash)",
   } as CSSProperties;
 
   // Event handler props derivation
@@ -139,11 +123,15 @@ export default function NamespaceBox({
           {view.label}
         </div>
       )}
-      {isPendingMember ? <BoxOutline variant="pending" /> : null}
-      {isSelected ? <BoxOutline variant="selected" /> : <BoxOutline variant="hover" />}
+      {isPendingMember ? <BoxLink variant="pending" centerOffset={selectionCenterOffset} /> : null}
+      {isSelected ? (
+        <BoxLink variant="selected" centerOffset={selectionCenterOffset} />
+      ) : (
+        <BoxLink variant="hover" centerOffset={selectionCenterOffset} />
+      )}
       {isSelected ? (
         <div className="nodrag nopan">
-          <ResizeAffordance onGrab={onResizeGrab} />
+          <ResizeAffordance centerOffset={selectionCenterOffset} onGrab={onResizeGrab} />
         </div>
       ) : null}
     </div>

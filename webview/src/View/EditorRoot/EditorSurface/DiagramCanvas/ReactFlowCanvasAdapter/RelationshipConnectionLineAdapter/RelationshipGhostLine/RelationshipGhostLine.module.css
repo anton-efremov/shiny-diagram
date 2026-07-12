@@ -7,6 +7,6 @@
 }
 
 .path {
-  stroke: var(--shiny-accent);
+  stroke: var(--shiny-accent-outline);
   stroke-width: 1.8;
 }
