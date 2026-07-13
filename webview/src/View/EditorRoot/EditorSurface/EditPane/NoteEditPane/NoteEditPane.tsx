@@ -42,12 +42,12 @@ export default function NoteEditPane({
         {attachedClassLabel && attachedClassStyle ? (
           <>
             <StyledBoxSwatch styleValues={attachedClassStyle} label={attachedClassLabel} />
-            <Button label="Detach" variant="compact" onClick={onAttachmentToggle} />
+            <Button label="Detach" variant="rowAction" onClick={onAttachmentToggle} />
           </>
         ) : (
           <>
             <Button label="Attach to class" onClick={onAttachmentToggle} />
-            <Button label="Detach" variant="compact" visible={false} />
+            <Button label="Detach" variant="rowAction" visible={false} />
           </>
         )}
       </PaneSection>

@@ -8,16 +8,18 @@
  *
  * Lifecycle:
  * - `selected` — on keeps the selection outline visible; off shows it only on
- *   parent hover. Used by: selected classes, notes, and namespaces
+ *   parent hover
  * - `pending` — on adds a pending placement outline
- *   Used by: a class awaiting placement
  * - `resizeVisible` — on renders corner, midpoint, and full-edge resize targets
- *   Used by: selected resizable diagram surfaces
  *
  * Modifiers:
- * - `haloTone` — the halo's wash when `haloTint` is absent: `canvas` matches the
- *   canvas ground, `faint` a translucent wash; with neither tone nor tint, no
- *   halo renders. Used by: class and namespace selection
+ * - `haloTone` — the halo's wash when `haloTint` is absent:
+ *   - `canvas` matches the canvas ground. Used by: selected classes on plain
+ *     canvas ground
+ *   - `faint` uses a translucent wash. Used by: selected classes with inherited
+ *     styling
+ *   - `omitted` renders no fallback halo. Used by: notes, namespaces, and
+ *     unselected classes
  */
 
 import type { ReactElement } from "react";

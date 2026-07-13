@@ -5,11 +5,11 @@
  * `stroke`, `strokeWidth`, `lineStyle`, and `color` with base fallbacks, and
  * reports `onClick` when clicked. `placementCursor` selects the placement cursor.
  *
+ * Used by: class surfaces.
+ *
  * Lifecycle:
  * - `dragging` — on shows active dragging while retaining the surface appearance
- *   Used by: a class being moved
  * - `placementCursor` — on shows that relationship placement is available
- *   Used by: a class as a relationship source
  */
 
 import type { CSSProperties, MouseEvent, ReactElement, ReactNode } from "react";

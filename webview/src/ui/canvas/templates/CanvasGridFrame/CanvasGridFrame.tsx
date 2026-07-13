@@ -4,9 +4,10 @@
  * Fills the available region with `children` over the canvas grid;
  * `placementCursor` selects the placement cursor.
  *
+ * Used by: the diagram canvas.
+ *
  * Lifecycle:
  * - `placementCursor` — on shows that placement is available
- *   Used by: relationship placement over the canvas
  */
 
 import type { ReactElement, ReactNode } from "react";

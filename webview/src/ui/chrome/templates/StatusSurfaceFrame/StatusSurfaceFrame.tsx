@@ -5,9 +5,11 @@
  * `items` with `label`, and preserves item order in a list.
  *
  * Modifiers:
- * - `variant` — `errorList` stacks error-colored items with wider separation;
- *   `codeList` uses compact code-type list treatment
- *   Used by: editor errors and missing-annotation details
+ * - `variant` — the status-detail situation:
+ *   - `errorList` stacks error-colored items with wider separation. Used by:
+ *     editor syntax errors
+ *   - `codeList` uses compact code-type list treatment. Used by: missing
+ *     annotation details
  */
 
 import type { ReactElement, ReactNode } from "react";

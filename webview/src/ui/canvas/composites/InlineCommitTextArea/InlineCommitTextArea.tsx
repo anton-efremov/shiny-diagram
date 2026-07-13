@@ -7,13 +7,11 @@
  * and reports `onCancel`. Line breaks are typed as ordinary input; committing is
  * only by the save action or by leaving the editor.
  *
+ * Used by: note-body display and editing.
+ *
  * Lifecycle:
  * - `isEditing` — off renders wrapped display text; on renders the editor and
- *   save action. Used by: a note body
- *
- * Modifiers:
- * - `autoFocus` — on requests focus when the editor mounts
- *   Used by: a newly opened note-body editor
+ *   save action
  */
 
 import type { MouseEvent, ReactElement } from "react";
@@ -28,7 +26,6 @@ type InlineCommitTextAreaProps = {
   readonly displayText: string;
   readonly saveLabel: string;
   readonly isEditing: boolean;
-  readonly autoFocus?: boolean;
   readonly onEditRequest: (event: MouseEvent<HTMLDivElement>) => void;
   readonly onCommit: (value: string) => void;
   readonly onCancel: () => void;
@@ -38,7 +35,6 @@ export default function InlineCommitTextArea({
   initialValue,
   displayText,
   isEditing,
-  autoFocus = false,
   saveLabel,
   onEditRequest,
   onCommit,
@@ -64,7 +60,6 @@ export default function InlineCommitTextArea({
       <div className={styles.fieldHost}>
         <InlineTextArea
           value={lifecycle.draft}
-          autoFocus={autoFocus}
           treatment="body"
           onChange={lifecycle.onDraftChange}
           onBlur={lifecycle.onBlur}

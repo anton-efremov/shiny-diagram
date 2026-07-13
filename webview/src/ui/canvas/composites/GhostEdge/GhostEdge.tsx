@@ -5,8 +5,9 @@
  * and linking `startMarker` and `endMarker` when supplied.
  *
  * Modifiers:
- * - `tone` — `accent` previews relationship placement; `attachment` previews
- *   attachment treatment. Used by: relationship creation and note attachment
+ * - `tone` — the preview identity:
+ *   - `accent` previews accent treatment. Used by: relationship creation
+ *   - `attachment` previews attachment treatment. Used by: note attachment
  */
 
 import type { ReactElement } from "react";

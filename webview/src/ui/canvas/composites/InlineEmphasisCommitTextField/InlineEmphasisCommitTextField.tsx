@@ -10,9 +10,7 @@
  * validation uses `validationStacking`, and `surface` supplies an explicit action
  * ground over the base fallback.
  *
- * Modifiers:
- * - `autoFocus` — on requests focus when the editor mounts
- *   Used by: a selected class member
+ * Used by: class-member editing with underline and italic controls.
  */
 
 import { useEffect, useState } from "react";
@@ -52,7 +50,6 @@ type InlineEmphasisCommitTextFieldProps = {
   readonly actionStacking: number;
   readonly validationStacking: number;
   readonly validate: (draft: string) => readonly string[];
-  readonly autoFocus?: boolean;
   readonly onCommit: (value: string, emphasis: TextEmphasis | null) => void;
   readonly onDiscard: (messages: readonly string[]) => void;
   readonly onCancel: () => void;
@@ -62,7 +59,6 @@ export default function InlineEmphasisCommitTextField({
   initialValue,
   initialEmphasis,
   validate,
-  autoFocus = false,
   actionStacking,
   validationStacking,
   surface,
@@ -114,7 +110,6 @@ export default function InlineEmphasisCommitTextField({
       <InlineTextArea
         value={lifecycle.draft}
         rows={toLineCount(lifecycle.draft)}
-        autoFocus={autoFocus}
         treatment="row"
         invalid={lifecycle.messages.length > 0}
         hasEndAction

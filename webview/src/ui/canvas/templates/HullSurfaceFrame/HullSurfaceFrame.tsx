@@ -4,6 +4,7 @@
  * Fills its host with `children`, uses `title` as the tooltip, applies `fill`,
  * `stroke`, `strokeWidth`, `lineStyle`, and `color` with neutral fallbacks.
  * Pressing it reports `onPressStart`; clicking it reports `onClick`.
+ *
  * Used by: a namespace hull.
  */
 

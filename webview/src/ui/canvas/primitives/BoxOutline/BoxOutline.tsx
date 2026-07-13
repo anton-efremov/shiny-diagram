@@ -7,10 +7,11 @@
  *
  * Modifiers:
  * - `variant` — when the outline appears:
- *   - `hover` appears only while the parent is hovered — e.g. a class, note, or
- *     namespace under the pointer
- *   - `selected` remains visible — e.g. the selected diagram surface
- *   - `pending` draws a dashed placement outline — e.g. a class awaiting
+ *   - `hover` appears only while the parent is hovered. Used by: classes, notes,
+ *     and namespaces under the pointer
+ *   - `selected` remains visible. Used by: selected classes, notes, and
+ *     namespaces
+ *   - `pending` draws a dashed placement outline. Used by: a class awaiting
  *     placement
  */
 

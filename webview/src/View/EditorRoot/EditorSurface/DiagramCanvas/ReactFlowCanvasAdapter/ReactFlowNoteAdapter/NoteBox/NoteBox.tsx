@@ -104,7 +104,6 @@ export default function NoteBox({
         initialValue={view.text.trim()}
         displayText={view.text}
         isEditing={isEditing}
-        autoFocus
         saveLabel="Save"
         onEditRequest={isSelected ? onNoteTextDoubleClick : onNoteTextClick}
         onCommit={(text) => {

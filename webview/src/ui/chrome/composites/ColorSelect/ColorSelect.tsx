@@ -10,13 +10,13 @@
  *
  * Lifecycle:
  * - `disabled` — on means the list cannot be opened and shows the control as
- *   unavailable. Used by: no current product situation
+ *   unavailable
  *
  * Modifiers:
  * - `preview` — the selected color's sample:
- *   - `fill` renders a filled square — e.g. a surface color
- *   - `stroke` renders a line — e.g. an outline color
- *   - `text` renders a letter sample — e.g. a text color
+ *   - `fill` renders a filled square. Used by: fill-color properties
+ *   - `stroke` renders a line. Used by: outline-color properties
+ *   - `text` renders a letter sample. Used by: text-color properties
  */
 
 import { useEffect, useRef, useState } from "react";

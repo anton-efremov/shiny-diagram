@@ -2,7 +2,9 @@
  * Canvas viewport frame clipping positioned content.
  *
  * Names the full-height region with `ariaLabel` and clips `children` at its
- * boundary. Used by: the diagram canvas inside the editor workspace.
+ * boundary.
+ *
+ * Used by: the diagram canvas inside the editor workspace.
  */
 
 import type { ReactElement, ReactNode } from "react";

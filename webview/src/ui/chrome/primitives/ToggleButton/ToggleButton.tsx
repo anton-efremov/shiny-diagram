@@ -7,15 +7,15 @@
  *
  * Lifecycle:
  * - `pressed` — on shows the toggle selected
- *   Used by: node and relationship placement tools
  * - `disabled` — on prevents the control from being pressed and shows it as
- *   unavailable. Used by: no current product situation
+ *   unavailable
  *
  * Modifiers:
  * - `size` — the control's fixed presentation:
- *   - `labeledTile` is a tall full-width glyph-and-label tile — e.g. node
+ *   - `labeledTile` is a tall full-width glyph-and-label tile. Used by: node
  *     placement
- *   - `glyphTile` is a compact centered glyph tile — e.g. relationship placement
+ *   - `glyphTile` is a compact centered glyph tile. Used by: relationship
+ *     placement
  */
 
 import type { ReactElement } from "react";

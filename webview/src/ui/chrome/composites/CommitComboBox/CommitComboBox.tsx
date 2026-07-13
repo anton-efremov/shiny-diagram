@@ -11,12 +11,13 @@
  * The menu paints at `menuStacking`, and validation paints at
  * `validationStacking`.
  *
+ * Used by: class stereotypes and relationship endpoint multiplicities.
+ *
  * Lifecycle:
  * - `disabled`       — the value is shown, an open menu closes, and no
- *   interaction is accepted. Used by: no current product situation
+ *   interaction is accepted
  * - `isLabelVisible` — off hides the visible caption; the accessible name
- *   (`ariaLabel`) always remains. Used by: relationship multiplicities and class
- *   stereotypes
+ *   (`ariaLabel`) always remains
  */
 
 import { useEffect, useRef, useState } from "react";

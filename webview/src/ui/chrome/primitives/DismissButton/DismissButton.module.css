@@ -2,8 +2,7 @@
  * @render Compact cross button styling.
  */
 
-.button,
-.small {
+.button {
   display: grid;
   place-items: center;
   padding: 0;
@@ -12,34 +11,16 @@
   color: var(--shiny-chrome-text-error);
   background: transparent;
   cursor: pointer;
-}
-
-.button {
-  width: 20px;
-  height: 20px;
-}
-
-.small {
   width: 13px;
   height: 13px;
 }
 
 .button:hover {
-  color: var(--shiny-chrome-surface);
-  background: var(--shiny-chrome-text-error);
-}
-
-.small:hover {
   color: var(--shiny-inline-surface, var(--shiny-chrome-surface));
   background: var(--shiny-chrome-text-error);
 }
 
 .button svg {
-  width: 16px;
-  height: 16px;
-}
-
-.small svg {
   width: 11px;
   height: 11px;
 }

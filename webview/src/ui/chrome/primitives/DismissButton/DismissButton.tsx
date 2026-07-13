@@ -5,9 +5,7 @@
  * focus from the field it sits in and reports the press through `onMouseDown`;
  * clicking it reports `onClick`.
  *
- * Modifiers:
- * - `small` — off renders a standard circular control; on renders the reduced
- *   in-field control. Used by: field clear and cancel actions
+ * Used by: field clear and cancel actions.
  */
 
 import type { ReactElement } from "react";
@@ -16,21 +14,19 @@ import styles from "./DismissButton.module.css";
 
 type DismissButtonProps = {
   readonly label: string;
-  readonly small?: boolean;
   readonly onClick: () => void;
   readonly onMouseDown?: () => void;
 };
 
 export default function DismissButton({
   label,
-  small = false,
   onClick,
   onMouseDown,
 }: DismissButtonProps): ReactElement {
   return (
     <button
       type="button"
-      className={small ? styles.small : styles.button}
+      className={styles.button}
       aria-label={label}
       title={label}
       onMouseDown={(event) => {

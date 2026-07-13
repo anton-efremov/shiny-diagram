@@ -8,18 +8,18 @@
  *
  * Lifecycle:
  * - `disabled` — on prevents the control from being pressed
- *   Used by: member addition while row editing is unavailable
  * - `visible` — off hides the control from pointer users while keeping it
- *   keyboard-reachable; keyboard focus reveals it. Used by: member addition
+ *   keyboard-reachable; keyboard focus reveals it
  *
  * Modifiers:
- * - `treatment` — `cancel` is a compact circular error action; `add` fills its
- *   host with a quiet rounded action. Used by: field cancellation and member
- *   addition
+ * - `treatment` — the action situation:
+ *   - `cancel` is a compact circular error action. Used by: canvas text
+ *     cancellation
+ *   - `add` fills its host with a quiet rounded action. Used by: member addition
  * - `surfaceTone` — the action ground when `surface` is absent:
- *   - `default` uses the canvas surface — e.g. relationship text cancellation
- *   - `base` uses the base fill — e.g. class-member actions
- *   - `neutral` uses a neutral wash — e.g. namespace-title actions
+ *   - `default` uses the canvas surface. Used by: relationship text cancellation
+ *   - `base` uses the base fill. Used by: class-member actions
+ *   - `neutral` uses a neutral wash. Used by: namespace-title actions
  */
 
 import type { CSSProperties, ReactElement } from "react";

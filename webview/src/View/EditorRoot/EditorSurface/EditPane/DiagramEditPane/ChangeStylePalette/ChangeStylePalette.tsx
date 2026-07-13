@@ -37,7 +37,7 @@ export default function ChangeStylePalette({
 }: ChangeStylePaletteProps): ReactElement {
   return (
     <FieldGrid
-      variant="compactControl"
+      variant="canvasStyle"
       rows={STYLE_PROPERTIES.map(({ name }) => ({
         label: toFieldLabel(name),
         control: (

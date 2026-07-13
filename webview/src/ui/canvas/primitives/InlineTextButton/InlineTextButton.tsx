@@ -1,8 +1,9 @@
 /**
  * Inline text button for a compact momentary action.
  *
- * Renders `label` as its content; clicking it reports `onClick`. Used by: saving
- * a note-body edit.
+ * Renders `label` as its content; clicking it reports `onClick`.
+ *
+ * Used by: saving a note-body edit.
  */
 
 import type { ReactElement } from "react";

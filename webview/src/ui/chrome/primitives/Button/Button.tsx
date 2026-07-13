@@ -4,19 +4,18 @@
  * Renders `label` beside `icon` when supplied; clicking it reports `onClick`.
  *
  * Lifecycle:
- * - `disabled` — on shows the command as unavailable and it cannot be pressed.
- *   Used by: unavailable class and diagram style actions
+ * - `disabled` — on shows the command as unavailable and it cannot be pressed
  * - `visible` — off preserves the command's layout space while removing it
- *   from sight, focus order, and accessibility. Used by: the note attachment row
+ *   from sight, focus order, and accessibility
  *
  * Modifiers:
  * - `variant` — the command's designed situation:
- *   - `standard` uses the ordinary full-width command surface — e.g. duplicate
- *     and style commands
- *   - `danger` uses error emphasis that fills on hover — e.g. delete commands
- *   - `compact` sizes to its content at the trailing edge with reduced height,
- *     padding, and type size — e.g. note attachment and relationship reversal
- *     commands
+ *   - `standard` uses the ordinary full-width command surface. Used by:
+ *     duplicate, style, generation, and attachment commands
+ *   - `danger` uses error emphasis that fills on hover. Used by: delete commands
+ *   - `rowAction` sizes to its content at the trailing edge with reduced height,
+ *     padding, and type size. Used by: note detachment, relationship reversal,
+ *     and class-style actions
  */
 
 import type { ReactElement } from "react";
@@ -34,7 +33,7 @@ type ButtonProps = {
   readonly icon?: GlyphDescriptor;
   readonly disabled?: boolean;
   readonly visible?: boolean;
-  readonly variant?: "standard" | "danger" | "compact";
+  readonly variant?: "standard" | "danger" | "rowAction";
   readonly onClick?: () => void;
 };
 
@@ -48,7 +47,7 @@ export default function Button({
 }: ButtonProps): ReactElement {
   const className = [
     variant === "danger" ? styles.dangerButton : styles.button,
-    variant === "compact" ? styles.compact : "",
+    variant === "rowAction" ? styles.compact : "",
     visible ? "" : styles.hidden,
   ]
     .filter(Boolean)

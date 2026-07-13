@@ -2,6 +2,7 @@
  * Drop indicator marking a text-list insertion point.
  *
  * Renders a fixed-height accent line without interactive or accessible content.
+ *
  * Used by: member-row reordering.
  */
 

@@ -5,9 +5,10 @@
  * `onClick` when clicked, and uses `surface` when supplied instead of the
  * base surface.
  *
+ * Used by: member underline and italic controls.
+ *
  * Lifecycle:
  * - `pressed` — on shows the toggle selected
- *   Used by: member underline and italic controls
  */
 
 import type { CSSProperties, ReactElement } from "react";

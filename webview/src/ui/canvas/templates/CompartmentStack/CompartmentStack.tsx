@@ -3,8 +3,9 @@
  *
  * Places `compartments` vertically in order and draws separators before every
  * region after the first, using `separatorColor`, `separatorThickness`, and
- * `separatorLineStyle` with base fallbacks. Used by: class title and member
- * compartments.
+ * `separatorLineStyle` with base fallbacks.
+ *
+ * Used by: class title and member compartments.
  */
 
 import type { CSSProperties, ReactElement, ReactNode } from "react";

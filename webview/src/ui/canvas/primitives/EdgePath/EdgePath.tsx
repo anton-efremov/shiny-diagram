@@ -8,11 +8,11 @@
  *
  * Lifecycle:
  * - `selected` — on uses the emphasized selection stroke
- *   Used by: the selected relationship
  *
  * Modifiers:
- * - `tone` — `default` permits user stroke values; `attachment` uses fixed
- *   attachment identity. Used by: relationships and note attachments
+ * - `tone` — the edge identity:
+ *   - `default` permits user stroke values. Used by: relationships
+ *   - `attachment` uses fixed attachment identity. Used by: note attachments
  */
 
 import type { CSSProperties, ReactElement } from "react";

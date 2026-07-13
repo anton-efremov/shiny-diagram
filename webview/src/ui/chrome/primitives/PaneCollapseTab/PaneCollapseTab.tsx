@@ -4,9 +4,11 @@
  * Clicking the tab reports `onToggle`, supplies the matching expand or collapse
  * accessible instruction, and paints at the supplied `stacking` plane.
  *
+ * Used by: the editor's property pane.
+ *
  * Lifecycle:
  * - `collapsed` — off points outward and offers collapse; on points inward and
- *   offers expansion. Used by: the editor's property pane
+ *   offers expansion
  */
 
 import type { CSSProperties, ReactElement } from "react";

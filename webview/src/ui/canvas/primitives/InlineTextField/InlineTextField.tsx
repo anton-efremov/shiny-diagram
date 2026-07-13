@@ -7,18 +7,19 @@
  *
  * Lifecycle:
  * - `invalid` — on shows invalid outline treatment
- *   Used by: class, namespace, and relationship text with validation messages
  *
  * Modifiers:
- * - `autoFocus` — on requests focus when the field mounts
- *   Used by: newly opened canvas text editors
- * - `hasEndAction` — on reserves trailing room for an overlaid action
- *   Used by: cancellable canvas text editors
+ * - `hasEndAction` — trailing action space:
+ *   - `false` leaves the full field available to text. Used by: class and
+ *     namespace text
+ *   - `true` reserves trailing room for an overlaid action. Used by:
+ *     relationship labels and multiplicities
  * - `tone` — the field's ground and text treatment:
- *   - `default` inherits its host treatment — e.g. class and namespace text
- *   - `label` uses light edge-text editing treatment — e.g. a relationship label
- *   - `multiplicity` uses dark caption editing treatment — e.g. an endpoint
- *     multiplicity
+ *   - `default` inherits its host treatment. Used by: class and namespace text
+ *   - `label` uses light edge-text editing treatment. Used by: relationship
+ *     labels
+ *   - `multiplicity` uses dark caption editing treatment. Used by: endpoint
+ *     multiplicities
  */
 
 import type { KeyboardEvent, ReactElement } from "react";
@@ -28,7 +29,6 @@ type InlineTextFieldProps = {
   readonly value: string;
   readonly ariaLabel: string;
   readonly invalid: boolean;
-  readonly autoFocus: boolean;
   readonly hasEndAction: boolean;
   readonly tone: "default" | "label" | "multiplicity";
   readonly onChange: (value: string) => void;
@@ -40,7 +40,6 @@ export default function InlineTextField({
   value,
   invalid,
   ariaLabel,
-  autoFocus,
   hasEndAction,
   tone,
   onChange,
@@ -61,7 +60,7 @@ export default function InlineTextField({
       value={value}
       aria-invalid={invalid}
       aria-label={ariaLabel}
-      autoFocus={autoFocus}
+      autoFocus
       onChange={(event) => onChange(event.currentTarget.value)}
       onBlur={onBlur}
       onKeyDown={onKeyDown}

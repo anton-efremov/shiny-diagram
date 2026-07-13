@@ -2,6 +2,7 @@
  * Empty-state message overlay that does not intercept interaction.
  *
  * Renders `message` in a padded overlay at the supplied `stacking` plane.
+ *
  * Used by: a diagram with no classes, notes, namespaces, or relationships.
  */
 

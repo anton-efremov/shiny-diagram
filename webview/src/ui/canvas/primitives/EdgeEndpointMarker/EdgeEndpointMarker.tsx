@@ -7,11 +7,13 @@
  *
  * Lifecycle:
  * - `selected` — on replaces marker identity with selection treatment
- *   Used by: endpoints of the selected relationship
  *
  * Modifiers:
- * - `side` — `source` reverses automatically at the path start; `target` follows
- *   the path direction at its end. Used by: relationship source and target ends
+ * - `side` — marker orientation:
+ *   - `source` reverses automatically at the path start. Used by: relationship
+ *     source ends
+ *   - `target` follows the path direction at its end. Used by: relationship
+ *     target ends
  */
 
 import type { ReactElement } from "react";

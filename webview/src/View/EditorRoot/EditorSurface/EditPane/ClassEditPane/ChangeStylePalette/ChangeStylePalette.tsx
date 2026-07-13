@@ -51,7 +51,7 @@ export default function ChangeStylePalette({
 
   return (
     <FieldGrid
-      variant="compact"
+      variant="surfaceStyle"
       rows={STYLE_PROPERTIES.map(({ name }) => ({
         label: toFieldLabel(name),
         control: (

@@ -3,7 +3,9 @@
  *
  * Sets the leading track from pixel `leadingWidth`, names the workspace with
  * `ariaLabel`, and arranges `leading`, `content`, and `trailing` from left to
- * right over the editor grid. Used by: the tool pane, canvas, and property pane.
+ * right over the editor grid.
+ *
+ * Used by: the tool pane, canvas, and property pane.
  */
 
 import type { CSSProperties, ReactElement, ReactNode } from "react";

@@ -48,7 +48,7 @@ export default function EdgeShapeControls({
 
   return (
     <FieldGrid
-      variant="inset"
+      variant="endpointPair"
       rows={[
         {
           label: "Source\nendpoint",
@@ -93,7 +93,7 @@ export default function EdgeShapeControls({
           label: "",
           control: (
             <ControlGroup>
-              <Button label="Reverse" variant="compact" onClick={onReverse} />
+              <Button label="Reverse" variant="rowAction" onClick={onReverse} />
             </ControlGroup>
           ),
         },

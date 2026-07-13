@@ -5,8 +5,11 @@
  * otherwise the selected tone's default.
  *
  * Modifiers:
- * - `tone` — `canvas` matches the canvas ground; `faint` uses a translucent wash
- *   Used by: selected classes and namespaces
+ * - `tone` — the fallback halo wash:
+ *   - `canvas` matches the canvas ground. Used by: selected classes on plain
+ *     canvas ground
+ *   - `faint` uses a translucent wash. Used by: selected classes with inherited
+ *     styling
  */
 
 import type { CSSProperties, ReactElement } from "react";

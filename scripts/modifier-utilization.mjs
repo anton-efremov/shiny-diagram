@@ -13,15 +13,23 @@ export async function analyzeModifierUtilization({ repoRoot, components }) {
     const componentSource = await readFile(path.join(repoRoot, component.filePath), "utf8");
     const modifierNames = sectionSubjects(component.annotation?.contentLines ?? [], "Modifiers:");
     const props = extractPropMetadata(component.propsType, componentSource);
+    const defaults = extractDestructuringDefaults(componentSource, component.name);
     const modifierProps = modifierNames.map((name) => {
       const prop = props.get(name);
       if (prop === undefined) {
         return { name, optional: false, values: [], error: "prop declaration not found" };
       }
-      const values = resolveValues(prop.type, componentSource);
-      return values.length === 0
-        ? { ...prop, values, error: `closed value set not found for ${JSON.stringify(prop.type)}` }
-        : { ...prop, values, error: null };
+      const declaredValues = resolveValues(prop.type, componentSource);
+      const defaultValue = defaults.get(name) ?? null;
+      const values =
+        prop.optional && defaultValue === null ? [...declaredValues, "<absent>"] : declaredValues;
+      const error =
+        declaredValues.length === 0
+          ? `closed value set not found for ${JSON.stringify(prop.type)}`
+          : defaultValue !== null && !declaredValues.includes(defaultValue)
+            ? `default ${JSON.stringify(defaultValue)} is outside the declared value set`
+            : null;
+      return { ...prop, declaredValues, defaultValue, values, error };
     });
     const sites = [];
     for (const source of sources) {
@@ -43,6 +51,11 @@ export async function analyzeModifierUtilization({ repoRoot, components }) {
       modifierProps.map((prop) => [prop.name, prop.values.length])
     );
     const product = modifierProps.reduce((result, prop) => result * prop.values.length, 1);
+    if (combinations.size > product) {
+      throw new Error(
+        `${component.name}: modifier utilization assertion failed: |U|=${combinations.size} exceeds P=${product}`
+      );
+    }
     reports.push({
       component: component.name,
       filePath: component.filePath,
@@ -101,6 +114,33 @@ function extractPropMetadata(propsType, source) {
     }
   }
   return props;
+}
+
+function extractDestructuringDefaults(source, componentName) {
+  const defaults = new Map();
+  const pattern = new RegExp(
+    `export\\s+default\\s+function\\s+${escapeRegExp(componentName)}\\s*\\(`
+  );
+  const match = pattern.exec(source);
+  if (match === null) return defaults;
+  const openBrace = source.indexOf("{", match.index + match[0].length);
+  if (openBrace < 0) return defaults;
+  const closeBrace = findMatching(source, openBrace, "{", "}");
+  for (const entry of splitTopLevel(source.slice(openBrace + 1, closeBrace), ",")) {
+    const defaultMatch = /^\s*([A-Za-z_$][\w$]*)\s*=\s*([\s\S]+?)\s*$/.exec(entry);
+    if (defaultMatch === null) continue;
+    const value = literalValue(defaultMatch[2]);
+    if (value !== null) defaults.set(defaultMatch[1], value);
+  }
+  return defaults;
+}
+
+function literalValue(expression) {
+  const stringMatch = /^(?:"([^"]*)"|'([^']*)')$/.exec(expression.trim());
+  if (stringMatch) return stringMatch[1] ?? stringMatch[2];
+  if (expression.trim() === "true" || expression.trim() === "false") return expression.trim();
+  if (/^-?(?:\d+|\d*\.\d+)$/.test(expression.trim())) return expression.trim();
+  return null;
 }
 
 function resolveValues(type, source) {
@@ -174,7 +214,9 @@ function findTagEnd(source, start) {
 function valuesAtSite(attributes, prop) {
   const attribute = findAttribute(attributes, prop.name);
   if (attribute === null) {
-    return /\{\.\.\./.test(attributes) ? prop.values : [prop.optional ? "<default>" : "<missing>"];
+    return /\{\.\.\./.test(attributes)
+      ? prop.values
+      : [prop.optional ? (prop.defaultValue ?? "<absent>") : "<missing>"];
   }
   if (attribute.kind === "bare") return ["true"];
   if (attribute.kind === "string") return [attribute.value];

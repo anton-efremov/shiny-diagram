@@ -7,15 +7,16 @@
  *
  * Lifecycle:
  * - `invalid` — on shows invalid treatment for the row form
- *   Used by: class-member edits with validation messages
  *
  * Modifiers:
- * - `autoFocus` — on requests focus when the area mounts
- *   Used by: note, title, and member editing
- * - `treatment` — `body` fills its container without resizing; `row` grows with
- *   its content as the draft changes. Used by: note bodies and member rows
- * - `hasEndAction` — on reserves trailing room for an overlaid row action
- *   Used by: member editing with cancel and emphasis controls
+ * - `treatment` — the text-editing situation:
+ *   - `body` fills its container without resizing. Used by: note-body editing
+ *   - `row` grows with its content as the draft changes. Used by: class-member
+ *     editing
+ * - `hasEndAction` — trailing action space:
+ *   - `false` leaves the full row available to text. Used by: note-body editing
+ *   - `true` reserves room for an overlaid row action. Used by: member editing
+ *     with cancel and emphasis controls
  */
 
 import { useLayoutEffect, useRef } from "react";
@@ -26,7 +27,6 @@ type InlineTextAreaProps = {
   readonly value: string;
   readonly rows?: number;
   readonly invalid?: boolean;
-  readonly autoFocus: boolean;
   readonly treatment: "body" | "row";
   readonly hasEndAction?: boolean;
   readonly onChange: (value: string) => void;
@@ -36,7 +36,6 @@ type InlineTextAreaProps = {
 
 export default function InlineTextArea({
   value,
-  autoFocus,
   treatment,
   rows,
   invalid = false,
@@ -60,7 +59,7 @@ export default function InlineTextArea({
       value={value}
       rows={rows}
       aria-invalid={invalid}
-      autoFocus={autoFocus}
+      autoFocus
       onChange={(event) => onChange(event.currentTarget.value)}
       onBlur={onBlur}
       onKeyDown={onKeyDown}

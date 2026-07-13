@@ -5,6 +5,7 @@
  * `centerOffset`, placing edge targets at `stacking` and handles one plane above.
  * A press neither selects nor reaches the surface beneath; it reports the
  * grabbed handle and viewport point through `onGrab`.
+ *
  * Used by: selected classes, notes, and namespaces.
  */
 

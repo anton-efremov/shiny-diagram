@@ -2,8 +2,9 @@
  * Canvas overlay frame spanning the viewport without intercepting input.
  *
  * Hosts SVG `children` across the full viewport at the supplied `stacking`
- * plane and hides the frame from accessibility. Used by: the note-attachment
- * preview.
+ * plane and hides the frame from accessibility.
+ *
+ * Used by: the note-attachment preview.
  */
 
 import type { CSSProperties, ReactElement, ReactNode } from "react";

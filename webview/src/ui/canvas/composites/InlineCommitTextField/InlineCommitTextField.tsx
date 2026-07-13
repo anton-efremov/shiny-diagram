@@ -13,18 +13,18 @@
  *
  * Lifecycle:
  * - `isEditing` — off renders `displayText` or nothing; on renders the field
- *   Used by: class, namespace, and relationship text
  * - `isCancelVisible` — on reserves trailing room and shows a cancel action
- *   Used by: relationship labels, captions, and multiplicities
  *
  * Modifiers:
  * - `treatment` — the editor's alignment with its display state:
- *   - `primary` aligns with prominent centered text — e.g. a class title
- *   - `secondary` aligns with secondary text — e.g. a class stereotype or alias
- *   - `heading` aligns with left-aligned heading text — e.g. a namespace heading
- *   - `label` aligns with the light edge-text pill — e.g. a relationship label
- *   - `multiplicity` aligns with the dark edge-text pill — e.g. an endpoint
- *     multiplicity
+ *   - `primary` aligns with prominent centered text. Used by: class titles
+ *   - `secondary` aligns with secondary text. Used by: class stereotypes and
+ *     aliases
+ *   - `heading` aligns with left-aligned heading text. Used by: namespace
+ *     headings
+ *   - `label` aligns with the light edge-text pill. Used by: relationship labels
+ *   - `multiplicity` aligns with the dark edge-text pill. Used by: endpoint
+ *     multiplicities
  */
 
 import type { MouseEvent, ReactElement } from "react";
@@ -114,7 +114,6 @@ export default function InlineCommitTextField({
         value={lifecycle.draft}
         invalid={lifecycle.messages.length > 0}
         ariaLabel={ariaLabel}
-        autoFocus
         hasEndAction={isCancelVisible}
         tone={tone}
         onChange={lifecycle.onDraftChange}

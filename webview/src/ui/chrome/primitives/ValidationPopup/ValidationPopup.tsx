@@ -5,6 +5,7 @@
  * it above the anchor or below when viewport space requires. Dismissing it —
  * from the keyboard, by clicking anywhere outside, or by its own dismiss control
  * — reports `onDismiss`. The popup paints at the supplied `stacking` plane.
+ *
  * Used by: invalid class names, namespace names, style names, relationship
  * labels, and multiplicities.
  */

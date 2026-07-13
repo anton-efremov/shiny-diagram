@@ -6,8 +6,10 @@
  * remains available on both text and surface.
  *
  * Modifiers:
- * - `variant` — `label` uses light label treatment; `multiplicity` uses dark
- *   caption treatment. Used by: relationship labels and endpoint multiplicities
+ * - `variant` — the edge-text situation:
+ *   - `label` uses light label treatment. Used by: relationship labels
+ *   - `multiplicity` uses dark caption treatment. Used by: endpoint
+ *     multiplicities
  */
 
 import { useLayoutEffect, useRef, useState } from "react";

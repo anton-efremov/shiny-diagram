@@ -11,11 +11,12 @@
  *
  * Lifecycle:
  * - `disabled` — on means the list cannot be opened and shows the control as
- *   unavailable. Used by: no current product situation
+ *   unavailable
  *
  * Modifiers:
- * - `kind` — `width` varies the sample's thickness; `dash` varies its pattern
- *   Used by: outline width and dash controls
+ * - `kind` — the sampled line property:
+ *   - `width` varies the sample's thickness. Used by: outline-width controls
+ *   - `dash` varies the sample's pattern. Used by: outline-dash controls
  */
 
 import { useEffect, useRef, useState } from "react";

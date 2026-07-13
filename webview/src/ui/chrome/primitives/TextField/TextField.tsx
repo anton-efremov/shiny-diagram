@@ -7,13 +7,14 @@
  *
  * Lifecycle:
  * - `disabled` — on prevents editing and shows it as unavailable
- *   Used by: no current product situation
  * - `invalid` — on exposes invalid state and error treatment
- *   Used by: committed text and free-form style fields
  *
  * Modifiers:
- * - `hasEndAction` — on reserves trailing room for an overlaid action
- *   Used by: clearable and cancellable text fields
+ * - `hasEndAction` — trailing action space:
+ *   - `false` leaves the full field available to text. Used by: combo-box custom
+ *     values and plain committed text
+ *   - `true` reserves trailing room for an overlaid action. Used by: clearable
+ *     and cancellable text fields
  */
 
 import type { KeyboardEvent, ReactElement } from "react";

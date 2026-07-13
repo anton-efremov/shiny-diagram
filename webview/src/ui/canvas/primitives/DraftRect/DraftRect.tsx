@@ -5,11 +5,13 @@
  * supplied.
  *
  * Modifiers:
- * - `tone` — `accent` uses pending placement treatment; `positive` uses success
- *   treatment. Used by: class placement and namespace drawing
- * - `positioning` — `absolute` positions within the containing surface; `fixed`
- *   positions against the viewport. Used by: class placement and namespace
- *   drawing
+ * - `tone` — the draft's status treatment:
+ *   - `accent` uses pending placement treatment. Used by: class placement
+ *   - `positive` uses success treatment. Used by: namespace drawing
+ * - `positioning` — the draft's containing coordinate space:
+ *   - `absolute` positions within the containing surface. Used by: class
+ *     placement
+ *   - `fixed` positions against the viewport. Used by: namespace drawing
  */
 
 import type { CSSProperties, ReactElement } from "react";

@@ -4,7 +4,9 @@
  * Maintains `minHeight`, places `validation` first, then full-width `leading`,
  * `primary`, and `trailing` slots, and draws the lower separator from
  * `separatorColor`, `separatorThickness`, and `separatorLineStyle` with base
- * fallbacks. Used by: the title region of a class.
+ * fallbacks.
+ *
+ * Used by: the title region of a class.
  */
 
 import type { CSSProperties, ReactElement, ReactNode } from "react";

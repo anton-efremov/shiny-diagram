@@ -127,12 +127,12 @@ entries record current behavior and contract friction only; they propose no fix.
 - **CommitTextField auto focus — Closed (Brief 11, Task 4).** The dead
   `autoFocus` modifier and pass-through were deleted; unused `disabled` remains
   a coherent lifecycle state.
-- **CommitTextField cancel affordance — Open (Brief 11, Task 4 regression
-  review).** History at `dbdbfbab` proves `isCancelVisible` was introduced for a
-  live relationship-edge editor. The canvas migration moved that situation to
-  `InlineCommitTextField` without removing or re-homing the chrome contract.
-  Per the brief's special case, retain it and review whether chrome cancellation
-  still has a planned consumer or should be removed in a follow-up.
+- **CommitTextField cancel affordance — Closed (Brief 13 review decision):
+  deleted.** The canvas twin owns the relationship-edge situation. Chrome
+  nullability is carried by `CommitClearableTextField` and the combo's null entry;
+  Escape cancellation remains in the shared commit lifecycle. Resurrect a visible
+  chrome revert button only through contract-change review if a consumer
+  materializes.
 - **SwatchToggle — Closed (Brief 11, Task 4 review).** Its unused `disabled`
   entry is a lifecycle state and remains as coherent toggle state-machine
   surface.
@@ -140,3 +140,13 @@ entries record current behavior and contract friction only; they propose no fix.
   Closed (Brief 11, Task 4).** Their dead `default` and `neutral` surface choices
   were removed; the sole exercised base treatment is now element-owned rather
   than exposed as a one-value modifier.
+- **DismissButton — Closed (Brief 12, Task 2).** Per-value anchoring proved every
+  live consumer selected the compact `small` treatment. The unexercised standard
+  footprint and modifier were deleted; the compact footprint is now intrinsic.
+- **InlineCommitTextArea / InlineEmphasisCommitTextField — Closed (Brief 12,
+  Tasks 2 and 4.2).** Their only product consumers always requested autofocus.
+  The dead off values and both composite modifiers were deleted.
+- **InlineTextArea / InlineTextField — Closed (Brief 12, Task 2).** After tracing
+  through their commit composites, every live primitive use likewise autofocuses.
+  Their dead off values and autofocus props were deleted; focus-on-mount is now
+  intrinsic to these editor primitives.

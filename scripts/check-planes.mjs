@@ -180,6 +180,50 @@ function checkStructure(component) {
       );
     }
   }
+
+  checkAnchorFormat(component, lines);
+}
+
+function checkAnchorFormat(component, lines) {
+  const lifecycle = sectionRange(lines, "Lifecycle:");
+  if (lifecycle !== null) {
+    for (const entry of topLevelBulletRanges(lines, lifecycle.start, lifecycle.end)) {
+      const text = lines.slice(entry.start, entry.end).join(" ");
+      if (!text.includes("Used by:")) continue;
+      componentViolation(
+        component,
+        "lifecycle anchor format",
+        `Lifecycle subject ${JSON.stringify(entry.subject)} carries a \`Used by:\` anchor.`,
+        "Remove the lifecycle anchor, then run `npm run planes`."
+      );
+    }
+  }
+
+  const modifiers = sectionRange(lines, "Modifiers:");
+  if (modifiers !== null) {
+    for (const entry of topLevelBulletRanges(lines, modifiers.start, modifiers.end)) {
+      const values = nestedBulletRanges(lines, entry.start + 1, entry.end);
+      if (values.length > 0 && values.every((value) => value.text.includes("Used by:"))) continue;
+      componentViolation(
+        component,
+        "modifier value anchor format",
+        `Modifier subject ${JSON.stringify(entry.subject)} must enumerate every value as a nested bullet ending with \`Used by:\`.`,
+        "Add one anchored nested bullet per value, then run `npm run planes`."
+      );
+    }
+    return;
+  }
+
+  const standaloneAnchor = lines.some(
+    (line, index) => /^Used by:\s+\S/.test(line) && index > 0 && lines[index - 1] === ""
+  );
+  if (standaloneAnchor) return;
+  componentViolation(
+    component,
+    "component anchor format",
+    "A component without a `Modifiers:` section must carry a standalone `Used by:` paragraph.",
+    "Move the product anchor into its own paragraph after the contract paragraph, then run `npm run planes`."
+  );
 }
 
 function checkSummaryPurity(component) {
@@ -234,6 +278,43 @@ function sectionEntries(lines, heading) {
     entries.push({ line, subject: match?.[1] ?? null });
   }
   return entries;
+}
+
+function sectionRange(lines, heading) {
+  const headingIndex = lines.indexOf(heading);
+  if (headingIndex < 0) return null;
+  let end = lines.length;
+  for (let index = headingIndex + 1; index < lines.length; index += 1) {
+    if (lines[index] === "Lifecycle:" || lines[index] === "Modifiers:") {
+      end = index;
+      break;
+    }
+  }
+  return { start: headingIndex + 1, end };
+}
+
+function topLevelBulletRanges(lines, start, end) {
+  const entries = [];
+  for (let index = start; index < end; index += 1) {
+    const match = /^- `([^`]+)`(?:\s|$)/.exec(lines[index]);
+    if (match === null) continue;
+    const next = lines.findIndex(
+      (line, candidate) => candidate > index && candidate < end && /^- `([^`]+)`(?:\s|$)/.test(line)
+    );
+    entries.push({ subject: match[1], start: index, end: next < 0 ? end : next });
+    if (next >= 0) index = next - 1;
+  }
+  return entries;
+}
+
+function nestedBulletRanges(lines, start, end) {
+  const starts = [];
+  for (let index = start; index < end; index += 1) {
+    if (/^\s+- `[^`]+`(?:\s|$)/.test(lines[index])) starts.push(index);
+  }
+  return starts.map((valueStart, index) => ({
+    text: lines.slice(valueStart, starts[index + 1] ?? end).join(" "),
+  }));
 }
 
 function componentViolation(component, rule, message, fix) {

@@ -8,17 +8,15 @@
  *
  * Modifiers:
  * - `variant` — what is rendered:
- *   - `primary`   one line of prominent centered text; overflow is cut with
- *                 an ellipsis — e.g. a class title
- *   - `secondary` one line of small text; overflow is cut with an ellipsis
- *                 — e.g. a stereotype or alias under a title
- *   - `heading`   one line of medium left-aligned text; overflow is cut with an
- *                 ellipsis — e.g. a namespace heading
- *   - `body`      multiline text filling its container; wraps anywhere,
- *                 keeps authored line breaks; text past the bottom is cut
- *                 off — e.g. the text of a note
- *   - `row`       compact padded text, small type; wraps — e.g. a member
- *                 row in a class box
+ *   - `primary` renders one prominent centered line and ellipsizes overflow.
+ *     Used by: class titles
+ *   - `secondary` renders one small line and ellipsizes overflow. Used by: class
+ *     stereotypes and aliases
+ *   - `heading` renders one medium left-aligned line and ellipsizes overflow.
+ *     Used by: namespace headings
+ *   - `body` fills its container with multiline text, wrapping anywhere and
+ *     clipping text past the bottom. Used by: note bodies
+ *   - `row` renders compact padded text that wraps. Used by: class-member rows
  */
 
 import type { MouseEvent, ReactElement } from "react";

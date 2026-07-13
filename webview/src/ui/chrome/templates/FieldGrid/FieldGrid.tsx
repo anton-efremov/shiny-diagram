@@ -6,16 +6,16 @@
  *
  * Modifiers:
  * - `variant` — the designed grid arrangement:
- *   - `standard` uses the wider label track and full control width — e.g. a
- *     diagram style name
- *   - `inset` adds horizontal inset to that arrangement — e.g. relationship
- *     multiplicities and edge shape
- *   - `compact` combines inset, a narrow label track, and a centered half-width
- *     control — e.g. class and namespace style properties
- *   - `compactControl` uses the wider label track with a centered half-width
- *     control — e.g. diagram style properties
- *   - `compactLabel` combines inset and the narrow label track with a full-width
- *     control — e.g. class header text
+ *   - `styleName` uses the wider label track and full control width. Used by:
+ *     diagram style naming
+ *   - `endpointPair` adds horizontal inset to that arrangement. Used by:
+ *     relationship multiplicities and edge shape
+ *   - `surfaceStyle` combines inset, a narrow label track, and a centered
+ *     half-width control. Used by: class and namespace style properties
+ *   - `canvasStyle` uses the wider label track with a centered half-width
+ *     control. Used by: diagram style properties
+ *   - `headerText` combines inset and the narrow label track with a full-width
+ *     control. Used by: class header text
  */
 
 import type { ReactElement, ReactNode } from "react";
@@ -35,13 +35,14 @@ export type FieldGridRow = {
 
 type FieldGridProps = {
   readonly rows: readonly FieldGridRow[];
-  readonly variant?: "standard" | "inset" | "compact" | "compactControl" | "compactLabel";
+  readonly variant?: "styleName" | "endpointPair" | "surfaceStyle" | "canvasStyle" | "headerText";
 };
 
-export default function FieldGrid({ rows, variant = "standard" }: FieldGridProps): ReactElement {
-  const isInset = variant === "inset" || variant === "compact" || variant === "compactLabel";
-  const hasCompactLabel = variant === "compact" || variant === "compactLabel";
-  const hasCompactControl = variant === "compact" || variant === "compactControl";
+export default function FieldGrid({ rows, variant = "styleName" }: FieldGridProps): ReactElement {
+  const isInset =
+    variant === "endpointPair" || variant === "surfaceStyle" || variant === "headerText";
+  const hasCompactLabel = variant === "surfaceStyle" || variant === "headerText";
+  const hasCompactControl = variant === "surfaceStyle" || variant === "canvasStyle";
 
   return (
     <div className={isInset ? styles.insetGrid : styles.grid}>

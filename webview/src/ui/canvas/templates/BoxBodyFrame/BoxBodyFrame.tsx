@@ -2,8 +2,9 @@
  * Box body frame stacking validation and content in a flexible region.
  *
  * Places the optional `validation` slot before `children`, allowing the body to
- * grow and shrink while leaving overflow visible. Used by: class member
- * compartments.
+ * grow and shrink while leaving overflow visible.
+ *
+ * Used by: class member compartments.
  */
 
 import type { ReactElement, ReactNode } from "react";

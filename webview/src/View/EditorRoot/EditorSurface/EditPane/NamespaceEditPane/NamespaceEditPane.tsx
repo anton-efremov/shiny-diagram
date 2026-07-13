@@ -87,7 +87,7 @@ export default function NamespaceEditPane({
       </PaneSection>
       <PaneSection label="Configure style">
         <FieldGrid
-          variant="compact"
+          variant="surfaceStyle"
           rows={STYLE_PROPERTIES.map(({ name }) => ({
             label: toPropertyLabel(name),
             control: (

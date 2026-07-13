@@ -4,10 +4,11 @@
  * Sets the expanded frame from pixel `width`, renders `edgeControl` against the
  * shell, and arranges `children` vertically in a scrolling content region.
  *
+ * Used by: the tool pane and property pane.
+ *
  * Lifecycle:
  * - `collapsed` — off renders the frame at `width`; on reduces the shell to zero
- *   width and omits its children while retaining the edge control. Used by: the
- *   editor's property pane
+ *   width and omits its children while retaining the edge control
  */
 
 import type { CSSProperties, ReactElement, ReactNode } from "react";

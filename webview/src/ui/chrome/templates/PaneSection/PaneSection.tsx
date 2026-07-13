@@ -5,11 +5,13 @@
  * shrinkable tracks.
  *
  * Modifiers:
- * - `columns` — `1` stacks content in one centered track; `2` uses two equal
- *   centered tracks. Used by: edit-pane fields and paired actions
- * - `spacingAfter` — `default` leaves the standard gap before the next section;
- *   `compact` reduces that following gap. Used by: dense style and relationship
- *   sections
+ * - `columns` — the section arrangement:
+ *   - `1` stacks content in one centered track. Used by: edit-pane fields and
+ *     grouped controls
+ *   - `2` uses two equal centered tracks. Used by: relationship placement tools
+ * - `spacingAfter` — the following section gap:
+ *   - `default` leaves the standard gap. Used by: everywhere else
+ *   - `compact` reduces the gap. Used by: the note attachment section
  */
 
 import type { ReactElement, ReactNode } from "react";

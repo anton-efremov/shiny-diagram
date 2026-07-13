@@ -41,7 +41,7 @@ export default function HeaderTextControls({
 
   return (
     <FieldGrid
-      variant="compactLabel"
+      variant="headerText"
       rows={[
         {
           label: "",

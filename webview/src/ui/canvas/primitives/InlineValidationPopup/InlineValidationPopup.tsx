@@ -5,6 +5,7 @@
  * it above the anchor or below when viewport space requires at the supplied
  * `stacking` plane. Dismissing it — from the keyboard, by clicking anywhere
  * outside, or by its own dismiss control — reports `onDismiss`.
+ *
  * Used by: invalid class, namespace, note, and relationship text drafts.
  */
 

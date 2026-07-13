@@ -9,9 +9,11 @@
  * `onChange`. Each entry may show a text label, a preview, or both, as its options
  * entry supplies; the list paints at the supplied `stacking` plane.
  *
+ * Used by: named-style, relationship endpoint, and relationship-line choices.
+ *
  * Lifecycle:
  * - `disabled` — on means the list cannot be opened and shows the control as
- *   unavailable. Used by: no current product situation
+ *   unavailable
  */
 
 import { useEffect, useRef, useState } from "react";

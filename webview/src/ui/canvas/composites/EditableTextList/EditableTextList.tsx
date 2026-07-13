@@ -10,11 +10,13 @@
  * validation uses `validationStacking`, and `surface` supplies an explicit action
  * ground over the class-member fallback.
  *
+ * Used by: class attribute and operation rows.
+ *
  * Lifecycle:
  * - `isEditable` — on permits row editing, reordering, and adding; off
- *   leaves display rows inert. Used by: members of the selected class
+ *   leaves display rows inert
  * - `isEmphasisEditable` — on initializes and commits row emphasis; off removes
- *   emphasis from edit outcomes. Used by: attributes and operations in a class
+ *   emphasis from edit outcomes
  */
 
 import { Fragment, useEffect, useRef, useState } from "react";
@@ -241,7 +243,6 @@ function Editor({
         initialValue={initialValue}
         initialEmphasis={initialEmphasis}
         validate={validate}
-        autoFocus
         actionStacking={actionStacking}
         validationStacking={validationStacking}
         surface={surface}

@@ -25,7 +25,7 @@ export default function MultiplicityControls({ view }: MultiplicityControlsProps
 
   return (
     <FieldGrid
-      variant="inset"
+      variant="endpointPair"
       rows={[
         {
           label: "Source",

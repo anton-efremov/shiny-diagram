@@ -4,10 +4,12 @@
  * Places `children` into equal, shrinkable tracks spanning the available width.
  *
  * Modifiers:
- * - `columns` — `1` stacks children; `2` arranges two equal columns
- *   Used by: edit-pane action and toggle groups
- * - `spacing` — `default` keeps compact gaps; `wide` doubles the gap
- *   Used by: edit-pane action and toggle groups
+ * - `columns` — the group arrangement:
+ *   - `1` stacks children. Used by: style selection and relationship reversal
+ *   - `2` arranges two equal columns. Used by: duplicate/delete and style actions
+ * - `spacing` — the distance between children:
+ *   - `default` keeps compact gaps. Used by: edit-pane action groups
+ *   - `wide` doubles the gap. Used by: saved-style selection
  */
 
 import type { ReactElement, ReactNode } from "react";

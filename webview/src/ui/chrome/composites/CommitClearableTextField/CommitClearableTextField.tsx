@@ -10,11 +10,12 @@
  * empties it and reports `onClear`. `ariaLabel` always names the field and its
  * clear action. Validation paints at the supplied `validationStacking` plane.
  *
+ * Used by: relationship labels and optional class labels.
+ *
  * Lifecycle:
  * - `disabled` — on prevents editing and removes the clear action
- *   Used by: no current product situation
  * - `isLabelVisible` — on shows `ariaLabel` in a fixed label column; off keeps
- *   only the accessible name. Used by: relationship labels and class titles
+ *   only the accessible name
  */
 
 import type { ReactElement } from "react";
@@ -80,7 +81,7 @@ export default function CommitClearableTextField({
         />
         {lifecycle.draft === "" || disabled ? null : (
           <span className={styles.clearButton}>
-            <DismissButton label={`Clear ${ariaLabel ?? "value"}`} small onClick={handleClear} />
+            <DismissButton label={`Clear ${ariaLabel ?? "value"}`} onClick={handleClear} />
           </span>
         )}
       </div>

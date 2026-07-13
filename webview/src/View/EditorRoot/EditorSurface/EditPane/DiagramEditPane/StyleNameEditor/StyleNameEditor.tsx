@@ -42,7 +42,7 @@ export default function StyleNameEditor({
 
   return (
     <FieldGrid
-      variant="standard"
+      variant="styleName"
       rows={[
         {
           label: "Name",

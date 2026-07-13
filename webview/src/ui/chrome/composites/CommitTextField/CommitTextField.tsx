@@ -1,29 +1,26 @@
 /**
- * Text field with validation, commit lifecycle, and optional cancellation.
+ * Text field with validation, commit lifecycle, and cancellation.
  *
  * Holds `initialValue` as a draft, reports each edit through `onDraftChange`,
  * and resets when the incoming value changes. `validate` gates completion:
  * confirming a valid draft, or leaving the field with one, reports `onCommit`;
  * leaving with an invalid draft restores the committed value and reports
- * `onDiscard` with its messages; backing out or using the optional cancel action
- * restores it and reports `onCancel`. A failed confirmation keeps its messages
- * visible until dismissed or the draft changes. `ariaLabel` always supplies the
- * accessible name, and validation paints at the supplied `validationStacking`
- * plane.
+ * `onDiscard` with its messages; backing out restores it and reports `onCancel`.
+ * A failed confirmation keeps its messages visible until dismissed or the draft
+ * changes. `ariaLabel` always supplies the accessible name, and validation
+ * paints at the supplied `validationStacking` plane.
+ *
+ * Used by: class names, namespace names, and diagram style names.
  *
  * Lifecycle:
  * - `disabled` — on prevents editing
- *   Used by: no current product situation
  * - `isLabelVisible` — on shows `ariaLabel` in a fixed label column; off keeps
- *   only the accessible name. Used by: namespace and class names
- * - `isCancelVisible` — on reserves trailing space and shows a cancel action
- *   Used by: no current product situation
+ *   only the accessible name
  */
 
 import type { ReactElement } from "react";
 import TextField from "../../primitives/TextField/TextField";
 import ValidationPopup from "../../primitives/ValidationPopup/ValidationPopup";
-import DismissButton from "../../primitives/DismissButton/DismissButton";
 import styles from "./CommitTextField.module.css";
 import { useCommitLifecycle } from "../../../core/commitLifecycle";
 
@@ -34,7 +31,6 @@ type CommitTextFieldProps = {
   readonly validate: (draft: string) => readonly string[];
   readonly disabled?: boolean;
   readonly isLabelVisible?: boolean;
-  readonly isCancelVisible?: boolean;
   readonly onCommit: (value: string) => void;
   readonly onDraftChange?: (value: string) => void;
   readonly onDiscard: (messages: readonly string[]) => void;
@@ -47,7 +43,6 @@ export default function CommitTextField({
   disabled = false,
   ariaLabel,
   isLabelVisible = true,
-  isCancelVisible = false,
   validationStacking,
   onCommit,
   onDraftChange,
@@ -74,16 +69,10 @@ export default function CommitTextField({
           disabled={disabled}
           invalid={lifecycle.messages.length > 0}
           ariaLabel={ariaLabel}
-          hasEndAction={isCancelVisible}
           onChange={lifecycle.onDraftChange}
           onBlur={lifecycle.onBlur}
           onKeyDown={lifecycle.onKeyDown}
         />
-        {isCancelVisible ? (
-          <span className={styles.cancelButton}>
-            <DismissButton label="Cancel editing" small onClick={lifecycle.onCancel} />
-          </span>
-        ) : null}
       </div>
       {lifecycle.messages.length > 0 ? (
         <ValidationPopup

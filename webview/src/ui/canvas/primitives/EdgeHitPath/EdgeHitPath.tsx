@@ -2,7 +2,9 @@
  * Edge hit path widening pointer access without visible output.
  *
  * Follows `d` with a transparent stroke that receives pointer input across a
- * wider corridor and presents an action cursor. Used by: relationship selection.
+ * wider corridor and presents an action cursor.
+ *
+ * Used by: relationship selection.
  */
 
 import type { ReactElement } from "react";

@@ -9,13 +9,14 @@
  *
  * Lifecycle:
  * - `isEditing` — off renders the text pill; on renders the editor
- *   Used by: relationship labels and endpoint multiplicities
  * - `isClickEditEnabled` — on lets a single click request editing; double-click
- *   requests editing in either state. Used by: text on a selected relationship
+ *   requests editing in either state
  *
  * Modifiers:
- * - `treatment` — `label` uses light label treatment; `multiplicity` uses dark
- *   caption treatment. Used by: relationship labels and endpoint multiplicities
+ * - `treatment` — the edge-text situation:
+ *   - `label` uses light label treatment. Used by: relationship labels
+ *   - `multiplicity` uses dark caption treatment. Used by: endpoint
+ *     multiplicities
  */
 
 import { useState } from "react";

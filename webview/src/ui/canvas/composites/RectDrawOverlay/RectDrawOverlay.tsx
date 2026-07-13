@@ -4,7 +4,9 @@
  * Routes pointer phases through `onPointerDown`, `onPointerMove`, and
  * `onPointerUp` at the supplied `stacking` plane. Text selection and native
  * dragging do not engage while drawing. When `rect` is non-null, it also renders
- * the pending rectangle. Used by: class and namespace placement gestures.
+ * the pending rectangle.
+ *
+ * Used by: class and namespace placement gestures.
  */
 
 import type { CSSProperties, PointerEvent, ReactElement } from "react";
