@@ -13,9 +13,9 @@ import ClassActions from "./ClassActions/ClassActions";
 import HeaderTextControls from "./HeaderTextControls/HeaderTextControls";
 import NamedStyleSelector from "./NamedStyleSelector/NamedStyleSelector";
 import { useInteractions } from "./useInteractions";
-import PaneSection from "../../../../ui/templates/PaneSection/PaneSection";
-import Button from "../../../../ui/primitives/Button/Button";
-import ControlGroup from "../../../../ui/templates/ControlGroup/ControlGroup";
+import PaneSection from "../../../../../ui/chrome/templates/PaneSection/PaneSection";
+import Button from "../../../../../ui/chrome/primitives/Button/Button";
+import ControlGroup from "../../../../../ui/chrome/templates/ControlGroup/ControlGroup";
 import { COLOR_PRESETS } from "../../../../config/stylePresets";
 import {
   CLASS_DEFAULT_STROKE_WIDTH,

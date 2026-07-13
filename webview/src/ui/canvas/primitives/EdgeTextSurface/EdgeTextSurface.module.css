@@ -1,0 +1,28 @@
+.text {
+  font: var(--shiny-canvas-font-size-secondary) var(--shiny-font-family);
+  cursor: var(--shiny-cursor-text);
+  pointer-events: all;
+}
+
+.surface {
+  stroke-width: var(--shiny-edge-text-outline-width);
+  pointer-events: all;
+}
+
+.surface.label {
+  fill: var(--shiny-edge-label-background);
+  stroke: var(--shiny-edge-label-outline);
+}
+
+.surface.multiplicity {
+  fill: var(--shiny-edge-caption-background);
+  stroke: var(--shiny-edge-caption-outline);
+}
+
+.text.label {
+  fill: var(--shiny-edge-label-text);
+}
+
+.text.multiplicity {
+  fill: var(--shiny-edge-caption-text);
+}

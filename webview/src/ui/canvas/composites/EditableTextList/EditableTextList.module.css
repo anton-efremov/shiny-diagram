@@ -1,0 +1,57 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rowHost {
+  min-width: 0;
+  padding: 0;
+  border: none;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: var(--shiny-cursor-default);
+}
+
+.editable {
+  cursor: var(--shiny-cursor-action);
+}
+
+.editable:hover {
+  background: var(--shiny-overlay-faint);
+}
+
+.underlined {
+  text-decoration-line: underline;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.dragged {
+  opacity: var(--shiny-reorder-drag-opacity);
+}
+
+.dragging {
+  user-select: none;
+}
+
+.addCell {
+  display: flex;
+  min-height: var(--shiny-inline-add-min-height);
+  padding: 2px 0;
+  align-items: stretch;
+}
+
+.addCell > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.editorHost {
+  width: 100%;
+  font-size: var(--shiny-canvas-font-size-secondary);
+  line-height: var(--shiny-canvas-line-height-secondary);
+}

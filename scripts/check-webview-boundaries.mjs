@@ -12,6 +12,7 @@ const sourceRoot = path.join(repoRoot, "webview", "src");
 const sourcePrefix = "webview/src";
 const WEBVIEW_PROTOCOL_FILE = "Bridge/protocol.ts";
 const HOST_PROTOCOL_FILE = "extension-host/protocol.ts";
+const UI_ROOT = "ui";
 
 const PROTOCOL_FILES = [
   {
@@ -100,22 +101,25 @@ function main() {
     }
 
     for (const dependency of collectDependencies(sourceFile)) {
-      checkUILibraryImport(file, dependency, null);
-
-      const target = resolveProjectDependency(
+      const projectTarget = resolveProjectDependency(
         absoluteFile,
         dependency.specifier,
         compilerOptions,
         moduleResolutionCache
       );
-      if (!target) continue;
+      const target = projectTarget ?? resolveProjectCSSDependency(file, dependency.specifier);
 
+      checkIconCatalogImport(file, dependency, target);
       checkUILibraryImport(file, dependency, target, compositeImportGraph);
-      checkDependency(file, dependency, target);
+      if (projectTarget) {
+        checkDependency(file, dependency, projectTarget);
+      }
     }
   }
 
   checkCompositeImportCycles(compositeImportGraph);
+  checkStylesheetOwnership();
+  checkTokenConsumption();
   checkCSSModuleShinyTokenDefinitions();
   checkCSSModuleLiteralColors();
 
@@ -161,6 +165,17 @@ function main() {
   }
 
   console.log("Webview boundary check passed.");
+}
+
+function checkIconCatalogImport(file, dependency, target) {
+  if (path.basename(file) !== "icons.ts") return;
+  if (target && isUnder(target, "shared")) return;
+
+  reportDependency(
+    file,
+    dependency,
+    "Domain glyph catalogs: icons.ts files may import only descriptor contracts from shared"
+  );
 }
 
 function readWebviewCompilerOptions() {
@@ -225,6 +240,17 @@ function checkRequiredAndProhibitedFiles() {
   for (const barrel of PROHIBITED_BARRELS) {
     if (existsSync(path.join(sourceRoot, barrel))) {
       reportFile(barrel, "root barrel is prohibited");
+    }
+  }
+
+  const uiRoot = path.join(sourceRoot, UI_ROOT);
+  if (existsSync(uiRoot)) {
+    for (const absoluteFile of listFiles(uiRoot)) {
+      if (!/^index\.(?:ts|tsx)$/.test(path.basename(absoluteFile))) continue;
+      reportFile(
+        toSourceRelative(absoluteFile),
+        "UI library outbound surface: barrel files are prohibited everywhere under ui"
+      );
     }
   }
 }
@@ -404,27 +430,24 @@ function resolveProjectCSSDependency(importerFile, specifier) {
   return toPosix(relative);
 }
 
-function isProhibitedUILibraryConsumer(file) {
-  return (
-    isUnder(file, "Shell") ||
-    isUnder(file, "Controller") ||
-    isUnder(file, "Bridge") ||
-    isUnder(file, "mermaidRenderer")
-  );
-}
-
-function isUILegacyAllowlisted(file) {
-  return false;
-}
-
 function uiComponent(file) {
-  const match = /^View\/ui\/(primitives|composites|templates)\/([^/]+)(?:\/|$)/.exec(file);
+  const match = /^ui\/(chrome|canvas)\/(primitives|composites|templates)\/([^/]+)\//.exec(file);
   if (!match) return null;
   return {
-    tier: match[1],
-    name: match[2],
-    root: `View/ui/${match[1]}/${match[2]}`,
+    wing: match[1],
+    tier: match[2],
+    name: match[3],
+    root: `ui/${match[1]}/${match[2]}/${match[3]}`,
   };
+}
+
+function uiLocation(file) {
+  if (file === "ui/core" || isUnder(file, "ui/core")) {
+    return { wing: "core", tier: "core" };
+  }
+
+  const match = /^ui\/(chrome|canvas)\/(primitives|composites|templates)(?:\/|$)/.exec(file);
+  return match ? { wing: match[1], tier: match[2] } : null;
 }
 
 function toLineColumn(source, index) {
@@ -502,6 +525,7 @@ function permittedDependencyRule(file, dependency, target) {
     if (isUnder(target, "Shell") || isUnder(target, "shared")) {
       return true;
     }
+    if (isUnder(target, "ui/chrome")) return true;
     if (isUnder(target, "mermaidRenderer")) return true;
     if (target === "Controller/ShinyController.tsx") return true;
     if (target === "Controller/model/sourceEdit.ts" && dependency.isTypeOnly) {
@@ -510,7 +534,7 @@ function permittedDependencyRule(file, dependency, target) {
     if (target === "Controller/model/sourceEdit.ts") {
       return "Shell may consume Controller/model/sourceEdit only through a type-only dependency";
     }
-    return "Shell may depend only on its own modules, mermaidRenderer, Controller/ShinyController, type-only Controller/model/sourceEdit, or shared";
+    return "Shell may depend only on its own modules, mermaidRenderer, Controller/ShinyController, type-only Controller/model/sourceEdit, ui/chrome, or shared";
   }
 
   if (isUnder(file, "mermaidRenderer")) {
@@ -583,9 +607,21 @@ function permittedDependencyRule(file, dependency, target) {
   }
 
   if (isUnder(file, "View")) {
-    return isUnder(target, "View") || isUnder(target, "shared")
+    return isUnder(target, "View") ||
+      isUnder(target, "shared") ||
+      isUnder(target, "ui/chrome") ||
+      isUnder(target, "ui/canvas")
       ? true
-      : "Shiny View modules may depend only on Shiny View modules or shared";
+      : "Shiny View modules may depend only on Shiny View modules, ui/chrome, ui/canvas, or shared";
+  }
+
+  if (isUnder(file, UI_ROOT)) {
+    if (isUnder(target, UI_ROOT)) return true;
+    if (isUnder(target, "shared") && dependency.isTypeOnly) return true;
+    if (isUnder(target, "shared")) {
+      return "UI library inbound imports from shared must be type-only";
+    }
+    return "UI library inbound imports may target only allowed ui paths or type-only shared contracts";
   }
 
   if (isUnder(file, "shared")) {
@@ -598,113 +634,198 @@ function permittedDependencyRule(file, dependency, target) {
 }
 
 function checkUILibraryImport(file, dependency, resolvedTarget, compositeImportGraph) {
-  const cssTarget = resolvedTarget ?? resolveProjectCSSDependency(file, dependency.specifier);
-  const target = cssTarget ?? resolvedTarget;
+  const sourceIsUI = isUnder(file, UI_ROOT);
+  const targetIsUI = resolvedTarget && isUnder(resolvedTarget, UI_ROOT);
 
-  if (isUnder(file, "View/ui")) {
-    checkUILibraryEditorBlindness(file, dependency, target);
-    if (target && isUnder(target, "View/ui")) {
-      checkUILibraryTierImport(file, dependency, target, compositeImportGraph);
-    }
+  if (sourceIsUI) {
+    checkUILibraryInboundImport(file, dependency, resolvedTarget);
   }
 
-  if (target && isUnder(target, "View/ui") && !isUnder(file, "View/ui")) {
-    checkUILibraryConsumerImport(file, dependency, target);
-  }
+  if (!targetIsUI) return;
 
-  if (target && isUnder(target, "View/ui") && isProhibitedUILibraryConsumer(file)) {
+  checkUILibraryLayerConsumption(file, dependency, resolvedTarget);
+  checkUILibraryPublicSurface(file, dependency, resolvedTarget);
+
+  if (sourceIsUI) {
+    checkUILibraryTierImport(file, dependency, resolvedTarget, compositeImportGraph);
+  }
+}
+
+function checkUILibraryLayerConsumption(file, dependency, target) {
+  if (isUnder(file, UI_ROOT)) return;
+
+  if (isUnder(target, "ui/core")) {
     reportDependency(
       file,
       dependency,
-      "Shell, Controller, Bridge, and mermaidRenderer must not import View/ui"
+      "UI core isolation: ui/core is internal and must not be imported outside ui"
+    );
+    return;
+  }
+
+  if (isUnder(file, "View")) {
+    if (isUnder(target, "ui/chrome") || isUnder(target, "ui/canvas")) return;
+  } else if (isUnder(file, "Shell")) {
+    if (isUnder(target, "ui/chrome")) return;
+    reportDependency(
+      file,
+      dependency,
+      "UI layer consumption: Shell may import only the ui/chrome wing"
+    );
+    return;
+  } else if (
+    isUnder(file, "Controller") ||
+    isUnder(file, "Bridge") ||
+    isUnder(file, "mermaidRenderer")
+  ) {
+    reportDependency(
+      file,
+      dependency,
+      "UI layer consumption: Controller, Bridge, and mermaidRenderer must not import ui"
+    );
+    return;
+  }
+
+  reportDependency(
+    file,
+    dependency,
+    "UI layer consumption: ui may be imported only by View, or by Shell through ui/chrome"
+  );
+}
+
+function checkUILibraryPublicSurface(file, dependency, target) {
+  const targetComponent = uiComponent(target);
+  if (targetComponent) {
+    if (file === targetComponent.root || isUnder(file, targetComponent.root)) return;
+    if (target === `${targetComponent.root}/${targetComponent.name}.tsx`) return;
+
+    reportDependency(
+      file,
+      dependency,
+      "UI library outbound surface: import a component only through its defining <Component>/<Component>.tsx file; owned children, CSS modules, and internals are private"
+    );
+    return;
+  }
+
+  if (!isUnder(file, UI_ROOT) && !isUnder(target, "ui/core")) {
+    reportDependency(
+      file,
+      dependency,
+      "UI library outbound surface: consumers may import only component defining files, never tier internals or tokens.css"
     );
   }
 }
 
-function checkUILibraryEditorBlindness(file, dependency, target) {
-  if (target) {
-    const prohibitedPrefixes = [
-      "View/state",
-      "View/commands",
-      "View/contexts",
-      "View/config",
-      "View/EditorRoot",
-    ];
-    const prohibitedPrefix = prohibitedPrefixes.find((prefix) => isUnder(target, prefix));
-    if (prohibitedPrefix) {
+function checkUILibraryInboundImport(file, dependency, target) {
+  if (!target) {
+    if (dependency.specifier === "react" || dependency.specifier.startsWith("react/")) {
+      return;
+    }
+    if (dependency.specifier.startsWith(".")) return;
+
+    const isFramework =
+      dependency.specifier === "@xyflow/react" || dependency.specifier.startsWith("@xyflow/");
+    reportDependency(
+      file,
+      dependency,
+      isFramework
+        ? "UI library inbound imports: framework libraries are forbidden inside ui"
+        : "UI library inbound imports: package imports inside ui are limited to React"
+    );
+    return;
+  }
+
+  if (isUnder(target, UI_ROOT)) return;
+
+  if (isUnder(target, "shared")) {
+    if (!dependency.isTypeOnly) {
       reportDependency(
         file,
         dependency,
-        `UI library components are editor-blind and must not import ${prohibitedPrefix}`
+        "UI library inbound imports: shared contracts must be imported type-only"
       );
     }
     return;
   }
 
-  if (dependency.specifier === "react-dom" && !dependency.isTypeOnly) {
-    reportDependency(
-      file,
-      dependency,
-      "UI library components must not import react-dom at runtime"
-    );
-  }
-
-  if (dependency.specifier === "@xyflow/react" || dependency.specifier.startsWith("@xyflow/")) {
-    reportDependency(file, dependency, "UI library components must not import framework packages");
-  }
+  reportDependency(
+    file,
+    dependency,
+    "UI library inbound imports: ui must not import View, Controller, Shell, Bridge, mermaidRenderer, or other application modules"
+  );
 }
 
 function checkUILibraryTierImport(file, dependency, target, compositeImportGraph) {
-  if (isUILegacyAllowlisted(file) || isUILegacyAllowlisted(target)) return;
-
-  const sourceComponent = uiComponent(file);
-  const targetComponent = uiComponent(target);
-  if (!sourceComponent || !targetComponent) return;
-
-  if (sourceComponent.tier === "primitives" || sourceComponent.tier === "templates") {
-    if (sourceComponent.root !== targetComponent.root) {
+  const sourceLocation = uiLocation(file);
+  const targetLocation = uiLocation(target);
+  if (!sourceLocation || !targetLocation) {
+    if (target === "ui/tokens.css") {
       reportDependency(
         file,
         dependency,
-        "UI primitives and templates may not import other UI library components"
+        "UI tier matrix: component modules must not import ui/tokens.css directly"
       );
     }
     return;
   }
 
-  if (sourceComponent.tier !== "composites") return;
-
-  if (targetComponent.tier === "templates") {
-    reportDependency(file, dependency, "UI composites must not import UI templates");
+  if (sourceLocation.wing === "core") {
+    if (targetLocation.wing !== "core") {
+      reportDependency(
+        file,
+        dependency,
+        "UI core isolation: ui/core must not import chrome or canvas"
+      );
+    }
     return;
   }
 
-  if (targetComponent.tier !== "primitives" && targetComponent.tier !== "composites") {
+  if (targetLocation.wing !== "core" && sourceLocation.wing !== targetLocation.wing) {
     reportDependency(
       file,
       dependency,
-      "UI composites may import only UI primitives and UI composites"
+      "UI wing isolation: ui/chrome and ui/canvas must never import each other"
     );
     return;
   }
 
-  if (targetComponent.tier === "composites" && sourceComponent.name !== targetComponent.name) {
-    const entries = compositeImportGraph.get(sourceComponent.name) ?? [];
-    entries.push({ target: targetComponent.name, file, dependency });
-    compositeImportGraph.set(sourceComponent.name, entries);
+  if (targetLocation.wing === "core") return;
+
+  const sourceComponent = uiComponent(file);
+  const targetComponent = uiComponent(target);
+  if (sourceComponent && targetComponent && sourceComponent.root === targetComponent.root) {
+    return;
   }
-}
 
-function checkUILibraryConsumerImport(file, dependency, target) {
-  if (isUILegacyAllowlisted(target)) return;
-
-  const component = uiComponent(target);
-  if (!component || target !== `${component.root}/${component.name}.tsx`) {
+  if (sourceLocation.tier === "primitives" || sourceLocation.tier === "templates") {
     reportDependency(
       file,
       dependency,
-      "domain modules may import only a UI component's defining file, not owned children, CSS modules, or internals"
+      "UI tier matrix: primitives and templates may import from the library only ui/core"
     );
+    return;
+  }
+
+  if (sourceLocation.tier !== "composites") return;
+
+  if (targetLocation.tier !== "primitives" && targetLocation.tier !== "composites") {
+    reportDependency(
+      file,
+      dependency,
+      "UI tier matrix: composites may import only own-wing primitives, own-wing composites, and ui/core"
+    );
+    return;
+  }
+
+  if (
+    targetLocation.tier === "composites" &&
+    sourceComponent &&
+    targetComponent &&
+    sourceComponent.root !== targetComponent.root
+  ) {
+    const entries = compositeImportGraph.get(sourceComponent.root) ?? [];
+    entries.push({ target: targetComponent.root, file, dependency });
+    compositeImportGraph.set(sourceComponent.root, entries);
   }
 }
 
@@ -720,12 +841,12 @@ function checkCompositeImportCycles(graph) {
       const cycle = [...stack.slice(cycleStart), component].join(" -> ");
       const edge = graph.get(component)?.[0];
       report({
-        file: edge?.file ?? "View/ui",
+        file: edge?.file ?? "ui",
         line: edge?.dependency.line ?? 1,
         column: edge?.dependency.column ?? 1,
         kind: "UI library tiers",
         specifier: cycle,
-        rule: "UI composite imports must be acyclic",
+        rule: "UI tier matrix: composite imports must be acyclic",
       });
       return;
     }
@@ -746,6 +867,61 @@ function checkCompositeImportCycles(graph) {
   }
 }
 
+function checkStylesheetOwnership() {
+  for (const absoluteFile of listFiles(sourceRoot)) {
+    if (!absoluteFile.endsWith(".module.css")) continue;
+    const file = toSourceRelative(absoluteFile);
+    if (!isUnder(file, "View")) continue;
+
+    report({
+      file,
+      line: 1,
+      column: 1,
+      kind: "stylesheet ownership",
+      specifier: file,
+      rule: "View stylesheet ownership: .module.css files must live under ui, never View",
+    });
+  }
+}
+
+function checkTokenConsumption() {
+  for (const absoluteFile of listFiles(sourceRoot)) {
+    if (!/\.(?:css|ts|tsx)$/.test(absoluteFile)) continue;
+    const file = toSourceRelative(absoluteFile);
+    const source = readFileSync(absoluteFile, "utf8");
+
+    for (const match of source.matchAll(/var\(--vscode-/g)) {
+      if (file === "ui/tokens.css" || isUnder(file, "mermaidRenderer")) continue;
+      const location = toLineColumn(source, match.index ?? 0);
+      report({
+        file,
+        line: location.line,
+        column: location.column,
+        kind: "token consumption",
+        specifier: "var(--vscode-",
+        rule: "Theme token consumption: var(--vscode-*) may appear only in ui/tokens.css or mermaidRenderer",
+      });
+    }
+
+    for (const match of source.matchAll(/var\(--shiny-/g)) {
+      const isAllowed =
+        isUnder(file, UI_ROOT) ||
+        (absoluteFile.endsWith(".css") && isUnder(file, "Shell")) ||
+        file === "styles.css";
+      if (isAllowed) continue;
+      const location = toLineColumn(source, match.index ?? 0);
+      report({
+        file,
+        line: location.line,
+        column: location.column,
+        kind: "token consumption",
+        specifier: "var(--shiny-",
+        rule: "Brand token consumption: var(--shiny-*) may appear only in ui, Shell CSS, or styles.css",
+      });
+    }
+  }
+}
+
 function checkCSSModuleShinyTokenDefinitions() {
   for (const absoluteFile of listFiles(sourceRoot)) {
     if (!absoluteFile.endsWith(".module.css")) continue;
@@ -760,7 +936,7 @@ function checkCSSModuleShinyTokenDefinitions() {
       column: location.column,
       kind: "UI library tiers",
       specifier: match[0].replace(/\s*:\s*$/, ""),
-      rule: "--shiny-* custom properties may be defined only in View/ui/tokens.css, not component CSS modules",
+      rule: "--shiny-* custom properties may be defined only in ui/tokens.css, not component CSS modules",
     });
   }
 }

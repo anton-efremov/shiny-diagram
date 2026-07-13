@@ -8,16 +8,16 @@ import type { NamespaceId } from "../../../../../shared/ids";
 import { STYLE_PROPERTIES, type StyleProperties } from "../../../../../shared/style";
 import type { TransactionResult } from "../../../../commands/editorCommands";
 import type { SelectionState } from "../../../../state/editorStates";
-import Button from "../../../../ui/primitives/Button/Button";
-import CommitTextField from "../../../../ui/composites/CommitTextField/CommitTextField";
+import Button from "../../../../../ui/chrome/primitives/Button/Button";
+import CommitTextField from "../../../../../ui/chrome/composites/CommitTextField/CommitTextField";
 import { COLOR_PRESETS } from "../../../../config/stylePresets";
 import {
   DEFAULT_STROKE_DASHARRAY,
   NAMESPACE_DEFAULT_STROKE_WIDTH,
 } from "../../../../config/editorUiConfig";
-import PaneSection from "../../../../ui/templates/PaneSection/PaneSection";
-import FieldGrid from "../../../../ui/templates/FieldGrid/FieldGrid";
-import ControlGroup from "../../../../ui/templates/ControlGroup/ControlGroup";
+import PaneSection from "../../../../../ui/chrome/templates/PaneSection/PaneSection";
+import FieldGrid from "../../../../../ui/chrome/templates/FieldGrid/FieldGrid";
+import ControlGroup from "../../../../../ui/chrome/templates/ControlGroup/ControlGroup";
 import type { DiagramView } from "../../../../views/schema";
 import { toDocumentColors, toSelectedNamespace, toStrokeSelectUIProps } from "./childProps";
 import { useInteractions } from "./useInteractions";

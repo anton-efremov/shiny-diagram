@@ -7,10 +7,10 @@ import type { ReactElement } from "react";
 import { toStyleDefId, type StyleDefId } from "../../../../../../shared/ids";
 import type { SelectionState } from "../../../../../state/editorStates";
 import type { BaseStyleView, DeclaredStyleView } from "../../../../../views/schema";
-import Button from "../../../../../ui/primitives/Button/Button";
-import SwatchToggle from "../../../../../ui/composites/SwatchToggle/SwatchToggle";
-import ControlGroup from "../../../../../ui/templates/ControlGroup/ControlGroup";
-import PaneSection from "../../../../../ui/templates/PaneSection/PaneSection";
+import Button from "../../../../../../ui/chrome/primitives/Button/Button";
+import SwatchToggle from "../../../../../../ui/chrome/composites/SwatchToggle/SwatchToggle";
+import ControlGroup from "../../../../../../ui/chrome/templates/ControlGroup/ControlGroup";
+import PaneSection from "../../../../../../ui/chrome/templates/PaneSection/PaneSection";
 import StyleChip from "./StyleChip/StyleChip";
 import { PURE_STYLE_DEFAULTS } from "../../../../../config/stylePresets";
 

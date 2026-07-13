@@ -17,8 +17,8 @@ import type { SelectionState } from "../../../state/editorStates";
 import type { DiagramView, NoteView, RelationshipView } from "../../../views/schema";
 import { EDIT_PANE_WIDTH } from "../../../config/editorUiConfig";
 import { PURE_STYLE_DEFAULTS } from "../../../config/stylePresets";
-import PaneFrame from "../../../ui/templates/PaneFrame/PaneFrame";
-import PaneCollapseTab from "../../../ui/primitives/PaneCollapseTab/PaneCollapseTab";
+import PaneFrame from "../../../../ui/chrome/templates/PaneFrame/PaneFrame";
+import PaneCollapseTab from "../../../../ui/chrome/primitives/PaneCollapseTab/PaneCollapseTab";
 
 type EditPaneProps = {
   readonly view: Pick<

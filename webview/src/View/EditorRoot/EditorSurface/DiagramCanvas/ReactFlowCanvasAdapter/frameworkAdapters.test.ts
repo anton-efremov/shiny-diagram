@@ -66,9 +66,8 @@ describe("toNamespaceGeometry", () => {
     };
     const namespaceGeometry = toNamespaceGeometry(view, placementState(), noGesture());
 
-    expect(namespaceGeometry.haloColorByClassId.get(toClassId("Captured"))).toBe(
-      "var(--shiny-app-bg)"
-    );
+    expect(namespaceGeometry.haloColorByClassId.get(toClassId("Captured"))).toBeUndefined();
+    expect(namespaceGeometry.haloToneByClassId.get(toClassId("Captured"))).toBe("canvas");
   });
 
   it("feeds namespace drag deltas into member positions before deriving hulls", () => {

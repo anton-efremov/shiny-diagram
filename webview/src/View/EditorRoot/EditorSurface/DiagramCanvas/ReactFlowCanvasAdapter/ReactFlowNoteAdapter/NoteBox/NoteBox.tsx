@@ -8,14 +8,18 @@ import type { ReactElement } from "react";
 import type { Point, Rect } from "../../../../../../../shared/geometry";
 import type { NoteId } from "../../../../../../../shared/ids";
 import type { EditingState } from "../../../../../../state/editorStates";
-import BoxLink from "../../../../../../ui/primitives/BoxOutline/BoxOutline";
-import CommitTextArea from "../../../../../../ui/composites/CommitTextArea/CommitTextArea";
-import ResizeAffordance from "../../../../../../ui/primitives/ResizeAffordance/ResizeAffordance";
-import type { ResizeHandle } from "../../../../../../ui/primitives/ResizeAffordance/ResizeAffordance";
-import ValidationPopup from "../../../../../../ui/primitives/ValidationPopup/ValidationPopup";
+import BoxInteractionOverlay from "../../../../../../../ui/canvas/composites/BoxInteractionOverlay/BoxInteractionOverlay";
+import type { ResizeHandle } from "../../../../../../../ui/canvas/composites/BoxInteractionOverlay/BoxInteractionOverlay";
+import InlineCommitTextArea from "../../../../../../../ui/canvas/composites/InlineCommitTextArea/InlineCommitTextArea";
+import StickyNoteSurfaceFrame from "../../../../../../../ui/canvas/templates/StickyNoteSurfaceFrame/StickyNoteSurfaceFrame";
+import InlineValidationPopup from "../../../../../../../ui/canvas/primitives/InlineValidationPopup/InlineValidationPopup";
 import type { NoteView } from "../../../../../../views/schema";
+import {
+  INLINE_VALIDATION_POPUP_Z_INDEX,
+  NODE_ABOVE_CONTENT_Z_INDEX,
+  NODE_BEHIND_CONTENT_Z_INDEX,
+} from "../../../../../../config/editorUiConfig";
 import { useInteractions } from "./useInteractions";
-import styles from "./NoteBox.module.css";
 
 type NoteBoxProps = {
   readonly view: NoteView;
@@ -53,7 +57,6 @@ export default function NoteBox({
   const [discardErrors, setDiscardErrors] = useState<readonly string[]>([]);
 
   // UI props derivation
-  const className = [styles.noteBox, isDragging ? styles.dragging : ""].filter(Boolean).join(" ");
   const isEditing = editingState.kind === "noteText" && editingState.noteId === view.noteId;
   const isNewBlankNote = view.text.trim() === "";
 
@@ -81,38 +84,35 @@ export default function NoteBox({
   });
 
   return (
-    <div className={className} title={view.text} onClick={onNoteBoxClick}>
-      {isResizeVisible ? (
-        <div className="nodrag nopan">
-          <ResizeAffordance onGrab={onResizeGrab} />
-        </div>
-      ) : null}
-      {isSelected ? <BoxLink variant="selected" /> : <BoxLink variant="hover" />}
+    <StickyNoteSurfaceFrame title={view.text} dragging={isDragging} onPress={onNoteBoxClick}>
+      <BoxInteractionOverlay
+        selected={isSelected}
+        pending={false}
+        resizeVisible={isResizeVisible}
+        haloStacking={NODE_BEHIND_CONTENT_Z_INDEX}
+        affordanceStacking={NODE_ABOVE_CONTENT_Z_INDEX}
+        onResizeGrab={onResizeGrab}
+      />
       {discardErrors.length > 0 ? (
-        <ValidationPopup messages={discardErrors} onDismiss={onDiscardDismiss} />
+        <InlineValidationPopup
+          messages={discardErrors}
+          stacking={INLINE_VALIDATION_POPUP_Z_INDEX}
+          onDismiss={onDiscardDismiss}
+        />
       ) : null}
-      {isEditing ? (
-        <div className={`${styles.editorHost} nodrag nopan`}>
-          <CommitTextArea
-            initialValue={view.text.trim()}
-            autoFocus
-            appearance="inline"
-            onCommit={(text) => {
-              const errors = onTextCommit(text.trim());
-              if (errors.length > 0) onTextDiscard(errors);
-            }}
-            onCancel={onTextCancel}
-          />
-        </div>
-      ) : (
-        <div
-          className={styles.text}
-          onDoubleClick={onNoteTextDoubleClick}
-          onClick={onNoteTextClick}
-        >
-          {view.text}
-        </div>
-      )}
-    </div>
+      <InlineCommitTextArea
+        initialValue={view.text.trim()}
+        displayText={view.text}
+        isEditing={isEditing}
+        autoFocus
+        saveLabel="Save"
+        onEditRequest={isSelected ? onNoteTextDoubleClick : onNoteTextClick}
+        onCommit={(text) => {
+          const errors = onTextCommit(text.trim());
+          if (errors.length > 0) onTextDiscard(errors);
+        }}
+        onCancel={onTextCancel}
+      />
+    </StickyNoteSurfaceFrame>
   );
 }

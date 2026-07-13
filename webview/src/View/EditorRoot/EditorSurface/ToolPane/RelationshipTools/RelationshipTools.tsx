@@ -4,18 +4,19 @@
  */
 
 import type { ReactElement } from "react";
+import type { GlyphDescriptor } from "../../../../../shared/glyph";
 import type { RelationshipType } from "../../../../../shared/uml";
 import type { NodePlacementState, RelationshipSeed } from "../../../../state/editorStates";
-import ToggleButton from "../../../../ui/primitives/ToggleButton/ToggleButton";
+import ToggleButton from "../../../../../ui/chrome/primitives/ToggleButton/ToggleButton";
 import {
-  AggregationGlyph,
-  AssociationGlyph,
-  BidirectionalAssociationGlyph,
-  CompositionGlyph,
-  DependencyGlyph,
-  DirectedAssociationGlyph,
-  InheritanceGlyph,
-  RealizationGlyph,
+  aggregationGlyph,
+  associationGlyph,
+  bidirectionalAssociationGlyph,
+  compositionGlyph,
+  dependencyGlyph,
+  directedAssociationGlyph,
+  inheritanceGlyph,
+  realizationGlyph,
 } from "./icons";
 
 type RelationshipToolsProps = {
@@ -25,7 +26,7 @@ type RelationshipToolsProps = {
 
 type ToolPaneItem = {
   readonly relationshipType: RelationshipType;
-  readonly icon: () => ReactElement;
+  readonly icon: GlyphDescriptor;
   readonly name: string;
   readonly seed: RelationshipSeed;
 };
@@ -33,7 +34,7 @@ type ToolPaneItem = {
 const relationshipTools: readonly ToolPaneItem[] = [
   {
     relationshipType: "association",
-    icon: AssociationGlyph,
+    icon: associationGlyph,
     name: "Association",
     seed: {
       sourceEndpointKind: "none",
@@ -46,7 +47,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "directedAssociation",
-    icon: DirectedAssociationGlyph,
+    icon: directedAssociationGlyph,
     name: "Directed association",
     seed: {
       sourceEndpointKind: "none",
@@ -59,7 +60,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "bidirectionalAssociation",
-    icon: BidirectionalAssociationGlyph,
+    icon: bidirectionalAssociationGlyph,
     name: "Bidirectional association",
     seed: {
       sourceEndpointKind: "arrow",
@@ -72,7 +73,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "dependency",
-    icon: DependencyGlyph,
+    icon: dependencyGlyph,
     name: "Dependency",
     seed: {
       sourceEndpointKind: "none",
@@ -85,7 +86,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "inheritance",
-    icon: InheritanceGlyph,
+    icon: inheritanceGlyph,
     name: "Inheritance",
     seed: {
       sourceEndpointKind: "triangle",
@@ -98,7 +99,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "realization",
-    icon: RealizationGlyph,
+    icon: realizationGlyph,
     name: "Realization",
     seed: {
       sourceEndpointKind: "none",
@@ -111,7 +112,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "aggregation",
-    icon: AggregationGlyph,
+    icon: aggregationGlyph,
     name: "Aggregation",
     seed: {
       sourceEndpointKind: "aggregation",
@@ -124,7 +125,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "composition",
-    icon: CompositionGlyph,
+    icon: compositionGlyph,
     name: "Composition",
     seed: {
       sourceEndpointKind: "composition",
@@ -145,12 +146,10 @@ export default function RelationshipTools({
     <>
       {relationshipTools.map((tool) => {
         const isActive = seedsEqual(relationshipPlacementState?.seed ?? null, tool.seed);
-        const Icon = tool.icon;
-
         return (
           <ToggleButton
             key={tool.relationshipType}
-            icon={<Icon />}
+            icon={tool.icon}
             pressed={isActive}
             title={tool.name}
             size="relationshipTile"

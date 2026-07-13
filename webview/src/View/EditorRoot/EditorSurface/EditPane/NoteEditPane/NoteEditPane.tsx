@@ -8,10 +8,10 @@ import type { NoteId } from "../../../../../shared/ids";
 import type { StyleProperties } from "../../../../../shared/style";
 import type { TransactionResult } from "../../../../commands/editorCommands";
 import type { NoteView } from "../../../../views/schema";
-import Button from "../../../../ui/primitives/Button/Button";
-import PaneSection from "../../../../ui/templates/PaneSection/PaneSection";
-import ControlGroup from "../../../../ui/templates/ControlGroup/ControlGroup";
-import StyledBoxSwatch from "../../../../ui/primitives/StyledBoxSwatch/StyledBoxSwatch";
+import Button from "../../../../../ui/chrome/primitives/Button/Button";
+import PaneSection from "../../../../../ui/chrome/templates/PaneSection/PaneSection";
+import ControlGroup from "../../../../../ui/chrome/templates/ControlGroup/ControlGroup";
+import StyledBoxSwatch from "../../../../../ui/chrome/primitives/StyledBoxSwatch/StyledBoxSwatch";
 import { useInteractions } from "./useInteractions";
 
 type NoteEditPaneProps = {

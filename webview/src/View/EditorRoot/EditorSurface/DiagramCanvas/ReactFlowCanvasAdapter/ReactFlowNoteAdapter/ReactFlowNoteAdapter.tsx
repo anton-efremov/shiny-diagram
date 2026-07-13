@@ -10,7 +10,6 @@ import type { EditingState } from "../../../../../state/editorStates";
 import type { NoteView } from "../../../../../views/schema";
 import type { NamespaceResizeHandle } from "../frameworkAdapters";
 import NoteBox from "./NoteBox/NoteBox";
-import styles from "./ReactFlowNoteAdapter.module.css";
 
 type NoteBoxNodeData = {
   readonly view: NoteView;
@@ -49,10 +48,10 @@ export default function ReactFlowNoteAdapter(props: NodeProps<NoteBoxNode>): Rea
         onTextBlockEditStart={props.data.onTextBlockEditStart}
         onTextBlockEditCancel={props.data.onTextBlockEditCancel}
       />
-      <Handle id="top" type="source" position={Position.Top} className={styles.edgeHandle} />
-      <Handle id="right" type="source" position={Position.Right} className={styles.edgeHandle} />
-      <Handle id="bottom" type="source" position={Position.Bottom} className={styles.edgeHandle} />
-      <Handle id="left" type="source" position={Position.Left} className={styles.edgeHandle} />
+      <Handle id="top" type="source" position={Position.Top} style={{ opacity: 0 }} />
+      <Handle id="right" type="source" position={Position.Right} style={{ opacity: 0 }} />
+      <Handle id="bottom" type="source" position={Position.Bottom} style={{ opacity: 0 }} />
+      <Handle id="left" type="source" position={Position.Left} style={{ opacity: 0 }} />
     </>
   );
 }

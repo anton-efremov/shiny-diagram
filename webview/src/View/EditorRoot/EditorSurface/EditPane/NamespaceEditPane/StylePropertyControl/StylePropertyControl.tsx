@@ -10,9 +10,9 @@ import {
   PURE_STYLE_DEFAULTS,
   WIDTH_PRESETS,
 } from "../../../../../config/stylePresets";
-import ColorSelect from "../../../../../ui/composites/ColorSelect/ColorSelect";
-import type { ColorSelectPresetCatalog } from "../../../../../ui/composites/ColorSelect/ColorSelect";
-import StrokeSelect from "../../../../../ui/composites/StrokeSelect/StrokeSelect";
+import ColorSelect from "../../../../../../ui/chrome/composites/ColorSelect/ColorSelect";
+import type { ColorSelectPresetCatalog } from "../../../../../../ui/chrome/composites/ColorSelect/ColorSelect";
+import StrokeSelect from "../../../../../../ui/chrome/composites/StrokeSelect/StrokeSelect";
 
 type StylePropertyControlProps = {
   readonly property: StylePropertyName;

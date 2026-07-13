@@ -1,0 +1,45 @@
+.area {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  resize: none;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+}
+
+.body {
+  height: 100%;
+  min-height: 0;
+  padding: 2px 52px 30px 2px;
+  border: var(--shiny-inline-area-border-width) var(--shiny-inline-area-border-style) transparent;
+  border-radius: var(--shiny-inline-area-radius);
+  outline: none;
+  background: transparent;
+}
+
+.row {
+  display: block;
+  min-height: 0;
+  padding: 4px 10px;
+  overflow: hidden;
+  border: none;
+  border-radius: var(--shiny-inline-field-radius);
+  outline: none;
+  background: var(--shiny-inline-field-background);
+  box-shadow: var(--shiny-inline-field-inset-outline);
+  text-align: inherit;
+}
+
+.row:focus-visible {
+  outline: none;
+  box-shadow: var(--shiny-inline-field-inset-focus-outline);
+}
+
+.row[aria-invalid="true"] {
+  box-shadow: var(--shiny-inline-field-inset-invalid-outline);
+}
+
+.row.withEndAction {
+  padding-right: 28px;
+}

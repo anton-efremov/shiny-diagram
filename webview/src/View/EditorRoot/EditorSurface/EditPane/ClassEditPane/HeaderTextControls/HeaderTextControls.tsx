@@ -8,10 +8,10 @@ import type { ReactNode } from "react";
 import type { ClassId } from "../../../../../../shared/ids";
 import type { ClassAnnotation } from "../../../../../../shared/uml";
 import type { ClassView } from "../../../../../views/schema";
-import CommitClearableTextField from "../../../../../ui/composites/CommitClearableTextField/CommitClearableTextField";
-import CommitComboBox from "../../../../../ui/composites/CommitComboBox/CommitComboBox";
-import CommitTextField from "../../../../../ui/composites/CommitTextField/CommitTextField";
-import FieldGrid from "../../../../../ui/templates/FieldGrid/FieldGrid";
+import CommitClearableTextField from "../../../../../../ui/chrome/composites/CommitClearableTextField/CommitClearableTextField";
+import CommitComboBox from "../../../../../../ui/chrome/composites/CommitComboBox/CommitComboBox";
+import CommitTextField from "../../../../../../ui/chrome/composites/CommitTextField/CommitTextField";
+import FieldGrid from "../../../../../../ui/chrome/templates/FieldGrid/FieldGrid";
 
 type HeaderTextControlsProps = {
   readonly view: ClassView;

@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from "react";
-import type { CSSProperties, ReactElement } from "react";
+import type { ReactElement } from "react";
 import type {
   EditingState,
   NamespaceGestureState,
@@ -13,7 +13,8 @@ import type {
   SelectionState,
 } from "../../state/editorStates";
 import type { DiagramView } from "../../views/schema";
-import { EDIT_PANE_WIDTH, TOOL_PANE_WIDTH } from "../../config/editorUiConfig";
+import { TOOL_PANE_WIDTH } from "../../config/editorUiConfig";
+import GridFrame from "../../../ui/canvas/templates/GridFrame/GridFrame";
 import ClassDiagram from "./DiagramCanvas/DiagramCanvas";
 import EditPane from "./EditPane/EditPane";
 import ToolPane from "./ToolPane/ToolPane";
@@ -26,7 +27,6 @@ import {
 } from "./state";
 import { useInteractions } from "./useInteractions";
 import { useStateReconciliation } from "./useStateReconciliation";
-import styles from "./EditorSurface.module.css";
 
 type EditorSurfaceProps = {
   readonly view: DiagramView;
@@ -125,29 +125,22 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
     onNoteAttachCancel,
   ]);
 
-  const editorShellStyle: CSSProperties & {
-    "--editor-tool-pane-width": string;
-    "--editor-edit-pane-width": string;
-  } = {
-    "--editor-tool-pane-width": `${TOOL_PANE_WIDTH}px`,
-    "--editor-edit-pane-width": `${EDIT_PANE_WIDTH}px`,
-  };
-
   return (
-    <section
-      className={styles.editorShell}
-      style={editorShellStyle}
-      aria-label="Class diagram editor"
-    >
-      <ToolPane
-        nodePlacementState={nodePlacementState}
-        namespaceGestureState={namespaceGestureState}
-        onClassPlacementStart={onClassPlacementStart}
-        onNotePlacementStart={onNotePlacementStart}
-        onNamespacePlacementStart={onNamespacePlacementStart}
-        onRelationshipPlacementStart={onRelationshipPlacementStart}
-      />
-      <div className={styles.canvasRegion}>
+    <GridFrame
+      variant="workspace"
+      leadingWidth={TOOL_PANE_WIDTH}
+      ariaLabel="Class diagram editor"
+      leading={
+        <ToolPane
+          nodePlacementState={nodePlacementState}
+          namespaceGestureState={namespaceGestureState}
+          onClassPlacementStart={onClassPlacementStart}
+          onNotePlacementStart={onNotePlacementStart}
+          onNamespacePlacementStart={onNamespacePlacementStart}
+          onRelationshipPlacementStart={onRelationshipPlacementStart}
+        />
+      }
+      content={
         <ClassDiagram
           view={view}
           selectionState={selectionState}
@@ -176,20 +169,22 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
           onTextBlockEditStart={onTextBlockEditStart}
           onTextBlockEditCancel={onTextBlockEditCancel}
         />
-      </div>
-      <EditPane
-        view={view}
-        selectionState={selectionState}
-        onStyleSelect={onStyleSelect}
-        onSelectionRestore={onSelectionRestore}
-        onStyleCreateCommitted={onStyleCreateCommitted}
-        onStyleRenameCommitted={onStyleRenameCommitted}
-        onNoteAttachStart={onNoteAttachStart}
-        onNoteDuplicateCommitted={onNoteDuplicateCommitted}
-        onNamespaceRenameCommitted={onNamespaceRenameCommitted}
-        onRelationshipSelect={onRelationshipSelect}
-        onRelationshipDuplicate={onRelationshipDuplicate}
-      />
-    </section>
+      }
+      trailing={
+        <EditPane
+          view={view}
+          selectionState={selectionState}
+          onStyleSelect={onStyleSelect}
+          onSelectionRestore={onSelectionRestore}
+          onStyleCreateCommitted={onStyleCreateCommitted}
+          onStyleRenameCommitted={onStyleRenameCommitted}
+          onNoteAttachStart={onNoteAttachStart}
+          onNoteDuplicateCommitted={onNoteDuplicateCommitted}
+          onNamespaceRenameCommitted={onNamespaceRenameCommitted}
+          onRelationshipSelect={onRelationshipSelect}
+          onRelationshipDuplicate={onRelationshipDuplicate}
+        />
+      }
+    />
   );
 }

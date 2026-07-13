@@ -6,7 +6,7 @@
 import type { ReactElement } from "react";
 import type { RelationshipView } from "../../../../../views/schema";
 import { useDispatchTransaction } from "../../../../../contexts";
-import CommitClearableTextField from "../../../../../ui/composites/CommitClearableTextField/CommitClearableTextField";
+import CommitClearableTextField from "../../../../../../ui/chrome/composites/CommitClearableTextField/CommitClearableTextField";
 import { toRelationshipLabelSetTransaction } from "./transactions";
 
 type LabelControlsProps = {

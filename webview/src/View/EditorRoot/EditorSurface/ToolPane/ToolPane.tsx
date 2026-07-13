@@ -10,8 +10,8 @@ import type {
   RelationshipSeed,
 } from "../../../state/editorStates";
 import { TOOL_PANE_WIDTH } from "../../../config/editorUiConfig";
-import PaneFrame from "../../../ui/templates/PaneFrame/PaneFrame";
-import PaneSection from "../../../ui/templates/PaneSection/PaneSection";
+import PaneFrame from "../../../../ui/chrome/templates/PaneFrame/PaneFrame";
+import PaneSection from "../../../../ui/chrome/templates/PaneSection/PaneSection";
 import NodePlacementTools from "./NodePlacementTools/NodePlacementTools";
 import RelationshipTools from "./RelationshipTools/RelationshipTools";
 

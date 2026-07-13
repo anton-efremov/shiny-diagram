@@ -1,0 +1,35 @@
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  margin-bottom: 12px;
+  color: var(--shiny-text-error);
+  font-size: var(--shiny-canvas-font-size-primary);
+}
+
+.canvas {
+  padding: 24px;
+  color: var(--shiny-text-muted);
+}
+
+.label {
+  margin: 0 0 8px;
+}
+
+.list {
+  margin: 0;
+}
+
+.error-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 18px;
+  color: var(--shiny-text-error);
+}
+
+.code-list {
+  padding-left: 20px;
+  font-family: var(--shiny-code-font-family);
+}

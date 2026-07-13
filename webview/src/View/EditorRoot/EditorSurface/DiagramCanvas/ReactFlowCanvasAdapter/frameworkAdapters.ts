@@ -44,6 +44,7 @@ export type ClassBoxNodeData = {
   readonly isConnectSourceEnabled: boolean;
   readonly isPendingMember: boolean;
   readonly haloColor: string | null;
+  readonly haloTone: "canvas" | "faint" | null;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
   readonly onClassResizeHandlePress: (
     classId: ClassId,
@@ -185,6 +186,7 @@ export function toClassBoxNodeDescriptors(
           isConnectSourceEnabled,
           isPendingMember: namespaceGeometry.pendingClassIds.has(classView.classId),
           haloColor: namespaceGeometry.haloColorByClassId.get(classView.classId) ?? null,
+          haloTone: namespaceGeometry.haloToneByClassId.get(classView.classId) ?? null,
           onClassSelect,
           onClassResizeHandlePress,
           editingState,
@@ -196,7 +198,7 @@ export function toClassBoxNodeDescriptors(
         zIndex: CLASS_NODE_Z_INDEX,
         width: placement.w,
         height: placement.h,
-        style: { width: placement.w, height: placement.h },
+        style: { width: placement.w, height: placement.h, overflow: "visible" },
       },
     ];
   });
@@ -253,6 +255,7 @@ export type NamespaceGeometry = {
   readonly pendingClassIds: ReadonlySet<ClassId>;
   readonly pendingNamespaceIds: ReadonlySet<NamespaceId>;
   readonly haloColorByClassId: ReadonlyMap<ClassId, string>;
+  readonly haloToneByClassId: ReadonlyMap<ClassId, "canvas" | "faint">;
   readonly pendingParentNamespaceId: NamespaceId | null;
 };
 
@@ -329,7 +332,7 @@ export function toNamespaceGeometry(
     boundsByNamespaceId,
     pendingClassIds,
     pendingNamespaceIds,
-    haloColorByClassId: toHaloColorByClassId(view, classBoxPlacementState, boundsByNamespaceId),
+    ...toHaloTreatmentByClassId(view, classBoxPlacementState, boundsByNamespaceId),
     pendingParentNamespaceId: null,
   };
 }
@@ -373,7 +376,7 @@ export function toNamespaceNodeDescriptors(
         zIndex: NAMESPACE_NODE_Z_INDEX,
         width: bounds.w,
         height: bounds.h,
-        style: { width: bounds.w, height: bounds.h },
+        style: { width: bounds.w, height: bounds.h, pointerEvents: "auto" },
       },
     ];
   });
@@ -417,7 +420,7 @@ export function toNoteBoxNodeDescriptors(
         zIndex: NOTE_NODE_Z_INDEX,
         width: placement.w,
         height: placement.h,
-        style: { width: placement.w, height: placement.h },
+        style: { width: placement.w, height: placement.h, overflow: "visible" },
       },
     ];
   });
@@ -755,12 +758,13 @@ export function overlaps(left: Rect, right: Rect): boolean {
   );
 }
 
-function toHaloColorByClassId(
+function toHaloTreatmentByClassId(
   view: Pick<DiagramView, "classes" | "namespaces">,
   classBoxPlacementState: ClassBoxPlacementState,
   boundsByNamespaceId: ReadonlyMap<NamespaceId, Rect>
-): ReadonlyMap<ClassId, string> {
+): Pick<NamespaceGeometry, "haloColorByClassId" | "haloToneByClassId"> {
   const haloColors = new Map<ClassId, string>();
+  const haloTones = new Map<ClassId, "canvas" | "faint">();
   for (const classView of view.classes) {
     const rect = classBoxPlacementState.rectByClassId.get(classView.classId);
     if (!rect) continue;
@@ -774,12 +778,15 @@ function toHaloColorByClassId(
     ) {
       continue;
     }
-    haloColors.set(
-      classView.classId,
-      toNamespaceHaloColor(classView.parentNamespaceId, view.namespaces)
-    );
+    const parent = classView.parentNamespaceId
+      ? view.namespaces.find(
+          (namespaceView) => namespaceView.namespaceId === classView.parentNamespaceId
+        )
+      : null;
+    if (parent?.style?.fill) haloColors.set(classView.classId, parent.style.fill);
+    else haloTones.set(classView.classId, classView.parentNamespaceId ? "faint" : "canvas");
   }
-  return haloColors;
+  return { haloColorByClassId: haloColors, haloToneByClassId: haloTones };
 }
 
 function isClassTransitiveMember(
@@ -797,15 +804,4 @@ function isClassTransitiveMember(
       null;
   }
   return false;
-}
-
-function toNamespaceHaloColor(
-  parentNamespaceId: NamespaceId | null,
-  namespaces: readonly NamespaceView[]
-): string {
-  if (!parentNamespaceId) return "var(--shiny-app-bg)";
-  const parent = namespaces.find(
-    (namespaceView) => namespaceView.namespaceId === parentNamespaceId
-  );
-  return parent?.style?.fill ?? "var(--shiny-overlay-faint)";
 }

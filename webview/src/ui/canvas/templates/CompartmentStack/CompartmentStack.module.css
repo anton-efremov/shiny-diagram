@@ -1,0 +1,17 @@
+.stack {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.compartment,
+.separated {
+  min-height: 0;
+}
+
+.separated {
+  border-top: var(--compartment-separator-thickness, var(--shiny-base-stroke-width))
+    var(--compartment-separator-line-style, var(--shiny-base-stroke-style))
+    var(--compartment-separator-color, var(--shiny-base-stroke));
+}

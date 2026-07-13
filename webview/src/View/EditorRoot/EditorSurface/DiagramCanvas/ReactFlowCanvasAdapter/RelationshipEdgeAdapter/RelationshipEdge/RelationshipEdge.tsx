@@ -7,22 +7,19 @@ import type { ReactElement } from "react";
 import { useState } from "react";
 import type { RelationshipId } from "../../../../../../../shared/ids";
 import {
-  RELATIONSHIP_EDGE_DASH_PATTERN,
-  RELATIONSHIP_EDGE_HIT_PATH_STROKE_WIDTH,
   RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION,
   RELATIONSHIP_EDGE_MULTIPLICITY_NORMAL_OFFSET,
-  RELATIONSHIP_EDGE_TEXT_CANCEL_ALLOWANCE,
-  RELATIONSHIP_EDGE_TEXT_CHARACTER_WIDTH,
-  RELATIONSHIP_EDGE_TEXT_MIN_WIDTH,
-  RELATIONSHIP_EDGE_TEXT_REGION_HEIGHT,
-  RELATIONSHIP_EDGE_TEXT_REGION_WIDTH,
+  INLINE_VALIDATION_POPUP_Z_INDEX,
 } from "../../../../../../config/editorUiConfig";
 import type { RelationshipView } from "../../../../../../views/schema";
-import RelationshipMarker from "../../RelationshipMarker/RelationshipMarker";
-import CommitTextField from "../../../../../../ui/composites/CommitTextField/CommitTextField";
+import { endpointGlyphs } from "../../RelationshipMarker/icons";
+import EditableEdgeText from "../../../../../../../ui/canvas/composites/EditableEdgeText/EditableEdgeText";
+import EdgeEndpointHandle from "../../../../../../../ui/canvas/primitives/EdgeEndpointHandle/EdgeEndpointHandle";
+import EdgeEndpointMarker from "../../../../../../../ui/canvas/primitives/EdgeEndpointMarker/EdgeEndpointMarker";
+import EdgeHitPath from "../../../../../../../ui/canvas/primitives/EdgeHitPath/EdgeHitPath";
+import EdgePath from "../../../../../../../ui/canvas/primitives/EdgePath/EdgePath";
 import type { EditTarget } from "./state";
 import { useInteractions } from "./useInteractions";
-import styles from "./RelationshipEdge.module.css";
 
 type RelationshipEdgeProps = {
   readonly view: RelationshipView;
@@ -67,7 +64,6 @@ export default function RelationshipEdge({
   const isTargetMultiplicityEditing = editTarget === "targetMultiplicity";
   const sourceMarkerId = `${view.relationshipId}-source-${view.sourceEndpointKind}`;
   const targetMarkerId = `${view.relationshipId}-target-${view.targetEndpointKind}`;
-  const className = [styles.edgePath, isSelected ? styles.selected : ""].filter(Boolean).join(" ");
   const sourceMultiplicityX =
     sourceX + (labelX - sourceX) * RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION;
   const sourceMultiplicityY =
@@ -85,6 +81,7 @@ export default function RelationshipEdge({
   );
 
   return (
+    // React Flow owns the edge shell, so the five edge elements remain consumer-side assembly.
     <g
       onClick={(event) => {
         event.stopPropagation();
@@ -92,46 +89,39 @@ export default function RelationshipEdge({
       }}
     >
       <defs>
-        <RelationshipMarker
-          id={sourceMarkerId}
-          endpointKind={view.sourceEndpointKind}
-          side="source"
-          selected={isSelected}
-        />
-        <RelationshipMarker
-          id={targetMarkerId}
-          endpointKind={view.targetEndpointKind}
-          side="target"
-          selected={isSelected}
-        />
+        {view.sourceEndpointKind === "none" ? null : (
+          <EdgeEndpointMarker
+            id={sourceMarkerId}
+            glyph={endpointGlyphs[view.sourceEndpointKind]}
+            side="source"
+            selected={isSelected}
+          />
+        )}
+        {view.targetEndpointKind === "none" ? null : (
+          <EdgeEndpointMarker
+            id={targetMarkerId}
+            glyph={endpointGlyphs[view.targetEndpointKind]}
+            side="target"
+            selected={isSelected}
+          />
+        )}
       </defs>
-      <path
-        className={styles.hitPath}
+      <EdgeHitPath d={edgePath} />
+      <EdgePath
         d={edgePath}
-        fill="none"
-        stroke="transparent"
-        strokeWidth={RELATIONSHIP_EDGE_HIT_PATH_STROKE_WIDTH}
+        lineKind={view.lineKind}
+        selected={isSelected}
+        startMarkerId={view.sourceEndpointKind === "none" ? undefined : sourceMarkerId}
+        endMarkerId={view.targetEndpointKind === "none" ? undefined : targetMarkerId}
       />
-      <path
-        className={className}
-        d={edgePath}
-        fill="none"
-        markerStart={toMarkerUrl(sourceMarkerId, view.sourceEndpointKind)}
-        markerEnd={toMarkerUrl(targetMarkerId, view.targetEndpointKind)}
-        strokeDasharray={view.lineKind === "dashed" ? RELATIONSHIP_EDGE_DASH_PATTERN : undefined}
-      />
-      {isSelected ? (
-        <>
-          <circle className={styles.reconnectEndpoint} cx={sourceX} cy={sourceY} r={2.5} />
-          <circle className={styles.reconnectEndpoint} cx={targetX} cy={targetY} r={2.5} />
-        </>
-      ) : null}
+      <EdgeEndpointHandle point={{ x: sourceX, y: sourceY }} visible={isSelected} />
+      <EdgeEndpointHandle point={{ x: targetX, y: targetY }} visible={isSelected} />
       {view.sourceMultiplicity || isSourceMultiplicityEditing ? (
         <EdgeText
           x={sourceMultiplicityX + multiplicityNormal.x}
           y={sourceMultiplicityY + multiplicityNormal.y}
           text={view.sourceMultiplicity ?? ""}
-          tone="dark"
+          variant="multiplicity"
           isEditing={isSourceMultiplicityEditing}
           isEditStartEnabled={isSelected}
           onSelect={onEdgeSelect}
@@ -145,7 +135,7 @@ export default function RelationshipEdge({
           x={targetMultiplicityX + multiplicityNormal.x}
           y={targetMultiplicityY + multiplicityNormal.y}
           text={view.targetMultiplicity ?? ""}
-          tone="dark"
+          variant="multiplicity"
           isEditing={isTargetMultiplicityEditing}
           isEditStartEnabled={isSelected}
           onSelect={onEdgeSelect}
@@ -159,7 +149,7 @@ export default function RelationshipEdge({
           x={labelX}
           y={labelY}
           text={view.label ?? ""}
-          tone="light"
+          variant="label"
           isEditing={isLabelEditing}
           isEditStartEnabled={isSelected}
           onSelect={onEdgeSelect}
@@ -172,16 +162,11 @@ export default function RelationshipEdge({
   );
 }
 
-// Private helpers
-function toMarkerUrl(id: string, endpointKind: string): string | undefined {
-  return endpointKind === "none" ? undefined : `url(#${id})`;
-}
-
 function EdgeText({
   x,
   y,
   text,
-  tone,
+  variant,
   isEditing,
   isEditStartEnabled,
   onSelect,
@@ -192,7 +177,7 @@ function EdgeText({
   readonly x: number;
   readonly y: number;
   readonly text: string;
-  readonly tone: "light" | "dark";
+  readonly variant: "label" | "multiplicity";
   readonly isEditing: boolean;
   readonly isEditStartEnabled: boolean;
   readonly onSelect: () => void;
@@ -200,81 +185,20 @@ function EdgeText({
   readonly onCommit: (value: string) => void;
   readonly onDraftDiscard: () => void;
 }): ReactElement {
-  const [editorText, setEditorText] = useState(text);
-
-  if (isEditing) {
-    const editorWidth = toEditorWidth(editorText);
-    return (
-      <foreignObject
-        x={x - editorWidth / 2}
-        y={y - RELATIONSHIP_EDGE_TEXT_REGION_HEIGHT / 2}
-        width={editorWidth}
-        height={RELATIONSHIP_EDGE_TEXT_REGION_HEIGHT}
-        className={styles.textObject}
-      >
-        <div
-          className={`${styles.editorHost} ${tone === "light" ? styles.lightEditor : styles.darkEditor} nodrag nopan`}
-        >
-          <CommitTextField
-            initialValue={text}
-            validate={() => []}
-            ariaLabel="Relationship text"
-            isLabelVisible={false}
-            autoFocus
-            appearance="inline"
-            situation={tone === "light" ? "edgeLabel" : "edgeCaption"}
-            isCancelVisible
-            onDraftChange={setEditorText}
-            onCommit={onCommit}
-            onDiscard={onDraftDiscard}
-            onCancel={onDraftDiscard}
-          />
-        </div>
-      </foreignObject>
-    );
-  }
-
-  const surfaceWidth = Math.max(24, text.length * 7 + 12);
   return (
-    <g
-      onClick={(event) => {
-        event.stopPropagation();
-        onSelect();
-        if (isEditStartEnabled) onEditStart();
-      }}
-      onDoubleClick={(event) => {
-        event.stopPropagation();
-        onSelect();
-        onEditStart();
-      }}
-    >
-      <rect
-        x={x - surfaceWidth / 2}
-        y={y - 9}
-        width={surfaceWidth}
-        height={18}
-        className={tone === "light" ? styles.lightTextSurface : styles.darkTextSurface}
+    <g transform={`translate(${x} ${y})`}>
+      <EditableEdgeText
+        text={text}
+        treatment={variant}
+        isEditing={isEditing}
+        isEditRequestEnabled={isEditStartEnabled}
+        validationStacking={INLINE_VALIDATION_POPUP_Z_INDEX}
+        onSelect={onSelect}
+        onEditRequest={onEditStart}
+        onCommit={onCommit}
+        onDiscard={onDraftDiscard}
       />
-      <text
-        x={x}
-        y={y}
-        className={tone === "light" ? styles.lightText : styles.darkText}
-        textAnchor="middle"
-        dominantBaseline="middle"
-      >
-        {text}
-      </text>
     </g>
-  );
-}
-
-function toEditorWidth(text: string): number {
-  return Math.min(
-    RELATIONSHIP_EDGE_TEXT_REGION_WIDTH,
-    Math.max(
-      RELATIONSHIP_EDGE_TEXT_MIN_WIDTH,
-      text.length * RELATIONSHIP_EDGE_TEXT_CHARACTER_WIDTH + RELATIONSHIP_EDGE_TEXT_CANCEL_ALLOWANCE
-    )
   );
 }
 

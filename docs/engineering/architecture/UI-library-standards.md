@@ -27,7 +27,7 @@ Token consumption by cascade is part of the declared dependency: a `var(--shiny-
 
 **Templates** — structural UI containers that arrange, group, or frame other library elements without owning behavior
 
-**Glyph descriptor** — pure geometry data (paths on the 16-grid, filled/stroked flag, optional anchor for marker use), typed in `shared/` and authored domain-side as content; the receiving element renders it and owns all treatment
+**Glyph descriptor** — pure geometry data (paths on the 16-grid, filled and dashed flags, optional anchor for marker use), typed in `shared/`. Domain components author domain-meaningful descriptors as content; a library element may own UI-pattern descriptors as private constants. The receiving element renders the descriptor and owns all treatment
 
 # Library scope
 
@@ -80,7 +80,7 @@ Inbound — how a consumer speaks to an element:
 
 - UI props in, `on<Event>` handlers out; injected pure functions (e.g. `validate`) are permitted
 - Situations are selected by variant; values are never passed for styling — no `className`, `style`, or visual-value props
-- Glyph descriptors are content data, in the same category as text labels — legal at any icon or marker slot. The descriptor states geometry and the filled/stroked flag only; the receiving element owns all treatment: wrapper, stroke language, caps, color from tokens
+- Glyph descriptors are content data, in the same category as text labels — legal at any icon or marker slot. The descriptor states geometry and the filled and dashed flags only; the receiving element owns all treatment: wrapper, stroke language, caps, color from tokens
 
 Imports — what an element's files may reach:
 
@@ -167,7 +167,7 @@ Which home a style value gets is decided by two questions:
 
 ### Style naming
 
-- A token is named after what it is FOR, never after its value; area prefixes scope generic roles (`--shiny-chrome-font-size-label`, `--shiny-canvas-font-size-primary`); single-area concepts (field, button, edge) need no prefix
+- A token is named after what it is FOR, never after its value; area prefixes scope generic roles (`--shiny-chrome-font-size-label`, `--shiny-canvas-font-size-primary`); single-area concepts (field, button, edge) need no prefix; a token shared across both identities by design carries no prefix (`--shiny-glyph-stroke-width`)
 - Consumers use tokens as-is: no local color-mix, alpha, or dimming — a use that needs a different value gets its own token
 
 ### Annotation
@@ -192,6 +192,7 @@ Each CSS property appears in exactly one row. Rows group properties sharing one 
 | Box geometry | `padding`, `margin`, `inset`, `top`, `right`, `bottom`, `left`, `transform` | owning component's `.module.css` |
 | Layout | `display`, `flex-*`, `grid-*`, `gap`, `align-*`, `justify-*`, `overflow` | owning component's `.module.css` |
 | Interaction toggles | `visibility`, `pointer-events` | owning component's `.module.css` |
+| Text emphasis | `font-style`, `text-decoration-line` | owning component's `.module.css`: binary state expression selected by variant — no authored value exists |
 
 Corollaries:
 

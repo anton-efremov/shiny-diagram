@@ -6,7 +6,7 @@
 import type { ReactElement } from "react";
 import type { StyleDefId } from "../../../../../../../shared/ids";
 import type { DeclaredStyleView } from "../../../../../../views/schema";
-import SwatchToggle from "../../../../../../ui/composites/SwatchToggle/SwatchToggle";
+import SwatchToggle from "../../../../../../../ui/chrome/composites/SwatchToggle/SwatchToggle";
 
 type StyleChipProps = {
   readonly view: DeclaredStyleView;

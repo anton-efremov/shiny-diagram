@@ -20,6 +20,7 @@ type ClassBoxNodeData = {
   readonly isConnectSourceEnabled: boolean;
   readonly isPendingMember: boolean;
   readonly haloColor: string | null;
+  readonly haloTone: "canvas" | "faint" | null;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
   readonly onClassResizeHandlePress: (
     classId: ClassId,
@@ -49,6 +50,7 @@ export default function ReactFlowClassBoxNodeAdapter(props: NodeProps<ClassBoxNo
       isConnectSourceEnabled={props.data.isConnectSourceEnabled}
       isPendingMember={props.data.isPendingMember}
       haloColor={props.data.haloColor}
+      haloTone={props.data.haloTone}
       onClassSelect={props.data.onClassSelect}
       onClassResizeHandlePress={props.data.onClassResizeHandlePress}
       editingState={props.data.editingState}

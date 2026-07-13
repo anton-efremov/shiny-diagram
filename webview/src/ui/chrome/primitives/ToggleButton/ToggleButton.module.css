@@ -1,0 +1,199 @@
+/**
+ * @render Shared icon toggle button styling.
+ */
+
+.iconOnlyButton,
+.microButton,
+.labeledButton,
+.nodeTileButton,
+.relationshipTileButton {
+  display: inline-grid;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--shiny-layout-border);
+  border-radius: var(--shiny-button-radius);
+  color: var(--shiny-text-muted);
+  background: var(--shiny-pane-bg);
+  box-shadow: inset 0 1px 0 var(--shiny-overlay-faint);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.iconOnlyButton:hover:not(:disabled),
+.microButton:hover:not(:disabled),
+.labeledButton:hover:not(:disabled),
+.nodeTileButton:hover:not(:disabled),
+.relationshipTileButton:hover:not(:disabled) {
+  border-color: var(--shiny-accent-outline);
+  color: var(--shiny-text);
+  background: var(--shiny-surface);
+  box-shadow:
+    inset 0 1px 0 var(--shiny-overlay-faint),
+    0 1px 2px var(--shiny-overlay-faint);
+}
+
+.iconOnlyButton:focus-visible,
+.microButton:focus-visible,
+.labeledButton:focus-visible,
+.nodeTileButton:focus-visible,
+.relationshipTileButton:focus-visible {
+  outline: 2px solid var(--shiny-accent-outline);
+  outline-offset: 2px;
+}
+
+.iconOnlyButton:disabled,
+.microButton:disabled,
+.labeledButton:disabled,
+.nodeTileButton:disabled,
+.relationshipTileButton:disabled {
+  color: var(--shiny-text-muted);
+  cursor: default;
+  opacity: 0.58;
+}
+
+.iconOnlyButton[aria-pressed="true"]:not(:disabled),
+.microButton[aria-pressed="true"]:not(:disabled),
+.labeledButton[aria-pressed="true"]:not(:disabled),
+.nodeTileButton[aria-pressed="true"]:not(:disabled),
+.relationshipTileButton[aria-pressed="true"]:not(:disabled) {
+  border-color: var(--shiny-accent-outline);
+  color: var(--shiny-text);
+  background: var(--shiny-surface);
+  box-shadow:
+    inset 0 0 0 1px var(--shiny-accent-outline),
+    inset 0 1px 0 var(--shiny-overlay-faint);
+}
+
+.iconOnlyButton {
+  justify-self: center;
+  width: 56px;
+  min-width: 56px;
+  height: 46px;
+  min-height: 46px;
+  padding: 0;
+}
+
+.microButton {
+  width: 24px;
+  min-width: 24px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0;
+  border-color: color-mix(in srgb, currentColor 55%, transparent);
+  border-radius: 3px;
+  color: inherit;
+  background: color-mix(
+    in srgb,
+    currentColor 12%,
+    var(--shiny-inline-surface, var(--shiny-field-bg))
+  );
+  box-shadow: none;
+}
+
+.microButton .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.microButton:hover:not(:disabled) {
+  border-color: currentColor;
+  color: inherit;
+  background: color-mix(
+    in srgb,
+    currentColor 18%,
+    var(--shiny-inline-surface, var(--shiny-field-bg))
+  );
+  box-shadow: none;
+}
+
+.microButton[aria-pressed="true"]:not(:disabled) {
+  border-color: currentColor;
+  color: inherit;
+  background: color-mix(
+    in srgb,
+    currentColor 24%,
+    var(--shiny-inline-surface, var(--shiny-field-bg))
+  );
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.labeledButton {
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 6px;
+  width: 100%;
+  min-height: 32px;
+  padding: 7px 8px;
+  text-align: left;
+}
+
+.nodeTileButton {
+  grid-template-rows: 32px auto;
+  gap: 4px;
+  width: 100%;
+  min-height: 72px;
+  padding: 9px 6px 8px;
+  text-align: center;
+  border-radius: var(--shiny-tile-radius);
+}
+
+.relationshipTileButton {
+  justify-self: center;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 0;
+  border-radius: var(--shiny-tile-radius);
+}
+
+.icon {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  min-width: 0;
+  color: inherit;
+}
+
+.iconOnlyButton .icon {
+  width: 38px;
+  height: 28px;
+}
+
+.nodeTileButton .icon {
+  justify-self: center;
+  align-self: center;
+  width: 36px;
+  height: 30px;
+}
+
+.relationshipTileButton .icon {
+  width: 24px;
+  height: 18px;
+}
+
+.icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.glyph {
+  stroke-width: var(--shiny-glyph-stroke-width);
+}
+
+.dashedGlyphPath {
+  stroke-dasharray: var(--shiny-glyph-dash);
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  text-align: center;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: normal;
+}

@@ -7,10 +7,10 @@ import type { ReactElement } from "react";
 import type { RelationshipId } from "../../../../../../shared/ids";
 import type { RelationshipEndpointKind, RelationshipLineKind } from "../../../../../../shared/uml";
 import type { RelationshipView } from "../../../../../views/schema";
-import Button from "../../../../../ui/primitives/Button/Button";
-import Dropdown from "../../../../../ui/composites/Dropdown/Dropdown";
-import FieldGrid from "../../../../../ui/templates/FieldGrid/FieldGrid";
-import ControlGroup from "../../../../../ui/templates/ControlGroup/ControlGroup";
+import Button from "../../../../../../ui/chrome/primitives/Button/Button";
+import Dropdown from "../../../../../../ui/chrome/composites/Dropdown/Dropdown";
+import FieldGrid from "../../../../../../ui/chrome/templates/FieldGrid/FieldGrid";
+import ControlGroup from "../../../../../../ui/chrome/templates/ControlGroup/ControlGroup";
 import { useInteractions } from "./useInteractions";
 
 const endpointKinds: readonly RelationshipEndpointKind[] = [

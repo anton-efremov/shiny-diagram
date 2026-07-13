@@ -6,8 +6,8 @@
 import type { ReactElement } from "react";
 import type { RelationshipView } from "../../../../../views/schema";
 import { useDispatchTransaction } from "../../../../../contexts";
-import CommitComboBox from "../../../../../ui/composites/CommitComboBox/CommitComboBox";
-import FieldGrid from "../../../../../ui/templates/FieldGrid/FieldGrid";
+import CommitComboBox from "../../../../../../ui/chrome/composites/CommitComboBox/CommitComboBox";
+import FieldGrid from "../../../../../../ui/chrome/templates/FieldGrid/FieldGrid";
 import { toRelationshipMultiplicitySetTransaction } from "./transactions";
 
 const multiplicityPresets = ["1", "0..1", "*", "0..*", "1..*"] as const;

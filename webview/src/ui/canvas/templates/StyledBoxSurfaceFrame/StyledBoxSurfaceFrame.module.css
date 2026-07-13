@@ -1,0 +1,25 @@
+.frame {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  border: var(--styled-box-stroke-width, var(--shiny-base-stroke-width))
+    var(--styled-box-line-style, var(--shiny-base-stroke-style))
+    var(--styled-box-stroke, var(--shiny-base-stroke));
+  color: var(--styled-box-color, var(--shiny-base-text));
+  background: var(--styled-box-fill, var(--shiny-base-fill));
+  font-family: var(--shiny-font-family);
+  font-size: var(--shiny-canvas-font-size-primary);
+  cursor: var(--shiny-cursor-move-ready);
+}
+
+.dragging {
+  cursor: var(--shiny-cursor-move-active);
+}
+
+.connectionEnabled {
+  cursor: var(--shiny-cursor-placement);
+}

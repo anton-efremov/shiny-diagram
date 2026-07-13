@@ -1,0 +1,33 @@
+/**
+ * @render Box outline overlay styling.
+ */
+
+.hover,
+.selected,
+.pending {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.selected {
+  inset: calc(-1 * var(--box-outline-center-offset) - 1px);
+  border: var(--shiny-box-outline-width) var(--shiny-box-outline-style) var(--shiny-selection);
+}
+
+.hover {
+  inset: calc(-1 * var(--box-outline-center-offset) - 1px);
+  border: var(--shiny-box-outline-width) var(--shiny-box-outline-style) var(--shiny-selection);
+  opacity: 0;
+}
+
+:global(*:hover) > .hover {
+  opacity: 1;
+}
+
+.pending {
+  outline: var(--shiny-box-pending-outline-width) var(--shiny-box-pending-outline-style)
+    var(--shiny-accent-outline);
+  outline-offset: 2px;
+}

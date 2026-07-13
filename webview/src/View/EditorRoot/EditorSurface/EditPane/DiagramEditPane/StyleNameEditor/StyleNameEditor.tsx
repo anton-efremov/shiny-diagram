@@ -7,8 +7,8 @@ import type { ReactElement } from "react";
 import type { DeclaredStyleView } from "../../../../../views/schema";
 import type { SelectionState } from "../../../../../state/editorStates";
 import type { TransactionResult } from "../../../../../commands/editorCommands";
-import CommitTextField from "../../../../../ui/composites/CommitTextField/CommitTextField";
-import FieldGrid from "../../../../../ui/templates/FieldGrid/FieldGrid";
+import CommitTextField from "../../../../../../ui/chrome/composites/CommitTextField/CommitTextField";
+import FieldGrid from "../../../../../../ui/chrome/templates/FieldGrid/FieldGrid";
 import { useInteractions } from "./useInteractions";
 
 type StyleNameEditorProps = {

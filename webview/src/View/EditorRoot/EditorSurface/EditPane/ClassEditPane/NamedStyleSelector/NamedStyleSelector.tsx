@@ -7,7 +7,7 @@ import type { ReactElement } from "react";
 import { toStyleDefId } from "../../../../../../shared/ids";
 import type { StyleProperties } from "../../../../../../shared/style";
 import type { ClassView, DeclaredStyleView } from "../../../../../views/schema";
-import Dropdown from "../../../../../ui/composites/Dropdown/Dropdown";
+import Dropdown from "../../../../../../ui/chrome/composites/Dropdown/Dropdown";
 import { useInteractions } from "./useInteractions";
 
 type NamedStyleSelectorProps = {

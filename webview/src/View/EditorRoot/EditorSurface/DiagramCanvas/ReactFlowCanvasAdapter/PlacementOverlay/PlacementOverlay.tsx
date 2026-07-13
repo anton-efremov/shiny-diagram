@@ -5,14 +5,13 @@
  */
 
 import { useEffect, useState } from "react";
-import type { ReactElement, CSSProperties } from "react";
+import type { ReactElement } from "react";
 import type { NodePlacementState } from "../../../../../state/editorStates";
 import type { TransactionResult } from "../../../../../commands/editorCommands";
 import { PLACEMENT_OVERLAY_Z_INDEX } from "../../../../../config/editorUiConfig";
-import { toDraftStyle } from "./childProps";
+import RectDrawOverlay from "../../../../../../ui/canvas/composites/RectDrawOverlay/RectDrawOverlay";
 import { toInitialDraftRect, toInitialOrigin } from "./state";
 import { useInteractions } from "./useInteractions";
-import styles from "./PlacementOverlay.module.css";
 
 type PlacementOverlayProps = {
   readonly nodePlacementState: NodePlacementState;
@@ -28,8 +27,6 @@ export default function PlacementOverlay({
   const [draftRect, setDraftRect] = useState(() => toInitialDraftRect());
 
   // UI props derivation
-  const overlayStyle: CSSProperties = { zIndex: PLACEMENT_OVERLAY_Z_INDEX };
-  const draftStyle: CSSProperties | undefined = toDraftStyle(draftRect);
 
   // Event handler props derivation
   const { onPointerDown, onPointerMove, onPointerUp } = useInteractions({
@@ -58,14 +55,12 @@ export default function PlacementOverlay({
   if (nodePlacementState?.kind !== "class" && nodePlacementState?.kind !== "note") return null;
 
   return (
-    <div
-      className={styles.overlay}
-      style={overlayStyle}
+    <RectDrawOverlay
+      rect={draftRect}
+      stacking={PLACEMENT_OVERLAY_Z_INDEX}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
-    >
-      {draftStyle ? <div className={styles.draftRect} style={draftStyle} /> : null}
-    </div>
+    />
   );
 }

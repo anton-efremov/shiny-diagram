@@ -1,0 +1,20 @@
+/**
+ * @render Box halo overlay styling.
+ */
+
+.halo {
+  position: absolute;
+  inset: -6px;
+  z-index: var(--halo-ring-stacking);
+  border-radius: var(--shiny-halo-radius);
+  background: var(--halo-ring-tint, var(--halo-ring-default-tint));
+  pointer-events: none;
+}
+
+.canvas {
+  --halo-ring-default-tint: var(--shiny-app-bg);
+}
+
+.faint {
+  --halo-ring-default-tint: var(--shiny-overlay-faint);
+}

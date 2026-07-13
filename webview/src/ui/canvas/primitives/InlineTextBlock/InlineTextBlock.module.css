@@ -1,0 +1,56 @@
+.text {
+  box-sizing: border-box;
+}
+
+.primary,
+.secondary,
+.heading {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.primary,
+.secondary {
+  max-width: 100%;
+}
+
+.primary {
+  font-size: var(--shiny-canvas-font-size-primary);
+  font-weight: var(--shiny-canvas-font-weight-primary);
+  line-height: var(--shiny-canvas-line-height-primary);
+  text-align: center;
+}
+
+.secondary {
+  font-size: var(--shiny-canvas-font-size-supporting);
+  line-height: var(--shiny-canvas-line-height-supporting);
+}
+
+.heading {
+  height: 28px;
+  padding: 6px 10px;
+  font-size: var(--shiny-canvas-font-size-secondary);
+  font-weight: var(--shiny-canvas-font-weight-heading);
+  line-height: var(--shiny-canvas-line-height-heading);
+}
+
+.body {
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  overflow: hidden;
+  font-size: var(--shiny-canvas-font-size-primary);
+  line-height: var(--shiny-canvas-line-height-body);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.row {
+  min-width: 0;
+  padding: 4px 10px;
+  font-size: var(--shiny-canvas-font-size-secondary);
+  line-height: var(--shiny-canvas-line-height-secondary);
+  text-align: left;
+  white-space: pre-wrap;
+}

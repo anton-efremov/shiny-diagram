@@ -1,0 +1,7 @@
+.path {
+  fill: none;
+  stroke: transparent;
+  stroke-width: var(--shiny-edge-hit-stroke-width);
+  cursor: var(--shiny-cursor-action);
+  pointer-events: stroke;
+}

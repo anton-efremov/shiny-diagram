@@ -1,0 +1,40 @@
+.editor {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+
+.primary {
+  font-size: var(--shiny-canvas-font-size-primary);
+  font-weight: var(--shiny-canvas-font-weight-primary);
+  line-height: var(--shiny-canvas-line-height-primary);
+  text-align: center;
+}
+
+.secondary {
+  font-size: var(--shiny-canvas-font-size-supporting);
+  line-height: var(--shiny-canvas-line-height-supporting);
+  text-align: center;
+}
+
+.heading {
+  height: 28px;
+  padding: 6px 10px;
+  font-size: var(--shiny-canvas-font-size-secondary);
+  font-weight: var(--shiny-canvas-font-weight-heading);
+  line-height: var(--shiny-canvas-line-height-heading);
+}
+
+.label,
+.multiplicity {
+  font-size: var(--shiny-canvas-font-size-secondary);
+  text-align: center;
+}
+
+.cancelAction {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+}

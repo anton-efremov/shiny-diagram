@@ -1,0 +1,7 @@
+.message {
+  position: absolute;
+  margin: 0;
+  padding: 20px;
+  color: var(--shiny-text-muted);
+  pointer-events: none;
+}

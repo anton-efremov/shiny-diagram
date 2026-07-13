@@ -1,0 +1,17 @@
+.line {
+  fill: none;
+}
+
+.accent {
+  stroke: var(--shiny-accent-outline);
+  stroke-width: var(--shiny-edge-ghost-accent-stroke-width);
+}
+
+.attachment {
+  stroke: var(--shiny-attachment-preview-stroke);
+  stroke-width: var(--shiny-edge-ghost-attachment-stroke-width);
+}
+
+.dashed {
+  stroke-dasharray: var(--shiny-edge-dash-pattern);
+}

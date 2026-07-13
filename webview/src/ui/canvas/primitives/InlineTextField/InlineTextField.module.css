@@ -1,0 +1,50 @@
+.field {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--shiny-inline-field-radius);
+  color: inherit;
+  outline: var(--shiny-inline-field-outline-width) var(--shiny-inline-field-outline-style)
+    var(--shiny-inline-field-outline);
+  outline-offset: 1px;
+  background: var(--shiny-inline-field-background);
+  font: inherit;
+  line-height: inherit;
+  text-align: inherit;
+}
+
+.field:focus-visible {
+  outline: var(--shiny-inline-field-outline-width) var(--shiny-inline-field-outline-style)
+    var(--shiny-inline-field-focus-outline);
+  outline-offset: 1px;
+}
+
+.field[aria-invalid="true"] {
+  outline-color: var(--shiny-inline-field-invalid-outline);
+}
+
+.withEndAction {
+  padding-right: 22px;
+}
+
+.label {
+  color: var(--shiny-edge-label-text);
+  outline-color: var(--shiny-edge-label-edit-outline);
+  background: var(--shiny-edge-label-edit-background);
+}
+
+.multiplicity {
+  color: var(--shiny-edge-caption-text);
+  outline-color: var(--shiny-edge-caption-edit-outline);
+  background: var(--shiny-edge-caption-edit-background);
+}
+
+.label:focus-visible {
+  outline-color: var(--shiny-edge-label-edit-outline);
+}
+
+.multiplicity:focus-visible {
+  outline-color: var(--shiny-edge-caption-edit-outline);
+}

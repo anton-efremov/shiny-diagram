@@ -1,0 +1,21 @@
+.draftRect {
+  background: var(--shiny-overlay-faint);
+  pointer-events: none;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.fixed {
+  position: fixed;
+}
+
+.accent {
+  border: var(--shiny-draft-border-width) var(--shiny-draft-border-style)
+    var(--shiny-accent-outline);
+}
+
+.positive {
+  border: var(--shiny-positive-draft-border-width) solid var(--shiny-positive);
+}

@@ -4,13 +4,8 @@
 
 import type { CSSProperties, ReactElement } from "react";
 import type { Point } from "../../../../../../shared/geometry";
-import {
-  NOTE_ATTACH_GHOST_DASH_PATTERN,
-  NOTE_ATTACH_GHOST_STROKE,
-  NOTE_ATTACH_GHOST_STROKE_WIDTH,
-  NOTE_ATTACH_GHOST_Z_INDEX,
-} from "../../../../../config/editorUiConfig";
-import styles from "./NoteAttachGhostLine.module.css";
+import { NOTE_ATTACH_GHOST_Z_INDEX } from "../../../../../config/editorUiConfig";
+import EdgeGhostLine from "../../../../../../ui/canvas/primitives/EdgeGhostLine/EdgeGhostLine";
 
 type NoteAttachGhostLineProps = {
   readonly sourcePoint: Point;
@@ -22,20 +17,21 @@ export default function NoteAttachGhostLine({
   targetPoint,
 }: NoteAttachGhostLineProps): ReactElement {
   const layerStyle = {
-    "--note-attach-ghost-z-index": NOTE_ATTACH_GHOST_Z_INDEX,
+    position: "fixed",
+    inset: 0,
+    width: "100vw",
+    height: "100vh",
+    zIndex: NOTE_ATTACH_GHOST_Z_INDEX,
+    pointerEvents: "none",
   } as CSSProperties;
 
   return (
-    <svg className={styles.layer} style={layerStyle} aria-hidden="true">
-      <line
-        className={styles.line}
-        x1={sourcePoint.x}
-        y1={sourcePoint.y}
-        x2={targetPoint.x}
-        y2={targetPoint.y}
-        stroke={NOTE_ATTACH_GHOST_STROKE}
-        strokeWidth={NOTE_ATTACH_GHOST_STROKE_WIDTH}
-        strokeDasharray={NOTE_ATTACH_GHOST_DASH_PATTERN}
+    <svg style={layerStyle} aria-hidden="true">
+      <EdgeGhostLine
+        startPoint={sourcePoint}
+        endPoint={targetPoint}
+        lineKind="dashed"
+        tone="attachment"
       />
     </svg>
   );

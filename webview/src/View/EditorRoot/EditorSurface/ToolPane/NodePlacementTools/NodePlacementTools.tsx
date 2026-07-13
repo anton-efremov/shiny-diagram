@@ -4,8 +4,9 @@
  */
 
 import type { ReactElement } from "react";
-import ToggleButton from "../../../../ui/primitives/ToggleButton/ToggleButton";
-import { ClassGlyph, NamespaceGlyph, NoteGlyph } from "./icons";
+import type { GlyphDescriptor } from "../../../../../shared/glyph";
+import ToggleButton from "../../../../../ui/chrome/primitives/ToggleButton/ToggleButton";
+import { classGlyph, namespaceGlyph, noteGlyph } from "./icons";
 
 type NodePlacementToolsProps = {
   readonly kind: "class" | "note" | "namespace";
@@ -18,15 +19,15 @@ type NodePlacementToolsProps = {
 };
 
 type ToolPaneItem = {
-  readonly icon: () => ReactElement;
+  readonly icon: GlyphDescriptor;
   readonly name: string;
   readonly kind: "class" | "note" | "namespace";
 };
 
 const nodeTools: readonly ToolPaneItem[] = [
-  { icon: ClassGlyph, name: "Class", kind: "class" },
-  { icon: NamespaceGlyph, name: "Namespace", kind: "namespace" },
-  { icon: NoteGlyph, name: "Note", kind: "note" },
+  { icon: classGlyph, name: "Class", kind: "class" },
+  { icon: namespaceGlyph, name: "Namespace", kind: "namespace" },
+  { icon: noteGlyph, name: "Note", kind: "note" },
 ];
 
 export default function NodePlacementTools({
@@ -51,11 +52,9 @@ export default function NodePlacementTools({
     : isNoteTool
       ? onNotePlacementStart
       : onNamespacePlacementStart;
-  const Icon = tool.icon;
-
   return (
     <ToggleButton
-      icon={<Icon />}
+      icon={tool.icon}
       label={tool.name}
       pressed={isPressed}
       title={tool.name}

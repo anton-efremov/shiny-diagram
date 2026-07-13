@@ -1,0 +1,100 @@
+/**
+ * @render Anchored validation pill styling.
+ */
+
+.anchor {
+  position: absolute;
+  inset: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.popup {
+  position: fixed;
+  inset: auto;
+  z-index: 10000;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px;
+  gap: 6px;
+  align-items: center;
+  max-width: calc(100vw - 16px);
+  padding: 6px 12px;
+  overflow: hidden;
+  border: 1px solid var(--shiny-validation-border);
+  border-radius: 999px;
+  color: var(--shiny-validation-foreground);
+  background: var(--shiny-validation-surface);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  filter: drop-shadow(var(--shiny-elevation-high));
+  pointer-events: auto;
+  transform: translate(-50%, -100%);
+  margin: 0;
+}
+
+.message {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dismiss {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  min-height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.dismiss:hover,
+.dismiss:active {
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.dismiss:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 1px;
+}
+
+.dismiss svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.popup::after {
+  position: absolute;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: 1px solid var(--shiny-validation-border);
+  border-bottom: 1px solid var(--shiny-validation-border);
+  background: var(--shiny-validation-surface);
+  content: "";
+}
+
+.above::after {
+  bottom: -5px;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.below {
+  transform: translate(-50%, 0);
+}
+
+.below::after {
+  top: -5px;
+  transform: translateX(-50%) rotate(225deg);
+}

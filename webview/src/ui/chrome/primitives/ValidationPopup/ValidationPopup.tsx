@@ -1,0 +1,66 @@
+/**
+ * @behavior Escape and outside-pointer validation dismissal routing.
+ * @render Top-layer validation-message overlay anchored to its call site.
+ */
+
+import { useLayoutEffect } from "react";
+import type { ReactElement } from "react";
+import { useAnchoredPopupPosition } from "../../../core/useAnchoredPopupPosition";
+import styles from "./ValidationPopup.module.css";
+
+type ValidationPopupProps = {
+  readonly messages: readonly string[];
+  readonly onDismiss: () => void;
+};
+
+export default function ValidationPopup({
+  messages,
+  onDismiss,
+}: ValidationPopupProps): ReactElement {
+  const { anchorRef, popupRef, position } = useAnchoredPopupPosition(messages);
+
+  useLayoutEffect(() => {
+    function handleKeyDown(event: KeyboardEvent): void {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      onDismiss();
+    }
+
+    function handlePointerDown(): void {
+      onDismiss();
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("pointerdown", handlePointerDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [onDismiss]);
+
+  return (
+    <>
+      <span ref={anchorRef} className={styles.anchor} aria-hidden="true" />
+      <div
+        ref={popupRef}
+        className={`${styles.popup} ${position?.placement === "below" ? styles.below : styles.above}`}
+        style={position ? { left: position.left, top: position.top } : undefined}
+        role="alert"
+        popover="manual"
+      >
+        <span className={styles.message}>{messages.join(" ")}</span>
+        <button type="button" className={styles.dismiss} aria-label="Dismiss" onClick={onDismiss}>
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+            <path
+              d="M5 5 11 11M11 5 5 11"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+    </>
+  );
+}

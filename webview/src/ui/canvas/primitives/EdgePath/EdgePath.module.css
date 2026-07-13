@@ -1,0 +1,19 @@
+.path {
+  fill: none;
+  stroke: var(--edge-path-stroke, var(--shiny-text-muted));
+  stroke-width: var(--edge-path-stroke-width, var(--shiny-edge-stroke-width));
+}
+
+.dashed {
+  stroke-dasharray: var(--shiny-edge-dash-pattern);
+}
+
+.attachment {
+  stroke: var(--shiny-attachment-edge-stroke);
+  stroke-width: var(--shiny-attachment-edge-stroke-width);
+}
+
+.selected {
+  stroke: var(--shiny-accent-outline);
+  stroke-width: var(--shiny-edge-selection-stroke-width);
+}

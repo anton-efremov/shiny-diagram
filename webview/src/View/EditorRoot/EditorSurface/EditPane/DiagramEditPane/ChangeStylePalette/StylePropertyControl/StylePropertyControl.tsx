@@ -6,16 +6,16 @@
 import type { ReactElement } from "react";
 import type { StylePropertyName } from "../../../../../../../shared/style";
 import { DASH_PRESETS, WIDTH_PRESETS } from "../../../../../../config/stylePresets";
-import ColorSelect from "../../../../../../ui/composites/ColorSelect/ColorSelect";
-import type { ColorSelectPresetCatalog } from "../../../../../../ui/composites/ColorSelect/ColorSelect";
-import StrokeSelect from "../../../../../../ui/composites/StrokeSelect/StrokeSelect";
+import ColorSelect from "../../../../../../../ui/chrome/composites/ColorSelect/ColorSelect";
+import type { ColorSelectPresetCatalog } from "../../../../../../../ui/chrome/composites/ColorSelect/ColorSelect";
+import StrokeSelect from "../../../../../../../ui/chrome/composites/StrokeSelect/StrokeSelect";
 
 type StylePropertyControlProps = {
   readonly property: StylePropertyName;
   readonly value: string | null;
   readonly presets: ColorSelectPresetCatalog;
   readonly documentColors: readonly string[];
-  readonly baseValue: string;
+  readonly baseValue?: string;
   readonly defaultValue: string;
   readonly documentValues: readonly string[];
   readonly onChange: (value: string | null) => void;

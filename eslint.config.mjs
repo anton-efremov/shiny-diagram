@@ -34,13 +34,13 @@ export default [
   },
   {
     files: ["webview/src/**/*.tsx"],
-    ignores: ["webview/src/View/ui/**/*.tsx"],
+    ignores: ["webview/src/ui/**/*.tsx"],
     rules: {
       "no-restricted-syntax": [
         "error",
         {
           selector: "JSXOpeningElement > JSXIdentifier[name=/^(input|button|select|textarea)$/]",
-          message: "Intrinsic interactive elements are allowed only inside View/ui.",
+          message: "Intrinsic interactive elements are allowed only inside ui.",
         },
       ],
     },
@@ -56,24 +56,27 @@ export default [
         "error",
         {
           selector: "JSXOpeningElement > JSXIdentifier[name=/^[a-z]/]",
-          message: "Chrome components must render through View/ui components, not intrinsic JSX.",
+          message: "Chrome components must render through ui components, not intrinsic JSX.",
         },
       ],
     },
   },
   {
-    files: ["**/icons.tsx"],
+    files: ["**/icons.ts"],
     rules: {
       "no-restricted-syntax": [
         "error",
         {
-          selector:
-            "JSXAttribute[name.name=/^(fill|stroke)$/] > Literal[value!=/^(currentColor|none)$/]",
-          message: "Icon fill/stroke values must be currentColor or none.",
+          selector: "JSXElement",
+          message: "icons.ts files are descriptor catalogs and must not contain JSX.",
+        },
+        {
+          selector: "JSXFragment",
+          message: "icons.ts files are descriptor catalogs and must not contain JSX.",
         },
         {
           selector: "Literal[value=/#[0-9a-fA-F]{3,8}|rgba?\\(|hsla?\\(|var\\(--/]",
-          message: "Icon files must not contain color literals or CSS variable references.",
+          message: "icons.ts files must not contain color or CSS-variable literals.",
         },
       ],
     },

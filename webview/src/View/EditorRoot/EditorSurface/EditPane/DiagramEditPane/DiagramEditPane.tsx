@@ -7,11 +7,11 @@ import type { ReactElement } from "react";
 import type { SelectionState } from "../../../../state/editorStates";
 import type { TransactionResult } from "../../../../commands/editorCommands";
 import type { DeclaredStyleView, DiagramView } from "../../../../views/schema";
-import Button from "../../../../ui/primitives/Button/Button";
-import ReservedBackLink from "../../../../ui/primitives/ReservedBackLink/ReservedBackLink";
-import ControlGroup from "../../../../ui/templates/ControlGroup/ControlGroup";
-import PaneSection from "../../../../ui/templates/PaneSection/PaneSection";
-import TextBlock from "../../../../ui/primitives/TextBlock/TextBlock";
+import Button from "../../../../../ui/chrome/primitives/Button/Button";
+import ReservedBackLink from "../../../../../ui/chrome/primitives/ReservedBackLink/ReservedBackLink";
+import ControlGroup from "../../../../../ui/chrome/templates/ControlGroup/ControlGroup";
+import PaneSection from "../../../../../ui/chrome/templates/PaneSection/PaneSection";
+import TextBlock from "../../../../../ui/chrome/primitives/TextBlock/TextBlock";
 import ChangeStylePalette from "./ChangeStylePalette/ChangeStylePalette";
 import SavedStyles from "./SavedStyles/SavedStyles";
 import StyleNameEditor from "./StyleNameEditor/StyleNameEditor";
@@ -22,7 +22,7 @@ import {
   DEFAULT_STROKE_DASHARRAY,
 } from "../../../../config/editorUiConfig";
 import { toDocumentColors, toStrokeSelectUIProps } from "./childProps";
-import { PURE_STYLE_DEFAULTS } from "../../../../config/stylePresets";
+import { PURE_STROKE_DEFAULTS } from "../../../../config/stylePresets";
 
 type DiagramEditPaneProps = {
   readonly view: Pick<DiagramView, "styles" | "baseStyle">;
@@ -109,11 +109,11 @@ export default function DiagramEditPane({
               documentColors={documentColors}
               widthSelectUIProps={{
                 ...widthSelectUIProps,
-                defaultValue: PURE_STYLE_DEFAULTS.strokeWidth,
+                defaultValue: PURE_STROKE_DEFAULTS.strokeWidth,
               }}
               dashSelectUIProps={{
                 ...dashSelectUIProps,
-                defaultValue: PURE_STYLE_DEFAULTS.strokeDasharray,
+                defaultValue: PURE_STROKE_DEFAULTS.strokeDasharray,
               }}
               baseStyle={{}}
               onPropertyChange={onBasePropertyChange}

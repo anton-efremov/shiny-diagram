@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, ReactElement } from "react";
+import type { ReactElement } from "react";
 import {
   ConnectionMode,
   Controls,
@@ -60,12 +60,13 @@ import {
   toRelationshipEdgeDescriptors,
 } from "./frameworkAdapters";
 import { useInteractions } from "./useInteractions";
+import GridFrame from "../../../../../ui/canvas/templates/GridFrame/GridFrame";
+import DraftRect from "../../../../../ui/canvas/primitives/DraftRect/DraftRect";
 import type {
   ClassResizePointerState,
   NamespaceResizePointerState,
   NoteResizePointerState,
 } from "./useInteractions";
-import styles from "./ReactFlowCanvasAdapter.module.css";
 
 const nodeTypes = {
   classBox: ReactFlowClassBoxNodeAdapter,
@@ -400,6 +401,13 @@ export default function ReactFlowCanvasAdapter({
       onRelationshipSelect,
     ]
   );
+  const renderedNodes = useMemo(
+    () =>
+      isRelationshipPlacementActive
+        ? rfNodes.map((node) => ({ ...node, style: { ...node.style, cursor: "inherit" } }))
+        : rfNodes,
+    [isRelationshipPlacementActive, rfNodes]
+  );
 
   // Rendered for both placement and reconnect drags; reconnect drags carry no
   // placement seed and fall back to the neutral ghost styling.
@@ -422,13 +430,13 @@ export default function ReactFlowCanvasAdapter({
   }, [relationshipPlacementState]);
 
   return (
-    <>
+    <GridFrame variant="canvas" placementActive={isRelationshipPlacementActive}>
       <ReactFlow<
         ClassBoxNodeDescriptor | NamespaceNodeDescriptor | NoteBoxNodeDescriptor,
         RelationshipEdgeDescriptor | NoteAttachmentEdgeDescriptor
       >
         // Editable React Flow canvas boundary.
-        nodes={rfNodes}
+        nodes={renderedNodes}
         edges={rfEdges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -449,12 +457,6 @@ export default function ReactFlowCanvasAdapter({
         connectionMode={ConnectionMode.Loose}
         reconnectRadius={RELATIONSHIP_RECONNECT_RADIUS}
         connectionLineComponent={connectionLineComponent}
-        className={[
-          styles.canvas,
-          isRelationshipPlacementActive ? styles.relationshipPlacement : "",
-        ]
-          .filter(Boolean)
-          .join(" ")}
         fitView
         nodesDraggable={!isPlacementActive && !isNamespaceGestureActive && !isSurfaceResizeActive}
         panOnDrag={!isPlacementActive && !isNamespaceGestureActive && !isSurfaceResizeActive}
@@ -472,9 +474,14 @@ export default function ReactFlowCanvasAdapter({
         <NoteAttachGhostLine sourcePoint={noteAttachSource} targetPoint={noteAttachCursor} />
       ) : null}
       {namespaceDraftStyle ? (
-        <div className={styles.namespaceDraft} style={namespaceDraftStyle} />
+        <DraftRect
+          rect={namespaceDraftStyle}
+          tone="positive"
+          positioning="fixed"
+          stacking={NAMESPACE_GESTURE_Z_INDEX}
+        />
       ) : null}
-    </>
+    </GridFrame>
   );
 }
 
@@ -482,7 +489,7 @@ export default function ReactFlowCanvasAdapter({
 function toNamespaceDraftStyle(
   namespaceGestureState: NamespaceGestureState,
   flowToScreenPosition: (position: XYPosition) => XYPosition
-): CSSProperties | null {
+): Rect | null {
   if (namespaceGestureState.kind !== "creating") return null;
   if (namespaceGestureState.rect.w === 0 && namespaceGestureState.rect.h === 0) return null;
   const topLeft = flowToScreenPosition({
@@ -494,13 +501,11 @@ function toNamespaceDraftStyle(
     y: namespaceGestureState.rect.y + namespaceGestureState.rect.h,
   });
   return {
-    position: "fixed",
-    left: Math.min(topLeft.x, bottomRight.x),
-    top: Math.min(topLeft.y, bottomRight.y),
-    width: Math.abs(bottomRight.x - topLeft.x),
-    height: Math.abs(bottomRight.y - topLeft.y),
-    zIndex: NAMESPACE_GESTURE_Z_INDEX,
-  } as CSSProperties;
+    x: Math.min(topLeft.x, bottomRight.x),
+    y: Math.min(topLeft.y, bottomRight.y),
+    w: Math.abs(bottomRight.x - topLeft.x),
+    h: Math.abs(bottomRight.y - topLeft.y),
+  };
 }
 
 function toNoteAttachSourcePoint(

@@ -5,9 +5,8 @@
 import type { ReactElement } from "react";
 import type { Point } from "../../../../../../../shared/geometry";
 import type { RelationshipSeed } from "../../../../../../state/editorStates";
-import { RELATIONSHIP_EDGE_DASH_PATTERN } from "../../../../../../config/editorUiConfig";
-import RelationshipMarker from "../../RelationshipMarker/RelationshipMarker";
-import styles from "./RelationshipGhostLine.module.css";
+import { endpointGlyphs } from "../../RelationshipMarker/icons";
+import GhostEdge from "../../../../../../../ui/canvas/composites/GhostEdge/GhostEdge";
 
 type RelationshipGhostLineProps = {
   readonly seed: RelationshipSeed;
@@ -21,41 +20,25 @@ export default function RelationshipGhostLine({
   endPoint,
 }: RelationshipGhostLineProps): ReactElement {
   // UI props derivation
-  const edgePath = toStraightPath(startPoint, endPoint);
   const sourceMarkerId = `relationship-placement-source-${seed.sourceEndpointKind}`;
   const targetMarkerId = `relationship-placement-target-${seed.targetEndpointKind}`;
 
   return (
-    <g className={styles.connectionLine}>
-      <defs>
-        <RelationshipMarker
-          id={sourceMarkerId}
-          endpointKind={seed.sourceEndpointKind}
-          side="source"
-        />
-        <RelationshipMarker
-          id={targetMarkerId}
-          endpointKind={seed.targetEndpointKind}
-          side="target"
-        />
-      </defs>
-      <path
-        className={styles.path}
-        d={edgePath}
-        fill="none"
-        markerStart={toMarkerUrl(sourceMarkerId, seed.sourceEndpointKind)}
-        markerEnd={toMarkerUrl(targetMarkerId, seed.targetEndpointKind)}
-        strokeDasharray={seed.lineKind === "dashed" ? RELATIONSHIP_EDGE_DASH_PATTERN : undefined}
-      />
-    </g>
+    <GhostEdge
+      startPoint={startPoint}
+      endPoint={endPoint}
+      lineKind={seed.lineKind}
+      tone="accent"
+      startMarker={
+        seed.sourceEndpointKind === "none"
+          ? undefined
+          : { id: sourceMarkerId, glyph: endpointGlyphs[seed.sourceEndpointKind] }
+      }
+      endMarker={
+        seed.targetEndpointKind === "none"
+          ? undefined
+          : { id: targetMarkerId, glyph: endpointGlyphs[seed.targetEndpointKind] }
+      }
+    />
   );
-}
-
-// Private helpers
-function toStraightPath(startPoint: Point, endPoint: Point): string {
-  return `M ${startPoint.x} ${startPoint.y} L ${endPoint.x} ${endPoint.y}`;
-}
-
-function toMarkerUrl(id: string, endpointKind: string): string | undefined {
-  return endpointKind === "none" ? undefined : `url(#${id})`;
 }

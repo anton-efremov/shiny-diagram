@@ -1,0 +1,60 @@
+.button {
+  display: inline-grid;
+  align-items: center;
+  justify-content: center;
+  width: var(--shiny-inline-toggle-width);
+  min-width: var(--shiny-inline-toggle-width);
+  height: var(--shiny-inline-toggle-height);
+  min-height: var(--shiny-inline-toggle-height);
+  padding: 0;
+  border: var(--shiny-inline-toggle-border-width) var(--shiny-inline-toggle-border-style)
+    var(--shiny-inline-toggle-border);
+  border-radius: var(--shiny-inline-toggle-radius);
+  color: inherit;
+  background: var(--shiny-inline-toggle-background);
+  box-shadow: none;
+  cursor: var(--shiny-cursor-action);
+}
+
+.default {
+  --inline-toggle-default-surface: var(--shiny-field-bg);
+}
+
+.base {
+  --inline-toggle-default-surface: var(--shiny-base-fill);
+}
+
+.neutral {
+  --inline-toggle-default-surface: var(--shiny-neutral-wash);
+}
+
+.button:hover,
+.button[aria-pressed="true"] {
+  border-color: currentColor;
+  color: inherit;
+}
+
+.button:hover {
+  background: var(--shiny-inline-toggle-hover-background);
+}
+
+.button[aria-pressed="true"] {
+  background: var(--shiny-inline-toggle-pressed-background);
+  box-shadow: var(--shiny-inline-toggle-pressed-shadow);
+}
+
+.button:focus-visible {
+  outline: var(--shiny-inline-toggle-focus-outline-width)
+    var(--shiny-inline-toggle-focus-outline-style) var(--shiny-accent-outline);
+  outline-offset: 2px;
+}
+
+.button svg {
+  width: var(--shiny-inline-toggle-glyph-size);
+  height: var(--shiny-inline-toggle-glyph-size);
+  stroke-width: var(--shiny-glyph-stroke-width);
+}
+
+.dashed {
+  stroke-dasharray: var(--shiny-glyph-dash);
+}

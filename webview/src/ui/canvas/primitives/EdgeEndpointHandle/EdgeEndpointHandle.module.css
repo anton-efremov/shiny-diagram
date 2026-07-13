@@ -1,0 +1,6 @@
+.handle {
+  fill: var(--shiny-selection);
+  stroke: var(--shiny-surface);
+  stroke-width: var(--shiny-edge-endpoint-handle-stroke-width);
+  pointer-events: none;
+}
