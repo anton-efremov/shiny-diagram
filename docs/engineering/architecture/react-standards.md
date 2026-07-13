@@ -3,7 +3,7 @@
 > **Scope:** `webview/src/View/**`  
 > **Audience:** Coding agents  
 > **Last reviewed:** 2026-06-29  
-> **Goal** Must-follow rules of organization of code, dependencies and implementation patterns of a React component in a component tree rooted at EditorRoot. Library components under `webview/src/View/ui` are governed by [UI Library Architecture](./UI-library-architecture.md) instead; other React components outside the EditorRoot tree may not comply
+> **Goal** Must-follow rules of organization of code, dependencies and implementation patterns of domain components — the React component tree rooted at EditorRoot. The UI library is its own layer at `webview/src/ui`, governed entirely by [UI Library Standards](./UI-library-standards.md); other React components outside the EditorRoot tree may not comply
 
 # 0. About the file
 
@@ -47,7 +47,7 @@
 	- [7.6 `transactions.ts`](#76-transactionsts)
 	- [7.7 `useStateReconciliation.ts`](#77-usestatereconciliationts)
 	- [7.8 `frameworkAdapters.ts`](#78-frameworkadaptersts)
-	- [7.9 `<Component>.module.css`](#79-componentmodulecss)
+	- [7.9 No stylesheets](#79-no-stylesheets)
 	- [7.10 `icons.tsx`](#710-iconstsx)
 - [8. Component annotations](#8-component-annotations)
 	- [8.1 File annotation](#81-file-annotation)
@@ -58,6 +58,9 @@
 - **Responsibility** — a broad kind of work a React Component performs in View. Responsibilities describe what piece of work the component owns conceptually.
 - **Activity** — a specific kind of work inside a responsibility. Activities are used to organize implementation rules.
 - **Implementation pattern** — an allowed way to implement an activity in code. Implementation patterns are numbered and referenced by ID.
+- **Domain component** — a component of the EditorRoot tree: the subject of this document. It owns editor semantics and composes its visible surface exclusively from library elements.
+- **Library element** — a semantic-blind UI component of the UI library layer (`webview/src/ui`), governed by [UI Library Standards](./UI-library-standards.md). Wings (`chrome/`, `canvas/`), tiers, and element contracts are that document's vocabulary.
+- **Situation vocabulary** — the library's option and variant names ("inline", "compact", "secondary"). Domain components translate editor facts into this vocabulary; they never pass visual values.
 
 Hierarchy:
 
@@ -87,7 +90,7 @@ Every React Component in View declares the responsibilities it performs. A compo
 A React Component has Behavior responsibility when it owns or derives runtime behavior: state, child inputs, semantic event handling, state changes, command transactions, or child routing. Behavior is about what the component decides and how it reacts.
 #### Rendering responsibility
 
-A React Component has Rendering responsibility when it owns visual output: DOM structure, JSX composition, CSS application, icons, visual surfaces, or static UI catalogs. Rendering is about how already-decided values become visible interface. Simply combining child components is not counted as rendering responsibility.
+A React Component has Rendering responsibility when it owns the composition of library elements into one visual surface: which elements appear, in which library template arrangement, under which situation variants, fed by which values. Rendering is about how already-decided values become visible interface; how anything looks is the library's — a domain component states no visual values, owns no stylesheet and no DOM, and its only styling channels are variant selection and data props (user style values passed to canvas elements). Simply combining child components is not counted as rendering responsibility.
 #### Framework adaptation responsibility
 
 A React Component has Framework adaptation responsibility when it absorbs a foreign component or framework interface into View standard boundaries pattern. Framework adaptation translates framework props, events, state, coordinate spaces, or vocabulary into View contracts and domain terms.
@@ -130,8 +133,9 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 	- command and transaction types are **never** defined locally
 	- a primitive command **may** be added **only** if it cannot be expressed as a combination of existing primitives
 
-5. `webview/src/View/ui` — the UI library: tiered, editor-blind UI elements owning shared visuals and interaction behavior; governed by [UI Library Architecture](./UI-library-architecture.md)
+5. `webview/src/ui` — the UI library layer: tiered, editor-blind UI elements owning shared visuals and interaction behavior; governed by [UI Library Standards](./UI-library-standards.md)
 	- the **only** source of cross-component shared visual components
+	- domain components import from the `chrome/` and `canvas/` wings; `core/` is library-internal and never exposed outside `webview/src/ui`
 	- a library component and its boundary types are importable; its owned children, internal files, and `.module.css` are not
 
 6. `webview/src/View/config` — static View configuration read by components and support files.
@@ -152,14 +156,14 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 
 11. **React and browser APIs** — rendering, lifecycle, focus, measurement, event registration.
 
-12. **own support files** — `state.ts`, `transactions.ts`, `useInteractions.ts`, `*.module.css`, `childProps.ts`, `useStateReconciliation.ts`, `frameworkAdapters.ts`, `icons.tsx` sitting flat beside the component file
+12. **own support files** — `state.ts`, `transactions.ts`, `useInteractions.ts`, `childProps.ts`, `useStateReconciliation.ts`, `frameworkAdapters.ts`, `icons.tsx` sitting flat beside the component file
 	- a component imports **only** its own support files, **never** another component's.
 
 ### 2.2 Forbidden import sources
 
 1. any layer above the `View` layer — `Controller`, `Shell`, `Bridge` — dependencies between layers point strictly inward
 2. another component's internal support files
-3. a sibling, parent, or any non-owned component — shared components are reached only through `webview/src/View/ui`.
+3. a sibling, parent, or any non-owned component — shared components are reached only through `webview/src/ui`.
 4. a third-party framework library, when the file does not implement Framework adaptation responsibility.
 
 # 3. Component receives
@@ -754,33 +758,22 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
  */
 ```
 
-### 7.9 `<Component>.module.css`
+### 7.9 No stylesheets
 
-**Responsibilities:** Rendering
-
-**Patterns:** none fixed yet
-
-**Structure:**
-```css
-/**
- * @render <visual surface styled by this file>
- */
-```
+Domain components own no `.module.css`: chrome domain components compose library elements and arrangement belongs to templates; canvas domain components assemble canvas library elements. All styling authority is the library's ([UI Library Standards](./UI-library-standards.md)).
 
 ### 7.10 `icons.tsx`
 
 **Responsibilities:** Rendering
 
-**Patterns:** none fixed yet
+Component-owned SVG glyph components passed into library icon slots. Justified only when in-file glyphs would bloat the static catalog area.
 
-Component-owned SVG glyph components passed into library icon slots. Glyphs use `currentColor` exclusively; any literal or token color is a violation. Justified only when in-file glyphs would bloat the static catalog area.
+**Patterns:**
 
-**Structure:**
-```ts
-/**
- * @render <glyphs this file defines and the component that renders them>
- */
-```
+1. 16×16 viewBox; whole or half-pixel coordinates on a 1px grid; exact coordinates always
+2. One stroke language: 1.5px, round caps and joins; `fill="none"` unless the glyph is semantically filled
+3. `currentColor` only; `aria-hidden="true"`
+4. Codicons/Lucide proportions as the metrics reference
 
 # 8. Component annotations
 
@@ -1009,30 +1002,6 @@ Bad — too generic:
  */
 ```
 
-#### `<Component>.module.css`
-
-```css
-/**
- * @render <visual surface styled by this file>
- */
-```
-
-Good:
-
-```css
-/**
- * @render Diagram creation tool palette.
- */
-```
-
-Bad — restates file type:
-
-```css
-/**
- * @render Component styles.
- */
-```
-
 ### 8.2 Inline annotations
 
 Inline annotations mark source-code blocks that implement responsibility activities inside a file. Inline annotations are source comments, not Chapter 7 area names.
@@ -1068,9 +1037,8 @@ Bad - no annotation of or inside return area is allowed
 ```ts
 // UI props derivation
 return (
-    <div
-      className={styles.previewCard}
-      style={dynamicVars}
+    <PaneSection label={sectionLabel}>
+      <CommitTextField
 ```
 
 **Long area annotation format:** `<area name from chapters 4-6>: <non-obvious implementation details>`
