@@ -15,7 +15,10 @@ import type { TransactionResult } from "../../../commands/editorCommands";
 import type { RelationshipSeed } from "../../../state/editorStates";
 import type { SelectionState } from "../../../state/editorStates";
 import type { DiagramView, NoteView, RelationshipView } from "../../../views/schema";
-import { EDIT_PANE_WIDTH } from "../../../config/editorUiConfig";
+import {
+  CHROME_PANE_EDGE_CONTROL_ABOVE_PANE_Z_INDEX,
+  EDIT_PANE_WIDTH,
+} from "../../../config/editorUiConfig";
 import { PURE_STYLE_DEFAULTS } from "../../../config/stylePresets";
 import PaneFrame from "../../../../ui/chrome/templates/PaneFrame/PaneFrame";
 import PaneCollapseTab from "../../../../ui/chrome/primitives/PaneCollapseTab/PaneCollapseTab";
@@ -163,7 +166,13 @@ export default function EditPane({
     <PaneFrame
       width={EDIT_PANE_WIDTH}
       collapsed={isCollapsed}
-      edgeControl={<PaneCollapseTab collapsed={isCollapsed} onToggle={onCollapseToggle} />}
+      edgeControl={
+        <PaneCollapseTab
+          collapsed={isCollapsed}
+          stacking={CHROME_PANE_EDGE_CONTROL_ABOVE_PANE_Z_INDEX}
+          onToggle={onCollapseToggle}
+        />
+      }
     >
       {editPaneContent}
     </PaneFrame>

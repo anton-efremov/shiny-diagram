@@ -7,12 +7,15 @@
  * Base reports null, then returns focus to the control. Closing it without
  * choosing — clicking outside or from the keyboard — reports nothing; the row
  * list is keyboard-navigable. `popupWidth` sets the popup's minimum width before
- * viewport clamping.
+ * viewport clamping, and the popup paints at the supplied `stacking` plane.
  *
- * Options:
- * - `kind` — `width` varies the sample's thickness; `dash` varies its pattern
+ * Lifecycle:
  * - `disabled` — on means the list cannot be opened and shows the control as
- *   unavailable
+ *   unavailable. Used by: no current product situation
+ *
+ * Modifiers:
+ * - `kind` — `width` varies the sample's thickness; `dash` varies its pattern
+ *   Used by: outline width and dash controls
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -20,13 +23,14 @@ import type { CSSProperties, KeyboardEvent, ReactElement } from "react";
 import styles from "./StrokeSelect.module.css";
 
 type StrokeSelectProps = {
-  readonly kind: "width" | "dash";
   readonly value: string | null | "multiple";
   readonly defaultValue: string;
   readonly presets: readonly string[];
   readonly documentValues: readonly string[];
   readonly popupWidth?: number;
+  readonly stacking: number;
   readonly disabled?: boolean;
+  readonly kind: "width" | "dash";
   readonly onChange: (value: string | null) => void;
 };
 
@@ -39,6 +43,7 @@ export default function StrokeSelect({
   presets,
   documentValues,
   popupWidth = 148,
+  stacking,
   disabled = false,
   onChange,
 }: StrokeSelectProps): ReactElement {
@@ -142,6 +147,7 @@ export default function StrokeSelect({
     "--stroke-select-popup-top": `${popupPosition.top}px`,
     "--stroke-select-popup-left": `${popupPosition.left}px`,
     "--stroke-select-popup-width": `${popupPosition.width}px`,
+    zIndex: stacking,
   } as CSSProperties;
   const triggerValue = value === null || isMultiple ? defaultValue : value;
 

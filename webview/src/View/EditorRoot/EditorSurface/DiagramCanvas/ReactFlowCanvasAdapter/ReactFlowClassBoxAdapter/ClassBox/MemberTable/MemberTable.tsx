@@ -70,12 +70,11 @@ export default function MemberTable({
       addLabel="+ attribute"
       addTitle="Add attribute"
       validate={() => []}
-      isEditStartEnabled={isSelected}
+      isEditable={isSelected}
       isEmphasisEditable
       actionStacking={NODE_ABOVE_CONTENT_Z_INDEX}
       validationStacking={INLINE_VALIDATION_POPUP_Z_INDEX}
       surface={inlineSurface}
-      surfaceTone="base"
       onRowCommit={(index, value, emphasis) => {
         const member = fields[index];
         const errors =
@@ -101,12 +100,11 @@ export default function MemberTable({
       addLabel="+ method"
       addTitle="Add member"
       validate={() => []}
-      isEditStartEnabled={isSelected}
+      isEditable={isSelected}
       isEmphasisEditable
       actionStacking={NODE_ABOVE_CONTENT_Z_INDEX}
       validationStacking={INLINE_VALIDATION_POPUP_Z_INDEX}
       surface={inlineSurface}
-      surfaceTone="base"
       onRowCommit={(index, value, emphasis) => {
         const member = methods[index];
         const errors =

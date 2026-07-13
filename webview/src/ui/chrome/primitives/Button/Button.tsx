@@ -3,19 +3,20 @@
  *
  * Renders `label` beside `icon` when supplied; clicking it reports `onClick`.
  *
- * Options:
- * - `disabled` — on shows the command as unavailable and it cannot be pressed
- * - `tone` — the command's emphasis:
- *   - `neutral` uses a quiet surface that gains emphasis on hover
- *   - `danger` uses error emphasis that fills on hover
- *   - `accent` uses the primary action surface
- * - `size` — `default` uses the standard command height; `compact` reduces
- *   height, padding, and type size
- * - `shape` — `rounded` uses the control corner; `pill` fully rounds the ends
- * - `alignment` — `stretch` participates at the available width; `end` sizes
- *   to its content at the trailing edge
+ * Lifecycle:
+ * - `disabled` — on shows the command as unavailable and it cannot be pressed.
+ *   Used by: unavailable class and diagram style actions
  * - `visible` — off preserves the command's layout space while removing it
- *   from sight, focus order, and accessibility
+ *   from sight, focus order, and accessibility. Used by: the note attachment row
+ *
+ * Modifiers:
+ * - `variant` — the command's designed situation:
+ *   - `standard` uses the ordinary full-width command surface — e.g. duplicate
+ *     and style commands
+ *   - `danger` uses error emphasis that fills on hover — e.g. delete commands
+ *   - `compact` sizes to its content at the trailing edge with reduced height,
+ *     padding, and type size — e.g. note attachment and relationship reversal
+ *     commands
  */
 
 import type { ReactElement } from "react";
@@ -32,11 +33,8 @@ type ButtonProps = {
   readonly label: string;
   readonly icon?: GlyphDescriptor;
   readonly disabled?: boolean;
-  readonly tone?: "neutral" | "danger" | "accent";
-  readonly size?: "default" | "compact";
-  readonly shape?: "rounded" | "pill";
-  readonly alignment?: "stretch" | "end";
   readonly visible?: boolean;
+  readonly variant?: "standard" | "danger" | "compact";
   readonly onClick?: () => void;
 };
 
@@ -44,22 +42,13 @@ export default function Button({
   label,
   icon,
   disabled = false,
-  tone = "neutral",
-  size = "default",
-  shape = "rounded",
-  alignment = "stretch",
+  variant = "standard",
   visible = true,
   onClick,
 }: ButtonProps): ReactElement {
   const className = [
-    tone === "danger"
-      ? styles.dangerButton
-      : tone === "accent"
-        ? styles.accentButton
-        : styles.button,
-    size === "compact" ? styles.compact : "",
-    shape === "pill" ? styles.pill : "",
-    alignment === "end" ? styles.endAligned : "",
+    variant === "danger" ? styles.dangerButton : styles.button,
+    variant === "compact" ? styles.compact : "",
     visible ? "" : styles.hidden,
   ]
     .filter(Boolean)

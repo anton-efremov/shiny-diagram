@@ -1,31 +1,35 @@
 /**
  * Collapse tab mounted against a pane edge.
  *
- * Clicking the tab reports `onToggle` and supplies the matching expand or
- * collapse accessible instruction.
+ * Clicking the tab reports `onToggle`, supplies the matching expand or collapse
+ * accessible instruction, and paints at the supplied `stacking` plane.
  *
- * Options:
+ * Lifecycle:
  * - `collapsed` — off points outward and offers collapse; on points inward and
- *   offers expansion
+ *   offers expansion. Used by: the editor's property pane
  */
 
-import type { ReactElement } from "react";
+import type { CSSProperties, ReactElement } from "react";
 import { GLYPH_VIEW_BOX } from "../../../../shared/glyph";
 import styles from "./PaneCollapseTab.module.css";
 
 type PaneCollapseTabProps = {
+  readonly stacking: number;
   readonly collapsed: boolean;
   readonly onToggle: () => void;
 };
 
 export default function PaneCollapseTab({
   collapsed,
+  stacking,
   onToggle,
 }: PaneCollapseTabProps): ReactElement {
+  const style = { zIndex: stacking } satisfies CSSProperties;
   return (
     <button
       type="button"
       className={styles.tab}
+      style={style}
       aria-label={collapsed ? "Expand pane" : "Collapse pane"}
       title={collapsed ? "Expand pane" : "Collapse pane"}
       onClick={onToggle}

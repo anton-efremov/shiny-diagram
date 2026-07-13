@@ -14,6 +14,7 @@ import BoxInteractionOverlay from "../../../../../../../ui/canvas/composites/Box
 import type { ResizeHandle } from "../../../../../../../ui/canvas/composites/BoxInteractionOverlay/BoxInteractionOverlay";
 import InlineCommitTextField from "../../../../../../../ui/canvas/composites/InlineCommitTextField/InlineCommitTextField";
 import InlineValidationPopup from "../../../../../../../ui/canvas/primitives/InlineValidationPopup/InlineValidationPopup";
+import HullHeaderFrame from "../../../../../../../ui/canvas/templates/HullHeaderFrame/HullHeaderFrame";
 import HullSurfaceFrame from "../../../../../../../ui/canvas/templates/HullSurfaceFrame/HullSurfaceFrame";
 import {
   INLINE_VALIDATION_POPUP_Z_INDEX,
@@ -65,7 +66,7 @@ export default function NamespaceBox({
   const strokeWidth = toCssLength(
     view.style?.strokeWidth ?? String(NAMESPACE_DEFAULT_STROKE_WIDTH)
   );
-  const selectionCenterOffset = `calc(${strokeWidth} + 2px)`;
+  const selectionCenterOffset = toPixelLength(strokeWidth) + 2;
   const lineStyle = toCssLineStyle(view.style?.strokeDasharray);
 
   // Event handler props derivation
@@ -90,8 +91,8 @@ export default function NamespaceBox({
       strokeWidth={strokeWidth}
       lineStyle={lineStyle}
       color={view.style?.color ?? undefined}
-      onPointerDown={onNamespacePress}
-      onPress={onNamespaceClick}
+      onPressStart={onNamespacePress}
+      onClick={onNamespaceClick}
     >
       {discardErrors.length > 0 ? (
         <InlineValidationPopup
@@ -100,30 +101,27 @@ export default function NamespaceBox({
           onDismiss={() => setDiscardErrors([])}
         />
       ) : null}
-      <InlineCommitTextField
-        initialValue={view.label}
-        display={{
-          text: view.label,
-          variant: "heading",
-          onEditRequest: isSelected ? onLabelDoubleClick : onLabelClick,
-        }}
-        isEditing={
-          editingState.kind === "namespaceName" && editingState.namespaceId === view.namespaceId
-        }
-        treatment="heading"
-        validate={onNameCommit}
-        ariaLabel="Namespace name"
-        autoFocus
-        validationStacking={INLINE_VALIDATION_POPUP_Z_INDEX}
-        surface={view.style?.fill ?? undefined}
-        surfaceTone="neutral"
-        onCommit={onTextBlockEditCancel}
-        onDiscard={(messages) => {
-          setDiscardErrors(messages);
-          onTextBlockEditCancel();
-        }}
-        onCancel={onTextBlockEditCancel}
-      />
+      <HullHeaderFrame>
+        <InlineCommitTextField
+          initialValue={view.label}
+          displayText={view.label}
+          onEditRequest={isSelected ? onLabelDoubleClick : onLabelClick}
+          isEditing={
+            editingState.kind === "namespaceName" && editingState.namespaceId === view.namespaceId
+          }
+          treatment="heading"
+          validate={onNameCommit}
+          ariaLabel="Namespace name"
+          validationStacking={INLINE_VALIDATION_POPUP_Z_INDEX}
+          surface={view.style?.fill ?? undefined}
+          onCommit={onTextBlockEditCancel}
+          onDiscard={(messages) => {
+            setDiscardErrors(messages);
+            onTextBlockEditCancel();
+          }}
+          onCancel={onTextBlockEditCancel}
+        />
+      </HullHeaderFrame>
       <BoxInteractionOverlay
         selected={isSelected}
         pending={isPendingMember}
@@ -139,6 +137,10 @@ export default function NamespaceBox({
 
 function toCssLength(value: string): string {
   return /^-?(?:\d+|\d*\.\d+)$/.test(value.trim()) ? `${value.trim()}px` : value;
+}
+
+function toPixelLength(value: string): number {
+  return Number.parseFloat(value);
 }
 
 function toCssLineStyle(value: string | null | undefined): "solid" | "dashed" | "dotted" {

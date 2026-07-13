@@ -3,25 +3,22 @@
  *
  * Maintains `minHeight`, places `validation` first, then full-width `leading`,
  * `primary`, and `trailing` slots, and draws the lower separator from
- * `separatorColor` and `separatorThickness` with base fallbacks.
- *
- * Options:
- * - `separatorLineStyle` — `solid`, `dashed`, or `dotted` selects the separator
- *   pattern
+ * `separatorColor`, `separatorThickness`, and `separatorLineStyle` with base
+ * fallbacks. Used by: the title region of a class.
  */
 
 import type { CSSProperties, ReactElement, ReactNode } from "react";
 import styles from "./BoxHeaderFrame.module.css";
 
 type BoxHeaderFrameProps = {
-  readonly minHeight: number;
-  readonly separatorColor?: string;
-  readonly separatorThickness?: string;
-  readonly separatorLineStyle: "solid" | "dashed" | "dotted";
   readonly validation?: ReactNode;
   readonly leading?: ReactNode;
   readonly primary: ReactNode;
   readonly trailing?: ReactNode;
+  readonly separatorColor?: string;
+  readonly separatorThickness?: string;
+  readonly separatorLineStyle: "solid" | "dashed" | "dotted";
+  readonly minHeight: number;
 };
 
 export default function BoxHeaderFrame({

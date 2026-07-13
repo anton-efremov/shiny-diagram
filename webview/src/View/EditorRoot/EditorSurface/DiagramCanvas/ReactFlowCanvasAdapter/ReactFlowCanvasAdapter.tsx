@@ -60,7 +60,7 @@ import {
   toRelationshipEdgeDescriptors,
 } from "./frameworkAdapters";
 import { useInteractions } from "./useInteractions";
-import GridFrame from "../../../../../ui/canvas/templates/GridFrame/GridFrame";
+import CanvasGridFrame from "../../../../../ui/canvas/templates/CanvasGridFrame/CanvasGridFrame";
 import DraftRect from "../../../../../ui/canvas/primitives/DraftRect/DraftRect";
 import type {
   ClassResizePointerState,
@@ -430,7 +430,7 @@ export default function ReactFlowCanvasAdapter({
   }, [relationshipPlacementState]);
 
   return (
-    <GridFrame variant="canvas" placementActive={isRelationshipPlacementActive}>
+    <CanvasGridFrame placementCursor={isRelationshipPlacementActive}>
       <ReactFlow<
         ClassBoxNodeDescriptor | NamespaceNodeDescriptor | NoteBoxNodeDescriptor,
         RelationshipEdgeDescriptor | NoteAttachmentEdgeDescriptor
@@ -481,7 +481,7 @@ export default function ReactFlowCanvasAdapter({
           stacking={NAMESPACE_GESTURE_Z_INDEX}
         />
       ) : null}
-    </GridFrame>
+    </CanvasGridFrame>
   );
 }
 

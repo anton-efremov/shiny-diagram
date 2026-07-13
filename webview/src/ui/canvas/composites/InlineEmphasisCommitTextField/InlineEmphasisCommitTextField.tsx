@@ -8,14 +8,11 @@
  * draft restores both and reports `onDiscard` with messages; backing out or
  * cancelling restores both and reports `onCancel`. Controls use `actionStacking`,
  * validation uses `validationStacking`, and `surface` supplies an explicit action
- * ground.
+ * ground over the base fallback.
  *
- * Options:
- * - `initialEmphasis` — null begins without emphasis; `underline` or `italic`
- *   begins with that mutually exclusive control selected
+ * Modifiers:
  * - `autoFocus` — on requests focus when the editor mounts
- * - `surfaceTone` — `default` uses the field surface, `base` base fill, and
- *   `neutral` a neutral wash when `surface` is absent
+ *   Used by: a selected class member
  */
 
 import { useEffect, useState } from "react";
@@ -51,12 +48,11 @@ const CANCEL_GLYPH: GlyphDescriptor = {
 type InlineEmphasisCommitTextFieldProps = {
   readonly initialValue: string;
   readonly initialEmphasis: TextEmphasis | null;
-  readonly validate: (draft: string) => readonly string[];
-  readonly autoFocus?: boolean;
+  readonly surface?: string;
   readonly actionStacking: number;
   readonly validationStacking: number;
-  readonly surface?: string;
-  readonly surfaceTone?: "default" | "base" | "neutral";
+  readonly validate: (draft: string) => readonly string[];
+  readonly autoFocus?: boolean;
   readonly onCommit: (value: string, emphasis: TextEmphasis | null) => void;
   readonly onDiscard: (messages: readonly string[]) => void;
   readonly onCancel: () => void;
@@ -70,7 +66,6 @@ export default function InlineEmphasisCommitTextField({
   actionStacking,
   validationStacking,
   surface,
-  surfaceTone,
   onCommit,
   onDiscard,
   onCancel,
@@ -106,16 +101,14 @@ export default function InlineEmphasisCommitTextField({
           label="Underline"
           pressed={emphasis === "underline"}
           surface={surface}
-          surfaceTone={surfaceTone}
-          onPress={() => setEmphasis((value) => (value === "underline" ? null : "underline"))}
+          onClick={() => setEmphasis((value) => (value === "underline" ? null : "underline"))}
         />
         <InlineToggleButton
           glyph={ITALIC_GLYPH}
           label="Italic"
           pressed={emphasis === "italic"}
           surface={surface}
-          surfaceTone={surfaceTone}
-          onPress={() => setEmphasis((value) => (value === "italic" ? null : "italic"))}
+          onClick={() => setEmphasis((value) => (value === "italic" ? null : "italic"))}
         />
       </div>
       <InlineTextArea
@@ -135,8 +128,8 @@ export default function InlineEmphasisCommitTextField({
           label="Cancel editing"
           treatment="cancel"
           surface={surface}
-          surfaceTone={surfaceTone}
-          onPress={lifecycle.onCancel}
+          surfaceTone="base"
+          onClick={lifecycle.onCancel}
         />
       </span>
       {lifecycle.messages.length > 0 ? (

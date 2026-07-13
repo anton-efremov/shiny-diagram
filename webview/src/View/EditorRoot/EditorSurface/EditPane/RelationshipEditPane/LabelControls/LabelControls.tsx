@@ -6,6 +6,7 @@
 import type { ReactElement } from "react";
 import type { RelationshipView } from "../../../../../views/schema";
 import { useDispatchTransaction } from "../../../../../contexts";
+import { CHROME_VALIDATION_ABOVE_CONTROL_Z_INDEX } from "../../../../../config/editorUiConfig";
 import CommitClearableTextField from "../../../../../../ui/chrome/composites/CommitClearableTextField/CommitClearableTextField";
 import { toRelationshipLabelSetTransaction } from "./transactions";
 
@@ -22,6 +23,7 @@ export default function LabelControls({ view }: LabelControlsProps): ReactElemen
       validate={() => []}
       ariaLabel="Relationship label"
       isLabelVisible={false}
+      validationStacking={CHROME_VALIDATION_ABOVE_CONTROL_Z_INDEX}
       onCommit={(value) =>
         dispatchTransaction(
           toRelationshipLabelSetTransaction(

@@ -4,9 +4,10 @@
  * Renders `status` above a padded detail surface, optionally introduces
  * `items` with `label`, and preserves item order in a list.
  *
- * Options:
- * - `variant` — `error-list` stacks error-colored items with wider separation;
- *   `code-list` uses compact code-type list treatment
+ * Modifiers:
+ * - `variant` — `errorList` stacks error-colored items with wider separation;
+ *   `codeList` uses compact code-type list treatment
+ *   Used by: editor errors and missing-annotation details
  */
 
 import type { ReactElement, ReactNode } from "react";
@@ -16,7 +17,7 @@ type StatusSurfaceFrameProps = {
   readonly status: ReactNode;
   readonly label?: string;
   readonly items: readonly ReactNode[];
-  readonly variant: "error-list" | "code-list";
+  readonly variant: "errorList" | "codeList";
 };
 
 export default function StatusSurfaceFrame({

@@ -149,7 +149,7 @@ export default function DiagramEditPane({
           <PaneSection label="Actions">
             <ControlGroup columns={2}>
               <Button label="Set as base" onClick={onSetAsDefault} />
-              <Button label="Delete style" tone="danger" onClick={onDelete} />
+              <Button label="Delete style" variant="danger" onClick={onDelete} />
             </ControlGroup>
           </PaneSection>
         </>

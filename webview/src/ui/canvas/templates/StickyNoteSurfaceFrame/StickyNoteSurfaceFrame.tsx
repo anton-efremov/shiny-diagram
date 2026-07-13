@@ -2,11 +2,11 @@
  * Sticky-note surface framing content with movable-object treatment.
  *
  * Fills its host with `children`, uses `title` as the tooltip, and reports
- * `onPress` when clicked.
+ * `onClick` when clicked.
  *
- * Options:
+ * Lifecycle:
  * - `dragging` — off shows the ready-to-move cursor; on dims the surface and
- *   shows active dragging
+ *   shows active dragging. Used by: a note being moved
  */
 
 import type { MouseEvent, ReactElement, ReactNode } from "react";
@@ -14,22 +14,22 @@ import styles from "./StickyNoteSurfaceFrame.module.css";
 
 type StickyNoteSurfaceFrameProps = {
   readonly title: string;
-  readonly dragging: boolean;
   readonly children: ReactNode;
-  readonly onPress: (event: MouseEvent<HTMLDivElement>) => void;
+  readonly dragging: boolean;
+  readonly onClick: (event: MouseEvent<HTMLDivElement>) => void;
 };
 
 export default function StickyNoteSurfaceFrame({
   title,
   dragging,
   children,
-  onPress,
+  onClick,
 }: StickyNoteSurfaceFrameProps): ReactElement {
   return (
     <div
       className={`${styles.frame} ${dragging ? styles.dragging : ""}`}
       title={title}
-      onClick={onPress}
+      onClick={onClick}
     >
       {children}
     </div>

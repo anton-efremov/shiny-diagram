@@ -19,11 +19,10 @@
 }
 
 .heading {
-  height: 28px;
-  padding: 6px 10px;
   font-size: var(--shiny-canvas-font-size-secondary);
   font-weight: var(--shiny-canvas-font-weight-heading);
   line-height: var(--shiny-canvas-line-height-heading);
+  text-align: left;
 }
 
 .label,

@@ -5,6 +5,7 @@
  * it above the anchor or below when viewport space requires at the supplied
  * `stacking` plane. Dismissing it — from the keyboard, by clicking anywhere
  * outside, or by its own dismiss control — reports `onDismiss`.
+ * Used by: invalid class, namespace, note, and relationship text drafts.
  */
 
 import { useLayoutEffect } from "react";
@@ -36,7 +37,9 @@ export default function InlineValidationPopup({
       onDismiss();
     }
 
-    function handlePointerDown(): void {
+    function handlePointerDown(event: PointerEvent): void {
+      const target = event.target;
+      if (target instanceof Node && popupRef.current?.contains(target)) return;
       onDismiss();
     }
 
@@ -46,7 +49,7 @@ export default function InlineValidationPopup({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("pointerdown", handlePointerDown);
     };
-  }, [onDismiss]);
+  }, [onDismiss, popupRef]);
 
   return (
     <>

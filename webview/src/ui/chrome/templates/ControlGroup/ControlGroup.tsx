@@ -3,18 +3,20 @@
  *
  * Places `children` into equal, shrinkable tracks spanning the available width.
  *
- * Options:
+ * Modifiers:
  * - `columns` — `1` stacks children; `2` arranges two equal columns
+ *   Used by: edit-pane action and toggle groups
  * - `spacing` — `default` keeps compact gaps; `wide` doubles the gap
+ *   Used by: edit-pane action and toggle groups
  */
 
 import type { ReactElement, ReactNode } from "react";
 import styles from "./ControlGroup.module.css";
 
 type ControlGroupProps = {
+  readonly children: ReactNode;
   readonly columns?: 1 | 2;
   readonly spacing?: "default" | "wide";
-  readonly children: ReactNode;
 };
 
 export default function ControlGroup({

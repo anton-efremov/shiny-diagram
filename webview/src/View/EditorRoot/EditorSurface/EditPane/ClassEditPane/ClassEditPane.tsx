@@ -98,8 +98,7 @@ export default function ClassEditPane({
                 <NamedStyleSelector view={selectedClasses} styles={declaredStyles} />
                 <Button
                   label={styleActionLabel}
-                  size="compact"
-                  alignment="end"
+                  variant="compact"
                   disabled={!selectedNamedStyle && !selectedDirectStyle}
                   onClick={onStyleAction}
                 />

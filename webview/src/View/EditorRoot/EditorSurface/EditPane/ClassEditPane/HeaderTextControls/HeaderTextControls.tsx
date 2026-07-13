@@ -8,6 +8,10 @@ import type { ReactNode } from "react";
 import type { ClassId } from "../../../../../../shared/ids";
 import type { ClassAnnotation } from "../../../../../../shared/uml";
 import type { ClassView } from "../../../../../views/schema";
+import {
+  CHROME_MENU_ABOVE_CONTROL_Z_INDEX,
+  CHROME_VALIDATION_ABOVE_CONTROL_Z_INDEX,
+} from "../../../../../config/editorUiConfig";
 import CommitClearableTextField from "../../../../../../ui/chrome/composites/CommitClearableTextField/CommitClearableTextField";
 import CommitComboBox from "../../../../../../ui/chrome/composites/CommitComboBox/CommitComboBox";
 import CommitTextField from "../../../../../../ui/chrome/composites/CommitTextField/CommitTextField";
@@ -37,7 +41,7 @@ export default function HeaderTextControls({
 
   return (
     <FieldGrid
-      inset
+      variant="compactLabel"
       rows={[
         {
           label: "",
@@ -54,6 +58,8 @@ export default function HeaderTextControls({
               validate={() => []}
               ariaLabel="Annotation"
               isLabelVisible={false}
+              menuStacking={CHROME_MENU_ABOVE_CONTROL_Z_INDEX}
+              validationStacking={CHROME_VALIDATION_ABOVE_CONTROL_Z_INDEX}
               onCommit={(draft) => onAnnotationCommit(view.classId, draft.trim() || null)}
               onDiscard={() => undefined}
               onCancel={() => undefined}
@@ -68,6 +74,7 @@ export default function HeaderTextControls({
               validate={(draft) => onNameCommit(view.classId, draft.trim())}
               ariaLabel="Name"
               isLabelVisible={false}
+              validationStacking={CHROME_VALIDATION_ABOVE_CONTROL_Z_INDEX}
               onCommit={() => undefined}
               onDiscard={() => undefined}
               onCancel={() => undefined}
@@ -82,6 +89,7 @@ export default function HeaderTextControls({
               validate={() => []}
               ariaLabel="Label"
               isLabelVisible={false}
+              validationStacking={CHROME_VALIDATION_ABOVE_CONTROL_Z_INDEX}
               onCommit={(draft) => onLabelCommit(view.classId, draft.trim() || null)}
               onClear={() => onLabelCommit(view.classId, null)}
               onDiscard={() => undefined}

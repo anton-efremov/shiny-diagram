@@ -1,4 +1,6 @@
 .button {
+  --inline-toggle-default-surface: var(--shiny-canvas-base-fill);
+
   display: inline-grid;
   align-items: center;
   justify-content: center;
@@ -14,18 +16,6 @@
   background: var(--shiny-inline-toggle-background);
   box-shadow: none;
   cursor: var(--shiny-cursor-action);
-}
-
-.default {
-  --inline-toggle-default-surface: var(--shiny-canvas-field-bg);
-}
-
-.base {
-  --inline-toggle-default-surface: var(--shiny-canvas-base-fill);
-}
-
-.neutral {
-  --inline-toggle-default-surface: var(--shiny-neutral-wash);
 }
 
 .button:hover,

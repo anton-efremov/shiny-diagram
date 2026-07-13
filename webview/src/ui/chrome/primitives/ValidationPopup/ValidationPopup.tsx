@@ -4,22 +4,26 @@
  * Joins `messages` into one single-line alert, truncating overflow, and places
  * it above the anchor or below when viewport space requires. Dismissing it —
  * from the keyboard, by clicking anywhere outside, or by its own dismiss control
- * — reports `onDismiss`.
+ * — reports `onDismiss`. The popup paints at the supplied `stacking` plane.
+ * Used by: invalid class names, namespace names, style names, relationship
+ * labels, and multiplicities.
  */
 
 import { useLayoutEffect } from "react";
-import type { ReactElement } from "react";
+import type { CSSProperties, ReactElement } from "react";
 import { GLYPH_VIEW_BOX } from "../../../../shared/glyph";
 import { useAnchoredPopupPosition } from "../../../core/useAnchoredPopupPosition";
 import styles from "./ValidationPopup.module.css";
 
 type ValidationPopupProps = {
   readonly messages: readonly string[];
+  readonly stacking: number;
   readonly onDismiss: () => void;
 };
 
 export default function ValidationPopup({
   messages,
+  stacking,
   onDismiss,
 }: ValidationPopupProps): ReactElement {
   const { anchorRef, popupRef, position } = useAnchoredPopupPosition(messages);
@@ -31,7 +35,9 @@ export default function ValidationPopup({
       onDismiss();
     }
 
-    function handlePointerDown(): void {
+    function handlePointerDown(event: PointerEvent): void {
+      const target = event.target;
+      if (target instanceof Node && popupRef.current?.contains(target)) return;
       onDismiss();
     }
 
@@ -41,7 +47,7 @@ export default function ValidationPopup({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("pointerdown", handlePointerDown);
     };
-  }, [onDismiss]);
+  }, [onDismiss, popupRef]);
 
   return (
     <>
@@ -49,7 +55,13 @@ export default function ValidationPopup({
       <div
         ref={popupRef}
         className={`${styles.popup} ${position?.placement === "below" ? styles.below : styles.above}`}
-        style={position ? { left: position.left, top: position.top } : undefined}
+        style={
+          {
+            left: position?.left,
+            top: position?.top,
+            zIndex: stacking,
+          } satisfies CSSProperties
+        }
         role="alert"
         popover="manual"
       >

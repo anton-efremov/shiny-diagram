@@ -3,9 +3,10 @@
  *
  * Renders `label` as the button content; clicking it reports `onClick`.
  *
- * Options:
+ * Lifecycle:
  * - `visible` — off hides the control while its layout space is kept; it leaves
- *   the focus order and accessibility tree
+ *   the focus order and accessibility tree. Used by: return from a diagram
+ *   style reached through a class
  */
 
 import type { ReactElement } from "react";

@@ -1,7 +1,8 @@
 /**
  * Attachment edge with fixed dashed treatment and no pointer interaction.
  *
- * Draws `d` using attachment identity while ignoring pointer input.
+ * Draws `d` using attachment identity while ignoring pointer input. Used by: a
+ * note attached to a class.
  */
 
 import type { ReactElement } from "react";

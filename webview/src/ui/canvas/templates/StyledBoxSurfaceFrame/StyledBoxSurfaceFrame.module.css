@@ -20,6 +20,6 @@
   cursor: var(--shiny-cursor-move-active);
 }
 
-.connectionEnabled {
+.placementCursor {
   cursor: var(--shiny-cursor-placement);
 }

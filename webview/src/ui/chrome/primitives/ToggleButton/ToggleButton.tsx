@@ -5,16 +5,17 @@
  * accessible name when `label` is absent, exposes `pressed`, and reports
  * `onClick` when clicked.
  *
- * Options:
+ * Lifecycle:
  * - `pressed` — on shows the toggle selected
+ *   Used by: node and relationship placement tools
  * - `disabled` — on prevents the control from being pressed and shows it as
- *   unavailable
+ *   unavailable. Used by: no current product situation
+ *
+ * Modifiers:
  * - `size` — the control's fixed presentation:
- *   - `micro` is a compact in-field square
- *   - `compact` is icon-only when `label` is absent, otherwise a full-width
- *     labeled row
- *   - `nodeTile` is a tall full-width glyph-and-label tile
- *   - `relationshipTile` is a compact centered glyph tile
+ *   - `labeledTile` is a tall full-width glyph-and-label tile — e.g. node
+ *     placement
+ *   - `glyphTile` is a compact centered glyph tile — e.g. relationship placement
  */
 
 import type { ReactElement } from "react";
@@ -33,7 +34,7 @@ type ToggleButtonProps = {
   readonly title: string;
   readonly pressed: boolean;
   readonly disabled?: boolean;
-  readonly size?: "micro" | "compact" | "nodeTile" | "relationshipTile";
+  readonly size: "labeledTile" | "glyphTile";
   readonly onClick?: () => void;
 };
 
@@ -43,19 +44,10 @@ export default function ToggleButton({
   title,
   pressed,
   disabled = false,
-  size = "compact",
+  size,
   onClick,
 }: ToggleButtonProps): ReactElement {
-  const className =
-    size === "micro"
-      ? styles.microButton
-      : size === "nodeTile"
-        ? styles.nodeTileButton
-        : size === "relationshipTile"
-          ? styles.relationshipTileButton
-          : label === undefined
-            ? styles.iconOnlyButton
-            : styles.labeledButton;
+  const className = size === "labeledTile" ? styles.labeledTileButton : styles.glyphTileButton;
 
   return (
     <button

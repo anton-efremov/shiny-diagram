@@ -12,6 +12,7 @@ import Button from "../../../../../ui/chrome/primitives/Button/Button";
 import CommitTextField from "../../../../../ui/chrome/composites/CommitTextField/CommitTextField";
 import { COLOR_PRESETS } from "../../../../config/stylePresets";
 import {
+  CHROME_VALIDATION_ABOVE_CONTROL_Z_INDEX,
   DEFAULT_STROKE_DASHARRAY,
   NAMESPACE_DEFAULT_STROKE_WIDTH,
 } from "../../../../config/editorUiConfig";
@@ -78,6 +79,7 @@ export default function NamespaceEditPane({
           validate={onNameCommit}
           ariaLabel="Namespace name"
           isLabelVisible={false}
+          validationStacking={CHROME_VALIDATION_ABOVE_CONTROL_Z_INDEX}
           onCommit={() => undefined}
           onDiscard={() => undefined}
           onCancel={() => undefined}
@@ -85,8 +87,7 @@ export default function NamespaceEditPane({
       </PaneSection>
       <PaneSection label="Configure style">
         <FieldGrid
-          inset
-          controlWidth="half"
+          variant="compact"
           rows={STYLE_PROPERTIES.map(({ name }) => ({
             label: toPropertyLabel(name),
             control: (
@@ -119,7 +120,7 @@ export default function NamespaceEditPane({
             disabled={selectedNamespace.style === null}
             onClick={onReset}
           />
-          <Button label="Delete" tone="danger" onClick={onDelete} />
+          <Button label="Delete" variant="danger" onClick={onDelete} />
         </ControlGroup>
       </PaneSection>
     </>

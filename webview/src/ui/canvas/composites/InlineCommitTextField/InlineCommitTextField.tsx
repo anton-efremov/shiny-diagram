@@ -2,22 +2,29 @@
  * Inline commit field swapping optional display content for validated editing.
  *
  * Begins its draft at `initialValue`, reports edits through `onDraftChange`, and
- * resets when that value changes. In display state, `display` supplies text,
- * treatment, and edit request. In edit state, `ariaLabel` names the field and
- * `validate` gates completion: confirming a valid draft, or leaving the field
- * with one, reports `onCommit`; leaving with an invalid draft restores the value
- * and reports `onDiscard` with messages; backing out or using the cancel action
- * restores it and reports `onCancel`. Validation uses `validationStacking`,
- * while `surface` supplies an explicit cancel ground.
+ * resets when that value changes. In display state, `displayText` supplies text
+ * and clicking it reports `onEditRequest`, using the selected `treatment`. In
+ * edit state, `ariaLabel` names the field and `validate` gates completion:
+ * confirming a valid draft, or leaving the field with one, reports `onCommit`;
+ * leaving with an invalid draft restores the value and reports `onDiscard` with
+ * messages; backing out or using the cancel action restores it and reports
+ * `onCancel`. Validation uses `validationStacking`, while `surface` supplies an
+ * explicit cancel ground over the treatment-selected fallback.
  *
- * Options:
- * - `isEditing` — off renders `display` or nothing; on renders the field
- * - `treatment` — `primary`, `secondary`, and `heading` align with their display
- *   text metrics; `label` and `multiplicity` align with their edge-text pills
- * - `autoFocus` — on requests focus when the editor mounts
+ * Lifecycle:
+ * - `isEditing` — off renders `displayText` or nothing; on renders the field
+ *   Used by: class, namespace, and relationship text
  * - `isCancelVisible` — on reserves trailing room and shows a cancel action
- * - `surfaceTone` — `default` uses the canvas surface, `base` base fill, and
- *   `neutral` a neutral wash when `surface` is absent
+ *   Used by: relationship labels, captions, and multiplicities
+ *
+ * Modifiers:
+ * - `treatment` — the editor's alignment with its display state:
+ *   - `primary` aligns with prominent centered text — e.g. a class title
+ *   - `secondary` aligns with secondary text — e.g. a class stereotype or alias
+ *   - `heading` aligns with left-aligned heading text — e.g. a namespace heading
+ *   - `label` aligns with the light edge-text pill — e.g. a relationship label
+ *   - `multiplicity` aligns with the dark edge-text pill — e.g. an endpoint
+ *     multiplicity
  */
 
 import type { MouseEvent, ReactElement } from "react";
@@ -31,24 +38,25 @@ import styles from "./InlineCommitTextField.module.css";
 
 export type InlineTextTreatment = "primary" | "secondary" | "heading" | "label" | "multiplicity";
 
-type DisplayText = {
-  readonly text: string;
-  readonly variant: "primary" | "secondary" | "heading";
-  readonly onEditRequest: (event: MouseEvent<HTMLDivElement>) => void;
-};
+type DisplayState =
+  | {
+      readonly displayText: string;
+      readonly onEditRequest: (event: MouseEvent<HTMLDivElement>) => void;
+    }
+  | {
+      readonly displayText?: undefined;
+      readonly onEditRequest?: undefined;
+    };
 
-type InlineCommitTextFieldProps = {
+type InlineCommitTextFieldProps = DisplayState & {
   readonly initialValue: string;
-  readonly display?: DisplayText;
-  readonly isEditing: boolean;
-  readonly treatment: InlineTextTreatment;
-  readonly validate: (draft: string) => readonly string[];
   readonly ariaLabel: string;
-  readonly autoFocus?: boolean;
-  readonly isCancelVisible?: boolean;
-  readonly validationStacking: number;
   readonly surface?: string;
-  readonly surfaceTone?: "default" | "base" | "neutral";
+  readonly validationStacking: number;
+  readonly validate: (draft: string) => readonly string[];
+  readonly isEditing: boolean;
+  readonly isCancelVisible?: boolean;
+  readonly treatment: InlineTextTreatment;
   readonly onCommit: (value: string) => void;
   readonly onDraftChange?: (value: string) => void;
   readonly onDiscard: (messages: readonly string[]) => void;
@@ -63,16 +71,15 @@ const CANCEL_GLYPH: GlyphDescriptor = {
 
 export default function InlineCommitTextField({
   initialValue,
-  display,
+  displayText,
+  onEditRequest,
   isEditing,
   treatment,
   validate,
   ariaLabel,
-  autoFocus = false,
   isCancelVisible = false,
   validationStacking,
   surface,
-  surfaceTone,
   onCommit,
   onDraftChange,
   onDiscard,
@@ -88,12 +95,9 @@ export default function InlineCommitTextField({
   });
 
   if (!isEditing) {
-    return display ? (
-      <InlineTextBlock
-        text={display.text}
-        variant={display.variant}
-        onEditRequest={display.onEditRequest}
-      />
+    const displayVariant = toDisplayVariant(treatment);
+    return displayText !== undefined && displayVariant ? (
+      <InlineTextBlock text={displayText} variant={displayVariant} onEditRequest={onEditRequest} />
     ) : null;
   }
 
@@ -110,7 +114,7 @@ export default function InlineCommitTextField({
         value={lifecycle.draft}
         invalid={lifecycle.messages.length > 0}
         ariaLabel={ariaLabel}
-        autoFocus={autoFocus}
+        autoFocus
         hasEndAction={isCancelVisible}
         tone={tone}
         onChange={lifecycle.onDraftChange}
@@ -124,8 +128,8 @@ export default function InlineCommitTextField({
             label="Cancel editing"
             treatment="cancel"
             surface={surface}
-            surfaceTone={surfaceTone}
-            onPress={lifecycle.onCancel}
+            surfaceTone={toCancelSurfaceTone(treatment)}
+            onClick={lifecycle.onCancel}
           />
         </span>
       ) : null}
@@ -138,4 +142,18 @@ export default function InlineCommitTextField({
       ) : null}
     </div>
   );
+}
+
+function toDisplayVariant(
+  treatment: InlineTextTreatment
+): "primary" | "secondary" | "heading" | null {
+  return treatment === "label" || treatment === "multiplicity" ? null : treatment;
+}
+
+function toCancelSurfaceTone(treatment: InlineTextTreatment): "default" | "base" | "neutral" {
+  return treatment === "heading"
+    ? "neutral"
+    : treatment === "primary" || treatment === "secondary"
+      ? "base"
+      : "default";
 }

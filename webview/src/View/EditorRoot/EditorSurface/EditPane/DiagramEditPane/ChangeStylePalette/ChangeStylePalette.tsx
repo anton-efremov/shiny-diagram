@@ -37,8 +37,7 @@ export default function ChangeStylePalette({
 }: ChangeStylePaletteProps): ReactElement {
   return (
     <FieldGrid
-      controlWidth="half"
-      labelWidth="standard"
+      variant="compactControl"
       rows={STYLE_PROPERTIES.map(({ name }) => ({
         label: toFieldLabel(name),
         control: (

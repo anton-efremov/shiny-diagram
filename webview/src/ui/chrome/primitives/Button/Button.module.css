@@ -3,8 +3,7 @@
  */
 
 .button,
-.dangerButton,
-.accentButton {
+.dangerButton {
   display: inline-grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 6px;
@@ -31,37 +30,24 @@
   background: var(--shiny-chrome-button-bg);
 }
 
-.accentButton {
-  border-color: var(--shiny-chrome-button-border);
-  color: var(--shiny-chrome-button-fg);
-  background: var(--shiny-chrome-button-bg);
-}
-
-.accentButton:hover:not(:disabled) {
-  filter: brightness(1.08);
-}
-
 .button {
   border-color: var(--shiny-button-outline);
 }
 
 .button:active:not(:disabled),
-.dangerButton:active:not(:disabled),
-.accentButton:active:not(:disabled) {
+.dangerButton:active:not(:disabled) {
   transform: translateY(1px);
   box-shadow: inset 0 1px 2px var(--shiny-chrome-overlay-faint);
 }
 
 .button:focus-visible,
-.dangerButton:focus-visible,
-.accentButton:focus-visible {
+.dangerButton:focus-visible {
   outline: 2px solid var(--shiny-chrome-accent-outline);
   outline-offset: 2px;
 }
 
 .button:disabled,
-.dangerButton:disabled,
-.accentButton:disabled {
+.dangerButton:disabled {
   color: var(--shiny-chrome-text-muted);
   cursor: default;
   opacity: 0.58;
@@ -105,13 +91,6 @@
   min-height: 26px;
   padding: 4px 8px;
   font-size: 11px;
-}
-
-.pill {
-  border-radius: 999px;
-}
-
-.endAligned {
   justify-self: end;
   width: auto;
 }

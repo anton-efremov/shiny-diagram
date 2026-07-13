@@ -21,7 +21,7 @@
   margin: 0;
 }
 
-.error-list {
+.errorList {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -29,7 +29,7 @@
   color: var(--shiny-chrome-text-error);
 }
 
-.code-list {
+.codeList {
   padding-left: 20px;
   font-family: var(--shiny-code-font-family);
 }

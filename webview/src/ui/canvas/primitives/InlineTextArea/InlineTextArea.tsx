@@ -5,12 +5,17 @@
  * through `onChange`, and forwards focus loss and keyboard input through
  * `onBlur` and `onKeyDown`.
  *
- * Options:
- * - `autoFocus` — on requests focus when the area mounts
- * - `treatment` — `body` fills its container without resizing; `row` grows with
- *   its content as the draft changes
+ * Lifecycle:
  * - `invalid` — on shows invalid treatment for the row form
+ *   Used by: class-member edits with validation messages
+ *
+ * Modifiers:
+ * - `autoFocus` — on requests focus when the area mounts
+ *   Used by: note, title, and member editing
+ * - `treatment` — `body` fills its container without resizing; `row` grows with
+ *   its content as the draft changes. Used by: note bodies and member rows
  * - `hasEndAction` — on reserves trailing room for an overlaid row action
+ *   Used by: member editing with cancel and emphasis controls
  */
 
 import { useLayoutEffect, useRef } from "react";
@@ -19,10 +24,10 @@ import styles from "./InlineTextArea.module.css";
 
 type InlineTextAreaProps = {
   readonly value: string;
-  readonly autoFocus: boolean;
-  readonly treatment: "body" | "row";
   readonly rows?: number;
   readonly invalid?: boolean;
+  readonly autoFocus: boolean;
+  readonly treatment: "body" | "row";
   readonly hasEndAction?: boolean;
   readonly onChange: (value: string) => void;
   readonly onBlur: () => void;

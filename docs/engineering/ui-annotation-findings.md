@@ -5,106 +5,138 @@ entries record current behavior and contract friction only; they propose no fix.
 
 ## Naming
 
-- **ToggleButton** — The `size` values `nodeTile` and `relationshipTile` encode
-  domain vocabulary in a library option, including “relationship” directly.
-- **StatusSurfaceFrame** — The `variant` values `error-list` and `code-list` are
-  kebab-case while option values elsewhere use camelCase.
-- **Button / ReservedBackLink** — `Button.visible` duplicates the
-  space-preserving obligation expressed by the `Reserved` prefix without carrying
-  that prefix, overlapping the purpose of `ReservedBackLink`.
-- **ColorSelect** — The `glyph` modifier uses the data-prop vocabulary reserved
-  elsewhere for a `GlyphDescriptor`.
-- **EditableEdgeText** — `isEditRequestEnabled` gates edit requests from a single
-  click but not from a double-click, so the name overstates the state it controls.
-- **EditableTextList** — `isEditStartEnabled` controls three behaviors: editing,
-  pointer reordering, and adding. Its name describes only one of them.
-- **HullSurfaceFrame** — `onPointerDown` is attached to `onMouseDown`, so its name
-  promises a pointer-event boundary while its callback receives no event and
-  excludes non-mouse pointer-down semantics.
-- **StyledBoxSurfaceFrame** — `connectionEnabled` changes only the cursor; it does
-  not enable, disable, or report connection behavior.
-- **InlineEmphasisCommitTextField** — The element is named as a text field but
-  renders an auto-growing text area, then forces entered line breaks back to one
-  line.
+- **ToggleButton — Closed (Brief 8, Task 4).** The domain-bearing `size` values
+  were replaced by the situational `labeledTile` and `glyphTile` provisions.
+- **StatusSurfaceFrame — Closed (Brief 8, Task 4).** The `variant` values are now
+  camelCase: `errorList` and `codeList`.
+- **Button / ReservedBackLink — Closed (Brief 9, Task 2 review decision).**
+  `NoteEditPane` needs `Button.visible` to keep attachment-section geometry
+  stable; the `Reserved` prefix names elements whose whole identity is
+  space-keeping, while an option may provide the behavior without the prefix.
+- **ColorSelect — Closed (Brief 8, Task 4).** The ambiguous `glyph` modifier is
+  now named `preview`.
+- **EditableEdgeText — Closed (Brief 9, Task 5).** The gate is now
+  `isClickEditEnabled`, naming the single-click path it controls without implying
+  that double-click editing is disabled.
+- **EditableTextList — Closed (Brief 9, Task 5).** The provision is now
+  `isEditable`, covering editing, reordering, and adding as row mutations.
+- **HullSurfaceFrame — Closed (Brief 9, Task 5).** The mouse-start notification is
+  now `onPressStart`, preserving its event-free mouse behavior without promising
+  pointer-event semantics.
+- **StyledBoxSurfaceFrame — Closed (Brief 9, Task 5).** The cursor-only provision
+  is now `placementCursor`, shared with `CanvasGridFrame`.
+- **InlineEmphasisCommitTextField — Closed (Brief 9, Task 2 review decision).**
+  The contract is a one-line value because line breaks are flattened; the
+  auto-growing area is display mechanism rather than contract.
 
 ## Modeling
 
-- **InlineTextBlock** — Confirmed seed: the `heading` variant owns a fixed-height
-  padded strip. That is frame geometry embedded in a text primitive rather than
-  arrangement owned by a template.
-- **PaneCollapseTab** — The primitive mints its own stacking value instead of
-  receiving a composition plane.
-- **ValidationPopup** — The chrome primitive mints its own top-layer stacking
-  value instead of receiving a composition plane.
-- **ColorSelect** — The composite mints a popup stacking value rather than
-  receiving its placement plane from composition.
-- **StrokeSelect** — The composite mints a popup stacking value rather than
-  receiving its placement plane from composition.
-- **Dropdown** — The composite mints a menu stacking value rather than receiving
-  its placement plane from composition.
-- **EdgeTextSurface** — Pill width is estimated from character count using one
-  fixed character width. Proportional glyphs can therefore produce excess space
-  or extend beyond the estimated surface.
-- **InlineActionButton** — `visible={false}` makes the control invisible but
-  leaves it focusable and activatable, producing an invisible interactive
-  control.
-- **GridFrame** — The `workspace`, `canvas`, and `shell` variants frame three
-  unrelated compositions under one name; the workspace form arranges the whole
-  editor and is arguably outside the canvas wing.
+- **InlineTextBlock — Closed (Brief 8, Task 2.1).** The `heading` variant is now
+  text-only; `HullHeaderFrame` owns the fixed-height padded strip.
+- **PaneCollapseTab — Closed (Brief 9, Task 3).** Its pane-edge plane is now
+  routed through the `stacking` data prop.
+- **ValidationPopup — Closed (Brief 9, Task 3).** Its validation plane is now
+  routed through the `stacking` data prop.
+- **ColorSelect — Closed (Brief 9, Task 3).** Its selector plane is now routed
+  through the `stacking` data prop.
+- **StrokeSelect — Closed (Brief 9, Task 3).** Its selector plane is now routed
+  through the `stacking` data prop.
+- **Dropdown — Closed (Brief 9, Task 3).** Its menu plane is now routed through
+  the `stacking` data prop.
+- **CommitComboBox — Closed (Brief 9, Task 3).** The same-class audit found its
+  unrecorded menu and validation planes; both are now routed as data props.
+- **EdgeTextSurface — Closed (Brief 9, Task 4.3).** Pill width now follows the
+  rendered text's intrinsic length while retaining the fixed minimums.
+- **InlineActionButton — Closed (Brief 8, Task 3.3).** The transparent state is a
+  deliberate keyboard path for `EditableTextList`; keyboard focus now reveals
+  the control.
+- **GridFrame — Closed (Brief 8, Task 2.2).** The unrelated variants were split
+  into `WorkspaceFrame`, `CanvasGridFrame`, and `CanvasViewportFrame`, with the
+  workspace arranger in the chrome wing.
 
 ## Contract asymmetry
 
-- **CommitComboBox** — Confirmed seed: changing `disabled` to true does not close
-  an already-open menu, and its option buttons remain interactive.
+- **CommitComboBox — Closed (Brief 8, Task 3.1).** Changing `disabled` to true now
+  closes an already-open menu.
 - **CommitTextField / CommitClearableTextField / CommitComboBox /
   InlineCommitTextField / InlineEmphasisCommitTextField / EditableEdgeText** —
-  Confirmed seed: `onDiscard` normally means invalid blur and carries validation
-  messages, but `EditableEdgeText` exposes a message-free callback and uses it
-  for both child discard and cancellation.
-- **Dropdown / ColorSelect / StrokeSelect** — The color and stroke selectors close
-  on outside pointer press and restore trigger focus; Dropdown closes only on
-  selection or Escape while focus remains inside.
-- **ValidationPopup / InlineValidationPopup** — Both dismiss on every window
-  pointer press, including presses inside the popup. Other popup composites
-  distinguish inside interaction from outside dismissal.
-- **TextField / InlineTextField** — Chrome and canvas model the same treatment
-  axis with different contract shapes: `appearance` plus `situation` in chrome,
-  versus `tone` in canvas.
-- **InlineCommitTextField** — `display` bundles content, treatment, and an edit
-  handler into one object prop instead of exposing the same concerns with the
-  surrounding contract's shapes.
-- **HullSurfaceFrame / StickyNoteSurfaceFrame / StyledBoxSurfaceFrame** — Canvas
-  surface frames report clicks through `onPress`, while chrome elements use
-  `onClick` for the same event grammar.
+  **Closed (Brief 8, Task 4).** The audit confirmed `onDiscard(messages)` means
+  invalid abandonment and `onCancel()` means backing out throughout; the
+  message-free `EditableEdgeText` outcome is now `onCancel`.
+- **Dropdown / ColorSelect / StrokeSelect — Closed (Brief 9, Task 4.2).** Dropdown
+  now closes on an outside press without selection and returns focus to its
+  control, matching the selector shape.
+- **ValidationPopup / InlineValidationPopup — Closed (Brief 9, Task 4.1).** Inside
+  presses no longer dismiss; outside presses, keyboard dismissal, and the dismiss
+  control still do.
+- **TextField / InlineTextField — Closed (Brief 9, Task 2 review decision).**
+  After dead-option removal, each wing owns the contract appropriate to its own
+  surface; cross-wing visual coincidence is never dependence.
+- **InlineCommitTextField — Closed (Brief 8, Task 2.3).** Display text and edit
+  request are now flat `displayText` and `onEditRequest` props; `treatment` has one
+  top-level home.
+- **HullSurfaceFrame / StickyNoteSurfaceFrame / StyledBoxSurfaceFrame — Closed
+  (Brief 8, Task 4).** Canvas surface frames now report clicks through `onClick`,
+  matching the library-wide handler grammar.
 
 ## Open-typed configuration
 
-- **BoxOutline** — `centerOffset` behaves as a geometry modifier but is an open
-  CSS-length string, allowing arbitrary treatment values through the contract.
-- **ResizeAffordance** — `centerOffset` controls all handle and edge placement but
-  is an open CSS-length string rather than closed geometry data.
-- **StrokeSelect** — `popupWidth` directly configures presentation width with an
-  unrestricted number even though consumers otherwise select presentation
-  through closed options.
+- **BoxOutline — Closed (Brief 9, Task 5).** `centerOffset` is numeric pixel
+  geometry and the element applies the unit.
+- **ResizeAffordance — Closed (Brief 9, Task 5).** `centerOffset` is numeric pixel
+  geometry and the element applies the unit; `BoxInteractionOverlay` routes the
+  same shape.
+- **StrokeSelect — Closed (Brief 9, Task 5 verification).** `popupWidth` was
+  already numeric and remains a woven data prop because its value is consumer
+  layout knowledge rather than an element-defined option.
 
 ## Law friction
 
-- **InlineEmphasisCommitTextField** — `initialEmphasis` is runtime content that
-  initializes an editable value, but its closed literal type mechanically makes
-  it a modifier under the Annotation law and therefore an Options entry.
-- **BoxHeaderFrame** — `separatorLineStyle` is mechanically a modifier and must be
-  listed under Options, while `separatorColor` and `separatorThickness` are data
-  props. The three values form one user-style tuple, so the classification splits
-  a single concept across annotation sections.
-- **CompartmentStack** — The same separator tuple is split between a closed
-  `separatorLineStyle` option and open color/thickness data, producing the same
-  annotation strain as BoxHeaderFrame.
-- **GridFrame** — The discriminated props union makes `placementActive` legal only
-  for the canvas form. A component-level Options list cannot express that scope
-  as cleanly as the type does without explanatory prose.
-- **FieldGrid** — Each row's `alignment` is a closed modifier nested inside the
-  `rows` data catalog. The law defines classification for component props but not
-  for modifiers nested inside data entries.
-- **Dropdown** — Preview capabilities live on the exported `DropdownOption`
-  boundary type, but exported boundary types have no annotation home under the
-  current law.
+- **InlineEmphasisCommitTextField — Closed (Brief 9, Task 1.1).** The content
+  refinement classifies `initialEmphasis` as editable-state content regardless of
+  its closed type; its annotation now weaves it as a data prop.
+- **BoxHeaderFrame — Closed (Brief 9, Task 1.1).** The content refinement keeps
+  the complete user-style separator tuple together as woven data.
+- **CompartmentStack — Closed (Brief 9, Task 1.1).** The content refinement keeps
+  the complete user-style separator tuple together as woven data.
+- **GridFrame — Closed (Brief 8, Task 2.2).** Splitting the three frames removed
+  the discriminated union; `placementActive` belongs only to `CanvasGridFrame`.
+- **FieldGrid — Closed (Brief 9, Task 1.1).** Classification now applies only to
+  the component's own props; nested `alignment` is documented where `rows`
+  weaves and in the row boundary annotation.
+- **Dropdown — Closed (Brief 9, Tasks 1.2 and 6).** `DropdownOption` now has an
+  annotation home under its owning component and renders in the catalog.
+
+## Dead-option candidates
+
+- **Button — Closed (Brief 11, Tasks 4–5).** The utilization check convicted its
+  four-axis surface; the replacement `variant` retains only the three exercised
+  command situations, deleting the unused accent and pill treatments.
+- **TextField — Closed (Brief 11, Task 4).** The dead `autoFocus` modifier and its
+  treatment were deleted. Unused `disabled` remains a coherent lifecycle state,
+  which the Modifier design law explicitly permits beyond current consumption.
+- **ToggleButton — Closed (Brief 11, Task 4).** The dead `micro` and `compact`
+  sizes and their treatments were deleted. Unused `disabled` remains a coherent
+  lifecycle state.
+- **ColorSelect / StrokeSelect / Dropdown — Closed (Brief 11, Task 4 review).**
+  Their unused `disabled` entries are lifecycle states and remain as coherent
+  selector state-machine surface.
+- **CommitClearableTextField / CommitComboBox — Closed (Brief 11, Task 4
+  review).** Their unused `disabled` entries are lifecycle states and remain as
+  coherent commit-control state-machine surface.
+- **CommitTextField auto focus — Closed (Brief 11, Task 4).** The dead
+  `autoFocus` modifier and pass-through were deleted; unused `disabled` remains
+  a coherent lifecycle state.
+- **CommitTextField cancel affordance — Open (Brief 11, Task 4 regression
+  review).** History at `dbdbfbab` proves `isCancelVisible` was introduced for a
+  live relationship-edge editor. The canvas migration moved that situation to
+  `InlineCommitTextField` without removing or re-homing the chrome contract.
+  Per the brief's special case, retain it and review whether chrome cancellation
+  still has a planned consumer or should be removed in a follow-up.
+- **SwatchToggle — Closed (Brief 11, Task 4 review).** Its unused `disabled`
+  entry is a lifecycle state and remains as coherent toggle state-machine
+  surface.
+- **EditableTextList / InlineEmphasisCommitTextField / InlineToggleButton —
+  Closed (Brief 11, Task 4).** Their dead `default` and `neutral` surface choices
+  were removed; the sole exercised base treatment is now element-owned rather
+  than exposed as a one-value modifier.

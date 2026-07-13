@@ -23,7 +23,7 @@ import { useStateReconciliation } from "./useStateReconciliation";
 import ReactFlowCanvasAdapter from "./ReactFlowCanvasAdapter/ReactFlowCanvasAdapter";
 import ReactFlowProviderAdapter from "./ReactFlowProviderAdapter/ReactFlowProviderAdapter";
 import EmptyStateMessage from "../../../../ui/canvas/primitives/EmptyStateMessage/EmptyStateMessage";
-import GridFrame from "../../../../ui/canvas/templates/GridFrame/GridFrame";
+import CanvasViewportFrame from "../../../../ui/canvas/templates/CanvasViewportFrame/CanvasViewportFrame";
 
 type DiagramCanvasProps = {
   readonly view: DiagramView;
@@ -115,7 +115,7 @@ export default function DiagramCanvas({
     setNoteBoxPlacementState,
   });
   return (
-    <GridFrame variant="shell" ariaLabel="Static editor boxes">
+    <CanvasViewportFrame ariaLabel="Static editor boxes">
       {view.classes.length === 0 ? (
         <EmptyStateMessage
           message="No spatial annotations found."
@@ -157,6 +157,6 @@ export default function DiagramCanvas({
           onTextBlockEditCancel={onTextBlockEditCancel}
         />
       </ReactFlowProviderAdapter>
-    </GridFrame>
+    </CanvasViewportFrame>
   );
 }

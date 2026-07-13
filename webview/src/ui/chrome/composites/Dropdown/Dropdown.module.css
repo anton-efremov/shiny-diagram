@@ -234,7 +234,6 @@
 
 .menu {
   position: absolute;
-  z-index: 10;
   right: 0;
   left: 0;
   display: grid;

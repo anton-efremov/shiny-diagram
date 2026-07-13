@@ -1,7 +1,8 @@
 /**
  * Muted standalone text.
  *
- * Renders `text` inline without owning truncation or wrapping behavior.
+ * Renders `text` inline without owning truncation or wrapping behavior. Used by:
+ * the diagram-style inheritance explanation.
  */
 
 import type { ReactElement } from "react";

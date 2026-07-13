@@ -8,15 +8,13 @@
  * `onRowReorder` with source row and destination gap; a drag can be cancelled
  * from the keyboard, leaving the order unchanged. Actions use `actionStacking`,
  * validation uses `validationStacking`, and `surface` supplies an explicit action
- * ground.
+ * ground over the class-member fallback.
  *
- * Options:
- * - `isEditStartEnabled` — on permits row editing, reordering, and adding; off
- *   leaves display rows inert
+ * Lifecycle:
+ * - `isEditable` — on permits row editing, reordering, and adding; off
+ *   leaves display rows inert. Used by: members of the selected class
  * - `isEmphasisEditable` — on initializes and commits row emphasis; off removes
- *   emphasis from edit outcomes
- * - `surfaceTone` — `default` uses normal canvas surfaces, `base` uses base fill,
- *   and `neutral` uses a neutral wash when `surface` is absent
+ *   emphasis from edit outcomes. Used by: attributes and operations in a class
  */
 
 import { Fragment, useEffect, useRef, useState } from "react";
@@ -33,6 +31,12 @@ import styles from "./EditableTextList.module.css";
 
 export type { TextEmphasis };
 
+/**
+ * EditableTextList entry carrying text and optional emphasis content.
+ *
+ * `text` supplies the row value and `emphasis` supplies its initial underline,
+ * italic, or unemphasized state.
+ */
 export type EditableTextListRow = {
   readonly text: string;
   readonly emphasis?: TextEmphasis | null;
@@ -42,13 +46,12 @@ type EditableTextListProps = {
   readonly rows: readonly EditableTextListRow[];
   readonly addLabel: string;
   readonly addTitle: string;
-  readonly validate: (draft: string) => readonly string[];
-  readonly isEditStartEnabled: boolean;
-  readonly isEmphasisEditable: boolean;
+  readonly surface?: string;
   readonly actionStacking: number;
   readonly validationStacking: number;
-  readonly surface?: string;
-  readonly surfaceTone?: "default" | "base" | "neutral";
+  readonly validate: (draft: string) => readonly string[];
+  readonly isEditable: boolean;
+  readonly isEmphasisEditable: boolean;
   readonly onRowCommit: (index: number, value: string, emphasis: TextEmphasis | null) => void;
   readonly onRowAdd: (value: string, emphasis: TextEmphasis | null) => void;
   readonly onRowReorder: (from: number, to: number) => void;
@@ -65,12 +68,11 @@ export default function EditableTextList({
   addLabel,
   addTitle,
   validate,
-  isEditStartEnabled,
+  isEditable,
   isEmphasisEditable,
   actionStacking,
   validationStacking,
   surface,
-  surfaceTone,
   onRowCommit,
   onRowAdd,
   onRowReorder,
@@ -112,7 +114,6 @@ export default function EditableTextList({
                 actionStacking={actionStacking}
                 validationStacking={validationStacking}
                 surface={surface}
-                surfaceTone={surfaceTone}
                 onCommit={(value, emphasis) => {
                   onRowCommit(index, value.trim(), isEmphasisEditable ? emphasis : null);
                   setEditingIndex(null);
@@ -123,11 +124,11 @@ export default function EditableTextList({
             ) : (
               <button
                 type="button"
-                className={`${styles.rowHost} ${isEditStartEnabled ? styles.editable : ""} ${isDragged ? styles.dragged : ""} ${row.emphasis === "underline" ? styles.underlined : ""} ${row.emphasis === "italic" ? styles.italic : ""}`}
+                className={`${styles.rowHost} ${isEditable ? styles.editable : ""} ${isDragged ? styles.dragged : ""} ${row.emphasis === "underline" ? styles.underlined : ""} ${row.emphasis === "italic" ? styles.italic : ""}`}
                 data-reorder-row="true"
                 onPointerDown={(event) => {
                   event.stopPropagation();
-                  if (!isEditStartEnabled) return;
+                  if (!isEditable) return;
                   event.currentTarget.setPointerCapture(event.pointerId);
                   setDragState({
                     index,
@@ -161,7 +162,7 @@ export default function EditableTextList({
                   variant="row"
                   onEditRequest={(event) => {
                     event.stopPropagation();
-                    if (!isEditStartEnabled) return;
+                    if (!isEditable) return;
                     if (suppressClickRef.current) {
                       suppressClickRef.current = false;
                       return;
@@ -188,7 +189,6 @@ export default function EditableTextList({
             actionStacking={actionStacking}
             validationStacking={validationStacking}
             surface={surface}
-            surfaceTone={surfaceTone}
             onCommit={(value, emphasis) => {
               if (value.trim() !== "") {
                 onRowAdd(value.trim(), isEmphasisEditable ? emphasis : null);
@@ -204,9 +204,9 @@ export default function EditableTextList({
             label={addLabel}
             title={addTitle}
             treatment="add"
-            disabled={!isEditStartEnabled}
-            visible={isAddHovered && isEditStartEnabled}
-            onPress={() => setEditingIndex("new")}
+            disabled={!isEditable}
+            visible={isAddHovered && isEditable}
+            onClick={() => setEditingIndex("new")}
           />
         )}
       </div>
@@ -221,7 +221,6 @@ function Editor({
   actionStacking,
   validationStacking,
   surface,
-  surfaceTone,
   onCommit,
   onDiscard,
   onCancel,
@@ -232,7 +231,6 @@ function Editor({
   readonly actionStacking: number;
   readonly validationStacking: number;
   readonly surface?: string;
-  readonly surfaceTone?: "default" | "base" | "neutral";
   readonly onCommit: (value: string, emphasis: TextEmphasis | null) => void;
   readonly onDiscard: () => void;
   readonly onCancel: () => void;
@@ -247,7 +245,6 @@ function Editor({
         actionStacking={actionStacking}
         validationStacking={validationStacking}
         surface={surface}
-        surfaceTone={surfaceTone}
         onCommit={onCommit}
         onDiscard={onDiscard}
         onCancel={onCancel}

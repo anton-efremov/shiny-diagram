@@ -105,7 +105,6 @@
 
 .popup {
   position: fixed;
-  z-index: 100;
   top: var(--color-select-popup-top);
   left: var(--color-select-popup-left);
   display: grid;

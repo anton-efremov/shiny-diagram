@@ -7,10 +7,13 @@
  * and reports `onCancel`. Line breaks are typed as ordinary input; committing is
  * only by the save action or by leaving the editor.
  *
- * Options:
+ * Lifecycle:
  * - `isEditing` — off renders wrapped display text; on renders the editor and
- *   save action
+ *   save action. Used by: a note body
+ *
+ * Modifiers:
  * - `autoFocus` — on requests focus when the editor mounts
+ *   Used by: a newly opened note-body editor
  */
 
 import type { MouseEvent, ReactElement } from "react";
@@ -23,9 +26,9 @@ import styles from "./InlineCommitTextArea.module.css";
 type InlineCommitTextAreaProps = {
   readonly initialValue: string;
   readonly displayText: string;
+  readonly saveLabel: string;
   readonly isEditing: boolean;
   readonly autoFocus?: boolean;
-  readonly saveLabel: string;
   readonly onEditRequest: (event: MouseEvent<HTMLDivElement>) => void;
   readonly onCommit: (value: string) => void;
   readonly onCancel: () => void;
@@ -68,7 +71,7 @@ export default function InlineCommitTextArea({
           onKeyDown={lifecycle.onKeyDown}
         />
         <span className={styles.saveAction}>
-          <InlineTextButton label={saveLabel} onPress={lifecycle.onCommitAttempt} />
+          <InlineTextButton label={saveLabel} onClick={lifecycle.onCommitAttempt} />
         </span>
       </div>
     </div>

@@ -7,13 +7,16 @@
  * validation. Custom text is held as a draft until exactly one outcome
  * concludes the edit: committed (`onCommit`), discarded (`onDiscard` —
  * receives the draft's messages), or cancelled (`onCancel`). A draft
- * failing validation (`validate`) shows its messages and is never
- * committed.
+ * failing validation (`validate`) shows its messages and is never committed.
+ * The menu paints at `menuStacking`, and validation paints at
+ * `validationStacking`.
  *
- * Options:
+ * Lifecycle:
+ * - `disabled`       — the value is shown, an open menu closes, and no
+ *   interaction is accepted. Used by: no current product situation
  * - `isLabelVisible` — off hides the visible caption; the accessible name
- *   (`ariaLabel`) always remains
- * - `disabled`       — the value is shown, no interaction is accepted
+ *   (`ariaLabel`) always remains. Used by: relationship multiplicities and class
+ *   stereotypes
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -27,9 +30,11 @@ import { useCommitLifecycle } from "../../../core/commitLifecycle";
 type CommitComboBoxProps = {
   readonly initialValue: string;
   readonly options: readonly DropdownOption[];
+  readonly ariaLabel?: string;
+  readonly menuStacking: number;
+  readonly validationStacking: number;
   readonly validate: (draft: string) => readonly string[];
   readonly disabled?: boolean;
-  readonly ariaLabel?: string;
   readonly isLabelVisible?: boolean;
   readonly onCommit: (value: string) => void;
   readonly onDiscard: (messages: readonly string[]) => void;
@@ -43,6 +48,8 @@ export default function CommitComboBox({
   disabled = false,
   ariaLabel,
   isLabelVisible = true,
+  menuStacking,
+  validationStacking,
   onCommit,
   onDiscard,
   onCancel,
@@ -58,6 +65,10 @@ export default function CommitComboBox({
   useEffect(() => {
     setIsCustom(!hasPresetValue(options, initialValue));
   }, [initialValue, options]);
+
+  useEffect(() => {
+    if (disabled) setIsOpen(false);
+  }, [disabled]);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -143,7 +154,7 @@ export default function CommitComboBox({
           onClick={() => setIsOpen((current) => !current)}
         />
         {isOpen ? (
-          <div className={styles.menu} role="listbox">
+          <div className={styles.menu} style={{ zIndex: menuStacking }} role="listbox">
             {renderedOptions.map((option) => (
               <button
                 key={option.value}
@@ -164,7 +175,11 @@ export default function CommitComboBox({
           </div>
         ) : null}
         {lifecycle.messages.length > 0 ? (
-          <ValidationPopup messages={lifecycle.messages} onDismiss={lifecycle.onPopupDismiss} />
+          <ValidationPopup
+            messages={lifecycle.messages}
+            stacking={validationStacking}
+            onDismiss={lifecycle.onPopupDismiss}
+          />
         ) : null}
       </div>
     </div>

@@ -33,7 +33,7 @@ export default function ClassActions({ view }: ClassActionsProps): ReactElement 
   return (
     <ControlGroup columns={2}>
       <Button label="Duplicate" onClick={onDuplicate} />
-      <Button label="Delete" tone="danger" onClick={onDelete} />
+      <Button label="Delete" variant="danger" onClick={onDelete} />
     </ControlGroup>
   );
 }

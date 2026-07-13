@@ -100,9 +100,9 @@ export default function ClassBox({
   );
   const separatorColor = resolvedStyle.stroke;
   const separatorThickness = toCssLength(resolvedStyle.strokeWidth);
-  const selectionCenterOffset = separatorThickness
-    ? `calc(${separatorThickness} + 2px)`
-    : undefined;
+  const separatorThicknessPixels = toPixelLength(separatorThickness);
+  const selectionCenterOffset =
+    separatorThicknessPixels === undefined ? undefined : separatorThicknessPixels + 2;
   const separatorLineStyle = toCssLineStyle(resolvedStyle.strokeDasharray);
 
   const onResizeGrab = (handle: ResizeHandle, point: Point) => {
@@ -122,19 +122,14 @@ export default function ClassBox({
   const annotation = view.header.stereotype ? (
     <InlineCommitTextField
       initialValue={view.header.stereotype}
-      display={{
-        text: `<<${view.header.stereotype}>>`,
-        variant: "secondary",
-        onEditRequest: requestHeaderEdit("annotation"),
-      }}
+      displayText={`<<${view.header.stereotype}>>`}
+      onEditRequest={requestHeaderEdit("annotation")}
       isEditing={isHeaderEditing(editingState, view.classId, "annotation")}
       treatment="secondary"
       validate={(text) => onHeaderCommit("annotation", text.trim() || null)}
       ariaLabel="Annotation"
-      autoFocus
       validationStacking={INLINE_VALIDATION_POPUP_Z_INDEX}
       surface={resolvedStyle.fill}
-      surfaceTone="base"
       onCommit={onTextBlockEditCancel}
       onDiscard={(messages) => {
         setHeaderDiscardErrors(messages);
@@ -146,19 +141,14 @@ export default function ClassBox({
   const name = (
     <InlineCommitTextField
       initialValue={view.header.name}
-      display={{
-        text: view.header.name,
-        variant: "primary",
-        onEditRequest: requestHeaderEdit("name"),
-      }}
+      displayText={view.header.name}
+      onEditRequest={requestHeaderEdit("name")}
       isEditing={isHeaderEditing(editingState, view.classId, "name")}
       treatment="primary"
       validate={(text) => onHeaderCommit("name", text.trim())}
       ariaLabel="Class name"
-      autoFocus
       validationStacking={INLINE_VALIDATION_POPUP_Z_INDEX}
       surface={resolvedStyle.fill}
-      surfaceTone="base"
       onCommit={onTextBlockEditCancel}
       onCancel={onTextBlockEditCancel}
       onDiscard={(messages) => {
@@ -171,19 +161,14 @@ export default function ClassBox({
     view.header.label !== view.header.name ? (
       <InlineCommitTextField
         initialValue={view.header.label}
-        display={{
-          text: `as ${view.header.label}`,
-          variant: "secondary",
-          onEditRequest: requestHeaderEdit("label"),
-        }}
+        displayText={`as ${view.header.label}`}
+        onEditRequest={requestHeaderEdit("label")}
         isEditing={isHeaderEditing(editingState, view.classId, "label")}
         treatment="secondary"
         validate={(text) => onHeaderCommit("label", text.trim() || null)}
         ariaLabel="Class label"
-        autoFocus
         validationStacking={INLINE_VALIDATION_POPUP_Z_INDEX}
         surface={resolvedStyle.fill}
-        surfaceTone="base"
         onCommit={onTextBlockEditCancel}
         onCancel={onTextBlockEditCancel}
         onDiscard={(messages) => {
@@ -202,8 +187,8 @@ export default function ClassBox({
       lineStyle={separatorLineStyle}
       color={resolvedStyle.color}
       dragging={isDragging}
-      connectionEnabled={isConnectSourceEnabled}
-      onPress={onClassBoxClick}
+      placementCursor={isConnectSourceEnabled}
+      onClick={onClassBoxClick}
     >
       <BoxInteractionOverlay
         selected={isSelected}
@@ -257,6 +242,11 @@ export default function ClassBox({
 function toCssLength(value: string | null | undefined): string | undefined {
   if (!value) return undefined;
   return /^-?(?:\d+|\d*\.\d+)$/.test(value.trim()) ? `${value.trim()}px` : value;
+}
+
+function toPixelLength(value: string | undefined): number | undefined {
+  if (!value || !/^-?(?:\d+|\d*\.\d+)(?:px)?$/.test(value.trim())) return undefined;
+  return Number.parseFloat(value);
 }
 
 function toCssLineStyle(value: string | null | undefined): "solid" | "dashed" | "dotted" {

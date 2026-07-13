@@ -8,18 +8,16 @@
  * `onDiscard` with its messages; backing out or using the optional cancel action
  * restores it and reports `onCancel`. A failed confirmation keeps its messages
  * visible until dismissed or the draft changes. `ariaLabel` always supplies the
- * accessible name.
+ * accessible name, and validation paints at the supplied `validationStacking`
+ * plane.
  *
- * Options:
+ * Lifecycle:
  * - `disabled` — on prevents editing
+ *   Used by: no current product situation
  * - `isLabelVisible` — on shows `ariaLabel` in a fixed label column; off keeps
- *   only the accessible name
- * - `autoFocus` — on requests focus when the field mounts
- * - `appearance` — `pane` uses standard control framing; `inline` inherits its
- *   surrounding text treatment
- * - `situation` — absent uses neutral treatment; `edgeLabel` and `edgeCaption`
- *   apply their respective edge-text editing surfaces
+ *   only the accessible name. Used by: namespace and class names
  * - `isCancelVisible` — on reserves trailing space and shows a cancel action
+ *   Used by: no current product situation
  */
 
 import type { ReactElement } from "react";
@@ -31,13 +29,11 @@ import { useCommitLifecycle } from "../../../core/commitLifecycle";
 
 type CommitTextFieldProps = {
   readonly initialValue: string;
+  readonly ariaLabel?: string;
+  readonly validationStacking: number;
   readonly validate: (draft: string) => readonly string[];
   readonly disabled?: boolean;
-  readonly ariaLabel?: string;
   readonly isLabelVisible?: boolean;
-  readonly autoFocus?: boolean;
-  readonly appearance?: "pane" | "inline";
-  readonly situation?: "edgeLabel" | "edgeCaption";
   readonly isCancelVisible?: boolean;
   readonly onCommit: (value: string) => void;
   readonly onDraftChange?: (value: string) => void;
@@ -51,10 +47,8 @@ export default function CommitTextField({
   disabled = false,
   ariaLabel,
   isLabelVisible = true,
-  autoFocus = false,
-  appearance = "pane",
-  situation,
   isCancelVisible = false,
+  validationStacking,
   onCommit,
   onDraftChange,
   onDiscard,
@@ -80,9 +74,6 @@ export default function CommitTextField({
           disabled={disabled}
           invalid={lifecycle.messages.length > 0}
           ariaLabel={ariaLabel}
-          autoFocus={autoFocus}
-          appearance={appearance}
-          situation={situation}
           hasEndAction={isCancelVisible}
           onChange={lifecycle.onDraftChange}
           onBlur={lifecycle.onBlur}
@@ -95,7 +86,11 @@ export default function CommitTextField({
         ) : null}
       </div>
       {lifecycle.messages.length > 0 ? (
-        <ValidationPopup messages={lifecycle.messages} onDismiss={lifecycle.onPopupDismiss} />
+        <ValidationPopup
+          messages={lifecycle.messages}
+          stacking={validationStacking}
+          onDismiss={lifecycle.onPopupDismiss}
+        />
       ) : null}
     </div>
   );

@@ -7,6 +7,7 @@ import type { ReactElement } from "react";
 import type { RelationshipId } from "../../../../../../shared/ids";
 import type { RelationshipEndpointKind, RelationshipLineKind } from "../../../../../../shared/uml";
 import type { RelationshipView } from "../../../../../views/schema";
+import { CHROME_MENU_ABOVE_CONTROL_Z_INDEX } from "../../../../../config/editorUiConfig";
 import Button from "../../../../../../ui/chrome/primitives/Button/Button";
 import Dropdown from "../../../../../../ui/chrome/composites/Dropdown/Dropdown";
 import FieldGrid from "../../../../../../ui/chrome/templates/FieldGrid/FieldGrid";
@@ -47,9 +48,7 @@ export default function EdgeShapeControls({
 
   return (
     <FieldGrid
-      inset
-      labelWidth="standard"
-      controlWidth="full"
+      variant="inset"
       rows={[
         {
           label: "Source\nendpoint",
@@ -57,6 +56,7 @@ export default function EdgeShapeControls({
             <Dropdown
               options={endpointOptions}
               value={view.sourceEndpointKind}
+              stacking={CHROME_MENU_ABOVE_CONTROL_Z_INDEX}
               onChange={(value) => onSourceEndpointKindChange(value as RelationshipEndpointKind)}
             />
           ),
@@ -73,6 +73,7 @@ export default function EdgeShapeControls({
                 swatchStyle: { strokeDasharray: lineKind === "solid" ? "0" : "4 4" },
               }))}
               value={view.lineKind}
+              stacking={CHROME_MENU_ABOVE_CONTROL_Z_INDEX}
               onChange={(value) => onLineKindChange(value as RelationshipLineKind)}
             />
           ),
@@ -83,6 +84,7 @@ export default function EdgeShapeControls({
             <Dropdown
               options={endpointOptions}
               value={view.targetEndpointKind}
+              stacking={CHROME_MENU_ABOVE_CONTROL_Z_INDEX}
               onChange={(value) => onTargetEndpointKindChange(value as RelationshipEndpointKind)}
             />
           ),
@@ -91,7 +93,7 @@ export default function EdgeShapeControls({
           label: "",
           control: (
             <ControlGroup>
-              <Button label="Reverse" size="compact" alignment="end" onClick={onReverse} />
+              <Button label="Reverse" variant="compact" onClick={onReverse} />
             </ControlGroup>
           ),
         },

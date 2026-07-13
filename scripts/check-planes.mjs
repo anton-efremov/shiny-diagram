@@ -7,12 +7,15 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { collectComponents } from "./planes/ui-catalog.mjs";
 import { planes } from "./planes/registry.mjs";
+import { analyzeModifierUtilization } from "./modifier-utilization.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const violations = [];
+const components = await collectComponents({ repoRoot });
 
 await checkPlaneStaleness();
-await checkUiCatalogAnnotations();
+checkUiCatalogAnnotations();
+await checkModifierUtilization();
 
 if (violations.length > 0) {
   console.error(`Plane checks failed with ${violations.length} violation(s):\n`);
@@ -57,15 +60,73 @@ async function checkPlaneStaleness() {
   }
 }
 
-async function checkUiCatalogAnnotations() {
-  const components = await collectComponents({ repoRoot });
+function checkUiCatalogAnnotations() {
   for (const component of components) {
     checkPresence(component);
     checkStructure(component);
     checkSummaryPurity(component);
     checkPropCoverage(component);
     checkReverseDrift(component);
+    for (const boundaryType of component.boundaryTypes) {
+      checkBoundaryTypeStructure(component, boundaryType);
+    }
   }
+}
+
+async function checkModifierUtilization() {
+  const reports = await analyzeModifierUtilization({ repoRoot, components });
+  for (const report of reports) {
+    if (report.verdict === "skipped") {
+      console.warn(
+        `${report.filePath} [modifier utilization] ${JSON.stringify(report.component)} has zero consumers; skipping factorization (dead-component territory).`
+      );
+      continue;
+    }
+    if (report.verdict === "invalid") {
+      const details = report.modifierProps
+        .filter((prop) => prop.error !== null)
+        .map((prop) => `${prop.name}: ${prop.error}`)
+        .join("; ");
+      componentUtilizationViolation(
+        report,
+        "modifier utilization schema",
+        `The Modifiers surface cannot be measured: ${details}.`,
+        "Use a boolean or a local closed literal union for every modifier prop."
+      );
+      continue;
+    }
+    if (report.verdict !== "fail") continue;
+    const counts = Object.entries(report.valueCounts)
+      .map(([name, count]) => `${name}=${count}`)
+      .join(", ");
+    componentUtilizationViolation(
+      report,
+      "modifier utilization",
+      `P=${report.product} exceeds 2·|U|=${2 * report.utilization} (|U|=${report.utilization}; ${counts}).`,
+      "Collapse the surface to one role modifier per the Modifier design law."
+    );
+  }
+}
+
+function componentUtilizationViolation(report, rule, message, fix) {
+  addViolation({
+    location: report.filePath,
+    rule,
+    subject: JSON.stringify(report.component),
+    message,
+    fix,
+  });
+}
+
+function checkBoundaryTypeStructure(component, boundaryType) {
+  if (boundaryType.annotation?.contentLines.some((line) => line.trim().length > 0)) return;
+  addViolation({
+    location: component.filePath,
+    rule: "boundary-type annotation structure",
+    subject: `${JSON.stringify(component.name)} boundary type ${JSON.stringify(boundaryType.name)}`,
+    message: "The exported boundary type has an empty TSDoc block.",
+    fix: "Document what the boundary shape's fields mean to a consumer, then run `npm run planes`.",
+  });
 }
 
 function checkPresence(component) {
@@ -81,8 +142,10 @@ function checkPresence(component) {
 function checkStructure(component) {
   if (component.annotation === null) return;
   const lines = component.annotation.contentLines;
-  const optionsIndex = lines.indexOf("Options:");
-  const paragraphEnd = optionsIndex < 0 ? lines.length : optionsIndex;
+  const lifecycleIndex = lines.indexOf("Lifecycle:");
+  const modifiersIndex = lines.indexOf("Modifiers:");
+  const sectionIndexes = [lifecycleIndex, modifiersIndex].filter((index) => index >= 0);
+  const paragraphEnd = sectionIndexes.length === 0 ? lines.length : Math.min(...sectionIndexes);
   const hasSummary = lines[0]?.trim().length > 0;
   const hasBlankAfterSummary = lines[1] !== undefined && lines[1].trim() === "";
   const hasParagraph = lines.slice(2, paragraphEnd).some((line) => line.trim().length > 0);
@@ -96,15 +159,26 @@ function checkStructure(component) {
     );
   }
 
-  if (optionsIndex < 0) return;
-  const entries = topLevelOptionEntries(lines, optionsIndex);
-  if (entries.length === 0 || entries.some((entry) => entry.subject === null)) {
+  if (lifecycleIndex >= 0 && modifiersIndex >= 0 && lifecycleIndex > modifiersIndex) {
     componentViolation(
       component,
-      "annotation structure",
-      "Every top-level entry under `Options:` must be a bullet beginning with one backticked subject.",
-      "Make each `Options:` entry a dash bullet whose first token is one backticked prop name, then run `npm run planes`."
+      "annotation section order",
+      "`Lifecycle:` must precede `Modifiers:` when both sections are present.",
+      "Move the lifecycle section before the modifiers section, then run `npm run planes`."
     );
+  }
+
+  for (const heading of ["Lifecycle:", "Modifiers:"]) {
+    const entries = sectionEntries(lines, heading);
+    if (entries === null) continue;
+    if (entries.length === 0 || entries.some((entry) => entry.subject === null)) {
+      componentViolation(
+        component,
+        "annotation structure",
+        `Every top-level entry under \`${heading}\` must be a bullet beginning with one backticked subject.`,
+        `Make each \`${heading}\` entry a dash bullet whose first token is one backticked prop name, then run \`npm run planes\`.`
+      );
+    }
   }
 }
 
@@ -135,23 +209,26 @@ function checkPropCoverage(component) {
 function checkReverseDrift(component) {
   if (component.annotation === null) return;
   const lines = component.annotation.contentLines;
-  const optionsIndex = lines.indexOf("Options:");
-  if (optionsIndex < 0) return;
   const props = new Set(component.propsMemberNames);
-  for (const entry of topLevelOptionEntries(lines, optionsIndex)) {
-    if (entry.subject === null || props.has(entry.subject)) continue;
-    componentViolation(
-      component,
-      "options reverse drift",
-      `Option subject ${JSON.stringify(entry.subject)} is not a member of the props type.`,
-      "Remove the stale option or name the real prop member, then run `npm run planes`."
-    );
+  for (const heading of ["Lifecycle:", "Modifiers:"]) {
+    for (const entry of sectionEntries(lines, heading) ?? []) {
+      if (entry.subject === null || props.has(entry.subject)) continue;
+      componentViolation(
+        component,
+        "section reverse drift",
+        `${heading.slice(0, -1)} subject ${JSON.stringify(entry.subject)} is not a member of the props type.`,
+        "Remove the stale entry or name the real prop member, then run `npm run planes`."
+      );
+    }
   }
 }
 
-function topLevelOptionEntries(lines, optionsIndex) {
+function sectionEntries(lines, heading) {
+  const sectionIndex = lines.indexOf(heading);
+  if (sectionIndex < 0) return null;
   const entries = [];
-  for (const line of lines.slice(optionsIndex + 1)) {
+  for (const line of lines.slice(sectionIndex + 1)) {
+    if (line === "Lifecycle:" || line === "Modifiers:") break;
     if (line.trim().length === 0 || /^\s/.test(line)) continue;
     const match = /^- `([^`]+)`(?:\s|$)/.exec(line);
     entries.push({ line, subject: match?.[1] ?? null });

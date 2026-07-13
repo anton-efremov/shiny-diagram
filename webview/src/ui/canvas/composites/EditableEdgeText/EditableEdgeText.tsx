@@ -4,15 +4,18 @@
  * Displays `text`; clicking it while at rest reports `onSelect` and may report
  * `onEditRequest`, while double-clicking always reports both. During editing the
  * field grows with the draft up to a fixed maximum; committing reports
- * `onCommit`; abandoning or cancelling reports `onDiscard`. Validation overlays
+ * `onCommit`; abandoning or cancelling reports `onCancel`. Validation overlays
  * use `validationStacking`.
  *
- * Options:
- * - `treatment` — `label` uses light label treatment; `multiplicity` uses dark
- *   caption treatment
+ * Lifecycle:
  * - `isEditing` — off renders the text pill; on renders the editor
- * - `isEditRequestEnabled` — on lets a single click request editing; double-click
- *   requests editing in either state
+ *   Used by: relationship labels and endpoint multiplicities
+ * - `isClickEditEnabled` — on lets a single click request editing; double-click
+ *   requests editing in either state. Used by: text on a selected relationship
+ *
+ * Modifiers:
+ * - `treatment` — `label` uses light label treatment; `multiplicity` uses dark
+ *   caption treatment. Used by: relationship labels and endpoint multiplicities
  */
 
 import { useState } from "react";
@@ -23,14 +26,14 @@ import styles from "./EditableEdgeText.module.css";
 
 type EditableEdgeTextProps = {
   readonly text: string;
-  readonly treatment: "label" | "multiplicity";
-  readonly isEditing: boolean;
-  readonly isEditRequestEnabled: boolean;
   readonly validationStacking: number;
+  readonly isEditing: boolean;
+  readonly isClickEditEnabled: boolean;
+  readonly treatment: "label" | "multiplicity";
   readonly onSelect: () => void;
   readonly onEditRequest: () => void;
   readonly onCommit: (value: string) => void;
-  readonly onDiscard: () => void;
+  readonly onCancel: () => void;
 };
 
 const REGION_WIDTH = 240;
@@ -43,12 +46,12 @@ export default function EditableEdgeText({
   text,
   treatment,
   isEditing,
-  isEditRequestEnabled,
+  isClickEditEnabled,
   validationStacking,
   onSelect,
   onEditRequest,
   onCommit,
-  onDiscard,
+  onCancel,
 }: EditableEdgeTextProps): ReactElement {
   const [editorText, setEditorText] = useState(text);
 
@@ -76,13 +79,12 @@ export default function EditableEdgeText({
             treatment={treatment}
             validate={() => []}
             ariaLabel="Relationship text"
-            autoFocus
             isCancelVisible
             validationStacking={validationStacking}
             onDraftChange={setEditorText}
             onCommit={onCommit}
-            onDiscard={onDiscard}
-            onCancel={onDiscard}
+            onDiscard={() => undefined}
+            onCancel={onCancel}
           />
         </div>
       </foreignObject>
@@ -94,7 +96,7 @@ export default function EditableEdgeText({
       onClick={(event) => {
         event.stopPropagation();
         onSelect();
-        if (isEditRequestEnabled) onEditRequest();
+        if (isClickEditEnabled) onEditRequest();
       }}
       onDoubleClick={(event) => {
         event.stopPropagation();

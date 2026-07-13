@@ -13,7 +13,6 @@
 .popup {
   position: fixed;
   inset: auto;
-  z-index: 10000;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 20px;
   gap: 6px;

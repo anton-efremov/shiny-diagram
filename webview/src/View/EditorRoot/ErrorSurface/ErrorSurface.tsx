@@ -16,7 +16,7 @@ export default function ErrorSurface({ errors }: ErrorSurfaceProps): ReactElemen
     <StatusSurfaceFrame
       status={<>Invalid Mermaid syntax: {statusText}</>}
       items={errors}
-      variant="error-list"
+      variant="errorList"
     />
   );
 }

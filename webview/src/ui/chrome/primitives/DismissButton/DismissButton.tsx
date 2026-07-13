@@ -5,9 +5,9 @@
  * focus from the field it sits in and reports the press through `onMouseDown`;
  * clicking it reports `onClick`.
  *
- * Options:
+ * Modifiers:
  * - `small` — off renders a standard circular control; on renders the reduced
- *   in-field control
+ *   in-field control. Used by: field clear and cancel actions
  */
 
 import type { ReactElement } from "react";

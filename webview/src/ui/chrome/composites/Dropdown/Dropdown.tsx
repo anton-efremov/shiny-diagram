@@ -1,25 +1,33 @@
 /**
  * Dropdown whose entries can carry visual previews beside or instead of text.
  *
- * Selects the matching entry from `options` for `value`, falling back visually
- * to the first entry when unmatched. The user opens the list from the closed
- * control and closes it the same way; closing it from the keyboard returns focus
- * to the control. Choosing an entry closes the list and reports its value through
+ * Selects the matching entry from `options` for `value`; an unmatched value
+ * leaves the closed control empty. The user opens the list from the closed
+ * control and closes it the same way. Closing it without choosing — by clicking
+ * outside or from the keyboard — returns focus to the control and reports
+ * nothing. Choosing an entry closes the list and reports its value through
  * `onChange`. Each entry may show a text label, a preview, or both, as its options
- * entry supplies.
+ * entry supplies; the list paints at the supplied `stacking` plane.
  *
- * Options:
+ * Lifecycle:
  * - `disabled` — on means the list cannot be opened and shows the control as
- *   unavailable
+ *   unavailable. Used by: no current product situation
  */
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent, ReactElement } from "react";
 import type { CSSProperties } from "react";
 import { GLYPH_VIEW_BOX } from "../../../../shared/glyph";
 import type { StyleProperties } from "../../../../shared/style";
 import styles from "./Dropdown.module.css";
 
+/**
+ * Entry offered by Dropdown with optional visual preview capabilities.
+ *
+ * `value` is reported when chosen and `label` supplies its text. `swatchStyle`
+ * carries preview values, `swatchKind` selects the preview shape, and
+ * `isLabelVisible` may reserve the entry for its preview alone.
+ */
 export type DropdownOption = {
   readonly value: string;
   readonly label: string;
@@ -41,6 +49,7 @@ export type DropdownOption = {
 type DropdownProps = {
   readonly options: readonly DropdownOption[];
   readonly value: string;
+  readonly stacking: number;
   readonly disabled?: boolean;
   readonly onChange: (value: string) => void;
 };
@@ -48,15 +57,36 @@ type DropdownProps = {
 export default function Dropdown({
   options,
   value,
+  stacking,
   disabled = false,
   onChange,
 }: DropdownProps): ReactElement {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const selectedOption = options.find((option) => option.value === value) ?? options[0];
+  const menuRef = useRef<HTMLDivElement>(null);
+  const selectedOption = options.find((option) => option.value === value);
   const triggerStyle: CSSProperties & { "--dropdown-arrow-color"?: string } = {
     "--dropdown-arrow-color": selectedOption?.swatchStyle?.color ?? undefined,
   };
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    function closeFromPointer(event: PointerEvent): void {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (triggerRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      closeAndRestoreFocus();
+    }
+
+    window.addEventListener("pointerdown", closeFromPointer);
+    return () => window.removeEventListener("pointerdown", closeFromPointer);
+  }, [isOpen]);
+
+  function closeAndRestoreFocus(): void {
+    setIsOpen(false);
+    requestAnimationFrame(() => triggerRef.current?.focus());
+  }
 
   function selectValue(nextValue: string): void {
     setIsOpen(false);
@@ -67,8 +97,7 @@ export default function Dropdown({
     if (!isOpen || event.key !== "Escape") return;
     event.preventDefault();
     event.stopPropagation();
-    setIsOpen(false);
-    triggerRef.current?.focus();
+    closeAndRestoreFocus();
   }
 
   return (
@@ -100,7 +129,7 @@ export default function Dropdown({
         </span>
       </button>
       {isOpen ? (
-        <div className={styles.menu} role="listbox">
+        <div ref={menuRef} className={styles.menu} style={{ zIndex: stacking }} role="listbox">
           {options.map((option) => (
             <button
               key={option.value}

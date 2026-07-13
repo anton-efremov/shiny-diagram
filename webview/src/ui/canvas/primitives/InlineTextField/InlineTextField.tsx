@@ -5,12 +5,20 @@
  * through `onChange`, and forwards focus loss and keyboard input through
  * `onBlur` and `onKeyDown`.
  *
- * Options:
+ * Lifecycle:
  * - `invalid` — on shows invalid outline treatment
+ *   Used by: class, namespace, and relationship text with validation messages
+ *
+ * Modifiers:
  * - `autoFocus` — on requests focus when the field mounts
+ *   Used by: newly opened canvas text editors
  * - `hasEndAction` — on reserves trailing room for an overlaid action
- * - `tone` — `default` inherits its host treatment, `label` uses light edge-text
- *   editing treatment, and `multiplicity` uses dark caption editing treatment
+ *   Used by: cancellable canvas text editors
+ * - `tone` — the field's ground and text treatment:
+ *   - `default` inherits its host treatment — e.g. class and namespace text
+ *   - `label` uses light edge-text editing treatment — e.g. a relationship label
+ *   - `multiplicity` uses dark caption editing treatment — e.g. an endpoint
+ *     multiplicity
  */
 
 import type { KeyboardEvent, ReactElement } from "react";
@@ -18,8 +26,8 @@ import styles from "./InlineTextField.module.css";
 
 type InlineTextFieldProps = {
   readonly value: string;
-  readonly invalid: boolean;
   readonly ariaLabel: string;
+  readonly invalid: boolean;
   readonly autoFocus: boolean;
   readonly hasEndAction: boolean;
   readonly tone: "default" | "label" | "multiplicity";

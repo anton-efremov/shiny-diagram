@@ -6,6 +6,10 @@
 import type { ReactElement } from "react";
 import type { RelationshipView } from "../../../../../views/schema";
 import { useDispatchTransaction } from "../../../../../contexts";
+import {
+  CHROME_MENU_ABOVE_CONTROL_Z_INDEX,
+  CHROME_VALIDATION_ABOVE_CONTROL_Z_INDEX,
+} from "../../../../../config/editorUiConfig";
 import CommitComboBox from "../../../../../../ui/chrome/composites/CommitComboBox/CommitComboBox";
 import FieldGrid from "../../../../../../ui/chrome/templates/FieldGrid/FieldGrid";
 import { toRelationshipMultiplicitySetTransaction } from "./transactions";
@@ -21,9 +25,7 @@ export default function MultiplicityControls({ view }: MultiplicityControlsProps
 
   return (
     <FieldGrid
-      inset
-      labelWidth="standard"
-      controlWidth="full"
+      variant="inset"
       rows={[
         {
           label: "Source",
@@ -34,6 +36,8 @@ export default function MultiplicityControls({ view }: MultiplicityControlsProps
               validate={() => []}
               ariaLabel="Source"
               isLabelVisible={false}
+              menuStacking={CHROME_MENU_ABOVE_CONTROL_Z_INDEX}
+              validationStacking={CHROME_VALIDATION_ABOVE_CONTROL_Z_INDEX}
               onCommit={(value) =>
                 dispatchTransaction(
                   toRelationshipMultiplicitySetTransaction(
@@ -57,6 +61,8 @@ export default function MultiplicityControls({ view }: MultiplicityControlsProps
               validate={() => []}
               ariaLabel="Target"
               isLabelVisible={false}
+              menuStacking={CHROME_MENU_ABOVE_CONTROL_Z_INDEX}
+              validationStacking={CHROME_VALIDATION_ABOVE_CONTROL_Z_INDEX}
               onCommit={(value) =>
                 dispatchTransaction(
                   toRelationshipMultiplicitySetTransaction(

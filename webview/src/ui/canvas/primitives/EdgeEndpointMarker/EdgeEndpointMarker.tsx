@@ -5,10 +5,13 @@
  * (`glyph`) paths at marker scale, attached at the descriptor's anchor, and uses
  * its filled and dashed states.
  *
- * Options:
- * - `side` — `source` reverses automatically at the path start; `target` follows
- *   the path direction at its end
+ * Lifecycle:
  * - `selected` — on replaces marker identity with selection treatment
+ *   Used by: endpoints of the selected relationship
+ *
+ * Modifiers:
+ * - `side` — `source` reverses automatically at the path start; `target` follows
+ *   the path direction at its end. Used by: relationship source and target ends
  */
 
 import type { ReactElement } from "react";
@@ -19,8 +22,8 @@ import styles from "./EdgeEndpointMarker.module.css";
 type EdgeEndpointMarkerProps = {
   readonly id: string;
   readonly glyph: MarkerGlyphDescriptor;
-  readonly side: "source" | "target";
   readonly selected: boolean;
+  readonly side: "source" | "target";
 };
 
 export default function EdgeEndpointMarker({

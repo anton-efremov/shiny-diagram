@@ -51,17 +51,11 @@
 }
 
 .control,
-.halfControl,
-.wideControl {
+.halfControl {
   min-width: 0;
 }
 
 .halfControl {
   justify-self: center;
   width: 50%;
-}
-
-.wideControl {
-  justify-self: center;
-  width: 80%;
 }

@@ -14,7 +14,7 @@ import type {
 } from "../../state/editorStates";
 import type { DiagramView } from "../../views/schema";
 import { TOOL_PANE_WIDTH } from "../../config/editorUiConfig";
-import GridFrame from "../../../ui/canvas/templates/GridFrame/GridFrame";
+import WorkspaceFrame from "../../../ui/chrome/templates/WorkspaceFrame/WorkspaceFrame";
 import ClassDiagram from "./DiagramCanvas/DiagramCanvas";
 import EditPane from "./EditPane/EditPane";
 import ToolPane from "./ToolPane/ToolPane";
@@ -126,8 +126,7 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
   ]);
 
   return (
-    <GridFrame
-      variant="workspace"
+    <WorkspaceFrame
       leadingWidth={TOOL_PANE_WIDTH}
       ariaLabel="Class diagram editor"
       leading={

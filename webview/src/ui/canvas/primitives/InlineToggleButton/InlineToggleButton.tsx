@@ -2,13 +2,12 @@
  * Inline glyph toggle calibrated for diagram text controls.
  *
  * Renders `glyph`, uses `label` as its accessible name and tooltip, reports
- * `onPress` when clicked, and uses `surface` when supplied instead of the
- * selected fallback surface.
+ * `onClick` when clicked, and uses `surface` when supplied instead of the
+ * base surface.
  *
- * Options:
+ * Lifecycle:
  * - `pressed` — on shows the toggle selected
- * - `surfaceTone` — `default` uses the field surface, `base` the base fill, and
- *   `neutral` a neutral wash when `surface` is absent
+ *   Used by: member underline and italic controls
  */
 
 import type { CSSProperties, ReactElement } from "react";
@@ -24,10 +23,9 @@ import styles from "./InlineToggleButton.module.css";
 type InlineToggleButtonProps = {
   readonly glyph: GlyphDescriptor;
   readonly label: string;
-  readonly pressed: boolean;
   readonly surface?: string;
-  readonly surfaceTone?: "default" | "base" | "neutral";
-  readonly onPress: () => void;
+  readonly pressed: boolean;
+  readonly onClick: () => void;
 };
 
 export default function InlineToggleButton({
@@ -35,19 +33,18 @@ export default function InlineToggleButton({
   label,
   pressed,
   surface,
-  surfaceTone = "default",
-  onPress,
+  onClick,
 }: InlineToggleButtonProps): ReactElement {
   const style = { "--inline-toggle-surface": surface } as CSSProperties;
   return (
     <button
       type="button"
-      className={`${styles.button} ${styles[surfaceTone]}`}
+      className={styles.button}
       style={style}
       aria-label={label}
       aria-pressed={pressed}
       title={label}
-      onClick={onPress}
+      onClick={onClick}
     >
       <svg
         viewBox={GLYPH_VIEW_BOX}

@@ -6,14 +6,18 @@
  * resize press reports its handle and viewport point through `onResizeGrab` and
  * does not reach the surface beneath.
  *
- * Options:
+ * Lifecycle:
  * - `selected` — on keeps the selection outline visible; off shows it only on
- *   parent hover
+ *   parent hover. Used by: selected classes, notes, and namespaces
  * - `pending` — on adds a pending placement outline
+ *   Used by: a class awaiting placement
  * - `resizeVisible` — on renders corner, midpoint, and full-edge resize targets
+ *   Used by: selected resizable diagram surfaces
+ *
+ * Modifiers:
  * - `haloTone` — the halo's wash when `haloTint` is absent: `canvas` matches the
  *   canvas ground, `faint` a translucent wash; with neither tone nor tint, no
- *   halo renders
+ *   halo renders. Used by: class and namespace selection
  */
 
 import type { ReactElement } from "react";
@@ -26,14 +30,14 @@ import type { ResizeHandle } from "../../primitives/ResizeAffordance/ResizeAffor
 export type { ResizeHandle };
 
 type BoxInteractionOverlayProps = {
+  readonly centerOffset?: number;
+  readonly haloTint?: string;
+  readonly haloStacking: number;
+  readonly affordanceStacking: number;
   readonly selected: boolean;
   readonly pending: boolean;
   readonly resizeVisible: boolean;
-  readonly centerOffset?: string;
-  readonly haloTint?: string;
   readonly haloTone?: "canvas" | "faint";
-  readonly haloStacking: number;
-  readonly affordanceStacking: number;
   readonly onResizeGrab: (handle: ResizeHandle, point: Point) => void;
 };
 

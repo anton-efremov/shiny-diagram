@@ -2,11 +2,9 @@
  * Hull surface frame with user-supplied color and border values.
  *
  * Fills its host with `children`, uses `title` as the tooltip, applies `fill`,
- * `stroke`, `strokeWidth`, and `color` with neutral fallbacks. Pressing it
- * reports `onPointerDown`; clicking it reports `onPress`.
- *
- * Options:
- * - `lineStyle` — `solid`, `dashed`, or `dotted` selects the border pattern
+ * `stroke`, `strokeWidth`, `lineStyle`, and `color` with neutral fallbacks.
+ * Pressing it reports `onPressStart`; clicking it reports `onClick`.
+ * Used by: a namespace hull.
  */
 
 import type { CSSProperties, MouseEvent, ReactElement, ReactNode } from "react";
@@ -20,8 +18,8 @@ type HullSurfaceFrameProps = {
   readonly lineStyle: "solid" | "dashed" | "dotted";
   readonly color?: string;
   readonly children: ReactNode;
-  readonly onPointerDown: () => void;
-  readonly onPress: (event: MouseEvent<HTMLDivElement>) => void;
+  readonly onPressStart: () => void;
+  readonly onClick: (event: MouseEvent<HTMLDivElement>) => void;
 };
 
 export default function HullSurfaceFrame({
@@ -32,8 +30,8 @@ export default function HullSurfaceFrame({
   lineStyle,
   color,
   children,
-  onPointerDown,
-  onPress,
+  onPressStart,
+  onClick,
 }: HullSurfaceFrameProps): ReactElement {
   const style = {
     "--hull-surface-fill": fill,
@@ -47,8 +45,8 @@ export default function HullSurfaceFrame({
       className={styles.frame}
       style={style}
       title={title}
-      onMouseDown={onPointerDown}
-      onClick={onPress}
+      onMouseDown={onPressStart}
+      onClick={onClick}
     >
       {children}
     </div>

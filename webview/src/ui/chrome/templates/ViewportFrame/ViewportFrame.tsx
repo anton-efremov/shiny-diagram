@@ -2,7 +2,8 @@
  * Viewport frame allowing its content to shrink within available height.
  *
  * Expands `children` through the remaining flex space while permitting nested
- * scrolling regions to contract below their content height.
+ * scrolling regions to contract below their content height. Used by: the editor
+ * workspace beneath its status region.
  */
 
 import type { ReactElement, ReactNode } from "react";

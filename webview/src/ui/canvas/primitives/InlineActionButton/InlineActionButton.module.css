@@ -62,3 +62,7 @@
 .hidden {
   opacity: 0;
 }
+
+.hidden:focus-visible {
+  opacity: 1;
+}

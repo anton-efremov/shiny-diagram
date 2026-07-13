@@ -50,7 +50,7 @@ export default function RelationshipEdge({
   const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
 
   // Event handler props derivation
-  const { onEdgeSelect, onEditStart, onEditCommit, onDraftDiscard } = useInteractions({
+  const { onEdgeSelect, onEditStart, onEditCommit, onEditCancel } = useInteractions({
     view,
     isSelected,
     onRelationshipSelect,
@@ -123,11 +123,11 @@ export default function RelationshipEdge({
           text={view.sourceMultiplicity ?? ""}
           variant="multiplicity"
           isEditing={isSourceMultiplicityEditing}
-          isEditStartEnabled={isSelected}
+          isClickEditEnabled={isSelected}
           onSelect={onEdgeSelect}
           onEditStart={() => onEditStart("sourceMultiplicity")}
           onCommit={onEditCommit}
-          onDraftDiscard={onDraftDiscard}
+          onEditCancel={onEditCancel}
         />
       ) : null}
       {view.targetMultiplicity || isTargetMultiplicityEditing ? (
@@ -137,11 +137,11 @@ export default function RelationshipEdge({
           text={view.targetMultiplicity ?? ""}
           variant="multiplicity"
           isEditing={isTargetMultiplicityEditing}
-          isEditStartEnabled={isSelected}
+          isClickEditEnabled={isSelected}
           onSelect={onEdgeSelect}
           onEditStart={() => onEditStart("targetMultiplicity")}
           onCommit={onEditCommit}
-          onDraftDiscard={onDraftDiscard}
+          onEditCancel={onEditCancel}
         />
       ) : null}
       {view.label || isLabelEditing ? (
@@ -151,11 +151,11 @@ export default function RelationshipEdge({
           text={view.label ?? ""}
           variant="label"
           isEditing={isLabelEditing}
-          isEditStartEnabled={isSelected}
+          isClickEditEnabled={isSelected}
           onSelect={onEdgeSelect}
           onEditStart={() => onEditStart("label")}
           onCommit={onEditCommit}
-          onDraftDiscard={onDraftDiscard}
+          onEditCancel={onEditCancel}
         />
       ) : null}
     </g>
@@ -168,22 +168,22 @@ function EdgeText({
   text,
   variant,
   isEditing,
-  isEditStartEnabled,
+  isClickEditEnabled,
   onSelect,
   onEditStart,
   onCommit,
-  onDraftDiscard,
+  onEditCancel,
 }: {
   readonly x: number;
   readonly y: number;
   readonly text: string;
   readonly variant: "label" | "multiplicity";
   readonly isEditing: boolean;
-  readonly isEditStartEnabled: boolean;
+  readonly isClickEditEnabled: boolean;
   readonly onSelect: () => void;
   readonly onEditStart: () => void;
   readonly onCommit: (value: string) => void;
-  readonly onDraftDiscard: () => void;
+  readonly onEditCancel: () => void;
 }): ReactElement {
   return (
     <g transform={`translate(${x} ${y})`}>
@@ -191,12 +191,12 @@ function EdgeText({
         text={text}
         treatment={variant}
         isEditing={isEditing}
-        isEditRequestEnabled={isEditStartEnabled}
+        isClickEditEnabled={isClickEditEnabled}
         validationStacking={INLINE_VALIDATION_POPUP_Z_INDEX}
         onSelect={onSelect}
         onEditRequest={onEditStart}
         onCommit={onCommit}
-        onDiscard={onDraftDiscard}
+        onCancel={onEditCancel}
       />
     </g>
   );

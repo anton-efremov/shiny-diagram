@@ -84,7 +84,7 @@ export default function NoteBox({
   });
 
   return (
-    <StickyNoteSurfaceFrame title={view.text} dragging={isDragging} onPress={onNoteBoxClick}>
+    <StickyNoteSurfaceFrame title={view.text} dragging={isDragging} onClick={onNoteBoxClick}>
       <BoxInteractionOverlay
         selected={isSelected}
         pending={false}

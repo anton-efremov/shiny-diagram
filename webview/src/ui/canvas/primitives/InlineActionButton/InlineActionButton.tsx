@@ -3,17 +3,23 @@
  *
  * Renders `glyph`, uses `label` as its accessible name, and uses `title` as the
  * tooltip when supplied. Pressing it does not steal focus from the field it sits
- * in; clicking it reports `onPress`. `surface` overrides the selected fallback
+ * in; clicking it reports `onClick`. `surface` overrides the selected fallback
  * surface.
  *
- * Options:
- * - `treatment` — `cancel` is a compact circular error action; `add` fills its
- *   host with a quiet rounded action
+ * Lifecycle:
  * - `disabled` — on prevents the control from being pressed
- * - `visible` — off makes the control transparent while retaining focus and
- *   interaction
- * - `surfaceTone` — `default` uses the canvas surface, `base` the base fill, and
- *   `neutral` a neutral wash when `surface` is absent
+ *   Used by: member addition while row editing is unavailable
+ * - `visible` — off hides the control from pointer users while keeping it
+ *   keyboard-reachable; keyboard focus reveals it. Used by: member addition
+ *
+ * Modifiers:
+ * - `treatment` — `cancel` is a compact circular error action; `add` fills its
+ *   host with a quiet rounded action. Used by: field cancellation and member
+ *   addition
+ * - `surfaceTone` — the action ground when `surface` is absent:
+ *   - `default` uses the canvas surface — e.g. relationship text cancellation
+ *   - `base` uses the base fill — e.g. class-member actions
+ *   - `neutral` uses a neutral wash — e.g. namespace-title actions
  */
 
 import type { CSSProperties, ReactElement } from "react";
@@ -30,12 +36,12 @@ type InlineActionButtonProps = {
   readonly glyph: GlyphDescriptor;
   readonly label: string;
   readonly title?: string;
-  readonly treatment: "cancel" | "add";
+  readonly surface?: string;
   readonly disabled?: boolean;
   readonly visible?: boolean;
-  readonly surface?: string;
+  readonly treatment: "cancel" | "add";
   readonly surfaceTone?: "default" | "base" | "neutral";
-  readonly onPress: () => void;
+  readonly onClick: () => void;
 };
 
 export default function InlineActionButton({
@@ -47,7 +53,7 @@ export default function InlineActionButton({
   visible = true,
   surface,
   surfaceTone = "default",
-  onPress,
+  onClick,
 }: InlineActionButtonProps): ReactElement {
   const style = { "--inline-action-surface": surface } as CSSProperties;
   return (
@@ -59,7 +65,7 @@ export default function InlineActionButton({
       aria-label={label}
       title={title}
       onMouseDown={(event) => event.preventDefault()}
-      onClick={onPress}
+      onClick={onClick}
     >
       <svg
         viewBox={GLYPH_VIEW_BOX}

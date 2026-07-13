@@ -3,8 +3,9 @@
  *
  * Centers a noninteractive circular handle at `point`.
  *
- * Options:
+ * Lifecycle:
  * - `visible` — on renders the handle; off renders nothing
+ *   Used by: endpoints of the selected relationship
  */
 
 import type { ReactElement } from "react";

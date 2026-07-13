@@ -10,6 +10,7 @@ import {
   PURE_STYLE_DEFAULTS,
   WIDTH_PRESETS,
 } from "../../../../../config/stylePresets";
+import { CHROME_SELECTOR_POPUP_ABOVE_CONTROL_Z_INDEX } from "../../../../../config/editorUiConfig";
 import ColorSelect from "../../../../../../ui/chrome/composites/ColorSelect/ColorSelect";
 import type { ColorSelectPresetCatalog } from "../../../../../../ui/chrome/composites/ColorSelect/ColorSelect";
 import StrokeSelect from "../../../../../../ui/chrome/composites/StrokeSelect/StrokeSelect";
@@ -39,11 +40,12 @@ export default function StylePropertyControl({
   if (isColorProperty(property)) {
     return (
       <ColorSelect
-        glyph={property === "color" ? "text" : property}
+        preview={property === "color" ? "text" : property}
         presets={presets}
         documentColors={documentColors}
         baseValue={baseValue ?? PURE_STYLE_DEFAULTS[property]}
         value={value}
+        stacking={CHROME_SELECTOR_POPUP_ABOVE_CONTROL_Z_INDEX}
         onChange={onChange}
       />
     );
@@ -56,6 +58,7 @@ export default function StylePropertyControl({
       defaultValue={defaultValue}
       presets={property === "strokeWidth" ? WIDTH_PRESETS : DASH_PRESETS}
       documentValues={documentValues}
+      stacking={CHROME_SELECTOR_POPUP_ABOVE_CONTROL_Z_INDEX}
       onChange={onChange}
     />
   );

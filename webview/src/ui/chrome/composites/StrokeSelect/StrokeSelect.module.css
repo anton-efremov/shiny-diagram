@@ -50,7 +50,6 @@
 }
 .popup {
   position: fixed;
-  z-index: 100;
   top: var(--stroke-select-popup-top);
   left: var(--stroke-select-popup-left);
   display: grid;

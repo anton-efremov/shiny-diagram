@@ -4,9 +4,11 @@
  * Renders `label` and the supplied box `styleValues`, exposes `pressed`, and
  * reports `onClick` when clicked.
  *
- * Options:
+ * Lifecycle:
  * - `pressed` — on shows the swatch selected
+ *   Used by: saved-style selection
  * - `disabled` — on prevents the control from being pressed and dims it
+ *   Used by: no current product situation
  */
 
 import type { ReactElement } from "react";

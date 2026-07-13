@@ -8,12 +8,13 @@
  * `onCancel`. A failed confirmation keeps its messages visible until dismissed
  * or the draft changes. While a nonempty draft has focus, the clear action
  * empties it and reports `onClear`. `ariaLabel` always names the field and its
- * clear action.
+ * clear action. Validation paints at the supplied `validationStacking` plane.
  *
- * Options:
+ * Lifecycle:
  * - `disabled` — on prevents editing and removes the clear action
+ *   Used by: no current product situation
  * - `isLabelVisible` — on shows `ariaLabel` in a fixed label column; off keeps
- *   only the accessible name
+ *   only the accessible name. Used by: relationship labels and class titles
  */
 
 import type { ReactElement } from "react";
@@ -25,9 +26,10 @@ import { useCommitLifecycle } from "../../../core/commitLifecycle";
 
 type CommitClearableTextFieldProps = {
   readonly initialValue: string;
+  readonly ariaLabel?: string;
+  readonly validationStacking: number;
   readonly validate: (draft: string) => readonly string[];
   readonly disabled?: boolean;
-  readonly ariaLabel?: string;
   readonly isLabelVisible?: boolean;
   readonly onCommit: (value: string) => void;
   readonly onClear: () => void;
@@ -41,6 +43,7 @@ export default function CommitClearableTextField({
   disabled = false,
   ariaLabel,
   isLabelVisible = true,
+  validationStacking,
   onCommit,
   onClear,
   onDiscard,
@@ -82,7 +85,11 @@ export default function CommitClearableTextField({
         )}
       </div>
       {lifecycle.messages.length > 0 ? (
-        <ValidationPopup messages={lifecycle.messages} onDismiss={lifecycle.onPopupDismiss} />
+        <ValidationPopup
+          messages={lifecycle.messages}
+          stacking={validationStacking}
+          onDismiss={lifecycle.onPopupDismiss}
+        />
       ) : null}
     </div>
   );

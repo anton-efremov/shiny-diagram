@@ -51,8 +51,7 @@ export default function ChangeStylePalette({
 
   return (
     <FieldGrid
-      inset
-      controlWidth="half"
+      variant="compact"
       rows={STYLE_PROPERTIES.map(({ name }) => ({
         label: toFieldLabel(name),
         control: (

@@ -1,7 +1,8 @@
 /**
  * Inline text button for a compact momentary action.
  *
- * Renders `label` as its content; clicking it reports `onPress`.
+ * Renders `label` as its content; clicking it reports `onClick`. Used by: saving
+ * a note-body edit.
  */
 
 import type { ReactElement } from "react";
@@ -9,12 +10,12 @@ import styles from "./InlineTextButton.module.css";
 
 type InlineTextButtonProps = {
   readonly label: string;
-  readonly onPress: () => void;
+  readonly onClick: () => void;
 };
 
-export default function InlineTextButton({ label, onPress }: InlineTextButtonProps): ReactElement {
+export default function InlineTextButton({ label, onClick }: InlineTextButtonProps): ReactElement {
   return (
-    <button type="button" className={styles.button} onClick={onPress}>
+    <button type="button" className={styles.button} onClick={onClick}>
       {label}
     </button>
   );

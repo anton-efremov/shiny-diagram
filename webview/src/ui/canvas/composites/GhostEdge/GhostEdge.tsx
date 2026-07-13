@@ -1,13 +1,12 @@
 /**
  * Ghost edge assembling optional marker definitions around a preview line.
  *
- * Draws from `startPoint` to `endPoint`, defining and linking `startMarker` and
- * `endMarker` when supplied.
+ * Draws from `startPoint` to `endPoint` with the preview's `lineKind`, defining
+ * and linking `startMarker` and `endMarker` when supplied.
  *
- * Options:
- * - `lineKind` — `solid` draws continuously; `dashed` uses the edge dash pattern
+ * Modifiers:
  * - `tone` — `accent` previews relationship placement; `attachment` previews
- *   attachment treatment
+ *   attachment treatment. Used by: relationship creation and note attachment
  */
 
 import type { ReactElement } from "react";
@@ -20,9 +19,9 @@ type GhostEdgeProps = {
   readonly startPoint: Point;
   readonly endPoint: Point;
   readonly lineKind: "solid" | "dashed";
-  readonly tone: "accent" | "attachment";
   readonly startMarker?: { readonly id: string; readonly glyph: MarkerGlyphDescriptor };
   readonly endMarker?: { readonly id: string; readonly glyph: MarkerGlyphDescriptor };
+  readonly tone: "accent" | "attachment";
 };
 
 export default function GhostEdge({

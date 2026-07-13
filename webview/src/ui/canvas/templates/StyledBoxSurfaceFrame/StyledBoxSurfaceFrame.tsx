@@ -2,13 +2,14 @@
  * Styled box surface framing vertically arranged content with user values.
  *
  * Fills its host with `children`, uses `title` as the tooltip, applies `fill`,
- * `stroke`, `strokeWidth`, and `color` with base fallbacks, and reports `onPress`
- * when clicked.
+ * `stroke`, `strokeWidth`, `lineStyle`, and `color` with base fallbacks, and
+ * reports `onClick` when clicked. `placementCursor` selects the placement cursor.
  *
- * Options:
- * - `lineStyle` — `solid`, `dashed`, or `dotted` selects the border pattern
+ * Lifecycle:
  * - `dragging` — on shows active dragging while retaining the surface appearance
- * - `connectionEnabled` — on replaces the move cursor with the placement cursor
+ *   Used by: a class being moved
+ * - `placementCursor` — on shows that relationship placement is available
+ *   Used by: a class as a relationship source
  */
 
 import type { CSSProperties, MouseEvent, ReactElement, ReactNode } from "react";
@@ -21,10 +22,10 @@ type StyledBoxSurfaceFrameProps = {
   readonly strokeWidth?: string;
   readonly lineStyle: "solid" | "dashed" | "dotted";
   readonly color?: string;
-  readonly dragging: boolean;
-  readonly connectionEnabled: boolean;
   readonly children: ReactNode;
-  readonly onPress: (event: MouseEvent<HTMLDivElement>) => void;
+  readonly dragging: boolean;
+  readonly placementCursor: boolean;
+  readonly onClick: (event: MouseEvent<HTMLDivElement>) => void;
 };
 
 export default function StyledBoxSurfaceFrame({
@@ -35,9 +36,9 @@ export default function StyledBoxSurfaceFrame({
   lineStyle,
   color,
   dragging,
-  connectionEnabled,
+  placementCursor,
   children,
-  onPress,
+  onClick,
 }: StyledBoxSurfaceFrameProps): ReactElement {
   const style = {
     "--styled-box-fill": fill,
@@ -49,13 +50,13 @@ export default function StyledBoxSurfaceFrame({
   const className = [
     styles.frame,
     dragging ? styles.dragging : "",
-    connectionEnabled ? styles.connectionEnabled : "",
+    placementCursor ? styles.placementCursor : "",
   ]
     .filter(Boolean)
     .join(" ");
 
   return (
-    <div className={className} style={style} title={title} onClick={onPress}>
+    <div className={className} style={style} title={title} onClick={onClick}>
       {children}
     </div>
   );

@@ -55,6 +55,7 @@ export async function collectComponents({ repoRoot }) {
         const annotation = extractAnnotation(source);
         const documentation = extractDocumentation(annotation);
         const propsType = extractPropsType(source, componentName) ?? describeAbsentProps(source);
+        const boundaryTypes = extractBoundaryTypes(source, componentName);
         components.push({
           name: componentName,
           wing,
@@ -65,6 +66,7 @@ export async function collectComponents({ repoRoot }) {
           documentation,
           propsType,
           propsMemberNames: extractPropsMemberNames(propsType),
+          boundaryTypes,
         });
       }
     }
@@ -76,20 +78,48 @@ export async function collectComponents({ repoRoot }) {
 function extractAnnotation(source) {
   const exportIndex = source.search(/\bexport\s+default\b/);
   if (exportIndex < 0) return null;
+  const headerBlock = /^\s*(\/\*\*[\s\S]*?\*\/)/.exec(source.slice(0, exportIndex));
+  return headerBlock === null ? null : parseAnnotationBlock(headerBlock[1]);
+}
 
-  let nearestBlock = null;
-  for (const match of source.slice(0, exportIndex).matchAll(/\/\*\*[\s\S]*?\*\//g)) {
-    nearestBlock = match[0];
-  }
-  if (nearestBlock === null) return null;
-
-  const lines = cleanTSDocLines(nearestBlock);
+function parseAnnotationBlock(block) {
+  const lines = cleanTSDocLines(block);
   const summaryIndex = lines.findIndex((line) => line.trim().length > 0);
   if (summaryIndex < 0) return null;
   return {
-    block: nearestBlock,
+    block,
     contentLines: trimBlankLines(lines.slice(summaryIndex)),
   };
+}
+
+function extractBoundaryTypes(source, componentName) {
+  const boundaryTypes = [];
+  const declarationPattern = /(?:^|\n)export\s+(type|interface)\s+([A-Za-z_$][\w$]*)/gm;
+
+  for (const match of source.matchAll(declarationPattern)) {
+    const typeName = match[2];
+    if (typeName === `${componentName}Props`) continue;
+    const start = match.index + (match[0].startsWith("\n") ? 1 : 0);
+    const declaration =
+      match[1] === "type"
+        ? scanTypeDeclaration(source, start)
+        : scanInterfaceDeclaration(source, start);
+    if (declaration === null) continue;
+
+    const preceding = source.slice(0, start);
+    const blockMatches = [...preceding.matchAll(/\/\*\*[\s\S]*?\*\//g)];
+    const blockMatch = blockMatches.at(-1);
+    if (
+      blockMatch === undefined ||
+      preceding.slice((blockMatch.index ?? 0) + blockMatch[0].length).trim().length > 0
+    ) {
+      continue;
+    }
+    const annotation = parseAnnotationBlock(blockMatch[0]);
+    boundaryTypes.push({ name: typeName, annotation, declaration });
+  }
+
+  return boundaryTypes.sort((left, right) => compareText(left.name, right.name));
 }
 
 function extractDocumentation(annotation) {
@@ -259,6 +289,15 @@ function renderComponent(component) {
     }
   }
   lines.push("", "```ts", component.propsType ?? "// props type not found", "```");
+  for (const boundaryType of component.boundaryTypes) {
+    lines.push("", `#### ${boundaryType.name}`, "");
+    if (boundaryType.annotation === null) {
+      lines.push("_annotation block is empty_");
+    } else {
+      lines.push(boundaryType.annotation.contentLines.join("\n"));
+    }
+    lines.push("", "```ts", boundaryType.declaration, "```");
+  }
   return lines.join("\n");
 }
 

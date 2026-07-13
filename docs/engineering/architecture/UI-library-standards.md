@@ -53,6 +53,14 @@ An element never owns:
 - Editor knowledge: the state ledger, `editorCommands`, contexts, `editorUiConfig`, anything under `EditorRoot/**`
 - Framework knowledge: framework libraries and their vocabularies
 
+### Modifier design
+
+Modifiers come in three kinds. **Lifecycle** modifiers name states the element passes through or interaction modes it is in (`visible`, `disabled`, `pressed`, `isEditing`); they typically interact with the event contract. **Property** modifiers are independent visual axes — any value composes with any value of every other axis. **Role** modifiers move several properties under one value because the value names a designed situation; a role is legitimate on either ground: coherence (free axes would permit combinations nobody designed) or meaning (the value names something in the interaction vocabulary — `danger`, `attachment` — and the visual bundle is the element's private expression of it; a meaning role may govern a single property today and grow without contract change).
+
+**Factorization rule.** For an element's `Modifiers:` surface, let P be the product of its value counts and U the set of combinations its consumers exercise. Axes are earned only while **P ≤ 2·|U|**. Above that, the surface collapses to one role modifier with one value per designed situation — collapse now, re-split later if a new situation re-earns the axes; role-to-axes is a value-set rename with a grep-complete consumer sweep, so deferring the split is always cheap. The rule is checker-enforced from actual consumer usage. Lifecycle modifiers are outside the rule: a lifecycle surface is a coherent state machine and may be complete beyond current consumption.
+
+Corollaries: an element never exposes a role and the axes that role governs — one owner per concern. A role vocabulary shared across elements (`surfaceTone`) recurs identically: an element adopting it adopts the whole value set, and divergence is a contract change. Naming gravity: roles are named `variant`, `treatment`, or `tone`; property axes by their axis noun; lifecycle modifiers `is*`/`has*` or a bare state adjective.
+
 # Library structure
 
 - **`chrome/`** — elements of panes and header
@@ -127,12 +135,13 @@ Dropdown/
 
 - The component, its props type, and private helpers; the props type is the element's boundary type
 - Exports: the component and its boundary types, nothing else
+- Props types declare members in fixed order: data props (content, then geometry, then injected functions), lifecycle modifiers, remaining modifiers, `on<Event>` handlers last
 
 #### Naming
 
 - Elements are named after their UI/behavior: `ResizeAffordance`, not `ClassResizeAffordance`; an element that cannot be named without a domain word does not belong in the library
 - Standard UX pattern names are used bare when the element behaves exactly as the pattern implies: `Dropdown`
-- A modifier prefix names an augmentation beyond the pattern's definition and carries its obligations: `Commit` (draft lifecycle), `Reserved` (space kept regardless of content state), `Affordance` (signals and reports an interaction on another element, never owns it), `Inline` (in-place canvas treatment: transparent ground, canvas type scale, treatment calibrated to sit inside diagram surfaces)
+- A modifier prefix names an augmentation beyond the pattern's definition and carries its obligations: `Commit` (draft lifecycle), `Reserved` (space kept regardless of content state; the prefix names an element whose whole identity is space-keeping — an option may provide space-keeping behavior without carrying the prefix), `Affordance` (signals and reports an interaction on another element, never owns it), `Inline` (in-place canvas treatment: transparent ground, canvas type scale, treatment calibrated to sit inside diagram surfaces)
 - Variant and option names are situational UI vocabulary ("inline", "compact", "secondary"), never domain words
 
 #### Annotation
@@ -143,9 +152,11 @@ Structure is fixed:
 
 - **Summary line** — one line naming the element's UI/behavior, standalone-readable in a catalog, no member references. It opens with the bare UX pattern name where one applies and spends its words on what exceeds the pattern
 - Blank line, then the **contract paragraph** — prose narrating behavior, with every data prop woven in backticked at its point of participation; a parenthetical only where meaning exceeds the name
-- **`Options:`** — one bullet per modifier; a modifier's value set enumerates as nested bullets stating the observable result per value: what is rendered or permitted — line count, overflow fate, growth behavior — never role labels or CSS property names. An example in product vocabulary may follow a dash; examples calibrate and are deletable without loss of contract
+- **`Lifecycle:`** — one bullet per lifecycle modifier: a prop naming a state the element passes through or an interaction mode it is in (`visible`, `disabled`, `pressed`, `collapsed`, `isEditing`, `dragging`). Lifecycle modifiers typically interact with the event contract — which handlers are live, what a click means
+- **`Modifiers:`** — one bullet per remaining modifier. A modifier with one or two values states them inline in its own bullet; three or more values enumerate as nested bullets, one per value. Value descriptions state the observable result: what is rendered or permitted — line count, overflow fate, growth behavior — never role labels or CSS property names
+- **Application anchors** — the reader binds provisions to the product through anchors in product vocabulary. A value description may carry one after a dash (`— e.g. a class title`). Every modifier is anchored: by per-value anchors, or by a closing `Used by:` note on its bullet naming the situations that exercise it. A component with no modifiers ends its contract paragraph with one `Used by:` sentence instead. A `Lifecycle:` entry may honestly carry `Used by: no current product situation` — a lifecycle surface is a coherent state machine and may be complete beyond current consumption. A `Modifiers:` entry may not: a modifier with no product situation, traced transitively through library consumers to the product, is a dead option — record the finding and remove it through the normal contract-change process.
 
-Member classification is mechanical: a **modifier** is a prop typed as an element-defined closed set — a union of literals, or an `is*`/`has*` boolean; everything else — runtime content, geometry, injected functions, `on<Event>` handlers — is a **data prop**.
+Member classification is mechanical: a **modifier** is a prop typed as an element-defined closed set — a union of literals, or an `is*`/`has*` boolean; everything else — runtime content, geometry, injected functions, `on<Event>` handlers — is a **data prop**. Two refinements override type shape: a prop whose values are user or document content — initial values of editable state, user style values — is a data prop regardless of how closed its type is; and classification applies to the component's own props only — fields nested inside data-entry shapes are documented where their data prop weaves, never as Modifiers.
 
 Content law:
 
@@ -154,6 +165,8 @@ Content law:
 - The deletion test governs every sentence: if a consumer would not mis-build without it, it goes
 - A defect discovered while writing goes to the findings list, never into the prose as a caveat
 - A prop the prose cannot weave gracefully, or option values whose difference resists plain statement, is written best-effort and flagged as a findings-list entry — the friction is evidence about the contract, not a documentation failure
+
+An exported boundary type that carries capabilities (option entries, row shapes) receives its own TSDoc block under the same content law, scoped to what the shape's fields mean to a consumer; the catalog renders it under the owning component. Boundary types that are plain aliases or self-evident shapes need no block.
 
 #### Ownership
 

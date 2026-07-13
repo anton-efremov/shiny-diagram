@@ -5,6 +5,7 @@
  * `centerOffset`, placing edge targets at `stacking` and handles one plane above.
  * A press neither selects nor reaches the surface beneath; it reports the
  * grabbed handle and viewport point through `onGrab`.
+ * Used by: selected classes, notes, and namespaces.
  */
 
 import type { CSSProperties, PointerEvent, ReactElement } from "react";
@@ -14,7 +15,7 @@ import styles from "./ResizeAffordance.module.css";
 export type ResizeHandle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
 
 type ResizeAffordanceProps = {
-  readonly centerOffset?: string;
+  readonly centerOffset?: number;
   readonly stacking: number;
   readonly onGrab: (handle: ResizeHandle, point: Point) => void;
 };
@@ -23,7 +24,7 @@ const HANDLES: readonly ResizeHandle[] = ["nw", "n", "ne", "e", "se", "s", "sw",
 const EDGE_HANDLES: readonly Extract<ResizeHandle, "n" | "e" | "s" | "w">[] = ["n", "e", "s", "w"];
 
 export default function ResizeAffordance({
-  centerOffset = "3px",
+  centerOffset = 3,
   stacking,
   onGrab,
 }: ResizeAffordanceProps): ReactElement {
@@ -37,7 +38,7 @@ export default function ResizeAffordance({
     };
 
   const affordanceStyle = {
-    "--resize-affordance-center-offset": centerOffset,
+    "--resize-affordance-center-offset": `${centerOffset}px`,
     "--resize-affordance-stacking": stacking,
   } as CSSProperties;
 

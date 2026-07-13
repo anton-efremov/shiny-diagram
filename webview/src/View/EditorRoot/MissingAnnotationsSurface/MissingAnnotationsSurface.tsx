@@ -43,7 +43,7 @@ export default function MissingAnnotationsSurface({
       }
       label="Classes without spatial annotations:"
       items={view.missingClassIds}
-      variant="code-list"
+      variant="codeList"
     />
   );
 }

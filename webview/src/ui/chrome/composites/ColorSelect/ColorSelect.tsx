@@ -1,29 +1,45 @@
 /**
  * Color selector with a swatch-grid popup and immediate selection.
  *
- * Shows `value` through the selected `glyph`; null uses the `baseValue` preview
+ * Shows `value` through the selected `preview`; null uses the `baseValue` preview
  * and "multiple" shows a mixed state. The popup combines `documentColors` with
  * the hue, shade, and neutral `presets`; choosing a color or Base reports
  * `onChange` and returns focus to the control. Closing it without choosing —
  * clicking outside or from the keyboard — reports nothing. The six-column grid
- * is keyboard-navigable.
+ * is keyboard-navigable, and the popup paints at the supplied `stacking` plane.
  *
- * Options:
- * - `glyph` — `fill` renders a filled square, `stroke` a line, and `text` a
- *   letter sample
+ * Lifecycle:
  * - `disabled` — on means the list cannot be opened and shows the control as
- *   unavailable
+ *   unavailable. Used by: no current product situation
+ *
+ * Modifiers:
+ * - `preview` — the selected color's sample:
+ *   - `fill` renders a filled square — e.g. a surface color
+ *   - `stroke` renders a line — e.g. an outline color
+ *   - `text` renders a letter sample — e.g. a text color
  */
 
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent, ReactElement } from "react";
 import styles from "./ColorSelect.module.css";
 
+/**
+ * Named color entry offered by ColorSelect.
+ *
+ * `name` labels the entry and `value` supplies the color reported when it is
+ * chosen.
+ */
 export type ColorSelectPreset = {
   readonly name: string;
   readonly value: string;
 };
 
+/**
+ * Grouped preset catalog arranged for ColorSelect's palette.
+ *
+ * `hues` supplies named three-shade groups, while `neutrals` supplies the
+ * ungrouped neutral entries.
+ */
 export type ColorSelectPresetCatalog = {
   readonly hues: readonly {
     readonly name: string;
@@ -33,12 +49,13 @@ export type ColorSelectPresetCatalog = {
 };
 
 type ColorSelectProps = {
-  readonly glyph: "fill" | "stroke" | "text";
   readonly value: string | null | "multiple";
   readonly presets: ColorSelectPresetCatalog;
   readonly documentColors: readonly string[];
   readonly baseValue?: string;
+  readonly stacking: number;
   readonly disabled?: boolean;
+  readonly preview: "fill" | "stroke" | "text";
   readonly onChange: (value: string | null) => void;
 };
 
@@ -47,11 +64,12 @@ const POPUP_MIN_WIDTH = 164;
 const VIEWPORT_GUTTER = 8;
 
 export default function ColorSelect({
-  glyph,
+  preview,
   value,
   presets,
   documentColors,
   baseValue,
+  stacking,
   disabled = false,
   onChange,
 }: ColorSelectProps): ReactElement {
@@ -166,6 +184,7 @@ export default function ColorSelect({
     "--color-select-popup-top": `${popupPosition.top}px`,
     "--color-select-popup-left": `${popupPosition.left}px`,
     "--color-select-popup-width": `${popupPosition.width}px`,
+    zIndex: stacking,
   } as CSSProperties;
 
   return (
@@ -179,7 +198,7 @@ export default function ColorSelect({
         aria-expanded={isOpen}
         onClick={openPopup}
       >
-        <ColorGlyph glyph={glyph} value={value} emphasized={value !== null && !isMultiple} />
+        <ColorPreview preview={preview} value={value} emphasized={value !== null && !isMultiple} />
         <span className={styles.arrow} aria-hidden="true" />
       </button>
       {isOpen ? (
@@ -206,7 +225,7 @@ export default function ColorSelect({
             onClick={() => selectValue(null)}
           >
             <span
-              className={`${styles.defaultSwatch} ${styles[glyph]}`}
+              className={`${styles.defaultSwatch} ${styles[preview]}`}
               style={{ "--color-select-value": baseValue } as CSSProperties}
               aria-hidden="true"
             />
@@ -236,12 +255,12 @@ export default function ColorSelect({
   );
 }
 
-function ColorGlyph({
-  glyph,
+function ColorPreview({
+  preview,
   value,
   emphasized,
 }: {
-  readonly glyph: ColorSelectProps["glyph"];
+  readonly preview: ColorSelectProps["preview"];
   readonly value: ColorSelectProps["value"];
   readonly emphasized: boolean;
 }): ReactElement {
@@ -250,7 +269,7 @@ function ColorGlyph({
   } as CSSProperties;
   const className = [
     styles.glyph,
-    styles[glyph],
+    styles[preview],
     value === "multiple" ? styles.multiple : "",
     emphasized ? styles.emphasized : "",
   ]
@@ -258,7 +277,7 @@ function ColorGlyph({
     .join(" ");
   return (
     <span className={className} style={dynamicStyle} aria-hidden="true">
-      {glyph === "text" ? "A" : null}
+      {preview === "text" ? "A" : null}
     </span>
   );
 }

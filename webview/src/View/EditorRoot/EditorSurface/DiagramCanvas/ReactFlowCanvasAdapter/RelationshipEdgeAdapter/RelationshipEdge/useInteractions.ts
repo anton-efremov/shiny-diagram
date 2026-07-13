@@ -17,7 +17,7 @@ type Interactions = {
   readonly onEdgeSelect: () => void;
   readonly onEditStart: (target: EditTarget) => void;
   readonly onEditCommit: (value: string) => void;
-  readonly onDraftDiscard: () => void;
+  readonly onEditCancel: () => void;
 };
 
 type UseInteractionsInput = {
@@ -69,9 +69,9 @@ export function useInteractions({
     [dispatchTransaction, editTarget, setEditTarget, view.relationshipId]
   );
 
-  const onDraftDiscard = useCallback(() => {
+  const onEditCancel = useCallback(() => {
     setEditTarget(null);
   }, [setEditTarget]);
 
-  return { onEdgeSelect, onEditStart, onEditCommit, onDraftDiscard };
+  return { onEdgeSelect, onEditStart, onEditCommit, onEditCancel };
 }

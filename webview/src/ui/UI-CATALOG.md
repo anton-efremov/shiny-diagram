@@ -6,11 +6,11 @@
 | ----------- | ---------- | --------: | -----: |
 | Chrome      | Primitives |         9 |      9 |
 | Chrome      | Composites |         7 |      7 |
-| Chrome      | Templates  |         6 |      6 |
+| Chrome      | Templates  |         7 |      7 |
 | Canvas      | Primitives |        19 |     19 |
 | Canvas      | Composites |         9 |      9 |
-| Canvas      | Templates  |         8 |      8 |
-| **Overall** |            |    **58** | **58** |
+| Canvas      | Templates  |        10 |     10 |
+| **Overall** |            |    **61** | **61** |
 
 # Contents
 
@@ -40,6 +40,7 @@
     - [PaneSection](#panesection)
     - [StatusSurfaceFrame](#statussurfaceframe)
     - [ViewportFrame](#viewportframe)
+    - [WorkspaceFrame](#workspaceframe)
 - [Canvas](#canvas)
   - [Primitives](#canvas-primitives)
     - [BoxOutline](#boxoutline)
@@ -74,9 +75,11 @@
   - [Templates](#canvas-templates)
     - [BoxBodyFrame](#boxbodyframe)
     - [BoxHeaderFrame](#boxheaderframe)
+    - [CanvasGridFrame](#canvasgridframe)
     - [CanvasOverlayFrame](#canvasoverlayframe)
+    - [CanvasViewportFrame](#canvasviewportframe)
     - [CompartmentStack](#compartmentstack)
-    - [GridFrame](#gridframe)
+    - [HullHeaderFrame](#hullheaderframe)
     - [HullSurfaceFrame](#hullsurfaceframe)
     - [StickyNoteSurfaceFrame](#stickynotesurfaceframe)
     - [StyledBoxSurfaceFrame](#styledboxsurfaceframe)
@@ -91,31 +94,30 @@ Button for a labeled command with an optional glyph.
 
 Renders `label` beside `icon` when supplied; clicking it reports `onClick`.
 
-Options:
+Lifecycle:
 
-- `disabled` — on shows the command as unavailable and it cannot be pressed
-- `tone` — the command's emphasis:
-  - `neutral` uses a quiet surface that gains emphasis on hover
-  - `danger` uses error emphasis that fills on hover
-  - `accent` uses the primary action surface
-- `size` — `default` uses the standard command height; `compact` reduces
-  height, padding, and type size
-- `shape` — `rounded` uses the control corner; `pill` fully rounds the ends
-- `alignment` — `stretch` participates at the available width; `end` sizes
-  to its content at the trailing edge
+- `disabled` — on shows the command as unavailable and it cannot be pressed.
+  Used by: unavailable class and diagram style actions
 - `visible` — off preserves the command's layout space while removing it
-  from sight, focus order, and accessibility
+  from sight, focus order, and accessibility. Used by: the note attachment row
+
+Modifiers:
+
+- `variant` — the command's designed situation:
+  - `standard` uses the ordinary full-width command surface — e.g. duplicate
+    and style commands
+  - `danger` uses error emphasis that fills on hover — e.g. delete commands
+  - `compact` sizes to its content at the trailing edge with reduced height,
+    padding, and type size — e.g. note attachment and relationship reversal
+    commands
 
 ```ts
 type ButtonProps = {
   readonly label: string;
   readonly icon?: GlyphDescriptor;
   readonly disabled?: boolean;
-  readonly tone?: "neutral" | "danger" | "accent";
-  readonly size?: "default" | "compact";
-  readonly shape?: "rounded" | "pill";
-  readonly alignment?: "stretch" | "end";
   readonly visible?: boolean;
+  readonly variant?: "standard" | "danger" | "compact";
   readonly onClick?: () => void;
 };
 ```
@@ -128,10 +130,10 @@ Uses `label` as its accessible name and tooltip. Pressing it does not steal
 focus from the field it sits in and reports the press through `onMouseDown`;
 clicking it reports `onClick`.
 
-Options:
+Modifiers:
 
 - `small` — off renders a standard circular control; on renders the reduced
-  in-field control
+  in-field control. Used by: field clear and cancel actions
 
 ```ts
 type DismissButtonProps = {
@@ -146,16 +148,17 @@ type DismissButtonProps = {
 
 Collapse tab mounted against a pane edge.
 
-Clicking the tab reports `onToggle` and supplies the matching expand or
-collapse accessible instruction.
+Clicking the tab reports `onToggle`, supplies the matching expand or collapse
+accessible instruction, and paints at the supplied `stacking` plane.
 
-Options:
+Lifecycle:
 
 - `collapsed` — off points outward and offers collapse; on points inward and
-  offers expansion
+  offers expansion. Used by: the editor's property pane
 
 ```ts
 type PaneCollapseTabProps = {
+  readonly stacking: number;
   readonly collapsed: boolean;
   readonly onToggle: () => void;
 };
@@ -167,10 +170,11 @@ Back-navigation button that keeps its place when unavailable.
 
 Renders `label` as the button content; clicking it reports `onClick`.
 
-Options:
+Lifecycle:
 
 - `visible` — off hides the control while its layout space is kept; it leaves
-  the focus order and accessibility tree
+  the focus order and accessibility tree. Used by: return from a diagram
+  style reached through a class
 
 ```ts
 type ReservedBackLinkProps = {
@@ -187,7 +191,8 @@ Swatch preview of box color and border styling.
 Applies the supplied fill, stroke, text color, stroke width, and solid-or-
 dashed interpretation from `styleValues`, falling back independently for
 omitted values. The single-line `label` is both visible content and the
-accessible name; overflow ends in an ellipsis.
+accessible name; overflow ends in an ellipsis. Used by: attached-class and
+saved-style previews.
 
 ```ts
 type StyledBoxSwatchProps = {
@@ -200,7 +205,8 @@ type StyledBoxSwatchProps = {
 
 Muted standalone text.
 
-Renders `text` inline without owning truncation or wrapping behavior.
+Renders `text` inline without owning truncation or wrapping behavior. Used by:
+the diagram-style inheritance explanation.
 
 ```ts
 type TextBlockProps = {
@@ -210,34 +216,31 @@ type TextBlockProps = {
 
 ### [TextField](./chrome/primitives/TextField/TextField.tsx)
 
-Text field for controlled single-line entry with pane and in-place treatments.
+Text field for controlled single-line entry.
 
 Displays `value`, reports edits through `onChange`, and forwards focus loss
 and keyboard input through `onBlur` and `onKeyDown`. `ariaLabel` supplies the
 accessible name.
 
-Options:
+Lifecycle:
 
 - `disabled` — on prevents editing and shows it as unavailable
+  Used by: no current product situation
 - `invalid` — on exposes invalid state and error treatment
-- `autoFocus` — on requests focus when the field mounts
+  Used by: committed text and free-form style fields
+
+Modifiers:
+
 - `hasEndAction` — on reserves trailing room for an overlaid action
-- `appearance` — `pane` fills the available width at standard control height;
-  `inline` inherits surrounding type and alignment on a transparent ground
-- `situation` — absent uses the selected appearance's neutral treatment;
-  `edgeLabel` uses light edge-text editing treatment; `edgeCaption` uses dark
-  edge-text editing treatment
+  Used by: clearable and cancellable text fields
 
 ```ts
 type TextFieldProps = {
   readonly value: string;
+  readonly ariaLabel?: string;
   readonly disabled?: boolean;
   readonly invalid?: boolean;
-  readonly ariaLabel?: string;
-  readonly autoFocus?: boolean;
   readonly hasEndAction?: boolean;
-  readonly appearance?: "pane" | "inline";
-  readonly situation?: "edgeLabel" | "edgeCaption";
   readonly onChange: (value: string) => void;
   readonly onBlur?: () => void;
   readonly onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
@@ -252,17 +255,19 @@ Renders `icon` when supplied, uses `title` as the tooltip and as the
 accessible name when `label` is absent, exposes `pressed`, and reports
 `onClick` when clicked.
 
-Options:
+Lifecycle:
 
 - `pressed` — on shows the toggle selected
+  Used by: node and relationship placement tools
 - `disabled` — on prevents the control from being pressed and shows it as
-  unavailable
+  unavailable. Used by: no current product situation
+
+Modifiers:
+
 - `size` — the control's fixed presentation:
-  - `micro` is a compact in-field square
-  - `compact` is icon-only when `label` is absent, otherwise a full-width
-    labeled row
-  - `nodeTile` is a tall full-width glyph-and-label tile
-  - `relationshipTile` is a compact centered glyph tile
+  - `labeledTile` is a tall full-width glyph-and-label tile — e.g. node
+    placement
+  - `glyphTile` is a compact centered glyph tile — e.g. relationship placement
 
 ```ts
 type ToggleButtonProps = {
@@ -271,7 +276,7 @@ type ToggleButtonProps = {
   readonly title: string;
   readonly pressed: boolean;
   readonly disabled?: boolean;
-  readonly size?: "micro" | "compact" | "nodeTile" | "relationshipTile";
+  readonly size: "labeledTile" | "glyphTile";
   readonly onClick?: () => void;
 };
 ```
@@ -283,11 +288,14 @@ Validation popup anchored to the element it is rendered beside.
 Joins `messages` into one single-line alert, truncating overflow, and places
 it above the anchor or below when viewport space requires. Dismissing it —
 from the keyboard, by clicking anywhere outside, or by its own dismiss control
-— reports `onDismiss`.
+— reports `onDismiss`. The popup paints at the supplied `stacking` plane.
+Used by: invalid class names, namespace names, style names, relationship
+labels, and multiplicities.
 
 ```ts
 type ValidationPopupProps = {
   readonly messages: readonly string[];
+  readonly stacking: number;
   readonly onDismiss: () => void;
 };
 ```
@@ -298,29 +306,66 @@ type ValidationPopupProps = {
 
 Color selector with a swatch-grid popup and immediate selection.
 
-Shows `value` through the selected `glyph`; null uses the `baseValue` preview
+Shows `value` through the selected `preview`; null uses the `baseValue` preview
 and "multiple" shows a mixed state. The popup combines `documentColors` with
 the hue, shade, and neutral `presets`; choosing a color or Base reports
 `onChange` and returns focus to the control. Closing it without choosing —
 clicking outside or from the keyboard — reports nothing. The six-column grid
-is keyboard-navigable.
+is keyboard-navigable, and the popup paints at the supplied `stacking` plane.
 
-Options:
+Lifecycle:
 
-- `glyph` — `fill` renders a filled square, `stroke` a line, and `text` a
-  letter sample
 - `disabled` — on means the list cannot be opened and shows the control as
-  unavailable
+  unavailable. Used by: no current product situation
+
+Modifiers:
+
+- `preview` — the selected color's sample:
+  - `fill` renders a filled square — e.g. a surface color
+  - `stroke` renders a line — e.g. an outline color
+  - `text` renders a letter sample — e.g. a text color
 
 ```ts
 type ColorSelectProps = {
-  readonly glyph: "fill" | "stroke" | "text";
   readonly value: string | null | "multiple";
   readonly presets: ColorSelectPresetCatalog;
   readonly documentColors: readonly string[];
   readonly baseValue?: string;
+  readonly stacking: number;
   readonly disabled?: boolean;
+  readonly preview: "fill" | "stroke" | "text";
   readonly onChange: (value: string | null) => void;
+};
+```
+
+#### ColorSelectPreset
+
+Named color entry offered by ColorSelect.
+
+`name` labels the entry and `value` supplies the color reported when it is
+chosen.
+
+```ts
+export type ColorSelectPreset = {
+  readonly name: string;
+  readonly value: string;
+};
+```
+
+#### ColorSelectPresetCatalog
+
+Grouped preset catalog arranged for ColorSelect's palette.
+
+`hues` supplies named three-shade groups, while `neutrals` supplies the
+ungrouped neutral entries.
+
+```ts
+export type ColorSelectPresetCatalog = {
+  readonly hues: readonly {
+    readonly name: string;
+    readonly shades: readonly [ColorSelectPreset, ColorSelectPreset, ColorSelectPreset];
+  }[];
+  readonly neutrals: readonly ColorSelectPreset[];
 };
 ```
 
@@ -335,20 +380,22 @@ and reports `onDiscard` with its messages; backing out restores it and reports
 `onCancel`. A failed confirmation keeps its messages visible until dismissed
 or the draft changes. While a nonempty draft has focus, the clear action
 empties it and reports `onClear`. `ariaLabel` always names the field and its
-clear action.
+clear action. Validation paints at the supplied `validationStacking` plane.
 
-Options:
+Lifecycle:
 
 - `disabled` — on prevents editing and removes the clear action
+  Used by: no current product situation
 - `isLabelVisible` — on shows `ariaLabel` in a fixed label column; off keeps
-  only the accessible name
+  only the accessible name. Used by: relationship labels and class titles
 
 ```ts
 type CommitClearableTextFieldProps = {
   readonly initialValue: string;
+  readonly ariaLabel?: string;
+  readonly validationStacking: number;
   readonly validate: (draft: string) => readonly string[];
   readonly disabled?: boolean;
-  readonly ariaLabel?: string;
   readonly isLabelVisible?: boolean;
   readonly onCommit: (value: string) => void;
   readonly onClear: () => void;
@@ -367,22 +414,27 @@ never include one) commits it immediately (`onCommit`) — no draft, no
 validation. Custom text is held as a draft until exactly one outcome
 concludes the edit: committed (`onCommit`), discarded (`onDiscard` —
 receives the draft's messages), or cancelled (`onCancel`). A draft
-failing validation (`validate`) shows its messages and is never
-committed.
+failing validation (`validate`) shows its messages and is never committed.
+The menu paints at `menuStacking`, and validation paints at
+`validationStacking`.
 
-Options:
+Lifecycle:
 
+- `disabled` — the value is shown, an open menu closes, and no
+  interaction is accepted. Used by: no current product situation
 - `isLabelVisible` — off hides the visible caption; the accessible name
-  (`ariaLabel`) always remains
-- `disabled` — the value is shown, no interaction is accepted
+  (`ariaLabel`) always remains. Used by: relationship multiplicities and class
+  stereotypes
 
 ```ts
 type CommitComboBoxProps = {
   readonly initialValue: string;
   readonly options: readonly DropdownOption[];
+  readonly ariaLabel?: string;
+  readonly menuStacking: number;
+  readonly validationStacking: number;
   readonly validate: (draft: string) => readonly string[];
   readonly disabled?: boolean;
-  readonly ariaLabel?: string;
   readonly isLabelVisible?: boolean;
   readonly onCommit: (value: string) => void;
   readonly onDiscard: (messages: readonly string[]) => void;
@@ -401,30 +453,26 @@ leaving with an invalid draft restores the committed value and reports
 `onDiscard` with its messages; backing out or using the optional cancel action
 restores it and reports `onCancel`. A failed confirmation keeps its messages
 visible until dismissed or the draft changes. `ariaLabel` always supplies the
-accessible name.
+accessible name, and validation paints at the supplied `validationStacking`
+plane.
 
-Options:
+Lifecycle:
 
 - `disabled` — on prevents editing
+  Used by: no current product situation
 - `isLabelVisible` — on shows `ariaLabel` in a fixed label column; off keeps
-  only the accessible name
-- `autoFocus` — on requests focus when the field mounts
-- `appearance` — `pane` uses standard control framing; `inline` inherits its
-  surrounding text treatment
-- `situation` — absent uses neutral treatment; `edgeLabel` and `edgeCaption`
-  apply their respective edge-text editing surfaces
+  only the accessible name. Used by: namespace and class names
 - `isCancelVisible` — on reserves trailing space and shows a cancel action
+  Used by: no current product situation
 
 ```ts
 type CommitTextFieldProps = {
   readonly initialValue: string;
+  readonly ariaLabel?: string;
+  readonly validationStacking: number;
   readonly validate: (draft: string) => readonly string[];
   readonly disabled?: boolean;
-  readonly ariaLabel?: string;
   readonly isLabelVisible?: boolean;
-  readonly autoFocus?: boolean;
-  readonly appearance?: "pane" | "inline";
-  readonly situation?: "edgeLabel" | "edgeCaption";
   readonly isCancelVisible?: boolean;
   readonly onCommit: (value: string) => void;
   readonly onDraftChange?: (value: string) => void;
@@ -437,24 +485,54 @@ type CommitTextFieldProps = {
 
 Dropdown whose entries can carry visual previews beside or instead of text.
 
-Selects the matching entry from `options` for `value`, falling back visually
-to the first entry when unmatched. The user opens the list from the closed
-control and closes it the same way; closing it from the keyboard returns focus
-to the control. Choosing an entry closes the list and reports its value through
+Selects the matching entry from `options` for `value`; an unmatched value
+leaves the closed control empty. The user opens the list from the closed
+control and closes it the same way. Closing it without choosing — by clicking
+outside or from the keyboard — returns focus to the control and reports
+nothing. Choosing an entry closes the list and reports its value through
 `onChange`. Each entry may show a text label, a preview, or both, as its options
-entry supplies.
+entry supplies; the list paints at the supplied `stacking` plane.
 
-Options:
+Lifecycle:
 
 - `disabled` — on means the list cannot be opened and shows the control as
-  unavailable
+  unavailable. Used by: no current product situation
 
 ```ts
 type DropdownProps = {
   readonly options: readonly DropdownOption[];
   readonly value: string;
+  readonly stacking: number;
   readonly disabled?: boolean;
   readonly onChange: (value: string) => void;
+};
+```
+
+#### DropdownOption
+
+Entry offered by Dropdown with optional visual preview capabilities.
+
+`value` is reported when chosen and `label` supplies its text. `swatchStyle`
+carries preview values, `swatchKind` selects the preview shape, and
+`isLabelVisible` may reserve the entry for its preview alone.
+
+```ts
+export type DropdownOption = {
+  readonly value: string;
+  readonly label: string;
+  readonly swatchStyle?: Partial<StyleProperties>;
+  readonly swatchKind?:
+    | "box"
+    | "boxLabel"
+    | "line"
+    | "dash"
+    | "text"
+    | "none"
+    | "arrow"
+    | "triangle"
+    | "diamond"
+    | "circle";
+  readonly isLabelVisible?: boolean;
 };
 ```
 
@@ -468,23 +546,28 @@ equivalent representations as equal. Choosing a row reports `onChange`, where
 Base reports null, then returns focus to the control. Closing it without
 choosing — clicking outside or from the keyboard — reports nothing; the row
 list is keyboard-navigable. `popupWidth` sets the popup's minimum width before
-viewport clamping.
+viewport clamping, and the popup paints at the supplied `stacking` plane.
 
-Options:
+Lifecycle:
+
+- `disabled` — on means the list cannot be opened and shows the control as
+  unavailable. Used by: no current product situation
+
+Modifiers:
 
 - `kind` — `width` varies the sample's thickness; `dash` varies its pattern
-- `disabled` — on means the list cannot be opened and shows the control as
-  unavailable
+  Used by: outline width and dash controls
 
 ```ts
 type StrokeSelectProps = {
-  readonly kind: "width" | "dash";
   readonly value: string | null | "multiple";
   readonly defaultValue: string;
   readonly presets: readonly string[];
   readonly documentValues: readonly string[];
   readonly popupWidth?: number;
+  readonly stacking: number;
   readonly disabled?: boolean;
+  readonly kind: "width" | "dash";
   readonly onChange: (value: string | null) => void;
 };
 ```
@@ -496,10 +579,12 @@ Toggle button containing a styled box swatch.
 Renders `label` and the supplied box `styleValues`, exposes `pressed`, and
 reports `onClick` when clicked.
 
-Options:
+Lifecycle:
 
 - `pressed` — on shows the swatch selected
+  Used by: saved-style selection
 - `disabled` — on prevents the control from being pressed and dims it
+  Used by: no current product situation
 
 ```ts
 type SwatchToggleProps = {
@@ -519,16 +604,18 @@ Control group arranging related children in a uniform grid.
 
 Places `children` into equal, shrinkable tracks spanning the available width.
 
-Options:
+Modifiers:
 
 - `columns` — `1` stacks children; `2` arranges two equal columns
+  Used by: edit-pane action and toggle groups
 - `spacing` — `default` keeps compact gaps; `wide` doubles the gap
+  Used by: edit-pane action and toggle groups
 
 ```ts
 type ControlGroupProps = {
+  readonly children: ReactNode;
   readonly columns?: 1 | 2;
   readonly spacing?: "default" | "wide";
-  readonly children: ReactNode;
 };
 ```
 
@@ -539,20 +626,39 @@ Field grid aligning labeled controls across rows.
 Renders `rows` as label-and-control pairs; each row may align its control at
 the center or top, and label text preserves authored line breaks.
 
-Options:
+Modifiers:
 
-- `inset` — on adds horizontal inset around the complete grid
-- `controlWidth` — `full` fills the control track, `half` centers at half
-  width, and `wide` centers at four-fifths width
-- `labelWidth` — `compact` uses the narrow label track; `standard` uses the
-  wider track
+- `variant` — the designed grid arrangement:
+  - `standard` uses the wider label track and full control width — e.g. a
+    diagram style name
+  - `inset` adds horizontal inset to that arrangement — e.g. relationship
+    multiplicities and edge shape
+  - `compact` combines inset, a narrow label track, and a centered half-width
+    control — e.g. class and namespace style properties
+  - `compactControl` uses the wider label track with a centered half-width
+    control — e.g. diagram style properties
+  - `compactLabel` combines inset and the narrow label track with a full-width
+    control — e.g. class header text
 
 ```ts
 type FieldGridProps = {
   readonly rows: readonly FieldGridRow[];
-  readonly inset?: boolean;
-  readonly controlWidth?: "full" | "half" | "wide";
-  readonly labelWidth?: "compact" | "standard";
+  readonly variant?: "standard" | "inset" | "compact" | "compactControl" | "compactLabel";
+};
+```
+
+#### FieldGridRow
+
+Label-and-control entry arranged by FieldGrid.
+
+`label` names the row, `control` supplies its content, and `alignment` may
+place that content at the center or at the row's start edge.
+
+```ts
+export type FieldGridRow = {
+  readonly label: string;
+  readonly control: ReactNode;
+  readonly alignment?: "center" | "start";
 };
 ```
 
@@ -563,17 +669,18 @@ Pane frame with a persistent edge-control slot and collapsible content.
 Sets the expanded frame from pixel `width`, renders `edgeControl` against the
 shell, and arranges `children` vertically in a scrolling content region.
 
-Options:
+Lifecycle:
 
 - `collapsed` — off renders the frame at `width`; on reduces the shell to zero
-  width and omits its children while retaining the edge control
+  width and omits its children while retaining the edge control. Used by: the
+  editor's property pane
 
 ```ts
 type PaneFrameProps = {
-  readonly width: number;
-  readonly collapsed?: boolean;
   readonly edgeControl?: ReactNode;
   readonly children: ReactNode;
+  readonly width: number;
+  readonly collapsed?: boolean;
 };
 ```
 
@@ -584,19 +691,20 @@ Pane section arranging optional heading and content.
 Centers `label` as a heading when nonempty and places `children` into equal,
 shrinkable tracks.
 
-Options:
+Modifiers:
 
 - `columns` — `1` stacks content in one centered track; `2` uses two equal
-  centered tracks
+  centered tracks. Used by: edit-pane fields and paired actions
 - `spacingAfter` — `default` leaves the standard gap before the next section;
-  `compact` reduces that following gap
+  `compact` reduces that following gap. Used by: dense style and relationship
+  sections
 
 ```ts
 type PaneSectionProps = {
   readonly label?: string;
+  readonly children?: ReactNode;
   readonly columns?: 1 | 2;
   readonly spacingAfter?: "default" | "compact";
-  readonly children?: ReactNode;
 };
 ```
 
@@ -607,17 +715,18 @@ Status surface pairing a prominent status row with a detailed list.
 Renders `status` above a padded detail surface, optionally introduces
 `items` with `label`, and preserves item order in a list.
 
-Options:
+Modifiers:
 
-- `variant` — `error-list` stacks error-colored items with wider separation;
-  `code-list` uses compact code-type list treatment
+- `variant` — `errorList` stacks error-colored items with wider separation;
+  `codeList` uses compact code-type list treatment
+  Used by: editor errors and missing-annotation details
 
 ```ts
 type StatusSurfaceFrameProps = {
   readonly status: ReactNode;
   readonly label?: string;
   readonly items: readonly ReactNode[];
-  readonly variant: "error-list" | "code-list";
+  readonly variant: "errorList" | "codeList";
 };
 ```
 
@@ -626,11 +735,30 @@ type StatusSurfaceFrameProps = {
 Viewport frame allowing its content to shrink within available height.
 
 Expands `children` through the remaining flex space while permitting nested
-scrolling regions to contract below their content height.
+scrolling regions to contract below their content height. Used by: the editor
+workspace beneath its status region.
 
 ```ts
 type ViewportFrameProps = {
   readonly children: ReactNode;
+};
+```
+
+### [WorkspaceFrame](./chrome/templates/WorkspaceFrame/WorkspaceFrame.tsx)
+
+Workspace frame arranging panes around a central content region.
+
+Sets the leading track from pixel `leadingWidth`, names the workspace with
+`ariaLabel`, and arranges `leading`, `content`, and `trailing` from left to
+right over the editor grid. Used by: the tool pane, canvas, and property pane.
+
+```ts
+type WorkspaceFrameProps = {
+  readonly leading: ReactNode;
+  readonly content: ReactNode;
+  readonly trailing: ReactNode;
+  readonly ariaLabel: string;
+  readonly leadingWidth: number;
 };
 ```
 
@@ -646,15 +774,19 @@ Expands the hover and selection outline around its host by `centerOffset`;
 pending treatment stays on the host edge. The overlay never receives pointer
 input.
 
-Options:
+Modifiers:
 
-- `variant` — `hover` appears only while the parent is hovered, `selected`
-  remains visible, and `pending` draws a dashed placement outline
+- `variant` — when the outline appears:
+  - `hover` appears only while the parent is hovered — e.g. a class, note, or
+    namespace under the pointer
+  - `selected` remains visible — e.g. the selected diagram surface
+  - `pending` draws a dashed placement outline — e.g. a class awaiting
+    placement
 
 ```ts
 type BoxOutlineProps = {
+  readonly centerOffset?: number;
   readonly variant: "hover" | "selected" | "pending";
-  readonly centerOffset?: string;
 };
 ```
 
@@ -665,19 +797,20 @@ Draft rectangle showing a pending box extent.
 Places the noninteractive rectangle at `rect` and applies `stacking` when
 supplied.
 
-Options:
+Modifiers:
 
 - `tone` — `accent` uses pending placement treatment; `positive` uses success
-  treatment
+  treatment. Used by: class placement and namespace drawing
 - `positioning` — `absolute` positions within the containing surface; `fixed`
-  positions against the viewport
+  positions against the viewport. Used by: class placement and namespace
+  drawing
 
 ```ts
 type DraftRectProps = {
   readonly rect: Rect;
+  readonly stacking?: number;
   readonly tone?: "accent" | "positive";
   readonly positioning?: "absolute" | "fixed";
-  readonly stacking?: number;
 };
 ```
 
@@ -686,6 +819,7 @@ type DraftRectProps = {
 Drop indicator marking a text-list insertion point.
 
 Renders a fixed-height accent line without interactive or accessible content.
+Used by: member-row reordering.
 
 ```ts
 // This component accepts no props.
@@ -697,9 +831,10 @@ Endpoint handle marking a visible relationship reconnect point.
 
 Centers a noninteractive circular handle at `point`.
 
-Options:
+Lifecycle:
 
 - `visible` — on renders the handle; off renders nothing
+  Used by: endpoints of the selected relationship
 
 ```ts
 type EdgeEndpointHandleProps = {
@@ -716,18 +851,22 @@ Defines the marker under `id` for edge paths to link; draws the descriptor's
 (`glyph`) paths at marker scale, attached at the descriptor's anchor, and uses
 its filled and dashed states.
 
-Options:
+Lifecycle:
+
+- `selected` — on replaces marker identity with selection treatment
+  Used by: endpoints of the selected relationship
+
+Modifiers:
 
 - `side` — `source` reverses automatically at the path start; `target` follows
-  the path direction at its end
-- `selected` — on replaces marker identity with selection treatment
+  the path direction at its end. Used by: relationship source and target ends
 
 ```ts
 type EdgeEndpointMarkerProps = {
   readonly id: string;
   readonly glyph: MarkerGlyphDescriptor;
-  readonly side: "source" | "target";
   readonly selected: boolean;
+  readonly side: "source" | "target";
 };
 ```
 
@@ -735,23 +874,22 @@ type EdgeEndpointMarkerProps = {
 
 Ghost edge line between two points with optional endpoint markers.
 
-Draws from `startPoint` to `endPoint` and links marker definitions named by
-`startMarkerId` and `endMarkerId` when supplied.
+Draws from `startPoint` to `endPoint` with the preview's `lineKind` and links
+marker definitions named by `startMarkerId` and `endMarkerId` when supplied.
 
-Options:
+Modifiers:
 
-- `lineKind` — `solid` draws continuously; `dashed` uses the edge dash pattern
 - `tone` — `accent` previews relationship placement; `attachment` previews
-  attachment treatment
+  attachment treatment. Used by: relationship creation and note attachment
 
 ```ts
 type EdgeGhostLineProps = {
   readonly startPoint: Point;
   readonly endPoint: Point;
   readonly lineKind: "solid" | "dashed";
-  readonly tone: "accent" | "attachment";
   readonly startMarkerId?: string;
   readonly endMarkerId?: string;
+  readonly tone: "accent" | "attachment";
 };
 ```
 
@@ -760,7 +898,7 @@ type EdgeGhostLineProps = {
 Edge hit path widening pointer access without visible output.
 
 Follows `d` with a transparent stroke that receives pointer input across a
-wider corridor and presents an action cursor.
+wider corridor and presents an action cursor. Used by: relationship selection.
 
 ```ts
 type EdgeHitPathProps = {
@@ -772,27 +910,31 @@ type EdgeHitPathProps = {
 
 Edge path with user styling, endpoint linkage, and selection treatment.
 
-Draws `d`, using `stroke` and `strokeWidth` when supplied, and links marker
-definitions named by `startMarkerId` and `endMarkerId`. Selection and
-attachment treatment replace user stroke presentation.
+Draws `d` with the document's `lineKind`, using `stroke` and `strokeWidth`
+when supplied, and links marker definitions named by `startMarkerId` and
+`endMarkerId`. Selection and attachment treatment replace user stroke
+presentation.
 
-Options:
+Lifecycle:
 
-- `lineKind` — `solid` draws continuously; `dashed` uses the edge dash pattern
 - `selected` — on uses the emphasized selection stroke
+  Used by: the selected relationship
+
+Modifiers:
+
 - `tone` — `default` permits user stroke values; `attachment` uses fixed
-  attachment identity
+  attachment identity. Used by: relationships and note attachments
 
 ```ts
 type EdgePathProps = {
   readonly d: string;
   readonly lineKind: "solid" | "dashed";
-  readonly selected: boolean;
-  readonly tone?: "default" | "attachment";
   readonly startMarkerId?: string;
   readonly endMarkerId?: string;
   readonly stroke?: string;
   readonly strokeWidth?: number | string;
+  readonly selected: boolean;
+  readonly tone?: "default" | "attachment";
 };
 ```
 
@@ -804,10 +946,10 @@ Renders `text` on a single line and sizes itself to its text with fixed
 minimums, centered on the point where the consumer places it. Pointer input
 remains available on both text and surface.
 
-Options:
+Modifiers:
 
 - `variant` — `label` uses light label treatment; `multiplicity` uses dark
-  caption treatment
+  caption treatment. Used by: relationship labels and endpoint multiplicities
 
 ```ts
 type EdgeTextSurfaceProps = {
@@ -821,6 +963,7 @@ type EdgeTextSurfaceProps = {
 Empty-state message overlay that does not intercept interaction.
 
 Renders `message` in a padded overlay at the supplied `stacking` plane.
+Used by: a diagram with no classes, notes, namespaces, or relationships.
 
 ```ts
 type EmptyStateMessageProps = {
@@ -836,15 +979,16 @@ Halo extending beyond a box without intercepting input.
 Paints behind or among siblings at `stacking`, using `tint` when supplied and
 otherwise the selected tone's default.
 
-Options:
+Modifiers:
 
 - `tone` — `canvas` matches the canvas ground; `faint` uses a translucent wash
+  Used by: selected classes and namespaces
 
 ```ts
 type HaloRingProps = {
   readonly tint?: string;
-  readonly tone?: "canvas" | "faint";
   readonly stacking: number;
+  readonly tone?: "canvas" | "faint";
 };
 ```
 
@@ -854,30 +998,37 @@ Inline action button for cancel and add affordances.
 
 Renders `glyph`, uses `label` as its accessible name, and uses `title` as the
 tooltip when supplied. Pressing it does not steal focus from the field it sits
-in; clicking it reports `onPress`. `surface` overrides the selected fallback
+in; clicking it reports `onClick`. `surface` overrides the selected fallback
 surface.
 
-Options:
+Lifecycle:
+
+- `disabled` — on prevents the control from being pressed
+  Used by: member addition while row editing is unavailable
+- `visible` — off hides the control from pointer users while keeping it
+  keyboard-reachable; keyboard focus reveals it. Used by: member addition
+
+Modifiers:
 
 - `treatment` — `cancel` is a compact circular error action; `add` fills its
-  host with a quiet rounded action
-- `disabled` — on prevents the control from being pressed
-- `visible` — off makes the control transparent while retaining focus and
-  interaction
-- `surfaceTone` — `default` uses the canvas surface, `base` the base fill, and
-  `neutral` a neutral wash when `surface` is absent
+  host with a quiet rounded action. Used by: field cancellation and member
+  addition
+- `surfaceTone` — the action ground when `surface` is absent:
+  - `default` uses the canvas surface — e.g. relationship text cancellation
+  - `base` uses the base fill — e.g. class-member actions
+  - `neutral` uses a neutral wash — e.g. namespace-title actions
 
 ```ts
 type InlineActionButtonProps = {
   readonly glyph: GlyphDescriptor;
   readonly label: string;
   readonly title?: string;
-  readonly treatment: "cancel" | "add";
+  readonly surface?: string;
   readonly disabled?: boolean;
   readonly visible?: boolean;
-  readonly surface?: string;
+  readonly treatment: "cancel" | "add";
   readonly surfaceTone?: "default" | "base" | "neutral";
-  readonly onPress: () => void;
+  readonly onClick: () => void;
 };
 ```
 
@@ -889,21 +1040,27 @@ Displays `value` with the initial height hinted by `rows`, reports edits
 through `onChange`, and forwards focus loss and keyboard input through
 `onBlur` and `onKeyDown`.
 
-Options:
+Lifecycle:
+
+- `invalid` — on shows invalid treatment for the row form
+  Used by: class-member edits with validation messages
+
+Modifiers:
 
 - `autoFocus` — on requests focus when the area mounts
+  Used by: note, title, and member editing
 - `treatment` — `body` fills its container without resizing; `row` grows with
-  its content as the draft changes
-- `invalid` — on shows invalid treatment for the row form
+  its content as the draft changes. Used by: note bodies and member rows
 - `hasEndAction` — on reserves trailing room for an overlaid row action
+  Used by: member editing with cancel and emphasis controls
 
 ```ts
 type InlineTextAreaProps = {
   readonly value: string;
-  readonly autoFocus: boolean;
-  readonly treatment: "body" | "row";
   readonly rows?: number;
   readonly invalid?: boolean;
+  readonly autoFocus: boolean;
+  readonly treatment: "body" | "row";
   readonly hasEndAction?: boolean;
   readonly onChange: (value: string) => void;
   readonly onBlur: () => void;
@@ -920,16 +1077,15 @@ so swapping display for editing does not shift a pixel. Clicking asks to
 edit (`onEditRequest`) — the element only requests; opening an editor is
 the consumer's decision.
 
-Options:
+Modifiers:
 
 - `variant` — what is rendered:
   - `primary` one line of prominent centered text; overflow is cut with
     an ellipsis — e.g. a class title
   - `secondary` one line of small text; overflow is cut with an ellipsis
     — e.g. a stereotype or alias under a title
-  - `heading` one line of medium text in a strip of fixed height,
-    padded; overflow is cut with an ellipsis — e.g. a
-    namespace heading
+  - `heading` one line of medium left-aligned text; overflow is cut with an
+    ellipsis — e.g. a namespace heading
   - `body` multiline text filling its container; wraps anywhere,
     keeps authored line breaks; text past the bottom is cut
     off — e.g. the text of a note
@@ -948,12 +1104,13 @@ type InlineTextBlockProps = {
 
 Inline text button for a compact momentary action.
 
-Renders `label` as its content; clicking it reports `onPress`.
+Renders `label` as its content; clicking it reports `onClick`. Used by: saving
+a note-body edit.
 
 ```ts
 type InlineTextButtonProps = {
   readonly label: string;
-  readonly onPress: () => void;
+  readonly onClick: () => void;
 };
 ```
 
@@ -965,19 +1122,28 @@ Displays `value`, uses `ariaLabel` as its accessible name, reports edits
 through `onChange`, and forwards focus loss and keyboard input through
 `onBlur` and `onKeyDown`.
 
-Options:
+Lifecycle:
 
 - `invalid` — on shows invalid outline treatment
+  Used by: class, namespace, and relationship text with validation messages
+
+Modifiers:
+
 - `autoFocus` — on requests focus when the field mounts
+  Used by: newly opened canvas text editors
 - `hasEndAction` — on reserves trailing room for an overlaid action
-- `tone` — `default` inherits its host treatment, `label` uses light edge-text
-  editing treatment, and `multiplicity` uses dark caption editing treatment
+  Used by: cancellable canvas text editors
+- `tone` — the field's ground and text treatment:
+  - `default` inherits its host treatment — e.g. class and namespace text
+  - `label` uses light edge-text editing treatment — e.g. a relationship label
+  - `multiplicity` uses dark caption editing treatment — e.g. an endpoint
+    multiplicity
 
 ```ts
 type InlineTextFieldProps = {
   readonly value: string;
-  readonly invalid: boolean;
   readonly ariaLabel: string;
+  readonly invalid: boolean;
   readonly autoFocus: boolean;
   readonly hasEndAction: boolean;
   readonly tone: "default" | "label" | "multiplicity";
@@ -992,23 +1158,21 @@ type InlineTextFieldProps = {
 Inline glyph toggle calibrated for diagram text controls.
 
 Renders `glyph`, uses `label` as its accessible name and tooltip, reports
-`onPress` when clicked, and uses `surface` when supplied instead of the
-selected fallback surface.
+`onClick` when clicked, and uses `surface` when supplied instead of the
+base surface.
 
-Options:
+Lifecycle:
 
 - `pressed` — on shows the toggle selected
-- `surfaceTone` — `default` uses the field surface, `base` the base fill, and
-  `neutral` a neutral wash when `surface` is absent
+  Used by: member underline and italic controls
 
 ```ts
 type InlineToggleButtonProps = {
   readonly glyph: GlyphDescriptor;
   readonly label: string;
-  readonly pressed: boolean;
   readonly surface?: string;
-  readonly surfaceTone?: "default" | "base" | "neutral";
-  readonly onPress: () => void;
+  readonly pressed: boolean;
+  readonly onClick: () => void;
 };
 ```
 
@@ -1020,6 +1184,7 @@ Joins `messages` into one single-line alert, truncating overflow, and places
 it above the anchor or below when viewport space requires at the supplied
 `stacking` plane. Dismissing it — from the keyboard, by clicking anywhere
 outside, or by its own dismiss control — reports `onDismiss`.
+Used by: invalid class, namespace, note, and relationship text drafts.
 
 ```ts
 type InlineValidationPopupProps = {
@@ -1037,10 +1202,11 @@ Centers visible handles and wider edge targets around the host boundary using
 `centerOffset`, placing edge targets at `stacking` and handles one plane above.
 A press neither selects nor reaches the surface beneath; it reports the
 grabbed handle and viewport point through `onGrab`.
+Used by: selected classes, notes, and namespaces.
 
 ```ts
 type ResizeAffordanceProps = {
-  readonly centerOffset?: string;
+  readonly centerOffset?: number;
   readonly stacking: number;
   readonly onGrab: (handle: ResizeHandle, point: Point) => void;
 };
@@ -1052,7 +1218,8 @@ type ResizeAffordanceProps = {
 
 Attachment edge with fixed dashed treatment and no pointer interaction.
 
-Draws `d` using attachment identity while ignoring pointer input.
+Draws `d` using attachment identity while ignoring pointer input. Used by: a
+note attached to a class.
 
 ```ts
 type AttachmentEdgeProps = {
@@ -1069,26 +1236,31 @@ paints the halo at `haloStacking`; resize targets use `affordanceStacking`. A
 resize press reports its handle and viewport point through `onResizeGrab` and
 does not reach the surface beneath.
 
-Options:
+Lifecycle:
 
 - `selected` — on keeps the selection outline visible; off shows it only on
-  parent hover
+  parent hover. Used by: selected classes, notes, and namespaces
 - `pending` — on adds a pending placement outline
+  Used by: a class awaiting placement
 - `resizeVisible` — on renders corner, midpoint, and full-edge resize targets
+  Used by: selected resizable diagram surfaces
+
+Modifiers:
+
 - `haloTone` — the halo's wash when `haloTint` is absent: `canvas` matches the
   canvas ground, `faint` a translucent wash; with neither tone nor tint, no
-  halo renders
+  halo renders. Used by: class and namespace selection
 
 ```ts
 type BoxInteractionOverlayProps = {
+  readonly centerOffset?: number;
+  readonly haloTint?: string;
+  readonly haloStacking: number;
+  readonly affordanceStacking: number;
   readonly selected: boolean;
   readonly pending: boolean;
   readonly resizeVisible: boolean;
-  readonly centerOffset?: string;
-  readonly haloTint?: string;
   readonly haloTone?: "canvas" | "faint";
-  readonly haloStacking: number;
-  readonly affordanceStacking: number;
   readonly onResizeGrab: (handle: ResizeHandle, point: Point) => void;
 };
 ```
@@ -1100,28 +1272,32 @@ Editable edge text swapping a centered pill for a width-tracking editor.
 Displays `text`; clicking it while at rest reports `onSelect` and may report
 `onEditRequest`, while double-clicking always reports both. During editing the
 field grows with the draft up to a fixed maximum; committing reports
-`onCommit`; abandoning or cancelling reports `onDiscard`. Validation overlays
+`onCommit`; abandoning or cancelling reports `onCancel`. Validation overlays
 use `validationStacking`.
 
-Options:
+Lifecycle:
+
+- `isEditing` — off renders the text pill; on renders the editor
+  Used by: relationship labels and endpoint multiplicities
+- `isClickEditEnabled` — on lets a single click request editing; double-click
+  requests editing in either state. Used by: text on a selected relationship
+
+Modifiers:
 
 - `treatment` — `label` uses light label treatment; `multiplicity` uses dark
-  caption treatment
-- `isEditing` — off renders the text pill; on renders the editor
-- `isEditRequestEnabled` — on lets a single click request editing; double-click
-  requests editing in either state
+  caption treatment. Used by: relationship labels and endpoint multiplicities
 
 ```ts
 type EditableEdgeTextProps = {
   readonly text: string;
-  readonly treatment: "label" | "multiplicity";
-  readonly isEditing: boolean;
-  readonly isEditRequestEnabled: boolean;
   readonly validationStacking: number;
+  readonly isEditing: boolean;
+  readonly isClickEditEnabled: boolean;
+  readonly treatment: "label" | "multiplicity";
   readonly onSelect: () => void;
   readonly onEditRequest: () => void;
   readonly onCommit: (value: string) => void;
-  readonly onDiscard: () => void;
+  readonly onCancel: () => void;
 };
 ```
 
@@ -1136,32 +1312,43 @@ nonempty trimmed additions through `onRowAdd`. Pointer dragging reports
 `onRowReorder` with source row and destination gap; a drag can be cancelled
 from the keyboard, leaving the order unchanged. Actions use `actionStacking`,
 validation uses `validationStacking`, and `surface` supplies an explicit action
-ground.
+ground over the class-member fallback.
 
-Options:
+Lifecycle:
 
-- `isEditStartEnabled` — on permits row editing, reordering, and adding; off
-  leaves display rows inert
+- `isEditable` — on permits row editing, reordering, and adding; off
+  leaves display rows inert. Used by: members of the selected class
 - `isEmphasisEditable` — on initializes and commits row emphasis; off removes
-  emphasis from edit outcomes
-- `surfaceTone` — `default` uses normal canvas surfaces, `base` uses base fill,
-  and `neutral` uses a neutral wash when `surface` is absent
+  emphasis from edit outcomes. Used by: attributes and operations in a class
 
 ```ts
 type EditableTextListProps = {
   readonly rows: readonly EditableTextListRow[];
   readonly addLabel: string;
   readonly addTitle: string;
-  readonly validate: (draft: string) => readonly string[];
-  readonly isEditStartEnabled: boolean;
-  readonly isEmphasisEditable: boolean;
+  readonly surface?: string;
   readonly actionStacking: number;
   readonly validationStacking: number;
-  readonly surface?: string;
-  readonly surfaceTone?: "default" | "base" | "neutral";
+  readonly validate: (draft: string) => readonly string[];
+  readonly isEditable: boolean;
+  readonly isEmphasisEditable: boolean;
   readonly onRowCommit: (index: number, value: string, emphasis: TextEmphasis | null) => void;
   readonly onRowAdd: (value: string, emphasis: TextEmphasis | null) => void;
   readonly onRowReorder: (from: number, to: number) => void;
+};
+```
+
+#### EditableTextListRow
+
+EditableTextList entry carrying text and optional emphasis content.
+
+`text` supplies the row value and `emphasis` supplies its initial underline,
+italic, or unemphasized state.
+
+```ts
+export type EditableTextListRow = {
+  readonly text: string;
+  readonly emphasis?: TextEmphasis | null;
 };
 ```
 
@@ -1169,23 +1356,22 @@ type EditableTextListProps = {
 
 Ghost edge assembling optional marker definitions around a preview line.
 
-Draws from `startPoint` to `endPoint`, defining and linking `startMarker` and
-`endMarker` when supplied.
+Draws from `startPoint` to `endPoint` with the preview's `lineKind`, defining
+and linking `startMarker` and `endMarker` when supplied.
 
-Options:
+Modifiers:
 
-- `lineKind` — `solid` draws continuously; `dashed` uses the edge dash pattern
 - `tone` — `accent` previews relationship placement; `attachment` previews
-  attachment treatment
+  attachment treatment. Used by: relationship creation and note attachment
 
 ```ts
 type GhostEdgeProps = {
   readonly startPoint: Point;
   readonly endPoint: Point;
   readonly lineKind: "solid" | "dashed";
-  readonly tone: "accent" | "attachment";
   readonly startMarker?: { readonly id: string; readonly glyph: MarkerGlyphDescriptor };
   readonly endMarker?: { readonly id: string; readonly glyph: MarkerGlyphDescriptor };
+  readonly tone: "accent" | "attachment";
 };
 ```
 
@@ -1199,19 +1385,23 @@ from `initialValue`; leaving the editor or using the action labeled by
 and reports `onCancel`. Line breaks are typed as ordinary input; committing is
 only by the save action or by leaving the editor.
 
-Options:
+Lifecycle:
 
 - `isEditing` — off renders wrapped display text; on renders the editor and
-  save action
+  save action. Used by: a note body
+
+Modifiers:
+
 - `autoFocus` — on requests focus when the editor mounts
+  Used by: a newly opened note-body editor
 
 ```ts
 type InlineCommitTextAreaProps = {
   readonly initialValue: string;
   readonly displayText: string;
+  readonly saveLabel: string;
   readonly isEditing: boolean;
   readonly autoFocus?: boolean;
-  readonly saveLabel: string;
   readonly onEditRequest: (event: MouseEvent<HTMLDivElement>) => void;
   readonly onCommit: (value: string) => void;
   readonly onCancel: () => void;
@@ -1223,37 +1413,42 @@ type InlineCommitTextAreaProps = {
 Inline commit field swapping optional display content for validated editing.
 
 Begins its draft at `initialValue`, reports edits through `onDraftChange`, and
-resets when that value changes. In display state, `display` supplies text,
-treatment, and edit request. In edit state, `ariaLabel` names the field and
-`validate` gates completion: confirming a valid draft, or leaving the field
-with one, reports `onCommit`; leaving with an invalid draft restores the value
-and reports `onDiscard` with messages; backing out or using the cancel action
-restores it and reports `onCancel`. Validation uses `validationStacking`,
-while `surface` supplies an explicit cancel ground.
+resets when that value changes. In display state, `displayText` supplies text
+and clicking it reports `onEditRequest`, using the selected `treatment`. In
+edit state, `ariaLabel` names the field and `validate` gates completion:
+confirming a valid draft, or leaving the field with one, reports `onCommit`;
+leaving with an invalid draft restores the value and reports `onDiscard` with
+messages; backing out or using the cancel action restores it and reports
+`onCancel`. Validation uses `validationStacking`, while `surface` supplies an
+explicit cancel ground over the treatment-selected fallback.
 
-Options:
+Lifecycle:
 
-- `isEditing` — off renders `display` or nothing; on renders the field
-- `treatment` — `primary`, `secondary`, and `heading` align with their display
-  text metrics; `label` and `multiplicity` align with their edge-text pills
-- `autoFocus` — on requests focus when the editor mounts
+- `isEditing` — off renders `displayText` or nothing; on renders the field
+  Used by: class, namespace, and relationship text
 - `isCancelVisible` — on reserves trailing room and shows a cancel action
-- `surfaceTone` — `default` uses the canvas surface, `base` base fill, and
-  `neutral` a neutral wash when `surface` is absent
+  Used by: relationship labels, captions, and multiplicities
+
+Modifiers:
+
+- `treatment` — the editor's alignment with its display state:
+  - `primary` aligns with prominent centered text — e.g. a class title
+  - `secondary` aligns with secondary text — e.g. a class stereotype or alias
+  - `heading` aligns with left-aligned heading text — e.g. a namespace heading
+  - `label` aligns with the light edge-text pill — e.g. a relationship label
+  - `multiplicity` aligns with the dark edge-text pill — e.g. an endpoint
+    multiplicity
 
 ```ts
-type InlineCommitTextFieldProps = {
+type InlineCommitTextFieldProps = DisplayState & {
   readonly initialValue: string;
-  readonly display?: DisplayText;
-  readonly isEditing: boolean;
-  readonly treatment: InlineTextTreatment;
-  readonly validate: (draft: string) => readonly string[];
   readonly ariaLabel: string;
-  readonly autoFocus?: boolean;
-  readonly isCancelVisible?: boolean;
-  readonly validationStacking: number;
   readonly surface?: string;
-  readonly surfaceTone?: "default" | "base" | "neutral";
+  readonly validationStacking: number;
+  readonly validate: (draft: string) => readonly string[];
+  readonly isEditing: boolean;
+  readonly isCancelVisible?: boolean;
+  readonly treatment: InlineTextTreatment;
   readonly onCommit: (value: string) => void;
   readonly onDraftChange?: (value: string) => void;
   readonly onDiscard: (messages: readonly string[]) => void;
@@ -1272,26 +1467,22 @@ with one, reports text and emphasis through `onCommit`; leaving with an invalid
 draft restores both and reports `onDiscard` with messages; backing out or
 cancelling restores both and reports `onCancel`. Controls use `actionStacking`,
 validation uses `validationStacking`, and `surface` supplies an explicit action
-ground.
+ground over the base fallback.
 
-Options:
+Modifiers:
 
-- `initialEmphasis` — null begins without emphasis; `underline` or `italic`
-  begins with that mutually exclusive control selected
 - `autoFocus` — on requests focus when the editor mounts
-- `surfaceTone` — `default` uses the field surface, `base` base fill, and
-  `neutral` a neutral wash when `surface` is absent
+  Used by: a selected class member
 
 ```ts
 type InlineEmphasisCommitTextFieldProps = {
   readonly initialValue: string;
   readonly initialEmphasis: TextEmphasis | null;
-  readonly validate: (draft: string) => readonly string[];
-  readonly autoFocus?: boolean;
+  readonly surface?: string;
   readonly actionStacking: number;
   readonly validationStacking: number;
-  readonly surface?: string;
-  readonly surfaceTone?: "default" | "base" | "neutral";
+  readonly validate: (draft: string) => readonly string[];
+  readonly autoFocus?: boolean;
   readonly onCommit: (value: string, emphasis: TextEmphasis | null) => void;
   readonly onDiscard: (messages: readonly string[]) => void;
   readonly onCancel: () => void;
@@ -1305,7 +1496,7 @@ Rectangle-draw overlay capturing pointer gestures across its complete surface.
 Routes pointer phases through `onPointerDown`, `onPointerMove`, and
 `onPointerUp` at the supplied `stacking` plane. Text selection and native
 dragging do not engage while drawing. When `rect` is non-null, it also renders
-the pending rectangle.
+the pending rectangle. Used by: class and namespace placement gestures.
 
 ```ts
 type RectDrawOverlayProps = {
@@ -1324,7 +1515,8 @@ type RectDrawOverlayProps = {
 Box body frame stacking validation and content in a flexible region.
 
 Places the optional `validation` slot before `children`, allowing the body to
-grow and shrink while leaving overflow visible.
+grow and shrink while leaving overflow visible. Used by: class member
+compartments.
 
 ```ts
 type BoxBodyFrameProps = {
@@ -1339,23 +1531,38 @@ Box header frame centering primary content between optional vertical slots.
 
 Maintains `minHeight`, places `validation` first, then full-width `leading`,
 `primary`, and `trailing` slots, and draws the lower separator from
-`separatorColor` and `separatorThickness` with base fallbacks.
-
-Options:
-
-- `separatorLineStyle` — `solid`, `dashed`, or `dotted` selects the separator
-  pattern
+`separatorColor`, `separatorThickness`, and `separatorLineStyle` with base
+fallbacks. Used by: the title region of a class.
 
 ```ts
 type BoxHeaderFrameProps = {
-  readonly minHeight: number;
-  readonly separatorColor?: string;
-  readonly separatorThickness?: string;
-  readonly separatorLineStyle: "solid" | "dashed" | "dotted";
   readonly validation?: ReactNode;
   readonly leading?: ReactNode;
   readonly primary: ReactNode;
   readonly trailing?: ReactNode;
+  readonly separatorColor?: string;
+  readonly separatorThickness?: string;
+  readonly separatorLineStyle: "solid" | "dashed" | "dotted";
+  readonly minHeight: number;
+};
+```
+
+### [CanvasGridFrame](./canvas/templates/CanvasGridFrame/CanvasGridFrame.tsx)
+
+Canvas grid frame filling its host with diagram content.
+
+Fills the available region with `children` over the canvas grid;
+`placementCursor` selects the placement cursor.
+
+Lifecycle:
+
+- `placementCursor` — on shows that placement is available
+  Used by: relationship placement over the canvas
+
+```ts
+type CanvasGridFrameProps = {
+  readonly children: ReactNode;
+  readonly placementCursor?: boolean;
 };
 ```
 
@@ -1364,12 +1571,27 @@ type BoxHeaderFrameProps = {
 Canvas overlay frame spanning the viewport without intercepting input.
 
 Hosts SVG `children` across the full viewport at the supplied `stacking`
-plane and hides the frame from accessibility.
+plane and hides the frame from accessibility. Used by: the note-attachment
+preview.
 
 ```ts
 type CanvasOverlayFrameProps = {
-  readonly stacking: number;
   readonly children: ReactNode;
+  readonly stacking: number;
+};
+```
+
+### [CanvasViewportFrame](./canvas/templates/CanvasViewportFrame/CanvasViewportFrame.tsx)
+
+Canvas viewport frame clipping positioned content.
+
+Names the full-height region with `ariaLabel` and clips `children` at its
+boundary. Used by: the diagram canvas inside the editor workspace.
+
+```ts
+type CanvasViewportFrameProps = {
+  readonly children: ReactNode;
+  readonly ariaLabel: string;
 };
 ```
 
@@ -1378,13 +1600,9 @@ type CanvasOverlayFrameProps = {
 Compartment stack separating flexible content regions.
 
 Places `compartments` vertically in order and draws separators before every
-region after the first, using `separatorColor` and `separatorThickness` with
-base fallbacks.
-
-Options:
-
-- `separatorLineStyle` — `solid`, `dashed`, or `dotted` selects the separator
-  pattern
+region after the first, using `separatorColor`, `separatorThickness`, and
+`separatorLineStyle` with base fallbacks. Used by: class title and member
+compartments.
 
 ```ts
 type CompartmentStackProps = {
@@ -1395,41 +1613,17 @@ type CompartmentStackProps = {
 };
 ```
 
-### [GridFrame](./canvas/templates/GridFrame/GridFrame.tsx)
+### [HullHeaderFrame](./canvas/templates/HullHeaderFrame/HullHeaderFrame.tsx)
 
-Grid frame for workspace composition, canvas fill, and clipped shell hosting.
+Hull header frame holding one line of heading content.
 
-Workspace form arranges `leading`, `content`, and `trailing` regions using
-`leadingWidth` and names the region with `ariaLabel`. Canvas form fills its
-host with `children`. Shell form clips `children` to a full-height region
-named by `ariaLabel`.
-
-Options:
-
-- `variant` — `workspace` renders the three-region grid, `canvas` renders a
-  fill surface, and `shell` renders a clipped positioning frame
-- `placementActive` — in canvas form, on shows the placement cursor
+Places `children` in a fixed-height, full-width strip with an inset from the
+hull edge. Used by: a namespace heading.
 
 ```ts
-type GridFrameProps =
-  | {
-      readonly variant: "workspace";
-      readonly leading: ReactNode;
-      readonly content: ReactNode;
-      readonly trailing: ReactNode;
-      readonly leadingWidth: number;
-      readonly ariaLabel: string;
-    }
-  | {
-      readonly variant: "canvas";
-      readonly children: ReactNode;
-      readonly placementActive?: boolean;
-    }
-  | {
-      readonly variant: "shell";
-      readonly children: ReactNode;
-      readonly ariaLabel: string;
-    };
+type HullHeaderFrameProps = {
+  readonly children: ReactNode;
+};
 ```
 
 ### [HullSurfaceFrame](./canvas/templates/HullSurfaceFrame/HullSurfaceFrame.tsx)
@@ -1437,12 +1631,9 @@ type GridFrameProps =
 Hull surface frame with user-supplied color and border values.
 
 Fills its host with `children`, uses `title` as the tooltip, applies `fill`,
-`stroke`, `strokeWidth`, and `color` with neutral fallbacks. Pressing it
-reports `onPointerDown`; clicking it reports `onPress`.
-
-Options:
-
-- `lineStyle` — `solid`, `dashed`, or `dotted` selects the border pattern
+`stroke`, `strokeWidth`, `lineStyle`, and `color` with neutral fallbacks.
+Pressing it reports `onPressStart`; clicking it reports `onClick`.
+Used by: a namespace hull.
 
 ```ts
 type HullSurfaceFrameProps = {
@@ -1453,8 +1644,8 @@ type HullSurfaceFrameProps = {
   readonly lineStyle: "solid" | "dashed" | "dotted";
   readonly color?: string;
   readonly children: ReactNode;
-  readonly onPointerDown: () => void;
-  readonly onPress: (event: MouseEvent<HTMLDivElement>) => void;
+  readonly onPressStart: () => void;
+  readonly onClick: (event: MouseEvent<HTMLDivElement>) => void;
 };
 ```
 
@@ -1463,19 +1654,19 @@ type HullSurfaceFrameProps = {
 Sticky-note surface framing content with movable-object treatment.
 
 Fills its host with `children`, uses `title` as the tooltip, and reports
-`onPress` when clicked.
+`onClick` when clicked.
 
-Options:
+Lifecycle:
 
 - `dragging` — off shows the ready-to-move cursor; on dims the surface and
-  shows active dragging
+  shows active dragging. Used by: a note being moved
 
 ```ts
 type StickyNoteSurfaceFrameProps = {
   readonly title: string;
-  readonly dragging: boolean;
   readonly children: ReactNode;
-  readonly onPress: (event: MouseEvent<HTMLDivElement>) => void;
+  readonly dragging: boolean;
+  readonly onClick: (event: MouseEvent<HTMLDivElement>) => void;
 };
 ```
 
@@ -1484,14 +1675,15 @@ type StickyNoteSurfaceFrameProps = {
 Styled box surface framing vertically arranged content with user values.
 
 Fills its host with `children`, uses `title` as the tooltip, applies `fill`,
-`stroke`, `strokeWidth`, and `color` with base fallbacks, and reports `onPress`
-when clicked.
+`stroke`, `strokeWidth`, `lineStyle`, and `color` with base fallbacks, and
+reports `onClick` when clicked. `placementCursor` selects the placement cursor.
 
-Options:
+Lifecycle:
 
-- `lineStyle` — `solid`, `dashed`, or `dotted` selects the border pattern
 - `dragging` — on shows active dragging while retaining the surface appearance
-- `connectionEnabled` — on replaces the move cursor with the placement cursor
+  Used by: a class being moved
+- `placementCursor` — on shows that relationship placement is available
+  Used by: a class as a relationship source
 
 ```ts
 type StyledBoxSurfaceFrameProps = {
@@ -1501,9 +1693,9 @@ type StyledBoxSurfaceFrameProps = {
   readonly strokeWidth?: string;
   readonly lineStyle: "solid" | "dashed" | "dotted";
   readonly color?: string;
-  readonly dragging: boolean;
-  readonly connectionEnabled: boolean;
   readonly children: ReactNode;
-  readonly onPress: (event: MouseEvent<HTMLDivElement>) => void;
+  readonly dragging: boolean;
+  readonly placementCursor: boolean;
+  readonly onClick: (event: MouseEvent<HTMLDivElement>) => void;
 };
 ```

@@ -152,7 +152,7 @@ export default function RelationshipTools({
             icon={tool.icon}
             pressed={isActive}
             title={tool.name}
-            size="relationshipTile"
+            size="glyphTile"
             onClick={() => onRelationshipPlacementStart(tool.seed)}
           />
         );

@@ -4,11 +4,12 @@
  * Places the noninteractive rectangle at `rect` and applies `stacking` when
  * supplied.
  *
- * Options:
+ * Modifiers:
  * - `tone` — `accent` uses pending placement treatment; `positive` uses success
- *   treatment
+ *   treatment. Used by: class placement and namespace drawing
  * - `positioning` — `absolute` positions within the containing surface; `fixed`
- *   positions against the viewport
+ *   positions against the viewport. Used by: class placement and namespace
+ *   drawing
  */
 
 import type { CSSProperties, ReactElement } from "react";
@@ -17,9 +18,9 @@ import styles from "./DraftRect.module.css";
 
 type DraftRectProps = {
   readonly rect: Rect;
+  readonly stacking?: number;
   readonly tone?: "accent" | "positive";
   readonly positioning?: "absolute" | "fixed";
-  readonly stacking?: number;
 };
 
 export default function DraftRect({

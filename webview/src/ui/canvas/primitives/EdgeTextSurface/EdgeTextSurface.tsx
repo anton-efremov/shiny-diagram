@@ -5,11 +5,12 @@
  * minimums, centered on the point where the consumer places it. Pointer input
  * remains available on both text and surface.
  *
- * Options:
+ * Modifiers:
  * - `variant` — `label` uses light label treatment; `multiplicity` uses dark
- *   caption treatment
+ *   caption treatment. Used by: relationship labels and endpoint multiplicities
  */
 
+import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import styles from "./EdgeTextSurface.module.css";
 
@@ -19,13 +20,18 @@ type EdgeTextSurfaceProps = {
 };
 
 const MIN_WIDTH = 24;
-const CHARACTER_WIDTH = 7;
 const HORIZONTAL_PADDING = 12;
 const HEIGHT = 18;
 
 export default function EdgeTextSurface({ text, variant }: EdgeTextSurfaceProps): ReactElement {
-  const surfaceWidth = Math.max(MIN_WIDTH, text.length * CHARACTER_WIDTH + HORIZONTAL_PADDING);
+  const textRef = useRef<SVGTextElement>(null);
+  const [textWidth, setTextWidth] = useState(0);
+  const surfaceWidth = Math.max(MIN_WIDTH, textWidth + HORIZONTAL_PADDING);
   const className = variant === "label" ? styles.label : styles.multiplicity;
+
+  useLayoutEffect(() => {
+    setTextWidth(textRef.current?.getComputedTextLength() ?? 0);
+  }, [text, variant]);
 
   return (
     <>
@@ -37,6 +43,7 @@ export default function EdgeTextSurface({ text, variant }: EdgeTextSurfaceProps)
         className={`${styles.surface} ${className}`}
       />
       <text
+        ref={textRef}
         x={0}
         y={0}
         className={`${styles.text} ${className}`}

@@ -7,6 +7,7 @@ import type { ReactElement } from "react";
 import { toStyleDefId } from "../../../../../../shared/ids";
 import type { StyleProperties } from "../../../../../../shared/style";
 import type { ClassView, DeclaredStyleView } from "../../../../../views/schema";
+import { CHROME_MENU_ABOVE_CONTROL_Z_INDEX } from "../../../../../config/editorUiConfig";
 import Dropdown from "../../../../../../ui/chrome/composites/Dropdown/Dropdown";
 import { useInteractions } from "./useInteractions";
 
@@ -31,6 +32,7 @@ export default function NamedStyleSelector({
   return (
     <Dropdown
       value={selectedValue}
+      stacking={CHROME_MENU_ABOVE_CONTROL_Z_INDEX}
       options={[
         ...(selectedValue === "multiple"
           ? [

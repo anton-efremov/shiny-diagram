@@ -7,6 +7,7 @@ import type { ReactElement } from "react";
 import type { DeclaredStyleView } from "../../../../../views/schema";
 import type { SelectionState } from "../../../../../state/editorStates";
 import type { TransactionResult } from "../../../../../commands/editorCommands";
+import { CHROME_VALIDATION_ABOVE_CONTROL_Z_INDEX } from "../../../../../config/editorUiConfig";
 import CommitTextField from "../../../../../../ui/chrome/composites/CommitTextField/CommitTextField";
 import FieldGrid from "../../../../../../ui/chrome/templates/FieldGrid/FieldGrid";
 import { useInteractions } from "./useInteractions";
@@ -41,7 +42,7 @@ export default function StyleNameEditor({
 
   return (
     <FieldGrid
-      labelWidth="standard"
+      variant="standard"
       rows={[
         {
           label: "Name",
@@ -51,6 +52,7 @@ export default function StyleNameEditor({
               validate={(draft) => validateStyleName(draft, selectedStyle, view)}
               ariaLabel="Style name"
               isLabelVisible={false}
+              validationStacking={CHROME_VALIDATION_ABOVE_CONTROL_Z_INDEX}
               onCommit={onNameCommit}
               onDiscard={() => undefined}
               onCancel={() => undefined}
