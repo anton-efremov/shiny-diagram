@@ -9,7 +9,7 @@
   padding: 0;
   border: 1px solid currentColor;
   border-radius: 50%;
-  color: var(--shiny-text-error);
+  color: var(--shiny-chrome-text-error);
   background: transparent;
   cursor: pointer;
 }
@@ -25,13 +25,13 @@
 }
 
 .button:hover {
-  color: var(--shiny-surface);
-  background: var(--shiny-text-error);
+  color: var(--shiny-chrome-surface);
+  background: var(--shiny-chrome-text-error);
 }
 
 .small:hover {
-  color: var(--shiny-inline-surface, var(--shiny-surface));
-  background: var(--shiny-text-error);
+  color: var(--shiny-inline-surface, var(--shiny-chrome-surface));
+  background: var(--shiny-chrome-text-error);
 }
 
 .button svg {

@@ -1,5 +1,5 @@
 .text {
-  font: var(--shiny-canvas-font-size-secondary) var(--shiny-font-family);
+  font: var(--shiny-canvas-font-size-secondary) var(--shiny-canvas-font-family);
   cursor: var(--shiny-cursor-text);
   pointer-events: all;
 }
@@ -20,9 +20,9 @@
 }
 
 .text.label {
-  fill: var(--shiny-edge-label-text);
+  fill: var(--shiny-canvas-edge-label-text);
 }
 
 .text.multiplicity {
-  fill: var(--shiny-edge-caption-text);
+  fill: var(--shiny-canvas-edge-caption-text);
 }

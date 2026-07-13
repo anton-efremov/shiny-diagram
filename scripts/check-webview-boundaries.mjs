@@ -119,6 +119,7 @@ function main() {
 
   checkCompositeImportCycles(compositeImportGraph);
   checkStylesheetOwnership();
+  checkCSSBrandbookImports();
   checkTokenConsumption();
   checkCSSModuleShinyTokenDefinitions();
   checkCSSModuleLiteralColors();
@@ -450,6 +451,11 @@ function uiLocation(file) {
   return match ? { wing: match[1], tier: match[2] } : null;
 }
 
+function uiBrandbookWing(file) {
+  const match = /^ui\/(chrome|canvas)\/tokens\.(?:css|ts)$/.exec(file);
+  return match?.[1] ?? null;
+}
+
 function toLineColumn(source, index) {
   const prefix = source.slice(0, index);
   const lines = prefix.split("\n");
@@ -617,11 +623,8 @@ function permittedDependencyRule(file, dependency, target) {
 
   if (isUnder(file, UI_ROOT)) {
     if (isUnder(target, UI_ROOT)) return true;
-    if (isUnder(target, "shared") && dependency.isTypeOnly) return true;
-    if (isUnder(target, "shared")) {
-      return "UI library inbound imports from shared must be type-only";
-    }
-    return "UI library inbound imports may target only allowed ui paths or type-only shared contracts";
+    if (isUnder(target, "shared")) return true;
+    return "UI library inbound imports may target only allowed ui paths or shared contracts";
   }
 
   if (isUnder(file, "shared")) {
@@ -653,6 +656,15 @@ function checkUILibraryImport(file, dependency, resolvedTarget, compositeImportG
 
 function checkUILibraryLayerConsumption(file, dependency, target) {
   if (isUnder(file, UI_ROOT)) return;
+
+  if (uiBrandbookWing(target)) {
+    reportDependency(
+      file,
+      dependency,
+      "UI wing brandbook isolation: wing brandbook files are internal and must not be imported outside ui"
+    );
+    return;
+  }
 
   if (isUnder(target, "ui/core")) {
     reportDependency(
@@ -694,6 +706,8 @@ function checkUILibraryLayerConsumption(file, dependency, target) {
 }
 
 function checkUILibraryPublicSurface(file, dependency, target) {
+  if (uiBrandbookWing(target)) return;
+
   const targetComponent = uiComponent(target);
   if (targetComponent) {
     if (file === targetComponent.root || isUnder(file, targetComponent.root)) return;
@@ -738,13 +752,6 @@ function checkUILibraryInboundImport(file, dependency, target) {
   if (isUnder(target, UI_ROOT)) return;
 
   if (isUnder(target, "shared")) {
-    if (!dependency.isTypeOnly) {
-      reportDependency(
-        file,
-        dependency,
-        "UI library inbound imports: shared contracts must be imported type-only"
-      );
-    }
     return;
   }
 
@@ -756,18 +763,22 @@ function checkUILibraryInboundImport(file, dependency, target) {
 }
 
 function checkUILibraryTierImport(file, dependency, target, compositeImportGraph) {
-  const sourceLocation = uiLocation(file);
-  const targetLocation = uiLocation(target);
-  if (!sourceLocation || !targetLocation) {
-    if (target === "ui/tokens.css") {
+  const targetBrandbookWing = uiBrandbookWing(target);
+  if (targetBrandbookWing) {
+    const sourceLocation = uiLocation(file);
+    if (!sourceLocation || sourceLocation.wing !== targetBrandbookWing) {
       reportDependency(
         file,
         dependency,
-        "UI tier matrix: component modules must not import ui/tokens.css directly"
+        "UI wing brandbook isolation: a wing brandbook file may be imported only by elements in its own wing"
       );
     }
     return;
   }
+
+  const sourceLocation = uiLocation(file);
+  const targetLocation = uiLocation(target);
+  if (!sourceLocation || !targetLocation) return;
 
   if (sourceLocation.wing === "core") {
     if (targetLocation.wing !== "core") {
@@ -890,20 +901,21 @@ function checkTokenConsumption() {
     const file = toSourceRelative(absoluteFile);
     const source = readFileSync(absoluteFile, "utf8");
 
-    for (const match of source.matchAll(/var\(--vscode-/g)) {
-      if (file === "ui/tokens.css" || isUnder(file, "mermaidRenderer")) continue;
+    for (const match of source.matchAll(/--vscode-/g)) {
+      const isWingCSSBrandbook = /^ui\/(?:chrome|canvas)\/tokens\.css$/.test(file);
+      if (isWingCSSBrandbook || isUnder(file, "mermaidRenderer")) continue;
       const location = toLineColumn(source, match.index ?? 0);
       report({
         file,
         line: location.line,
         column: location.column,
         kind: "token consumption",
-        specifier: "var(--vscode-",
-        rule: "Theme token consumption: var(--vscode-*) may appear only in ui/tokens.css or mermaidRenderer",
+        specifier: "--vscode-",
+        rule: "Theme token boundary: --vscode-* strings may appear only in wing tokens.css brandbooks or mermaidRenderer",
       });
     }
 
-    for (const match of source.matchAll(/var\(--shiny-/g)) {
+    for (const match of source.matchAll(/--shiny-/g)) {
       const isAllowed =
         isUnder(file, UI_ROOT) ||
         (absoluteFile.endsWith(".css") && isUnder(file, "Shell")) ||
@@ -915,8 +927,58 @@ function checkTokenConsumption() {
         line: location.line,
         column: location.column,
         kind: "token consumption",
-        specifier: "var(--shiny-",
-        rule: "Brand token consumption: var(--shiny-*) may appear only in ui, Shell CSS, or styles.css",
+        specifier: "--shiny-",
+        rule: "Brand token boundary: --shiny-* strings may appear only in ui, Shell CSS, or styles.css; Controller, Bridge, and mermaidRenderer are not brand consumers",
+      });
+    }
+
+    const consumerWing =
+      isUnder(file, "ui/chrome") ||
+      (absoluteFile.endsWith(".css") && isUnder(file, "Shell")) ||
+      file === "styles.css"
+        ? "chrome"
+        : isUnder(file, "ui/canvas")
+          ? "canvas"
+          : null;
+    if (!consumerWing) continue;
+    const foreignWing = consumerWing === "chrome" ? "canvas" : "chrome";
+    const foreignPrefix = `--shiny-${foreignWing}-`;
+    for (const match of source.matchAll(new RegExp(foreignPrefix, "g"))) {
+      const location = toLineColumn(source, match.index ?? 0);
+      report({
+        file,
+        line: location.line,
+        column: location.column,
+        kind: "token consumption",
+        specifier: foreignPrefix,
+        rule: `UI wing brandbook isolation: ${consumerWing} consumers must not read ${foreignWing}-prefixed brand tokens`,
+      });
+    }
+  }
+}
+
+function checkCSSBrandbookImports() {
+  for (const absoluteFile of listFiles(sourceRoot)) {
+    if (!absoluteFile.endsWith(".css")) continue;
+    const file = toSourceRelative(absoluteFile);
+    const source = readFileSync(absoluteFile, "utf8");
+
+    for (const match of source.matchAll(/@import\s+["']([^"']+)["']/g)) {
+      const target = resolveProjectCSSDependency(file, match[1]);
+      const targetWing = target ? uiBrandbookWing(target) : null;
+      if (!targetWing) continue;
+      if (file === "styles.css") continue;
+
+      const sourceWing = uiLocation(file)?.wing;
+      if (sourceWing === targetWing) continue;
+      const location = toLineColumn(source, match.index ?? 0);
+      report({
+        file,
+        line: location.line,
+        column: location.column,
+        kind: "token consumption",
+        specifier: match[1],
+        rule: "UI wing brandbook isolation: a wing tokens.css file may be imported only by its own wing; styles.css is the sole dual-wing load site",
       });
     }
   }
@@ -936,7 +998,7 @@ function checkCSSModuleShinyTokenDefinitions() {
       column: location.column,
       kind: "UI library tiers",
       specifier: match[0].replace(/\s*:\s*$/, ""),
-      rule: "--shiny-* custom properties may be defined only in ui/tokens.css, not component CSS modules",
+      rule: "--shiny-* custom properties may be defined only in wing tokens.css brandbooks, not component CSS modules",
     });
   }
 }

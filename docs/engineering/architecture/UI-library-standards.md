@@ -28,7 +28,7 @@ Token consumption by cascade is part of the declared dependency: a `var(--shiny-
 
 **Templates** — structural UI containers that arrange, group, or frame other library elements without owning behavior
 
-**Glyph descriptor** — pure geometry data (paths on the 16-grid, filled and dashed flags, optional anchor for marker use), typed in `shared/`. Domain components author domain-meaningful descriptors as content; a library element may own UI-pattern descriptors as private constants. The receiving element renders the descriptor and owns all treatment
+**Glyph descriptor** — pure geometry data (paths on the 16-grid, filled and dashed flags, anchor — required for marker glyphs), typed in `shared/`. Domain components author domain-meaningful descriptors as content; a library element may own UI-pattern descriptors as private constants. The receiving element renders the descriptor and owns all treatment; it never supplies descriptor content of its own
 
 # Library scope
 
@@ -63,14 +63,17 @@ An element never owns:
 
 ```
 webview/src/ui/
-├── tokens.css            the brandbook: --shiny-* definitions
 ├── core/
 ├── chrome/
+│   ├── tokens.css        the chrome brandbook
+│   ├── tokens.ts         the chrome brandbook: attribute/TS-consumed identity values
 │   ├── primitives/
 │   ├── composites/
 │   └── templates/
 └── canvas/
-    ├── primitives/
+    ├── tokens.css        the canvas brandbook
+    ├── tokens.ts         the canvas brandbook: attribute/TS-consumed identity values
+    ├── primitives/
     ├── composites/
     └── templates/
 ```
@@ -91,7 +94,7 @@ Imports — what an element's files may reach:
 | Templates | `core/` only — children arrive as props |
 | Composites | own wing's primitives and composites (acyclic), and `core/` |
 
-- Additionally: React and browser APIs, own children, own `.module.css`, type-only imports from `shared/`
+- Additionally: React and browser APIs, own children, own `.module.css`, imports from `shared/`, and the own wing's brandbook files — the tier matrix governs elements, not the brandbook
 - Nothing editor-side or framework-side, per Ownership
 - No root, wing, or tier barrels; direct imports from defining component files
 
@@ -153,9 +156,9 @@ Dropdown/
 
 - `@render` header, same rule as `<Component>.tsx`: non-derivable facts or omit
 
-# Brandbook organization — `tokens.css`
+# Brandbook organization — wing brandbooks
 
-`tokens.css` is the brandbook: choosing values there is the brand work, and no separate brandbook document exists. It holds two visual identities — chrome and canvas — as its two sections, over a shared private Primitives section; a token is defined in its primary section and consumed anywhere its layer contract allows.
+The brandbook is per-wing: each wing owns its identity as `<wing>/tokens.css`, plus `<wing>/tokens.ts` for identity values consumed as attributes or TypeScript values (minted only when the wing has such values). Choosing values there is the brand work, and no separate brandbook document exists. Each wing aliases `--vscode-*` for its own tokens — which theme variable feeds which role is an identity decision; `--vscode-*` appears nowhere outside brandbook files. Values coinciding across wings are coincidence, never dependence: no cross-wing token exists, and a wing's values are free to diverge. `tokens.ts` is not `editorUiConfig.ts`: config tunes behavior, the brandbook asserts identity. Each brandbook file is governed by its own header annotation.
 
 ### Ownership
 
@@ -164,11 +167,11 @@ Which home a style value gets is decided by two questions:
 - **Independence test** — can this value change alone, with nothing elsewhere becoming wrong? Yes → literal in the owning component's `.module.css`. No → one home by agreeing parties: internal to one component → its `.module.css`; siblings in one arrangement → the layout template; unrelated components → token; TypeScript is a party → `editorUiConfig.ts`, bound into CSS as a component-owned custom property; the user's diagram is a party → `stylePresets.ts`. Overlaps resolve in that reverse order. Mount count never enters the test.
 - **Asserted vs emergent** — a dimension asserted regardless of content is identity and gets a home; a dimension emerging from content is not authored at all (only paddings and constraints are). A dependent value is computed from its one free variable (`calc()`, shared constant), never a second number kept equal by hand.
 
-`tokens.css` owns the property groups the Property ownership table routes to it: color, type scale, line and border shape, shadows, cursor, identity opacity, control heights and compact widths.
+The wing brandbooks own the property groups the Property ownership table routes to `tokens.css`: color, type scale, line and border shape, shadows, cursor, identity opacity, control heights and compact widths. Table references to `tokens.css` mean the owning wing's brandbook.
 
 ### Style naming
 
-- A token is named after what it is FOR, never after its value; area prefixes scope generic roles (`--shiny-chrome-font-size-label`, `--shiny-canvas-font-size-primary`); single-area concepts (field, button, edge) need no prefix; a token shared across both identities by design carries no prefix (`--shiny-glyph-stroke-width`)
+- A token is named after what it is FOR, never after its value; area prefixes scope generic roles (`--shiny-chrome-font-size-label`, `--shiny-canvas-font-size-primary`); single-area concepts (field, button, edge) need no prefix. Custom properties are global at runtime: the two wing brandbooks share one namespace, and a role existing in both wings carries its area prefix in each
 - Consumers use tokens as-is: no local color-mix, alpha, or dimming — a use that needs a different value gets its own token
 
 ### Annotation

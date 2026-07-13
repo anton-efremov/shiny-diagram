@@ -18,7 +18,7 @@
 
 .label {
   margin: 0 0 8px;
-  color: var(--shiny-text);
+  color: var(--shiny-chrome-text);
   font: inherit;
   font-size: 12px;
   font-weight: 600;

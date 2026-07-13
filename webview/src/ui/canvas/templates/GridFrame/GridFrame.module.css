@@ -18,7 +18,7 @@
 
 .leading {
   border-right: var(--shiny-layout-border-width) var(--shiny-layout-border-style)
-    var(--shiny-layout-border);
+    var(--shiny-canvas-layout-border);
 }
 
 .content {
@@ -28,7 +28,7 @@
 
 .trailing {
   border-left: var(--shiny-layout-border-width) var(--shiny-layout-border-style)
-    var(--shiny-layout-border);
+    var(--shiny-canvas-layout-border);
 }
 
 .canvas {

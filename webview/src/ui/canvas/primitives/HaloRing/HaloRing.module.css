@@ -12,9 +12,9 @@
 }
 
 .canvas {
-  --halo-ring-default-tint: var(--shiny-app-bg);
+  --halo-ring-default-tint: var(--shiny-canvas-app-bg);
 }
 
 .faint {
-  --halo-ring-default-tint: var(--shiny-overlay-faint);
+  --halo-ring-default-tint: var(--shiny-canvas-overlay-faint);
 }

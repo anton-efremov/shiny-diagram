@@ -1,0 +1,170 @@
+/**
+ * THE CHROME BRANDBOOK. This file is the chrome wing's visual identity:
+ * choosing values here IS the brand work. It owns CSS-consumed colors, radii,
+ * elevation, line styles, cursors, type scale, control dimensions, and theme
+ * variance for this wing. No separate brandbook document exists.
+ *
+ * Naming:
+ * - A public token is named after what it is FOR, never after its value.
+ * - Diagram context is legal; UML/Mermaid-specific consumer names are not.
+ * - Because custom properties share one runtime namespace, a role present in
+ *   both wings carries the chrome area prefix here.
+ * - Consumers use tokens as-is: no local color-mix, alpha, or dimming.
+ *
+ * Values:
+ * - This wing may alias --vscode-* directly; choosing the alias is identity work.
+ * - Everything else is a value deliberately chosen for this wing.
+ * - Theme-specific rules and polarity primitives live only in this file.
+ *
+ * Structure and annotations:
+ * - Sections group usage neighborhoods; definitions may be consumed anywhere
+ *   in this wing. Names carry meaning; comments exist only for rationale that
+ *   cannot be reconstructed from a name and value.
+ */
+
+:root {
+  --shiny-chrome-ink: #000000;
+  --shiny-chrome-paper: #ffffff;
+}
+
+body[data-vscode-theme-kind="vscode-light"] {
+  --shiny-chrome-ink: #000000;
+  --shiny-chrome-paper: #ffffff;
+}
+
+body[data-vscode-theme-kind="vscode-dark"] {
+  --shiny-chrome-ink: #000000;
+  --shiny-chrome-paper: #ffffff;
+}
+
+body[data-vscode-theme-kind="vscode-high-contrast"] {
+  --shiny-chrome-ink: #000000;
+  --shiny-chrome-paper: #ffffff;
+}
+
+:root {
+  --shiny-chrome-font-family: var(--vscode-font-family);
+  --shiny-code-font-family: var(--vscode-editor-font-family, monospace);
+  --shiny-chrome-text: var(--vscode-editor-foreground);
+  --shiny-chrome-text-muted: var(--vscode-descriptionForeground);
+  --shiny-chrome-text-error: var(--vscode-errorForeground);
+  --shiny-chrome-glyph-stroke-width: 1.5px;
+  --shiny-chrome-glyph-dash: 2 2;
+}
+
+:root {
+  --shiny-chrome-app-bg: var(--vscode-editor-background);
+  --shiny-header-bg: var(--vscode-editorGroupHeader-tabsBackground, var(--vscode-panel-background));
+  --shiny-pane-bg: var(--vscode-sideBar-background, var(--vscode-panel-background));
+  --shiny-chrome-layout-border: var(
+    --vscode-sideBar-border,
+    var(--vscode-editorGroup-border, var(--vscode-widget-border))
+  );
+  --shiny-chrome-surface: var(--vscode-editorWidget-background);
+  --shiny-border: var(--vscode-panel-border);
+  --shiny-chrome-elevation-high: 0 4px 10px rgb(0 0 0 / 35%);
+  --shiny-field-radius: 3px;
+  --shiny-chrome-button-radius: 6px;
+  --shiny-tile-radius: 8px;
+  --shiny-control-height: 32px;
+  --shiny-chrome-field-bg: var(--vscode-input-background);
+  --shiny-field-border: var(--vscode-input-border, var(--vscode-widget-border));
+  --shiny-field-fg: var(--vscode-input-foreground, var(--vscode-foreground));
+  --shiny-field-placeholder: var(--vscode-input-placeholderForeground);
+  --shiny-chrome-inline-field-background: color-mix(in srgb, currentColor 14%, transparent);
+  --shiny-chrome-inline-field-outline: color-mix(in srgb, currentColor 78%, transparent);
+  --shiny-chrome-inline-field-focus-outline: color-mix(in srgb, currentColor 92%, transparent);
+  --shiny-chrome-inline-field-invalid-outline: color-mix(
+    in srgb,
+    var(--shiny-chrome-text-error) 65%,
+    transparent
+  );
+  --shiny-chrome-button-bg: var(--vscode-button-background);
+  --shiny-chrome-button-fg: var(--vscode-button-foreground);
+  --shiny-button-secondary-bg: var(--vscode-button-secondaryBackground);
+  --shiny-button-secondary-fg: var(--vscode-button-secondaryForeground);
+  --shiny-chrome-button-border: var(--vscode-button-border, transparent);
+  --shiny-button-outline: color-mix(in srgb, var(--shiny-button-secondary-fg) 70%, transparent);
+}
+
+:root {
+  --shiny-field-focus-border: var(--vscode-focusBorder);
+  --shiny-field-hover-fg: var(--vscode-list-hoverForeground, var(--shiny-field-fg));
+  --shiny-field-hover-border: color-mix(
+    in srgb,
+    var(--shiny-field-hover-fg) 35%,
+    var(--shiny-field-border)
+  );
+  --shiny-chrome-validation-border: var(
+    --vscode-inputValidation-errorBorder,
+    var(--shiny-chrome-text-error)
+  );
+  --shiny-chrome-validation-foreground: var(--vscode-button-foreground);
+  --shiny-chrome-validation-surface: var(
+    --vscode-inputValidation-errorBackground,
+    var(--shiny-chrome-text-error)
+  );
+}
+
+:root {
+  --shiny-chrome-font-size-primary: 13px;
+}
+
+:root {
+  --shiny-chrome-selection: var(--vscode-focusBorder);
+  --shiny-chrome-accent-outline: var(--vscode-focusBorder);
+  --shiny-chrome-edge-label-text: var(--shiny-chrome-ink);
+  --shiny-chrome-edge-label-edit-background: color-mix(
+    in srgb,
+    var(--shiny-chrome-paper) 76%,
+    transparent
+  );
+  --shiny-chrome-edge-label-edit-outline: color-mix(
+    in srgb,
+    var(--shiny-chrome-ink) 85%,
+    transparent
+  );
+  --shiny-chrome-edge-caption-text: var(--shiny-chrome-paper);
+  --shiny-chrome-edge-caption-edit-background: color-mix(
+    in srgb,
+    var(--shiny-chrome-ink) 68%,
+    transparent
+  );
+  --shiny-chrome-edge-caption-edit-outline: color-mix(
+    in srgb,
+    var(--shiny-chrome-paper) 85%,
+    transparent
+  );
+}
+
+body[data-vscode-theme-kind="vscode-light"] {
+  --shiny-chrome-overlay-faint: color-mix(in srgb, var(--shiny-chrome-ink) 3%, transparent);
+  --shiny-overlay-strong: color-mix(in srgb, var(--shiny-chrome-ink) 28%, transparent);
+  --shiny-chrome-edge-caption-text: var(--shiny-chrome-ink);
+  --shiny-chrome-edge-caption-edit-background: color-mix(
+    in srgb,
+    var(--shiny-chrome-paper) 88%,
+    transparent
+  );
+  --shiny-chrome-edge-caption-edit-outline: color-mix(
+    in srgb,
+    var(--shiny-chrome-ink) 38%,
+    transparent
+  );
+}
+
+body[data-vscode-theme-kind="vscode-dark"] {
+  --shiny-chrome-overlay-faint: color-mix(in srgb, var(--shiny-chrome-paper) 3%, transparent);
+  --shiny-overlay-strong: color-mix(in srgb, var(--shiny-chrome-paper) 32%, transparent);
+}
+
+body[data-vscode-theme-kind="vscode-high-contrast"] {
+  --shiny-chrome-overlay-faint: transparent;
+  --shiny-overlay-strong: var(--shiny-chrome-text);
+}
+
+:root {
+  --shiny-chrome-base-fill: var(--vscode-editor-background);
+  --shiny-chrome-base-stroke: var(--vscode-editor-foreground);
+  --shiny-chrome-base-text: var(--vscode-editor-foreground);
+}

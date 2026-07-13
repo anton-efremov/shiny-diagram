@@ -17,11 +17,11 @@
 }
 
 .default {
-  --inline-toggle-default-surface: var(--shiny-field-bg);
+  --inline-toggle-default-surface: var(--shiny-canvas-field-bg);
 }
 
 .base {
-  --inline-toggle-default-surface: var(--shiny-base-fill);
+  --inline-toggle-default-surface: var(--shiny-canvas-base-fill);
 }
 
 .neutral {
@@ -45,16 +45,16 @@
 
 .button:focus-visible {
   outline: var(--shiny-inline-toggle-focus-outline-width)
-    var(--shiny-inline-toggle-focus-outline-style) var(--shiny-accent-outline);
+    var(--shiny-inline-toggle-focus-outline-style) var(--shiny-canvas-accent-outline);
   outline-offset: 2px;
 }
 
 .button svg {
   width: var(--shiny-inline-toggle-glyph-size);
   height: var(--shiny-inline-toggle-glyph-size);
-  stroke-width: var(--shiny-glyph-stroke-width);
+  stroke-width: var(--shiny-canvas-glyph-stroke-width);
 }
 
 .dashed {
-  stroke-dasharray: var(--shiny-glyph-dash);
+  stroke-dasharray: var(--shiny-canvas-glyph-dash);
 }

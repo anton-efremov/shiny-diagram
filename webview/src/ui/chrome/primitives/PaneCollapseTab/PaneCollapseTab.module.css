@@ -12,21 +12,21 @@
   width: 22px;
   height: 30px;
   padding: 0;
-  border: 1px solid var(--shiny-layout-border);
+  border: 1px solid var(--shiny-chrome-layout-border);
   border-right: 0;
   border-radius: 5px 0 0 5px;
-  color: var(--shiny-text-muted);
+  color: var(--shiny-chrome-text-muted);
   background: var(--shiny-pane-bg);
   cursor: pointer;
 }
 
 .tab:hover {
-  color: var(--shiny-text);
-  background: var(--shiny-surface);
+  color: var(--shiny-chrome-text);
+  background: var(--shiny-chrome-surface);
 }
 
 .tab:focus-visible {
-  outline: 2px solid var(--shiny-selection);
+  outline: 2px solid var(--shiny-chrome-selection);
   outline-offset: 1px;
 }
 

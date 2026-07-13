@@ -1,9 +1,9 @@
-import type { GlyphDescriptor } from "../../../../../../shared/glyph";
+import type { MarkerGlyphDescriptor } from "../../../../../../shared/glyph";
 import type { RelationshipEndpointKind } from "../../../../../../shared/uml";
 
 type VisibleEndpointKind = Exclude<RelationshipEndpointKind, "none">;
 
-export const endpointGlyphs: Readonly<Record<VisibleEndpointKind, GlyphDescriptor>> = {
+export const endpointGlyphs: Readonly<Record<VisibleEndpointKind, MarkerGlyphDescriptor>> = {
   arrow: {
     paths: ["M2.4 2.4 11.2 6.4 2.4 10.4"],
     filled: false,

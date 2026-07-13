@@ -8,5 +8,5 @@
   min-height: 100vh;
   height: 100vh;
   overflow: hidden;
-  background: var(--shiny-app-bg);
+  background: var(--shiny-chrome-app-bg);
 }

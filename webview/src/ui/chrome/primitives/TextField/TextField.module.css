@@ -11,7 +11,7 @@
   border: 1px solid var(--shiny-field-border);
   border-radius: var(--shiny-field-radius);
   color: var(--shiny-field-fg);
-  background: var(--shiny-field-bg);
+  background: var(--shiny-chrome-field-bg);
   font: inherit;
   font-size: 12px;
 }
@@ -33,13 +33,13 @@
 
 .field:disabled,
 .fieldWithEndAction:disabled {
-  color: var(--shiny-text-muted);
+  color: var(--shiny-chrome-text-muted);
   opacity: 0.65;
 }
 
 .field[aria-invalid="true"],
 .fieldWithEndAction[aria-invalid="true"] {
-  border-color: var(--shiny-text-error);
+  border-color: var(--shiny-chrome-text-error);
 }
 
 .inline {
@@ -48,21 +48,21 @@
   border: 0;
   border-radius: 2px;
   color: inherit;
-  outline: 1px solid var(--shiny-inline-field-outline);
+  outline: 1px solid var(--shiny-chrome-inline-field-outline);
   outline-offset: 1px;
-  background: var(--shiny-inline-field-background);
+  background: var(--shiny-chrome-inline-field-background);
   font: inherit;
   line-height: inherit;
   text-align: inherit;
 }
 
 .inline:focus-visible {
-  outline: 1px solid var(--shiny-inline-field-focus-outline);
+  outline: 1px solid var(--shiny-chrome-inline-field-focus-outline);
   outline-offset: 1px;
 }
 
 .inline[aria-invalid="true"] {
-  outline-color: var(--shiny-inline-field-invalid-outline);
+  outline-color: var(--shiny-chrome-inline-field-invalid-outline);
 }
 
 .inline.fieldWithEndAction {
@@ -70,21 +70,21 @@
 }
 
 .inline.edgeLabel {
-  color: var(--shiny-edge-label-text);
-  outline-color: var(--shiny-edge-label-edit-outline);
-  background: var(--shiny-edge-label-edit-background);
+  color: var(--shiny-chrome-edge-label-text);
+  outline-color: var(--shiny-chrome-edge-label-edit-outline);
+  background: var(--shiny-chrome-edge-label-edit-background);
 }
 
 .inline.edgeCaption {
-  color: var(--shiny-edge-caption-text);
-  outline-color: var(--shiny-edge-caption-edit-outline);
-  background: var(--shiny-edge-caption-edit-background);
+  color: var(--shiny-chrome-edge-caption-text);
+  outline-color: var(--shiny-chrome-edge-caption-edit-outline);
+  background: var(--shiny-chrome-edge-caption-edit-background);
 }
 
 .inline.edgeLabel:focus-visible {
-  outline-color: var(--shiny-edge-label-edit-outline);
+  outline-color: var(--shiny-chrome-edge-label-edit-outline);
 }
 
 .inline.edgeCaption:focus-visible {
-  outline-color: var(--shiny-edge-caption-edit-outline);
+  outline-color: var(--shiny-chrome-edge-caption-edit-outline);
 }

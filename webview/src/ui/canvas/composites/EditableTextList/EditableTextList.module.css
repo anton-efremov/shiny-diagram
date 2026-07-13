@@ -19,7 +19,7 @@
 }
 
 .editable:hover {
-  background: var(--shiny-overlay-faint);
+  background: var(--shiny-canvas-overlay-faint);
 }
 
 .underlined {

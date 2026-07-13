@@ -9,7 +9,7 @@
   gap: 16px;
   align-items: flex-start;
   padding: 18px 24px;
-  border-bottom: 1px solid var(--shiny-layout-border);
+  border-bottom: 1px solid var(--shiny-chrome-layout-border);
   background: var(--shiny-header-bg);
 }
 

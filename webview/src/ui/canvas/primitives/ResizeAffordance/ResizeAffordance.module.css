@@ -20,14 +20,14 @@
   width: var(--shiny-resize-handle-size);
   height: var(--shiny-resize-handle-size);
   border: var(--shiny-resize-handle-border-width) var(--shiny-resize-handle-border-style)
-    var(--shiny-surface);
-  background: var(--shiny-selection);
+    var(--shiny-canvas-surface);
+  background: var(--shiny-canvas-selection);
 }
 
 .handle:focus-visible,
 .edge:focus-visible {
   outline: var(--shiny-resize-focus-outline-width) var(--shiny-resize-focus-outline-style)
-    var(--shiny-selection);
+    var(--shiny-canvas-selection);
   outline-offset: 2px;
 }
 

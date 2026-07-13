@@ -19,14 +19,14 @@
   border: 1px solid var(--shiny-field-border);
   border-radius: var(--shiny-field-radius);
   color: var(--shiny-field-fg);
-  background: var(--shiny-field-bg);
+  background: var(--shiny-chrome-field-bg);
   cursor: pointer;
 }
 
 .trigger:hover:not(:disabled) {
   border-color: var(--shiny-field-hover-border);
   color: var(--shiny-field-hover-fg);
-  background: var(--shiny-surface);
+  background: var(--shiny-chrome-surface);
 }
 
 .trigger:focus-visible,
@@ -60,7 +60,7 @@
   place-items: center;
   width: 22px;
   height: 18px;
-  color: var(--color-select-value, var(--shiny-text-muted));
+  color: var(--color-select-value, var(--shiny-chrome-text-muted));
 }
 
 .fill {
@@ -85,7 +85,7 @@
 
 .emphasized {
   border-radius: 2px;
-  box-shadow: 0 0 0 1px var(--shiny-text-muted);
+  box-shadow: 0 0 0 1px var(--shiny-chrome-text-muted);
 }
 
 .stroke.emphasized,
@@ -95,7 +95,11 @@
 
 .multiple {
   border: 1px solid var(--shiny-border);
-  background: linear-gradient(135deg, var(--shiny-surface) 50%, var(--shiny-text-muted) 50%);
+  background: linear-gradient(
+    135deg,
+    var(--shiny-chrome-surface) 50%,
+    var(--shiny-chrome-text-muted) 50%
+  );
   color: transparent;
 }
 
@@ -109,8 +113,8 @@
   width: var(--color-select-popup-width);
   padding: 9px;
   border: 1px solid var(--shiny-border);
-  border-radius: var(--shiny-button-radius);
-  background: var(--shiny-surface);
+  border-radius: var(--shiny-chrome-button-radius);
+  background: var(--shiny-chrome-surface);
   box-shadow: 0 6px 18px var(--shiny-overlay-strong);
 }
 
@@ -121,7 +125,7 @@
 
 .heading,
 .defaultOption {
-  color: var(--shiny-text-muted);
+  color: var(--shiny-chrome-text-muted);
   font-size: 11px;
   font-weight: 600;
 }
@@ -156,7 +160,7 @@
 }
 
 .colorOption[aria-pressed="true"] {
-  outline: 2px solid var(--shiny-accent-outline);
+  outline: 2px solid var(--shiny-chrome-accent-outline);
   outline-offset: 1px;
 }
 
@@ -169,7 +173,7 @@
   padding: 3px;
   border: 0;
   border-radius: 3px;
-  color: var(--shiny-text-muted);
+  color: var(--shiny-chrome-text-muted);
   background: transparent;
   font: inherit;
   font-size: 11px;
@@ -183,23 +187,23 @@
   height: 18px;
   border: 1px solid var(--shiny-overlay-strong);
   border-radius: 3px;
-  background: var(--color-select-value, var(--shiny-field-bg));
+  background: var(--color-select-value, var(--shiny-chrome-field-bg));
 }
 
 .defaultSwatch.fill {
-  background: var(--color-select-value, var(--shiny-base-fill));
+  background: var(--color-select-value, var(--shiny-chrome-base-fill));
 }
 
 .defaultSwatch.stroke {
-  background: var(--color-select-value, var(--shiny-base-stroke));
+  background: var(--color-select-value, var(--shiny-chrome-base-stroke));
 }
 
 .defaultSwatch.text {
-  background: var(--color-select-value, var(--shiny-base-text));
+  background: var(--color-select-value, var(--shiny-chrome-base-text));
 }
 
 .defaultOption[aria-pressed="true"] .defaultSwatch {
-  outline: 2px solid var(--shiny-accent-outline);
+  outline: 2px solid var(--shiny-chrome-accent-outline);
   outline-offset: 1px;
 }
 

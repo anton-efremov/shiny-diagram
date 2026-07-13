@@ -12,13 +12,13 @@
   justify-content: center;
   min-height: 32px;
   padding: 7px 10px;
-  border: 1px solid var(--shiny-button-border);
-  border-radius: var(--shiny-button-radius);
+  border: 1px solid var(--shiny-chrome-button-border);
+  border-radius: var(--shiny-chrome-button-radius);
   color: var(--shiny-button-secondary-fg);
   background: var(--shiny-button-secondary-bg);
   box-shadow:
-    inset 0 1px 0 var(--shiny-overlay-faint),
-    0 1px 1px var(--shiny-overlay-faint);
+    inset 0 1px 0 var(--shiny-chrome-overlay-faint),
+    0 1px 1px var(--shiny-chrome-overlay-faint);
   font: inherit;
   font-size: 12px;
   font-weight: 600;
@@ -26,15 +26,15 @@
 }
 
 .button:hover:not(:disabled) {
-  border-color: var(--shiny-accent-outline);
-  color: var(--shiny-button-fg);
-  background: var(--shiny-button-bg);
+  border-color: var(--shiny-chrome-accent-outline);
+  color: var(--shiny-chrome-button-fg);
+  background: var(--shiny-chrome-button-bg);
 }
 
 .accentButton {
-  border-color: var(--shiny-button-border);
-  color: var(--shiny-button-fg);
-  background: var(--shiny-button-bg);
+  border-color: var(--shiny-chrome-button-border);
+  color: var(--shiny-chrome-button-fg);
+  background: var(--shiny-chrome-button-bg);
 }
 
 .accentButton:hover:not(:disabled) {
@@ -49,33 +49,33 @@
 .dangerButton:active:not(:disabled),
 .accentButton:active:not(:disabled) {
   transform: translateY(1px);
-  box-shadow: inset 0 1px 2px var(--shiny-overlay-faint);
+  box-shadow: inset 0 1px 2px var(--shiny-chrome-overlay-faint);
 }
 
 .button:focus-visible,
 .dangerButton:focus-visible,
 .accentButton:focus-visible {
-  outline: 2px solid var(--shiny-accent-outline);
+  outline: 2px solid var(--shiny-chrome-accent-outline);
   outline-offset: 2px;
 }
 
 .button:disabled,
 .dangerButton:disabled,
 .accentButton:disabled {
-  color: var(--shiny-text-muted);
+  color: var(--shiny-chrome-text-muted);
   cursor: default;
   opacity: 0.58;
 }
 
 .dangerButton {
-  border-color: var(--shiny-text-error);
-  color: var(--shiny-text-error);
-  background: var(--shiny-surface);
+  border-color: var(--shiny-chrome-text-error);
+  color: var(--shiny-chrome-text-error);
+  background: var(--shiny-chrome-surface);
 }
 
 .dangerButton:hover:not(:disabled) {
-  color: var(--shiny-surface);
-  background: var(--shiny-text-error);
+  color: var(--shiny-chrome-surface);
+  background: var(--shiny-chrome-text-error);
 }
 
 .icon {
@@ -86,11 +86,11 @@
 }
 
 .glyph {
-  stroke-width: var(--shiny-glyph-stroke-width);
+  stroke-width: var(--shiny-chrome-glyph-stroke-width);
 }
 
 .dashedGlyphPath {
-  stroke-dasharray: var(--shiny-glyph-dash);
+  stroke-dasharray: var(--shiny-chrome-glyph-dash);
 }
 
 .label {

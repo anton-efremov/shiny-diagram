@@ -6,9 +6,9 @@
   overflow: visible;
   border: var(--hull-surface-stroke-width) var(--hull-surface-line-style)
     var(--hull-surface-stroke, var(--shiny-neutral-outline));
-  color: var(--hull-surface-color, var(--shiny-text));
+  color: var(--hull-surface-color, var(--shiny-canvas-text));
   background: var(--hull-surface-fill, var(--shiny-neutral-wash));
-  font-family: var(--shiny-font-family);
+  font-family: var(--shiny-canvas-font-family);
   font-size: var(--shiny-canvas-font-size-secondary);
   pointer-events: auto;
 }

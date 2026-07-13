@@ -1,5 +1,6 @@
 @import "@xyflow/react/dist/style.css";
-@import "./ui/tokens.css";
+@import "./ui/chrome/tokens.css";
+@import "./ui/canvas/tokens.css";
 
 /* --- Base/default styles --- */
 
@@ -22,6 +23,6 @@ body,
 /* Inherited defaults: every element gets Shiny's theme font/color unless it
    sets its own. */
 body {
-  font-family: var(--shiny-font-family);
-  color: var(--shiny-text);
+  font-family: var(--shiny-chrome-font-family);
+  color: var(--shiny-chrome-text);
 }

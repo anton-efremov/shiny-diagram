@@ -65,18 +65,18 @@ export function useMermaidRender(sourceText: string): UseMermaidRenderResult {
   return { mermaidContainerRef, renderError };
 }
 
-function readShinyToken(tokenName: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim();
+function readThemeVariable(variableName: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
 }
 
 function readMermaidThemeVariables(): Record<string, string> {
   return {
-    primaryColor: readShinyToken("--shiny-surface"),
-    primaryBorderColor: readShinyToken("--shiny-border"),
-    primaryTextColor: readShinyToken("--shiny-text"),
-    lineColor: readShinyToken("--shiny-text-muted"),
-    textColor: readShinyToken("--shiny-text"),
-    fontFamily: readShinyToken("--shiny-font-family"),
+    primaryColor: readThemeVariable("--vscode-editorWidget-background"),
+    primaryBorderColor: readThemeVariable("--vscode-panel-border"),
+    primaryTextColor: readThemeVariable("--vscode-editor-foreground"),
+    lineColor: readThemeVariable("--vscode-descriptionForeground"),
+    textColor: readThemeVariable("--vscode-editor-foreground"),
+    fontFamily: readThemeVariable("--vscode-font-family"),
   };
 }
 

@@ -1,0 +1,304 @@
+/**
+ * THE CANVAS BRANDBOOK. This file is the canvas wing's visual identity:
+ * choosing values here IS the brand work. It owns CSS-consumed colors, radii,
+ * elevation, line styles, cursors, type scale, control dimensions, and theme
+ * variance for this wing. No separate brandbook document exists.
+ *
+ * Naming:
+ * - A public token is named after what it is FOR, never after its value.
+ * - Diagram context is legal; UML/Mermaid-specific consumer names are not.
+ * - Because custom properties share one runtime namespace, a role present in
+ *   both wings carries the canvas area prefix here.
+ * - Consumers use tokens as-is: no local color-mix, alpha, or dimming.
+ *
+ * Values:
+ * - This wing may alias --vscode-* directly; choosing the alias is identity work.
+ * - Everything else is a value deliberately chosen for this wing.
+ * - Theme-specific rules and polarity primitives live only in this file.
+ *
+ * Structure and annotations:
+ * - Sections group usage neighborhoods; definitions may be consumed anywhere
+ *   in this wing. Names carry meaning; comments exist only for rationale that
+ *   cannot be reconstructed from a name and value.
+ */
+
+:root {
+  --shiny-canvas-ink: #000000;
+  --shiny-canvas-paper: #ffffff;
+}
+
+body[data-vscode-theme-kind="vscode-light"] {
+  --shiny-canvas-ink: #000000;
+  --shiny-canvas-paper: #ffffff;
+}
+
+body[data-vscode-theme-kind="vscode-dark"] {
+  --shiny-canvas-ink: #000000;
+  --shiny-canvas-paper: #ffffff;
+}
+
+body[data-vscode-theme-kind="vscode-high-contrast"] {
+  --shiny-canvas-ink: #000000;
+  --shiny-canvas-paper: #ffffff;
+}
+
+:root {
+  --shiny-canvas-font-family: var(--vscode-font-family);
+  --shiny-canvas-text: var(--vscode-editor-foreground);
+  --shiny-canvas-text-muted: var(--vscode-descriptionForeground);
+  --shiny-canvas-text-error: var(--vscode-errorForeground);
+  --shiny-canvas-glyph-stroke-width: 1.5px;
+  --shiny-canvas-glyph-dash: 2 2;
+}
+
+:root {
+  --shiny-canvas-app-bg: var(--vscode-editor-background);
+  --shiny-canvas-layout-border: var(
+    --vscode-sideBar-border,
+    var(--vscode-editorGroup-border, var(--vscode-widget-border))
+  );
+  --shiny-layout-border-width: 1px;
+  --shiny-layout-border-style: solid;
+  --shiny-canvas-surface: var(--vscode-editorWidget-background);
+  --shiny-canvas-elevation-high: 0 4px 10px rgb(0 0 0 / 35%);
+  --shiny-neutral-wash: rgba(166, 166, 166, 0.1);
+  --shiny-neutral-outline: #a6a6a6;
+  --shiny-canvas-button-radius: 6px;
+  --shiny-canvas-field-bg: var(--vscode-input-background);
+  --shiny-canvas-inline-field-background: color-mix(in srgb, currentColor 14%, transparent);
+  --shiny-canvas-inline-field-outline: color-mix(in srgb, currentColor 78%, transparent);
+  --shiny-canvas-inline-field-focus-outline: color-mix(in srgb, currentColor 92%, transparent);
+  --shiny-canvas-inline-field-invalid-outline: color-mix(
+    in srgb,
+    var(--shiny-canvas-text-error) 65%,
+    transparent
+  );
+  --shiny-inline-field-radius: 2px;
+  --shiny-inline-field-outline-width: 1px;
+  --shiny-inline-field-outline-style: solid;
+  --shiny-inline-field-inset-outline: inset 0 0 0 var(--shiny-inline-field-outline-width)
+    var(--shiny-canvas-inline-field-outline);
+  --shiny-inline-field-inset-focus-outline: inset 0 0 0 var(--shiny-inline-field-outline-width)
+    var(--shiny-canvas-inline-field-focus-outline);
+  --shiny-inline-field-inset-invalid-outline: inset 0 0 0 var(--shiny-inline-field-outline-width)
+    var(--shiny-canvas-inline-field-invalid-outline);
+  --shiny-canvas-button-bg: var(--vscode-button-background);
+  --shiny-canvas-button-fg: var(--vscode-button-foreground);
+  --shiny-canvas-button-border: var(--vscode-button-border, transparent);
+}
+
+:root {
+  --shiny-canvas-validation-border: var(
+    --vscode-inputValidation-errorBorder,
+    var(--shiny-canvas-text-error)
+  );
+  --shiny-canvas-validation-foreground: var(--vscode-button-foreground);
+  --shiny-canvas-validation-surface: var(
+    --vscode-inputValidation-errorBackground,
+    var(--shiny-canvas-text-error)
+  );
+  --shiny-validation-dismiss-background: color-mix(
+    in srgb,
+    var(--shiny-canvas-validation-foreground) 18%,
+    transparent
+  );
+  --shiny-validation-border-width: 1px;
+  --shiny-validation-border-style: solid;
+  --shiny-validation-radius: 999px;
+  --shiny-validation-font-weight: 600;
+  --shiny-validation-line-height: 1.3;
+  --shiny-validation-elevation: drop-shadow(var(--shiny-canvas-elevation-high));
+  --shiny-validation-dismiss-size: 20px;
+  --shiny-validation-dismiss-radius: 3px;
+  --shiny-validation-dismiss-focus-outline-width: 1px;
+  --shiny-validation-dismiss-focus-outline-style: solid;
+  --shiny-positive: #2fbf71;
+}
+
+:root {
+  --shiny-canvas-font-size-primary: 13px;
+  --shiny-canvas-font-size-secondary: 12px;
+  --shiny-canvas-font-size-supporting: 11px;
+  --shiny-canvas-font-weight-primary: 600;
+  --shiny-canvas-font-weight-heading: 600;
+  --shiny-canvas-line-height-primary: 1.25;
+  --shiny-canvas-line-height-secondary: 1.25;
+  --shiny-canvas-line-height-supporting: 1.2;
+  --shiny-canvas-line-height-heading: 16px;
+  --shiny-canvas-line-height-body: 1.35;
+}
+
+:root {
+  --shiny-canvas-selection: var(--vscode-focusBorder);
+  --shiny-canvas-accent-outline: var(--vscode-focusBorder);
+  --shiny-accent-tint: var(--vscode-focusBorder);
+  --shiny-edge-label-background: color-mix(in srgb, var(--shiny-canvas-paper) 72%, transparent);
+  --shiny-edge-label-outline: color-mix(in srgb, var(--shiny-canvas-ink) 24%, transparent);
+  --shiny-canvas-edge-label-text: var(--shiny-canvas-ink);
+  --shiny-canvas-edge-label-edit-background: color-mix(
+    in srgb,
+    var(--shiny-canvas-paper) 76%,
+    transparent
+  );
+  --shiny-canvas-edge-label-edit-outline: color-mix(
+    in srgb,
+    var(--shiny-canvas-ink) 85%,
+    transparent
+  );
+  --shiny-edge-caption-background: color-mix(in srgb, var(--shiny-canvas-ink) 64%, transparent);
+  --shiny-edge-caption-outline: transparent;
+  --shiny-canvas-edge-caption-text: var(--shiny-canvas-paper);
+  --shiny-canvas-edge-caption-edit-background: color-mix(
+    in srgb,
+    var(--shiny-canvas-ink) 68%,
+    transparent
+  );
+  --shiny-canvas-edge-caption-edit-outline: color-mix(
+    in srgb,
+    var(--shiny-canvas-paper) 85%,
+    transparent
+  );
+  --shiny-edge-stroke-width: 1.5px;
+  --shiny-edge-selection-stroke-width: 2px;
+  --shiny-edge-dash-pattern: 6 4;
+  --shiny-edge-marker-background: var(--shiny-canvas-surface);
+  --shiny-edge-marker-stroke: var(--shiny-canvas-text-muted);
+  --shiny-edge-ghost-accent-stroke-width: 1.8px;
+  --shiny-edge-ghost-attachment-stroke-width: 2px;
+  --shiny-attachment-preview-stroke: #805d00;
+  --shiny-attachment-edge-stroke: #8a6d1d;
+  --shiny-attachment-edge-stroke-width: 1.5px;
+  --shiny-box-outline-width: 1.5px;
+  --shiny-box-outline-style: solid;
+  --shiny-box-pending-outline-width: 2px;
+  --shiny-box-pending-outline-style: dashed;
+  --shiny-halo-radius: 4px;
+  --shiny-draft-border-width: 1px;
+  --shiny-draft-border-style: solid;
+  --shiny-positive-draft-border-width: 2px;
+  --shiny-resize-handle-size: 6px;
+  --shiny-resize-edge-hit-width: 8px;
+  --shiny-resize-handle-border-width: 1px;
+  --shiny-resize-handle-border-style: solid;
+  --shiny-resize-focus-outline-width: 2px;
+  --shiny-resize-focus-outline-style: solid;
+  --shiny-cursor-action: pointer;
+  --shiny-cursor-text: text;
+  --shiny-cursor-resize-vertical: ns-resize;
+  --shiny-cursor-resize-horizontal: ew-resize;
+  --shiny-cursor-resize-forward-diagonal: nwse-resize;
+  --shiny-cursor-resize-backward-diagonal: nesw-resize;
+  --shiny-edge-hit-stroke-width: 14;
+  --shiny-edge-marker-stroke-width: 1;
+  --shiny-edge-endpoint-handle-stroke-width: 0.5px;
+  --shiny-edge-text-outline-width: 1px;
+  --shiny-inline-action-cancel-size: 13px;
+  --shiny-inline-action-cancel-glyph-size: 11px;
+  --shiny-inline-action-border-width: 1px;
+  --shiny-inline-action-border-style: solid;
+  --shiny-inline-action-cancel-radius: 50%;
+  --shiny-inline-action-add-radius: 999px;
+  --shiny-inline-action-add-glyph-size: 15px;
+  --shiny-inline-action-add-background: color-mix(in srgb, currentColor 18%, transparent);
+  --shiny-inline-add-min-height: 10px;
+  --shiny-inline-toggle-width: 24px;
+  --shiny-inline-toggle-height: 22px;
+  --shiny-inline-toggle-glyph-size: 14px;
+  --shiny-inline-toggle-border-width: 1px;
+  --shiny-inline-toggle-border-style: solid;
+  --shiny-inline-toggle-border: color-mix(in srgb, currentColor 55%, transparent);
+  --shiny-inline-toggle-radius: 3px;
+  --shiny-inline-toggle-background: color-mix(
+    in srgb,
+    currentColor 12%,
+    var(--inline-toggle-surface, var(--inline-toggle-default-surface))
+  );
+  --shiny-inline-toggle-hover-background: color-mix(
+    in srgb,
+    currentColor 18%,
+    var(--inline-toggle-surface, var(--inline-toggle-default-surface))
+  );
+  --shiny-inline-toggle-pressed-background: color-mix(
+    in srgb,
+    currentColor 24%,
+    var(--inline-toggle-surface, var(--inline-toggle-default-surface))
+  );
+  --shiny-inline-toggle-pressed-shadow: inset 0 0 0 1px
+    color-mix(in srgb, currentColor 30%, transparent);
+  --shiny-inline-toggle-focus-outline-width: 2px;
+  --shiny-inline-toggle-focus-outline-style: solid;
+  --shiny-reorder-drag-opacity: 0.4;
+  --shiny-cursor-default: default;
+  --shiny-cursor-placement: crosshair;
+  --shiny-inline-area-border-width: 1px;
+  --shiny-inline-area-border-style: solid;
+  --shiny-inline-area-radius: 0;
+  --shiny-inline-text-button-height: 26px;
+  --shiny-inline-text-button-border-width: 1px;
+  --shiny-inline-text-button-border-style: solid;
+  --shiny-inline-text-button-border: var(--shiny-canvas-button-border);
+  --shiny-inline-text-button-radius: 999px;
+  --shiny-inline-text-button-foreground: var(--shiny-canvas-button-fg);
+  --shiny-inline-text-button-background: var(--shiny-canvas-button-bg);
+  --shiny-inline-text-button-elevation:
+    inset 0 1px 0 var(--shiny-canvas-overlay-faint), 0 1px 1px var(--shiny-canvas-overlay-faint);
+  --shiny-inline-text-button-font-size: 11px;
+  --shiny-inline-text-button-font-weight: 600;
+  --shiny-inline-text-button-hover-filter: brightness(1.08);
+  --shiny-inline-text-button-active-elevation: inset 0 1px 2px var(--shiny-canvas-overlay-faint);
+  --shiny-inline-text-button-focus-outline-width: 2px;
+  --shiny-inline-text-button-focus-outline-style: solid;
+}
+
+body[data-vscode-theme-kind="vscode-light"] {
+  --shiny-canvas-overlay-faint: color-mix(in srgb, var(--shiny-canvas-ink) 3%, transparent);
+  --shiny-edge-caption-background: color-mix(in srgb, var(--shiny-canvas-paper) 88%, transparent);
+  --shiny-edge-caption-outline: color-mix(in srgb, var(--shiny-canvas-ink) 24%, transparent);
+  --shiny-canvas-edge-caption-text: var(--shiny-canvas-ink);
+  --shiny-canvas-edge-caption-edit-background: color-mix(
+    in srgb,
+    var(--shiny-canvas-paper) 88%,
+    transparent
+  );
+  --shiny-canvas-edge-caption-edit-outline: color-mix(
+    in srgb,
+    var(--shiny-canvas-ink) 38%,
+    transparent
+  );
+  --shiny-attachment-preview-stroke: color-mix(in srgb, #805d00 88%, var(--shiny-canvas-ink));
+  --shiny-attachment-edge-stroke: color-mix(in srgb, #8a6d1d 88%, var(--shiny-canvas-ink));
+}
+
+body[data-vscode-theme-kind="vscode-dark"] {
+  --shiny-canvas-overlay-faint: color-mix(in srgb, var(--shiny-canvas-paper) 3%, transparent);
+  --shiny-attachment-preview-stroke: #805d00;
+  --shiny-attachment-edge-stroke: #8a6d1d;
+}
+
+body[data-vscode-theme-kind="vscode-high-contrast"] {
+  --shiny-canvas-overlay-faint: transparent;
+  --shiny-attachment-preview-stroke: color-mix(in srgb, #805d00 72%, var(--shiny-canvas-ink));
+  --shiny-attachment-edge-stroke: color-mix(in srgb, #8a6d1d 72%, var(--shiny-canvas-ink));
+}
+
+:root {
+  --shiny-canvas-bg: var(--vscode-editor-background);
+  --shiny-grid-dot: var(
+    --vscode-editorWhitespace-foreground,
+    var(--vscode-editorIndentGuide-background1, var(--vscode-editorLineNumber-foreground))
+  );
+  --shiny-canvas-base-fill: var(--vscode-editor-background);
+  --shiny-canvas-base-stroke: var(--vscode-editor-foreground);
+  --shiny-canvas-base-text: var(--vscode-editor-foreground);
+  --shiny-base-stroke-width: 1px;
+  --shiny-base-stroke-style: solid;
+  --shiny-note-bg: #fff4b8;
+  --shiny-note-border: #c59f25;
+  --shiny-note-text: #2f2a18;
+  --shiny-note-border-width: 1px;
+  --shiny-note-border-style: solid;
+  --shiny-note-radius: var(--shiny-canvas-button-radius);
+  --shiny-node-drag-opacity: 0.88;
+  --shiny-cursor-move-ready: grab;
+  --shiny-cursor-move-active: grabbing;
+}

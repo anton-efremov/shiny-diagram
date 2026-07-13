@@ -1,6 +1,6 @@
 .path {
   fill: none;
-  stroke: var(--edge-path-stroke, var(--shiny-text-muted));
+  stroke: var(--edge-path-stroke, var(--shiny-canvas-text-muted));
   stroke-width: var(--edge-path-stroke-width, var(--shiny-edge-stroke-width));
 }
 
@@ -14,6 +14,6 @@
 }
 
 .selected {
-  stroke: var(--shiny-accent-outline);
+  stroke: var(--shiny-canvas-accent-outline);
   stroke-width: var(--shiny-edge-selection-stroke-width);
 }

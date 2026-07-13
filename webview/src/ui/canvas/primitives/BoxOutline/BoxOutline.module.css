@@ -13,12 +13,14 @@
 
 .selected {
   inset: calc(-1 * var(--box-outline-center-offset) - 1px);
-  border: var(--shiny-box-outline-width) var(--shiny-box-outline-style) var(--shiny-selection);
+  border: var(--shiny-box-outline-width) var(--shiny-box-outline-style)
+    var(--shiny-canvas-selection);
 }
 
 .hover {
   inset: calc(-1 * var(--box-outline-center-offset) - 1px);
-  border: var(--shiny-box-outline-width) var(--shiny-box-outline-style) var(--shiny-selection);
+  border: var(--shiny-box-outline-width) var(--shiny-box-outline-style)
+    var(--shiny-canvas-selection);
   opacity: 0;
 }
 
@@ -28,6 +30,6 @@
 
 .pending {
   outline: var(--shiny-box-pending-outline-width) var(--shiny-box-pending-outline-style)
-    var(--shiny-accent-outline);
+    var(--shiny-canvas-accent-outline);
   outline-offset: 2px;
 }

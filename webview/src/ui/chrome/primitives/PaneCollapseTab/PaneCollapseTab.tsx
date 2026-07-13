@@ -4,6 +4,7 @@
  */
 
 import type { ReactElement } from "react";
+import { GLYPH_VIEW_BOX } from "../../../../shared/glyph";
 import styles from "./PaneCollapseTab.module.css";
 
 type PaneCollapseTabProps = {
@@ -25,7 +26,7 @@ export default function PaneCollapseTab({
     >
       <svg
         className={collapsed ? styles.inward : styles.outward}
-        viewBox="0 0 16 16"
+        viewBox={GLYPH_VIEW_BOX}
         fill="none"
         aria-hidden="true"
         focusable="false"

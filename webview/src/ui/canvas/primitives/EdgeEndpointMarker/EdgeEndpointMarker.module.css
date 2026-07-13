@@ -13,9 +13,13 @@
 }
 
 .selected {
-  stroke: var(--shiny-selection);
+  stroke: var(--shiny-canvas-selection);
 }
 
 .filled.selected {
-  fill: var(--shiny-selection);
+  fill: var(--shiny-canvas-selection);
+}
+
+.dashed {
+  stroke-dasharray: var(--shiny-canvas-glyph-dash);
 }

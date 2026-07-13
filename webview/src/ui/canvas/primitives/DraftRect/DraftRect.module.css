@@ -1,5 +1,5 @@
 .draftRect {
-  background: var(--shiny-overlay-faint);
+  background: var(--shiny-canvas-overlay-faint);
   pointer-events: none;
 }
 
@@ -13,7 +13,7 @@
 
 .accent {
   border: var(--shiny-draft-border-width) var(--shiny-draft-border-style)
-    var(--shiny-accent-outline);
+    var(--shiny-canvas-accent-outline);
 }
 
 .positive {

@@ -17,10 +17,10 @@
   padding: 6px 12px;
   overflow: hidden;
   border: var(--shiny-validation-border-width) var(--shiny-validation-border-style)
-    var(--shiny-validation-border);
+    var(--shiny-canvas-validation-border);
   border-radius: var(--shiny-validation-radius);
-  color: var(--shiny-validation-foreground);
-  background: var(--shiny-validation-surface);
+  color: var(--shiny-canvas-validation-foreground);
+  background: var(--shiny-canvas-validation-surface);
   font-size: var(--shiny-canvas-font-size-secondary);
   font-weight: var(--shiny-validation-font-weight);
   line-height: var(--shiny-validation-line-height);
@@ -72,7 +72,7 @@
 }
 
 .dismiss path {
-  stroke-width: var(--shiny-glyph-stroke-width);
+  stroke-width: var(--shiny-canvas-glyph-stroke-width);
 }
 
 .popup::after {
@@ -81,10 +81,10 @@
   width: 8px;
   height: 8px;
   border-right: var(--shiny-validation-border-width) var(--shiny-validation-border-style)
-    var(--shiny-validation-border);
+    var(--shiny-canvas-validation-border);
   border-bottom: var(--shiny-validation-border-width) var(--shiny-validation-border-style)
-    var(--shiny-validation-border);
-  background: var(--shiny-validation-surface);
+    var(--shiny-canvas-validation-border);
+  background: var(--shiny-canvas-validation-surface);
   content: "";
 }
 

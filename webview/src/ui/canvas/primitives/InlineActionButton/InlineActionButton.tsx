@@ -3,7 +3,13 @@
  */
 
 import type { CSSProperties, ReactElement } from "react";
-import type { GlyphDescriptor } from "../../../../shared/glyph";
+import { GLYPH_VIEW_BOX, type GlyphDescriptor } from "../../../../shared/glyph";
+import {
+  GLYPH_COLOR,
+  GLYPH_EMPTY_FILL,
+  GLYPH_STROKE_LINE_CAP,
+  GLYPH_STROKE_LINE_JOIN,
+} from "../../tokens";
 import styles from "./InlineActionButton.module.css";
 
 type InlineActionButtonProps = {
@@ -42,11 +48,11 @@ export default function InlineActionButton({
       onClick={onPress}
     >
       <svg
-        viewBox="0 0 16 16"
-        fill={glyph.filled ? "currentColor" : "none"}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        viewBox={GLYPH_VIEW_BOX}
+        fill={glyph.filled ? GLYPH_COLOR : GLYPH_EMPTY_FILL}
+        stroke={GLYPH_COLOR}
+        strokeLinecap={GLYPH_STROKE_LINE_CAP}
+        strokeLinejoin={GLYPH_STROKE_LINE_JOIN}
         aria-hidden="true"
         focusable="false"
       >

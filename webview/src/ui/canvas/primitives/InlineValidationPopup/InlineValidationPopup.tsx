@@ -5,6 +5,7 @@
 
 import { useLayoutEffect } from "react";
 import type { CSSProperties, ReactElement } from "react";
+import { GLYPH_VIEW_BOX } from "../../../../shared/glyph";
 import { useAnchoredPopupPosition } from "../../../core/useAnchoredPopupPosition";
 import styles from "./InlineValidationPopup.module.css";
 
@@ -55,7 +56,7 @@ export default function InlineValidationPopup({
       >
         <span className={styles.message}>{messages.join(" ")}</span>
         <button type="button" className={styles.dismiss} aria-label="Dismiss" onClick={onDismiss}>
-          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+          <svg viewBox={GLYPH_VIEW_BOX} fill="none" aria-hidden="true" focusable="false">
             <path
               d="M5 5 11 11M11 5 5 11"
               fill="none"

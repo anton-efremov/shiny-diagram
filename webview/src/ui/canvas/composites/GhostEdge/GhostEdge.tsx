@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import type { GlyphDescriptor } from "../../../../shared/glyph";
+import type { MarkerGlyphDescriptor } from "../../../../shared/glyph";
 import type { Point } from "../../../../shared/geometry";
 import EdgeEndpointMarker from "../../primitives/EdgeEndpointMarker/EdgeEndpointMarker";
 import EdgeGhostLine from "../../primitives/EdgeGhostLine/EdgeGhostLine";
@@ -9,8 +9,8 @@ type GhostEdgeProps = {
   readonly endPoint: Point;
   readonly lineKind: "solid" | "dashed";
   readonly tone: "accent" | "attachment";
-  readonly startMarker?: { readonly id: string; readonly glyph: GlyphDescriptor };
-  readonly endMarker?: { readonly id: string; readonly glyph: GlyphDescriptor };
+  readonly startMarker?: { readonly id: string; readonly glyph: MarkerGlyphDescriptor };
+  readonly endMarker?: { readonly id: string; readonly glyph: MarkerGlyphDescriptor };
 };
 
 export default function GhostEdge({

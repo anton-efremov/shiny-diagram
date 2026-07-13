@@ -4,6 +4,7 @@
  */
 
 import type { ReactElement } from "react";
+import { GLYPH_VIEW_BOX } from "../../../../shared/glyph";
 import styles from "./DismissButton.module.css";
 
 type DismissButtonProps = {
@@ -31,7 +32,7 @@ export default function DismissButton({
       }}
       onClick={onClick}
     >
-      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+      <svg viewBox={GLYPH_VIEW_BOX} fill="none" aria-hidden="true" focusable="false">
         <path
           d="M5 5 11 11M11 5 5 11"
           fill="none"

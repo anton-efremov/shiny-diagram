@@ -10,7 +10,7 @@
   padding: 8px 10px;
   border-bottom: var(--box-header-separator-thickness, var(--shiny-base-stroke-width))
     var(--box-header-separator-line-style, var(--shiny-base-stroke-style))
-    var(--box-header-separator-color, var(--shiny-base-stroke));
+    var(--box-header-separator-color, var(--shiny-canvas-base-stroke));
   text-align: center;
 }
 

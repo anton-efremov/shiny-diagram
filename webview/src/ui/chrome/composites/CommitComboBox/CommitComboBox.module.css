@@ -21,7 +21,7 @@
 .label {
   min-width: 0;
   overflow: hidden;
-  color: var(--shiny-text-muted);
+  color: var(--shiny-chrome-text-muted);
   font-size: 11px;
   font-weight: 600;
   line-height: 1.2;
@@ -37,12 +37,12 @@
   min-width: 0;
   border: 1px solid var(--shiny-field-border);
   border-radius: var(--shiny-field-radius);
-  background: var(--shiny-field-bg);
+  background: var(--shiny-chrome-field-bg);
 }
 
 .comboBox:has(.valueButton:hover:not(:disabled), .menuButton:hover:not(:disabled)) {
   border-color: var(--shiny-field-hover-border);
-  background: var(--shiny-surface);
+  background: var(--shiny-chrome-surface);
 }
 
 .comboBox:has(.valueButton:hover:not(:disabled), .menuButton:hover:not(:disabled)) .valueButton,
@@ -78,7 +78,7 @@
   min-height: var(--shiny-control-height);
   padding: 0;
   border-radius: 0 var(--shiny-field-radius) var(--shiny-field-radius) 0;
-  color: var(--shiny-text-muted);
+  color: var(--shiny-chrome-text-muted);
 }
 
 .menuButton::before {
@@ -97,7 +97,7 @@
 
 .option:hover {
   color: var(--shiny-field-hover-fg);
-  background: var(--shiny-surface);
+  background: var(--shiny-chrome-surface);
 }
 
 .valueButton:focus-visible,
@@ -109,7 +109,7 @@
 
 .valueButton:disabled,
 .menuButton:disabled {
-  color: var(--shiny-text-muted);
+  color: var(--shiny-chrome-text-muted);
   cursor: default;
   opacity: 0.58;
 }
@@ -135,8 +135,8 @@
   overflow: auto;
   border: 1px solid var(--shiny-border);
   border-radius: 4px;
-  background: var(--shiny-surface);
-  box-shadow: 0 4px 10px var(--shiny-overlay-faint);
+  background: var(--shiny-chrome-surface);
+  box-shadow: 0 4px 10px var(--shiny-chrome-overlay-faint);
 }
 
 .option {
@@ -147,5 +147,5 @@
 }
 
 .option[aria-selected="true"] {
-  border-color: var(--shiny-accent-outline);
+  border-color: var(--shiny-chrome-accent-outline);
 }

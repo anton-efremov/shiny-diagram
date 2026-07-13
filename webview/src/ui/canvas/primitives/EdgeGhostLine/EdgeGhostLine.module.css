@@ -3,7 +3,7 @@
 }
 
 .accent {
-  stroke: var(--shiny-accent-outline);
+  stroke: var(--shiny-canvas-accent-outline);
   stroke-width: var(--shiny-edge-ghost-accent-stroke-width);
 }
 

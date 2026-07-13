@@ -6,6 +6,7 @@
 import { useRef, useState } from "react";
 import type { KeyboardEvent, ReactElement } from "react";
 import type { CSSProperties } from "react";
+import { GLYPH_VIEW_BOX } from "../../../../shared/glyph";
 import type { StyleProperties } from "../../../../shared/style";
 import styles from "./Dropdown.module.css";
 
@@ -82,7 +83,7 @@ export default function Dropdown({
             <span className={styles.triggerLabel}>{selectedOption?.label ?? ""}</span>
           )}
           <span className={styles.arrow} aria-hidden="true">
-            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <svg viewBox={GLYPH_VIEW_BOX} aria-hidden="true" focusable="false">
               <path d="M4 6h8l-4 5Z" fill="currentColor" />
             </svg>
           </span>

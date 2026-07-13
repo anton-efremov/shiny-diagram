@@ -24,6 +24,6 @@
 
 .button:focus-visible {
   outline: var(--shiny-inline-text-button-focus-outline-width)
-    var(--shiny-inline-text-button-focus-outline-style) var(--shiny-accent-outline);
+    var(--shiny-inline-text-button-focus-outline-style) var(--shiny-canvas-accent-outline);
   outline-offset: 2px;
 }
