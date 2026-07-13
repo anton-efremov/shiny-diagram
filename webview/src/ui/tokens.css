@@ -290,18 +290,24 @@ body[data-vscode-theme-kind="vscode-light"] {
   --shiny-edge-caption-text: var(--shiny-ink);
   --shiny-edge-caption-edit-background: color-mix(in srgb, var(--shiny-paper) 88%, transparent);
   --shiny-edge-caption-edit-outline: color-mix(in srgb, var(--shiny-ink) 38%, transparent);
+  --shiny-attachment-preview-stroke: color-mix(in srgb, #805d00 88%, var(--shiny-ink));
+  --shiny-attachment-edge-stroke: color-mix(in srgb, #8a6d1d 88%, var(--shiny-ink));
 }
 
 body[data-vscode-theme-kind="vscode-dark"] {
   --shiny-overlay-faint: color-mix(in srgb, var(--shiny-paper) 3%, transparent);
   --shiny-overlay-strong: color-mix(in srgb, var(--shiny-paper) 32%, transparent);
   --shiny-selection-stripe: color-mix(in srgb, var(--shiny-paper) 14%, transparent);
+  --shiny-attachment-preview-stroke: #805d00;
+  --shiny-attachment-edge-stroke: #8a6d1d;
 }
 
 body[data-vscode-theme-kind="vscode-high-contrast"] {
   --shiny-overlay-faint: transparent;
   --shiny-overlay-strong: var(--shiny-text);
   --shiny-selection-stripe: var(--shiny-accent-tint);
+  --shiny-attachment-preview-stroke: color-mix(in srgb, #805d00 72%, var(--shiny-ink));
+  --shiny-attachment-edge-stroke: color-mix(in srgb, #8a6d1d 72%, var(--shiny-ink));
 }
 
 /* ── Content defaults ── */

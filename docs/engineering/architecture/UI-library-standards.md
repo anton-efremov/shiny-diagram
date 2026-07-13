@@ -1,4 +1,4 @@
-> **Implementation state:** Aspirational — the library currently lives at `webview/src/View/ui` without wings; migration chunks bring code to compliance  
+> **Implementation state:** Implemented and checker-enforced
 > **Document state:** Maintained 
 > **Scope:** `webview/src/ui/**`  
 > **Goal** Must-follow standards of the UI library layer: what it owns, how it is structured, and where every style value is defined. Domain components consuming the library are governed by [react-standards](./react-standards.md); components are self-documenting — contracts live in code and file annotations, not in this document. `styles.css` governs itself through its header annotation.
@@ -7,6 +7,7 @@ Layer consumers, declared per layer:
 - the View domain tree consumes both wings
 - Shell consumes the `chrome/` wing
 - Controller, Bridge, and mermaidRenderer consume nothing from this layer — including tokens. 
+- mermaidRenderer styles rendered diagram content outside the brand system: it owns its stylesheet, consumes `--vscode-*` directly, and never reads `--shiny-*`
 Token consumption by cascade is part of the declared dependency: a `var(--shiny-*)` read in a non-consumer layer is a violation. How domain components consume the library is governed by [react-standards](./react-standards.md).
 
 # Vocabulary
@@ -128,7 +129,7 @@ Dropdown/
 
 - Elements are named after their UI/behavior: `ResizeAffordance`, not `ClassResizeAffordance`; an element that cannot be named without a domain word does not belong in the library
 - Standard UX pattern names are used bare when the element behaves exactly as the pattern implies: `Dropdown`
-- A modifier prefix names an augmentation beyond the pattern's definition and carries its obligations: `Commit` (draft lifecycle), `Reserved` (space kept regardless of content state), `Affordance` (signals and reports an interaction on another element, never owns it)
+- A modifier prefix names an augmentation beyond the pattern's definition and carries its obligations: `Commit` (draft lifecycle), `Reserved` (space kept regardless of content state), `Affordance` (signals and reports an interaction on another element, never owns it), `Inline` (in-place canvas treatment: transparent ground, canvas type scale, treatment calibrated to sit inside diagram surfaces)
 - Variant and option names are situational UI vocabulary ("inline", "compact", "secondary"), never domain words
 
 #### Annotation

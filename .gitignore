@@ -2,6 +2,4 @@ node_modules/
 out/
 dist/
 .vscode-test/
-package-lock.json
 docs/agents/tasks/
-

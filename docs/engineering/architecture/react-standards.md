@@ -1,4 +1,4 @@
-> **Implementation state:** Aspirational   
+> **Implementation state:** Implemented and checker-enforced
 > **Document state:** Maintained  
 > **Scope:** `webview/src/View/**`  
 > **Audience:** Coding agents  
