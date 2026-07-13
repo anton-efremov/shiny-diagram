@@ -1,3 +1,15 @@
+/**
+ * Ghost edge assembling optional marker definitions around a preview line.
+ *
+ * Draws from `startPoint` to `endPoint`, defining and linking `startMarker` and
+ * `endMarker` when supplied.
+ *
+ * Options:
+ * - `lineKind` — `solid` draws continuously; `dashed` uses the edge dash pattern
+ * - `tone` — `accent` previews relationship placement; `attachment` previews
+ *   attachment treatment
+ */
+
 import type { ReactElement } from "react";
 import type { MarkerGlyphDescriptor } from "../../../../shared/glyph";
 import type { Point } from "../../../../shared/geometry";

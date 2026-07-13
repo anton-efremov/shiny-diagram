@@ -1,3 +1,9 @@
+/**
+ * Attachment edge with fixed dashed treatment and no pointer interaction.
+ *
+ * Draws `d` using attachment identity while ignoring pointer input.
+ */
+
 import type { ReactElement } from "react";
 import EdgePath from "../../primitives/EdgePath/EdgePath";
 import styles from "./AttachmentEdge.module.css";

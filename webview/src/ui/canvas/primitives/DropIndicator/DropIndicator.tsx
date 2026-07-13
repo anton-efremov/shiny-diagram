@@ -1,3 +1,9 @@
+/**
+ * Drop indicator marking a text-list insertion point.
+ *
+ * Renders a fixed-height accent line without interactive or accessible content.
+ */
+
 import type { ReactElement } from "react";
 import styles from "./DropIndicator.module.css";
 

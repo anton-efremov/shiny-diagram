@@ -1,6 +1,9 @@
 /**
- * @behavior Escape and outside-pointer validation dismissal routing.
- * @render Top-layer validation-message overlay anchored to its call site.
+ * Validation popup anchored to its rendered call site.
+ *
+ * Joins `messages` into one single-line alert, truncating overflow, and places
+ * it above the anchor or below when viewport space requires. Escape, any window
+ * pointer press, and the dismiss control each report `onDismiss`.
  */
 
 import { useLayoutEffect } from "react";

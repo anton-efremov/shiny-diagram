@@ -1,5 +1,15 @@
 /**
- * @render Dot-grid framing for a three-region workspace or fill canvas.
+ * Grid frame for workspace composition, canvas fill, and clipped shell hosting.
+ *
+ * Workspace form arranges `leading`, `content`, and `trailing` regions using
+ * `leadingWidth` and names the region with `ariaLabel`. Canvas form fills its
+ * host with `children`. Shell form clips `children` to a full-height region
+ * named by `ariaLabel`.
+ *
+ * Options:
+ * - `variant` — `workspace` renders the three-region grid, `canvas` renders a
+ *   fill surface, and `shell` renders a clipped positioning frame
+ * - `placementActive` — in canvas form, on shows the placement cursor
  */
 
 import type { CSSProperties, ReactElement, ReactNode } from "react";

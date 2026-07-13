@@ -1,5 +1,15 @@
 /**
- * @render Label/control row grid.
+ * Field grid aligning labeled controls across rows.
+ *
+ * Renders `rows` as label-and-control pairs; each row may align its control at
+ * the center or top, and label text preserves authored line breaks.
+ *
+ * Options:
+ * - `inset` — on adds horizontal inset around the complete grid
+ * - `controlWidth` — `full` fills the control track, `half` centers at half
+ *   width, and `wide` centers at four-fifths width
+ * - `labelWidth` — `compact` uses the narrow label track; `standard` uses the
+ *   wider track
  */
 
 import type { ReactElement, ReactNode } from "react";

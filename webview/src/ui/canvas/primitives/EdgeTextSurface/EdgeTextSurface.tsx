@@ -1,5 +1,13 @@
 /**
- * @render Relationship text pill at a consumer-positioned origin.
+ * Edge-text pill centered at the current drawing origin.
+ *
+ * Renders `text` on a single line and sizes its pill from character count, with
+ * a fixed minimum width and height. Pointer input remains available on both text
+ * and surface.
+ *
+ * Options:
+ * - `variant` — `label` uses light label treatment; `multiplicity` uses dark
+ *   caption treatment
  */
 
 import type { ReactElement } from "react";

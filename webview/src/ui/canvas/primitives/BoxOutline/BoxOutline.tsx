@@ -1,5 +1,13 @@
 /**
- * @render Box outline overlay.
+ * Box outline for hover, selection, and pending placement states.
+ *
+ * Expands the hover and selection outline around its host by `centerOffset`;
+ * pending treatment stays on the host edge. The overlay never receives pointer
+ * input.
+ *
+ * Options:
+ * - `variant` — `hover` appears only while the parent is hovered, `selected`
+ *   remains visible, and `pending` draws a dashed placement outline
  */
 
 import type { CSSProperties, ReactElement } from "react";

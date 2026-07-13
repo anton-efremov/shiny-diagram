@@ -1,5 +1,7 @@
 /**
- * @render Empty-state message overlay.
+ * Empty-state message overlay that does not intercept interaction.
+ *
+ * Renders `message` in a padded overlay at the supplied `stacking` plane.
  */
 
 import type { CSSProperties, ReactElement } from "react";

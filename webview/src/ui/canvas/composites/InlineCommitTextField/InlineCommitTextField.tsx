@@ -1,5 +1,22 @@
 /**
- * @behavior Canvas text rest/edit swap with commit, discard, cancel, and validation routing.
+ * Inline commit field swapping optional display content for validated editing.
+ *
+ * Begins its draft at `initialValue`, reports edits through `onDraftChange`, and
+ * resets when that value changes. In display state, `display` supplies text,
+ * treatment, and edit request. In edit state, `ariaLabel` names the field and
+ * `validate` gates completion: Enter or valid blur reports `onCommit`; invalid
+ * blur restores the value and reports `onDiscard` with messages; Escape and the
+ * cancel action restore it and report `onCancel`. Validation uses
+ * `validationStacking`, while `surface` supplies an explicit cancel ground.
+ *
+ * Options:
+ * - `isEditing` — off renders `display` or nothing; on renders the field
+ * - `treatment` — `primary`, `secondary`, and `heading` align with their display
+ *   text metrics; `label` and `multiplicity` align with their edge-text pills
+ * - `autoFocus` — on requests focus when the editor mounts
+ * - `isCancelVisible` — on reserves trailing room and shows a cancel action
+ * - `surfaceTone` — `default` uses the canvas surface, `base` base fill, and
+ *   `neutral` a neutral wash when `surface` is absent
  */
 
 import type { MouseEvent, ReactElement } from "react";

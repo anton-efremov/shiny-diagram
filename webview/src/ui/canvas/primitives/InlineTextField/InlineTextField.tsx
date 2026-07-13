@@ -1,5 +1,16 @@
 /**
- * @behavior Routes browser text-entry events without owning commit state.
+ * Inline text field for controlled single-line entry.
+ *
+ * Displays `value`, uses `ariaLabel` as its accessible name, reports edits
+ * through `onChange`, and forwards focus loss and keyboard input through
+ * `onBlur` and `onKeyDown`.
+ *
+ * Options:
+ * - `invalid` — on shows invalid outline treatment
+ * - `autoFocus` — on requests focus when the field mounts
+ * - `hasEndAction` — on reserves trailing room for an overlaid action
+ * - `tone` — `default` inherits its host treatment, `label` uses light edge-text
+ *   editing treatment, and `multiplicity` uses dark caption editing treatment
  */
 
 import type { KeyboardEvent, ReactElement } from "react";

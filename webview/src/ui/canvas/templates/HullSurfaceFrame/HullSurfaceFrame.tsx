@@ -1,3 +1,14 @@
+/**
+ * Hull surface frame with user-supplied color and border values.
+ *
+ * Fills its host with `children`, uses `title` as the tooltip, applies `fill`,
+ * `stroke`, `strokeWidth`, and `color` with neutral fallbacks, reports mouse
+ * press through `onPointerDown`, and reports activation through `onPress`.
+ *
+ * Options:
+ * - `lineStyle` — `solid`, `dashed`, or `dotted` selects the border pattern
+ */
+
 import type { CSSProperties, MouseEvent, ReactElement, ReactNode } from "react";
 import styles from "./HullSurfaceFrame.module.css";
 

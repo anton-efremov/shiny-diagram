@@ -1,5 +1,18 @@
 /**
- * @behavior Consumer-positioned edge text rest/edit swap and commit routing.
+ * Editable edge text swapping a centered pill for a width-tracking editor.
+ *
+ * Displays `text`; a rest-state click reports `onSelect` and may report
+ * `onEditRequest`, while double-click always reports both. During editing the
+ * field grows with its local draft up to a fixed region, validates trivially,
+ * and routes completion through `onCommit`; invalid blur, Escape, and cancel all
+ * report `onDiscard`. Validation overlays use `validationStacking`.
+ *
+ * Options:
+ * - `treatment` — `label` uses light label treatment; `multiplicity` uses dark
+ *   caption treatment
+ * - `isEditing` — off renders the text pill; on renders the editor
+ * - `isEditRequestEnabled` — on lets a single click request editing; double-click
+ *   requests editing in either state
  */
 
 import { useState } from "react";

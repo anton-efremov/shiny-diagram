@@ -1,6 +1,12 @@
 /**
- * @behavior Pane collapse toggle reporting.
- * @render Edge-mounted pane collapse tab.
+ * Collapse tab mounted against a pane edge.
+ *
+ * Reports activation through `onToggle` and supplies the matching expand or
+ * collapse accessible instruction.
+ *
+ * Options:
+ * - `collapsed` — off points outward and offers collapse; on points inward and
+ *   offers expansion
  */
 
 import type { ReactElement } from "react";

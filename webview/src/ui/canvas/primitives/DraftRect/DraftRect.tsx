@@ -1,5 +1,14 @@
 /**
- * @render Placement draft rectangle.
+ * Draft rectangle showing a pending box extent.
+ *
+ * Places the noninteractive rectangle at `rect` and applies `stacking` when
+ * supplied.
+ *
+ * Options:
+ * - `tone` — `accent` uses pending placement treatment; `positive` uses success
+ *   treatment
+ * - `positioning` — `absolute` positions within the containing surface; `fixed`
+ *   positions against the viewport
  */
 
 import type { CSSProperties, ReactElement } from "react";

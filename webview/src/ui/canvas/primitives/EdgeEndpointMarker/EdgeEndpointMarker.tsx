@@ -1,5 +1,13 @@
 /**
- * @render Relationship endpoint SVG marker definition.
+ * Endpoint marker definition rendering descriptor geometry at marker scale.
+ *
+ * Registers the marker under `id`, draws every path and anchor from `glyph`, and
+ * uses the descriptor's filled and dashed states.
+ *
+ * Options:
+ * - `side` — `source` reverses automatically at the path start; `target` follows
+ *   the path direction at its end
+ * - `selected` — on replaces marker identity with selection treatment
  */
 
 import type { ReactElement } from "react";

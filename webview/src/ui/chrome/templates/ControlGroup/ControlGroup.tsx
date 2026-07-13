@@ -1,5 +1,11 @@
 /**
- * @render Form control group layout.
+ * Control group arranging related children in a uniform grid.
+ *
+ * Places `children` into equal, shrinkable tracks spanning the available width.
+ *
+ * Options:
+ * - `columns` — `1` stacks children; `2` arranges two equal columns
+ * - `spacing` — `default` keeps compact gaps; `wide` doubles the gap
  */
 
 import type { ReactElement, ReactNode } from "react";

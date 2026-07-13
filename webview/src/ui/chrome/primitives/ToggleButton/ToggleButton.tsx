@@ -1,6 +1,19 @@
 /**
- * @behavior Toggle button press indication and click routing.
- * @render Shared icon toggle button.
+ * Toggle button for a glyph, an optional label, and persistent pressed state.
+ *
+ * Renders `icon` when supplied, uses `title` as the tooltip and as the
+ * accessible name when `label` is absent, exposes `pressed`, and reports
+ * activation through `onClick`.
+ *
+ * Options:
+ * - `pressed` — on shows the toggle selected
+ * - `disabled` — on prevents activation and shows unavailable treatment
+ * - `size` — the control's fixed presentation:
+ *   - `micro` is a compact in-field square
+ *   - `compact` is icon-only when `label` is absent, otherwise a full-width
+ *     labeled row
+ *   - `nodeTile` is a tall full-width glyph-and-label tile
+ *   - `relationshipTile` is a compact centered glyph tile
  */
 
 import type { ReactElement } from "react";

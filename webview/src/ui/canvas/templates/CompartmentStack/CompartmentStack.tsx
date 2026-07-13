@@ -1,3 +1,15 @@
+/**
+ * Compartment stack separating flexible content regions.
+ *
+ * Places `compartments` vertically in order and draws separators before every
+ * region after the first, using `separatorColor` and `separatorThickness` with
+ * base fallbacks.
+ *
+ * Options:
+ * - `separatorLineStyle` — `solid`, `dashed`, or `dotted` selects the separator
+ *   pattern
+ */
+
 import type { CSSProperties, ReactElement, ReactNode } from "react";
 import styles from "./CompartmentStack.module.css";
 

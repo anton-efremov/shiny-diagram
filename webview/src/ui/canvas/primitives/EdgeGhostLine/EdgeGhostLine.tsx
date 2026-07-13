@@ -1,5 +1,13 @@
 /**
- * @render Point-to-point ghost edge stroke.
+ * Ghost edge line between two points with optional endpoint markers.
+ *
+ * Draws from `startPoint` to `endPoint` and links marker definitions named by
+ * `startMarkerId` and `endMarkerId` when supplied.
+ *
+ * Options:
+ * - `lineKind` — `solid` draws continuously; `dashed` uses the edge dash pattern
+ * - `tone` — `accent` previews relationship placement; `attachment` previews
+ *   attachment treatment
  */
 
 import type { ReactElement } from "react";

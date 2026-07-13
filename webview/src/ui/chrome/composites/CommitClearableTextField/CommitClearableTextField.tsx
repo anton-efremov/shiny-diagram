@@ -1,6 +1,18 @@
 /**
- * @behavior Clearable commit text field lifecycle.
- * @render Commit text field with clear action.
+ * Clearable text field with validation and a commit lifecycle.
+ *
+ * Holds `initialValue` as a draft and resets to new incoming values. Editing
+ * validates through `validate`: Enter or valid blur reports `onCommit`; invalid
+ * blur restores the committed value and reports `onDiscard` with its messages;
+ * Escape restores it and reports `onCancel`. Validation failures remain visible
+ * after Enter until dismissed or edited. While a nonempty draft has focus, the
+ * clear action empties it and reports `onClear`. `ariaLabel` always names the
+ * field and its clear action.
+ *
+ * Options:
+ * - `disabled` — on prevents editing and removes the clear action
+ * - `isLabelVisible` — on shows `ariaLabel` in a fixed label column; off keeps
+ *   only the accessible name
  */
 
 import type { ReactElement } from "react";

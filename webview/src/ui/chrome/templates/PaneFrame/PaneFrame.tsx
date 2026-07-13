@@ -1,5 +1,12 @@
 /**
- * @render Side pane frame.
+ * Pane frame with a persistent edge-control slot and collapsible content.
+ *
+ * Sets the expanded frame from pixel `width`, renders `edgeControl` against the
+ * shell, and arranges `children` vertically in a scrolling content region.
+ *
+ * Options:
+ * - `collapsed` — off renders the frame at `width`; on reduces the shell to zero
+ *   width and omits its children while retaining the edge control
  */
 
 import type { CSSProperties, ReactElement, ReactNode } from "react";

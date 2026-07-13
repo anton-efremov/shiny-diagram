@@ -1,5 +1,8 @@
 /**
- * @render Full-viewport, pointer-transparent SVG overlay frame.
+ * Canvas overlay frame spanning the viewport without intercepting input.
+ *
+ * Hosts SVG `children` across the full viewport at the supplied `stacking`
+ * plane and hides the frame from accessibility.
  */
 
 import type { CSSProperties, ReactElement, ReactNode } from "react";

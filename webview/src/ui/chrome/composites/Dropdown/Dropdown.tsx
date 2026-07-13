@@ -1,6 +1,15 @@
 /**
- * @behavior Dropdown option selection.
- * @render Dropdown with optional swatch visuals.
+ * Dropdown with text, styled swatch, line, text, and endpoint previews.
+ *
+ * Selects the matching entry from `options` for `value`, falling back visually
+ * to the first entry when unmatched. Activation toggles the list; Escape while
+ * focus remains inside closes it and restores trigger focus. Choosing an entry
+ * closes the list and reports its value through `onChange`. Each option may
+ * provide a labeled or swatch-only preview, with selected and mixed visual data
+ * carried by the option catalog.
+ *
+ * Options:
+ * - `disabled` — on prevents trigger activation and shows unavailable treatment
  */
 
 import { useRef, useState } from "react";

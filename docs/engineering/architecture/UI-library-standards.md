@@ -137,9 +137,23 @@ Dropdown/
 
 #### Annotation
 
-- `@behavior` / `@render` header stating non-derivable facts (variant map, non-obvious mechanisms) or omitted — a comment reconstructible from the filename is a violation
+The component's TSDoc block is its entire public documentation: a consumer reads the block and the props type, and never opens the component body or its `.module.css`. Canonical exemplars: `canvas/primitives/InlineTextBlock`, `chrome/composites/CommitComboBox`.
 
-### `<Component>.module.css`
+Structure is fixed:
+
+- **Summary line** — one line naming the element's UI/behavior, standalone-readable in a catalog, no member references. It opens with the bare UX pattern name where one applies and spends its words on what exceeds the pattern
+- Blank line, then the **contract paragraph** — prose narrating behavior, with every data prop woven in backticked at its point of participation; a parenthetical only where meaning exceeds the name
+- **`Options:`** — one bullet per modifier; a modifier's value set enumerates as nested bullets stating the observable result per value: what is rendered or permitted — line count, overflow fate, growth behavior — never role labels or CSS property names. An example in product vocabulary may follow a dash; examples calibrate and are deletable without loss of contract
+
+Member classification is mechanical: a **modifier** is a prop typed as an element-defined closed set — a union of literals, or an `is*`/`has*` boolean; everything else — runtime content, geometry, injected functions, `on<Event>` handlers — is a **data prop**.
+
+Content law:
+
+- A fact spans props once: stated in the narrative where the props meet, never repeated in a parenthetical
+- Obligations are stated as behavior the element owns. A relationship that is itself contract may name its counterpart; the block never delegates — no "X lives in Y", no tiers, no files, no trigger keys, no CSS mechanisms, no token values, no restated types. Library-wide conventions live once in the catalog preamble, not per block
+- The deletion test governs every sentence: if a consumer would not mis-build without it, it goes
+- A defect discovered while writing goes to the findings list, never into the prose as a caveat
+- A prop the prose cannot weave gracefully, or option values whose difference resists plain statement, is written best-effort and flagged as a findings-list entry — the friction is evidence about the contract, not a documentation failure
 
 #### Ownership
 

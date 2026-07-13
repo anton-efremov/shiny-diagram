@@ -1,5 +1,12 @@
 /**
- * @render Quiet back-navigation affordance with reservable layout space.
+ * Back-navigation button that keeps its place when unavailable.
+ *
+ * Renders `label` as the button content and reports activation through
+ * `onClick`.
+ *
+ * Options:
+ * - `visible` — on exposes the control normally; off removes it from the
+ *   accessibility tree and focus order while it remains visibly rendered
  */
 
 import type { ReactElement } from "react";

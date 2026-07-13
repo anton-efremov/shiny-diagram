@@ -1,6 +1,24 @@
 /**
- * @behavior Commit text field validation and commit lifecycle.
- * @render Commit text field with validation popup.
+ * Text field with validation, commit lifecycle, and optional cancellation.
+ *
+ * Holds `initialValue` as a draft, reports each edit through `onDraftChange`,
+ * and resets when the incoming value changes. `validate` gates completion:
+ * Enter or valid blur reports `onCommit`; invalid blur restores the committed
+ * value and reports `onDiscard` with its messages. Escape and the optional
+ * cancel action restore the value and report `onCancel`. Enter failures remain
+ * visible until dismissed or edited. `ariaLabel` always supplies the accessible
+ * name.
+ *
+ * Options:
+ * - `disabled` — on prevents editing
+ * - `isLabelVisible` — on shows `ariaLabel` in a fixed label column; off keeps
+ *   only the accessible name
+ * - `autoFocus` — on requests focus when the field mounts
+ * - `appearance` — `pane` uses standard control framing; `inline` inherits its
+ *   surrounding text treatment
+ * - `situation` — absent uses neutral treatment; `edgeLabel` and `edgeCaption`
+ *   apply their respective edge-text editing surfaces
+ * - `isCancelVisible` — on reserves trailing space and shows a cancel action
  */
 
 import type { ReactElement } from "react";

@@ -1,5 +1,10 @@
 /**
- * @render Selected relationship reconnect-point affordance.
+ * Endpoint handle marking a visible relationship reconnect point.
+ *
+ * Centers a noninteractive circular handle at `point`.
+ *
+ * Options:
+ * - `visible` — on renders the handle; off renders nothing
  */
 
 import type { ReactElement } from "react";

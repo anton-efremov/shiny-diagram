@@ -1,3 +1,14 @@
+/**
+ * Status surface pairing a prominent status row with a detailed list.
+ *
+ * Renders `status` above a padded detail surface, optionally introduces
+ * `items` with `label`, and preserves item order in a list.
+ *
+ * Options:
+ * - `variant` — `error-list` stacks error-colored items with wider separation;
+ *   `code-list` uses compact code-type list treatment
+ */
+
 import type { ReactElement, ReactNode } from "react";
 import styles from "./StatusSurfaceFrame.module.css";
 

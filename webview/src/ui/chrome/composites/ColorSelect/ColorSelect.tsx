@@ -1,6 +1,17 @@
 /**
- * @behavior Immediate color selection, popup dismissal, and grid keyboard navigation.
- * @render Color glyph trigger and document/preset swatch popup.
+ * Color selector with a swatch-grid popup and immediate selection.
+ *
+ * Shows `value` through the selected `glyph`; null uses the `baseValue` preview
+ * and "multiple" shows a mixed state. The popup combines `documentColors` with
+ * the hue, shade, and neutral `presets`; choosing a color or Base reports
+ * `onChange` and restores trigger focus. Outside press and Escape close without
+ * selection. Preset focus moves within the six-column grid with arrow, Home,
+ * and End keys.
+ *
+ * Options:
+ * - `glyph` — `fill` renders a filled square, `stroke` a line, and `text` a
+ *   letter sample
+ * - `disabled` — on prevents opening and shows unavailable treatment
  */
 
 import { useEffect, useRef, useState } from "react";

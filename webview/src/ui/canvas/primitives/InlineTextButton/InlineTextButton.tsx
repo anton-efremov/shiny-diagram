@@ -1,5 +1,7 @@
 /**
- * @behavior Reports a compact text action.
+ * Inline text button for a compact momentary action.
+ *
+ * Renders `label` as its content and reports activation through `onPress`.
  */
 
 import type { ReactElement } from "react";

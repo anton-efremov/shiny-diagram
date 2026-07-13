@@ -1,3 +1,16 @@
+/**
+ * Styled box surface framing vertically arranged content with user values.
+ *
+ * Fills its host with `children`, uses `title` as the tooltip, applies `fill`,
+ * `stroke`, `strokeWidth`, and `color` with base fallbacks, and reports
+ * activation through `onPress`.
+ *
+ * Options:
+ * - `lineStyle` — `solid`, `dashed`, or `dotted` selects the border pattern
+ * - `dragging` — on shows active dragging while retaining the surface appearance
+ * - `connectionEnabled` — on replaces the move cursor with the placement cursor
+ */
+
 import type { CSSProperties, MouseEvent, ReactElement, ReactNode } from "react";
 import styles from "./StyledBoxSurfaceFrame.module.css";
 

@@ -1,5 +1,7 @@
 /**
- * @render Shared standalone text block.
+ * Muted standalone text.
+ *
+ * Renders `text` inline without owning truncation or wrapping behavior.
  */
 
 import type { ReactElement } from "react";

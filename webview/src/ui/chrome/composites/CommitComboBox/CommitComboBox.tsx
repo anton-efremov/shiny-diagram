@@ -1,6 +1,19 @@
 /**
- * @behavior Preset select and custom text commit lifecycle.
- * @render Commit combo box.
+ * Combo box with a commit lifecycle on its free-text entry.
+ *
+ * Shows the committed value (`initialValue`) with its caption (`ariaLabel`). Choosing
+ * a preset (`options` — the element appends the "Custom" entry itself,
+ * never include one) commits it immediately (`onCommit`) — no draft, no
+ * validation. Custom text is held as a draft until exactly one outcome
+ * concludes the edit: committed (`onCommit`), discarded (`onDiscard` —
+ * receives the draft's messages), or cancelled (`onCancel`). A draft
+ * failing validation (`validate`) shows its messages and is never
+ * committed.
+ *
+ * Options:
+ * - `isLabelVisible` — off hides the visible caption; the accessible name
+ *   (`ariaLabel`) always remains
+ * - `disabled`       — the value is shown, no interaction is accepted
  */
 
 import { useEffect, useRef, useState } from "react";

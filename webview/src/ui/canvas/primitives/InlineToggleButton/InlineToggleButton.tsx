@@ -1,5 +1,14 @@
 /**
- * @behavior Reports a glyph toggle and exposes its pressed state.
+ * Inline glyph toggle calibrated for diagram text controls.
+ *
+ * Renders `glyph`, uses `label` as its accessible name and tooltip, reports
+ * activation through `onPress`, and uses `surface` when supplied instead of the
+ * selected fallback surface.
+ *
+ * Options:
+ * - `pressed` — on shows the toggle selected
+ * - `surfaceTone` — `default` uses the field surface, `base` the base fill, and
+ *   `neutral` a neutral wash when `surface` is absent
  */
 
 import type { CSSProperties, ReactElement } from "react";

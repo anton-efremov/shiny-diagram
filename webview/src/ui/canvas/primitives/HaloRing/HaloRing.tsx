@@ -1,5 +1,11 @@
 /**
- * @render Box halo overlay.
+ * Halo extending beyond a box without intercepting input.
+ *
+ * Paints behind or among siblings at `stacking`, using `tint` when supplied and
+ * otherwise the selected tone's default.
+ *
+ * Options:
+ * - `tone` — `canvas` matches the canvas ground; `faint` uses a translucent wash
  */
 
 import type { CSSProperties, ReactElement } from "react";

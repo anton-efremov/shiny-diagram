@@ -1,5 +1,14 @@
 /**
- * @render Labeled pane section.
+ * Pane section arranging optional heading and content.
+ *
+ * Centers `label` as a heading when nonempty and places `children` into equal,
+ * shrinkable tracks.
+ *
+ * Options:
+ * - `columns` — `1` stacks content in one centered track; `2` uses two equal
+ *   centered tracks
+ * - `spacingAfter` — `default` leaves the standard gap before the next section;
+ *   `compact` reduces that following gap
  */
 
 import type { ReactElement, ReactNode } from "react";

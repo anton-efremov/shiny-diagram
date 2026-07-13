@@ -1,5 +1,20 @@
 /**
- * @behavior Single-line member editing with mutually exclusive emphasis controls.
+ * Inline commit field with mutually exclusive underline and italic controls.
+ *
+ * Converts `initialValue` and subsequent edits to one line, initializes its
+ * formatting from `initialEmphasis`, and resets both when incoming values change.
+ * `validate` gates completion: Enter or valid blur reports text and emphasis
+ * through `onCommit`; invalid blur restores both and reports `onDiscard` with
+ * messages; Escape and cancel restore both and report `onCancel`. Controls use
+ * `actionStacking`, validation uses `validationStacking`, and `surface` supplies
+ * an explicit action ground.
+ *
+ * Options:
+ * - `initialEmphasis` — null begins without emphasis; `underline` or `italic`
+ *   begins with that mutually exclusive control selected
+ * - `autoFocus` — on requests focus when the editor mounts
+ * - `surfaceTone` — `default` uses the field surface, `base` base fill, and
+ *   `neutral` a neutral wash when `surface` is absent
  */
 
 import { useEffect, useState } from "react";

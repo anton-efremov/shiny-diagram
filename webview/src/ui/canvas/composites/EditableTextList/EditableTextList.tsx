@@ -1,5 +1,21 @@
 /**
- * @behavior Editable rows with add and pointer-reorder gestures.
+ * Editable text list with insertion, emphasis editing, and pointer reordering.
+ *
+ * Renders `rows`, preserving each row's text and emphasis. Clicking an enabled
+ * row opens an editor governed by `validate`; completion trims and reports
+ * `onRowCommit`. The hover add action uses `addLabel` and `addTitle`, and reports
+ * nonempty trimmed additions through `onRowAdd`. Pointer dragging reports
+ * `onRowReorder` with source row and destination gap; Escape cancels an active
+ * drag. Actions use `actionStacking`, validation uses `validationStacking`, and
+ * `surface` supplies an explicit action ground.
+ *
+ * Options:
+ * - `isEditStartEnabled` — on permits row editing, reordering, and adding; off
+ *   leaves display rows inert
+ * - `isEmphasisEditable` — on initializes and commits row emphasis; off removes
+ *   emphasis from edit outcomes
+ * - `surfaceTone` — `default` uses normal canvas surfaces, `base` uses base fill,
+ *   and `neutral` uses a neutral wash when `surface` is absent
  */
 
 import { Fragment, useEffect, useRef, useState } from "react";

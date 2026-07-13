@@ -1,6 +1,13 @@
 /**
- * @behavior Dismiss activation reporting.
- * @render Compact cross button.
+ * Dismiss button with a compact cross glyph.
+ *
+ * Uses `label` as its accessible name and tooltip. Pointer press prevents the
+ * pending focus change before reporting `onMouseDown`; activation reports
+ * `onClick`.
+ *
+ * Options:
+ * - `small` — off renders a standard circular control; on renders the reduced
+ *   in-field control
  */
 
 import type { ReactElement } from "react";

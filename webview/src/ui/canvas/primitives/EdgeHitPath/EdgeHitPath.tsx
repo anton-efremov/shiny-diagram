@@ -1,5 +1,8 @@
 /**
- * @render Transparent relationship hit target.
+ * Edge hit path widening pointer access without visible output.
+ *
+ * Follows `d` with a transparent stroke that receives pointer input across a
+ * wider corridor and presents an action cursor.
  */
 
 import type { ReactElement } from "react";

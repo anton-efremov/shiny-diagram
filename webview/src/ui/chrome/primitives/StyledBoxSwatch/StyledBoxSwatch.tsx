@@ -1,5 +1,10 @@
 /**
- * @render Styled box swatch.
+ * Swatch preview of box color and border styling.
+ *
+ * Applies the supplied fill, stroke, text color, stroke width, and solid-or-
+ * dashed interpretation from `styleValues`, falling back independently for
+ * omitted values. The single-line `label` is both visible content and the
+ * accessible name; overflow ends in an ellipsis.
  */
 
 import type { CSSProperties, ReactElement } from "react";

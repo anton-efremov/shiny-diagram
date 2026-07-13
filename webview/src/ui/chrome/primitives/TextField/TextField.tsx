@@ -1,6 +1,20 @@
 /**
- * @behavior Text entry change routing.
- * @render Shared text field.
+ * Text field for controlled single-line entry with pane and in-place treatments.
+ *
+ * Displays `value`, reports edits through `onChange`, and forwards focus loss
+ * and keyboard input through `onBlur` and `onKeyDown`. `ariaLabel` supplies the
+ * accessible name.
+ *
+ * Options:
+ * - `disabled` — on prevents editing and shows unavailable treatment
+ * - `invalid` — on exposes invalid state and error treatment
+ * - `autoFocus` — on requests focus when the field mounts
+ * - `hasEndAction` — on reserves trailing room for an overlaid action
+ * - `appearance` — `pane` fills the available width at standard control height;
+ *   `inline` inherits surrounding type and alignment on a transparent ground
+ * - `situation` — absent uses the selected appearance's neutral treatment;
+ *   `edgeLabel` uses light edge-text editing treatment; `edgeCaption` uses dark
+ *   edge-text editing treatment
  */
 
 import type { KeyboardEvent, ReactElement } from "react";

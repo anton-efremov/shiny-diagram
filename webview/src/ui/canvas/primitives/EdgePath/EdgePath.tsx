@@ -1,5 +1,15 @@
 /**
- * @render Visible relationship path.
+ * Edge path with user styling, endpoint linkage, and selection treatment.
+ *
+ * Draws `d`, using `stroke` and `strokeWidth` when supplied, and links marker
+ * definitions named by `startMarkerId` and `endMarkerId`. Selection and
+ * attachment treatment replace user stroke presentation.
+ *
+ * Options:
+ * - `lineKind` — `solid` draws continuously; `dashed` uses the edge dash pattern
+ * - `selected` — on uses the emphasized selection stroke
+ * - `tone` — `default` permits user stroke values; `attachment` uses fixed
+ *   attachment identity
  */
 
 import type { CSSProperties, ReactElement } from "react";

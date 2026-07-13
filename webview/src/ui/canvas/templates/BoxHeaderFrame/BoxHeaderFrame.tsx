@@ -1,3 +1,15 @@
+/**
+ * Box header frame centering primary content between optional vertical slots.
+ *
+ * Maintains `minHeight`, places `validation` first, then full-width `leading`,
+ * `primary`, and `trailing` slots, and draws the lower separator from
+ * `separatorColor` and `separatorThickness` with base fallbacks.
+ *
+ * Options:
+ * - `separatorLineStyle` — `solid`, `dashed`, or `dotted` selects the separator
+ *   pattern
+ */
+
 import type { CSSProperties, ReactElement, ReactNode } from "react";
 import styles from "./BoxHeaderFrame.module.css";
 

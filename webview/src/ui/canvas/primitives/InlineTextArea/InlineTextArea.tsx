@@ -1,5 +1,16 @@
 /**
- * @behavior Routes multiline browser-entry events without owning commit state.
+ * Inline text area for controlled multiline entry.
+ *
+ * Displays `value` with the initial height hinted by `rows`, reports edits
+ * through `onChange`, and forwards focus loss and keyboard input through
+ * `onBlur` and `onKeyDown`.
+ *
+ * Options:
+ * - `autoFocus` — on requests focus when the area mounts
+ * - `treatment` — `body` fills its container without resizing; `row` grows to
+ *   its scroll height whenever the draft changes
+ * - `invalid` — on shows invalid treatment for the row form
+ * - `hasEndAction` — on reserves trailing room for an overlaid row action
  */
 
 import { useLayoutEffect, useRef } from "react";

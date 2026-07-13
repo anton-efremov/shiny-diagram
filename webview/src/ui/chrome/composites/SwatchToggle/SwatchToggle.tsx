@@ -1,6 +1,12 @@
 /**
- * @behavior Swatch toggle activation routing.
- * @render Pressable styled-box swatch.
+ * Toggle button containing a styled box swatch.
+ *
+ * Renders `label` and the supplied box `styleValues`, exposes `pressed`, and
+ * reports activation through `onClick`.
+ *
+ * Options:
+ * - `pressed` — on shows the swatch selected
+ * - `disabled` — on prevents activation and dims the control
  */
 
 import type { ReactElement } from "react";

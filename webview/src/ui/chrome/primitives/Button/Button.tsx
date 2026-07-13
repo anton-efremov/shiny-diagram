@@ -1,6 +1,22 @@
 /**
- * @behavior Button click routing.
- * @render Shared command button.
+ * Button for a labeled command with an optional glyph.
+ *
+ * Renders `label` beside `icon` when supplied and reports activation through
+ * `onClick`.
+ *
+ * Options:
+ * - `disabled` — on shows the command unavailable and prevents activation
+ * - `tone` — the command's emphasis:
+ *   - `neutral` uses a quiet surface that gains emphasis on hover
+ *   - `danger` uses error emphasis that fills on hover
+ *   - `accent` uses the primary action surface
+ * - `size` — `default` uses the standard command height; `compact` reduces
+ *   height, padding, and type size
+ * - `shape` — `rounded` uses the control corner; `pill` fully rounds the ends
+ * - `alignment` — `stretch` participates at the available width; `end` sizes
+ *   to its content at the trailing edge
+ * - `visible` — off preserves the command's layout space while removing it
+ *   from sight, focus order, and accessibility
  */
 
 import type { ReactElement } from "react";
