@@ -1,4 +1,3 @@
-
 > **Implementation state:** Aspirational — the library currently lives at `webview/src/View/ui` without wings; migration chunks bring code to compliance  
 > **Document state:** Maintained 
 > **Scope:** `webview/src/ui/**`  
@@ -28,6 +27,8 @@ Token consumption by cascade is part of the declared dependency: a `var(--shiny-
 
 **Templates** — structural UI containers that arrange, group, or frame other library elements without owning behavior
 
+**Glyph descriptor** — pure geometry data (paths on the 16-grid, filled/stroked flag, optional anchor for marker use), typed in `shared/` and authored domain-side as content; the receiving element renders it and owns all treatment
+
 # Library scope
 
 ### What is a library element
@@ -54,7 +55,7 @@ An element never owns:
 # Library structure
 
 - **`chrome/`** — elements of panes and header
-- **`canvas/`** — elements of diagram surfaces and overlays, assembled by consumers into diagram surfaces; user style values arrive as data props. Edge text placement along the path, compartment content semantics, and framework adapters are never library
+- **`canvas/`** — elements of diagram surfaces and overlays, assembled by consumers into diagram surfaces; user style values and glyph descriptors arrive as data props. Edge text placement along the path, compartment content semantics, and framework adapters are never library
 - **`core/`** — behavioral machinery consumed by both wings: commit lifecycle, popup positioning and dismiss, keyboard patterns, gesture cursor override. Modules, not components: nothing rendered, no `.module.css`, no tokens. Admission test: if the wings' versions diverged, would that be a bug (core) or a design choice (wing)?
 - Wings never import each other; visual coincidence between them is never a dependence. Core imports nothing from the wings
 - Raw native interactive elements exist only inside the library — lint-enforced; wing and tier rules are boundary-checker-enforced by path
@@ -79,6 +80,7 @@ Inbound — how a consumer speaks to an element:
 
 - UI props in, `on<Event>` handlers out; injected pure functions (e.g. `validate`) are permitted
 - Situations are selected by variant; values are never passed for styling — no `className`, `style`, or visual-value props
+- Glyph descriptors are content data, in the same category as text labels — legal at any icon or marker slot. The descriptor states geometry and the filled/stroked flag only; the receiving element owns all treatment: wrapper, stroke language, caps, color from tokens
 
 Imports — what an element's files may reach:
 
@@ -184,7 +186,7 @@ Each CSS property appears in exactly one row. Rows group properties sharing one 
 | Shadows | `box-shadow`, `text-shadow`, `filter` (shadow functions) | `tokens.css` |
 | Cursor | `cursor` | `tokens.css` |
 | Opacity | `opacity` | `tokens.css`: when expressing an identity state (disabled, scrim, emphasis levels)<br>owning component's `.module.css`: as a pure show/hide mechanism |
-| Stacking | `z-index` | `editorUiConfig.ts` |
+| Stacking | `z-index` | `editorUiConfig.ts` — out of library scope; routed by domain components as a data prop, applied by the receiving element or framework adapter |
 | Heights | `height`, `min-height`, `max-height` | `tokens.css`: on interactive controls and interaction affordances<br>owning component's `.module.css`: otherwise |
 | Widths | `width`, `min-width`, `max-width` | `tokens.css`: on compact interactive controls and interaction affordances<br>arranging template's `.module.css`: on fluid interactive controls<br>owning component's `.module.css`: otherwise |
 | Box geometry | `padding`, `margin`, `inset`, `top`, `right`, `bottom`, `left`, `transform` | owning component's `.module.css` |

@@ -48,7 +48,7 @@
 	- [7.7 `useStateReconciliation.ts`](#77-usestatereconciliationts)
 	- [7.8 `frameworkAdapters.ts`](#78-frameworkadaptersts)
 	- [7.9 No stylesheets](#79-no-stylesheets)
-	- [7.10 `icons.tsx`](#710-iconstsx)
+	- [7.10 `icons.ts`](#710-iconsts)
 - [8. Component annotations](#8-component-annotations)
 	- [8.1 File annotation](#81-file-annotation)
 	- [8.2 Inline annotations](#82-inline-annotations)
@@ -90,7 +90,7 @@ Every React Component in View declares the responsibilities it performs. A compo
 A React Component has Behavior responsibility when it owns or derives runtime behavior: state, child inputs, semantic event handling, state changes, command transactions, or child routing. Behavior is about what the component decides and how it reacts.
 #### Rendering responsibility
 
-A React Component has Rendering responsibility when it owns the composition of library elements into one visual surface: which elements appear, in which library template arrangement, under which situation variants, fed by which values. Rendering is about how already-decided values become visible interface; how anything looks is the library's — a domain component states no visual values, owns no stylesheet and no DOM, and its only styling channels are variant selection and data props (user style values passed to canvas elements). Simply combining child components is not counted as rendering responsibility.
+A React Component has Rendering responsibility when it owns the composition of library elements into one visual surface: which elements appear, in which library template arrangement, under which situation variants, fed by which values. Rendering is about how already-decided values become visible interface; how anything looks is the library's — a domain component states no visual values, owns no stylesheet and no DOM, and its only styling channels are variant selection and data props — values the Property ownership table routes outside the library, passed for the element to apply: user style values to canvas elements, config-routed stacking values to overlay-capable elements. Content props — text and glyph descriptors — are not a styling channel: they select what to depict, never how it appears. Simply combining child components is not counted as rendering responsibility.
 #### Framework adaptation responsibility
 
 A React Component has Framework adaptation responsibility when it absorbs a foreign component or framework interface into View standard boundaries pattern. Framework adaptation translates framework props, events, state, coordinate spaces, or vocabulary into View contracts and domain terms.
@@ -114,7 +114,7 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 
 ### 2.1 Allowed import sources
 
-1. `webview/src/shared` — dependency-free primitives: branded diagram identities and their constructors, spatial primitives, UML class-diagram notation, visual styling vocabulary, and editor-supported node kinds
+1. `webview/src/shared` — dependency-free primitives: branded diagram identities and their constructors, spatial primitives, UML class-diagram notation, visual styling vocabulary, glyph geometry descriptors, and editor-supported node kinds
 	- these primitives **must not** be redefined anywhere in code
 	- a new primitive **may** be added if it has potential reuse and fits the definition of a shared primitive
 
@@ -139,7 +139,7 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 	- a library component and its boundary types are importable; its owned children, internal files, and `.module.css` are not
 
 6. `webview/src/View/config` — static View configuration read by components and support files.
-	- `editorUiConfig.ts` defines static scalar UI tuning constants: e.g. fixed offsets, sizes. These scalar constants **must** be defined here and read from here, **never** hard-coded at the use site. Component-owned static content catalogs — typed `readonly` domain literals — are **not** UI constants and stay in their component's static catalog area.
+	- `editorUiConfig.ts` defines static scalar UI tuning constants: e.g. fixed offsets, sizes, stacking planes. These scalar constants **must** be defined here and read from here, **never** hard-coded at the use site. Stacking values reach a library element as a data prop, never through domain-authored styling. Component-owned static content catalogs — typed `readonly` domain literals — are **not** UI constants and stay in their component's static catalog area.
 	- `reactFlowConfig.ts` defines the application-level React Flow boundary policy: static React Flow prop objects that disable framework-owned editor behavior not delegated to React Flow.
 
 7. `webview/src/View/utils/<utilityName>.ts` — centralized View utilities: pure, framework-independent functions used by multiple components, or algorithms that require separate testing and development cycle, e.g. a layout algorithm.
@@ -156,7 +156,7 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 
 11. **React and browser APIs** — rendering, lifecycle, focus, measurement, event registration.
 
-12. **own support files** — `state.ts`, `transactions.ts`, `useInteractions.ts`, `childProps.ts`, `useStateReconciliation.ts`, `frameworkAdapters.ts`, `icons.tsx` sitting flat beside the component file
+12. **own support files** — `state.ts`, `transactions.ts`, `useInteractions.ts`, `childProps.ts`, `useStateReconciliation.ts`, `frameworkAdapters.ts`, `icons.ts` sitting flat beside the component file
 	- a component imports **only** its own support files, **never** another component's.
 
 ### 2.2 Forbidden import sources
@@ -197,7 +197,7 @@ A React Component has Framework adaptation responsibility when it absorbs a fore
 4. **UI prop** — an already-decided render value that is not a schema slice or ledger slice.
 	- **must** be ready to render when received.
 	- **must** be computed by the parent that owns the decision; the receiving React Component with Rendering responsibility renders it and **must not** compute it itself.
-	- **must** be a primitive or shared-vocabulary shape.
+	- **must** be a primitive, shared-vocabulary shape, or glyph descriptor. A glyph descriptor is content data, in the same category as a text label — it selects what to depict, never how it appears.
 	- **must** be named for what it controls in the output, not the condition that set it, e.g. `isResizeVisible`, not `isSoleSelection`.
 	- **must not** contain editor state, although it **may** be derived from editor state. Anything referencing selection, placement, or session state is a State slice, not a UI prop.
 
@@ -762,18 +762,19 @@ export default function <Component>({ ... }: <Component>Props): ReactElement {
 
 Domain components own no `.module.css`: chrome domain components compose library elements and arrangement belongs to templates; canvas domain components assemble canvas library elements. All styling authority is the library's ([UI Library Standards](./UI-library-standards.md)).
 
-### 7.10 `icons.tsx`
+### 7.10 `icons.ts`
 
-**Responsibilities:** Rendering
+**Responsibilities:** none — a data catalog, not an implementation file
 
-Component-owned SVG glyph components passed into library icon slots. Justified only when in-file glyphs would bloat the static catalog area.
+Component-owned glyph descriptors passed into library icon and marker slots: pure geometry data typed by the shared glyph descriptor shape. An extension of the static catalog area, justified only when descriptor bulk would obscure the component file. The domain authors what to depict; the library element receiving a descriptor authors all appearance — wrapper, stroke language, color.
 
 **Patterns:**
 
-1. 16×16 viewBox; whole or half-pixel coordinates on a 1px grid; exact coordinates always
-2. One stroke language: 1.5px, round caps and joins; `fill="none"` unless the glyph is semantically filled
-3. `currentColor` only; `aria-hidden="true"`
-4. Codicons/Lucide proportions as the metrics reference
+1. Exported `readonly` descriptors typed by the shared glyph descriptor shape; the file renders nothing and imports nothing but `shared/`
+2. Geometry on the 16-grid: whole or half-pixel coordinates; exact coordinates always
+3. Codicons/Lucide proportions as the metrics reference
+4. A descriptor carries geometry, the filled/stroked flag, and, for marker use, an anchor point — it **must not** carry stroke widths, colors, sizes, or any other appearance field
+5. **naming:** descriptors are named by what they depict in domain terms, e.g. `compositionGlyph`, `inheritanceGlyph` — the semantic name is the point of domain ownership
 
 # 8. Component annotations
 
