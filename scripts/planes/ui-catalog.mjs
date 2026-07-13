@@ -13,7 +13,7 @@ const tiers = ["primitives", "composites", "templates"];
 
 export async function generate({ repoRoot }) {
   const preamble = await readFile(fragmentPath, "utf8");
-  const components = await scanComponents(repoRoot);
+  const components = await collectComponents({ repoRoot });
   const sections = [
     generatedMarker(),
     normalizeFragment(preamble),
@@ -29,7 +29,7 @@ export async function generate({ repoRoot }) {
   });
 }
 
-async function scanComponents(repoRoot) {
+export async function collectComponents({ repoRoot }) {
   const uiRoot = path.join(repoRoot, "webview", "src", "ui");
   const components = [];
 
@@ -52,14 +52,19 @@ async function scanComponents(repoRoot) {
           // A malformed component folder remains visible as an incomplete catalog entry.
         }
 
-        const documentation = extractDocumentation(source);
+        const annotation = extractAnnotation(source);
+        const documentation = extractDocumentation(annotation);
+        const propsType = extractPropsType(source, componentName) ?? describeAbsentProps(source);
         components.push({
           name: componentName,
           wing,
           tier,
+          filePath: `webview/src/ui/${relativeSourcePath}`,
           sourcePath: `./${relativeSourcePath}`,
+          annotation,
           documentation,
-          propsType: extractPropsType(source, componentName) ?? describeAbsentProps(source),
+          propsType,
+          propsMemberNames: extractPropsMemberNames(propsType),
         });
       }
     }
@@ -68,7 +73,7 @@ async function scanComponents(repoRoot) {
   return components;
 }
 
-function extractDocumentation(source) {
+function extractAnnotation(source) {
   const exportIndex = source.search(/\bexport\s+default\b/);
   if (exportIndex < 0) return null;
 
@@ -81,13 +86,22 @@ function extractDocumentation(source) {
   const lines = cleanTSDocLines(nearestBlock);
   const summaryIndex = lines.findIndex((line) => line.trim().length > 0);
   if (summaryIndex < 0) return null;
-  const summary = lines[summaryIndex].trim();
+  return {
+    block: nearestBlock,
+    contentLines: trimBlankLines(lines.slice(summaryIndex)),
+  };
+}
+
+function extractDocumentation(annotation) {
+  if (annotation === null) return null;
+  const lines = annotation.contentLines;
+  const summary = lines[0].trim();
 
   // Legacy implementation tags are not public catalog annotations.
   if (summary.startsWith("@")) return null;
 
-  if (lines[summaryIndex + 1]?.trim() !== "") return null;
-  const body = trimBlankLines(lines.slice(summaryIndex + 1));
+  if (lines[1]?.trim() !== "") return null;
+  const body = trimBlankLines(lines.slice(1));
   if (body.length === 0) return null;
   return { summary, body };
 }
@@ -123,6 +137,15 @@ function describeAbsentProps(source) {
   return /\bexport\s+default\s+function\s+\w+\s*\(\s*\)/.test(source)
     ? "// This component accepts no props."
     : null;
+}
+
+function extractPropsMemberNames(propsType) {
+  if (propsType === null || propsType.startsWith("//")) return [];
+  const names = new Set();
+  for (const match of propsType.matchAll(/^\s*readonly\s+([A-Za-z_$][\w$]*)\??\s*:/gm)) {
+    names.add(match[1]);
+  }
+  return [...names];
 }
 
 function scanTypeDeclaration(source, start) {

@@ -2,8 +2,8 @@
  * Hull surface frame with user-supplied color and border values.
  *
  * Fills its host with `children`, uses `title` as the tooltip, applies `fill`,
- * `stroke`, `strokeWidth`, and `color` with neutral fallbacks, reports mouse
- * press through `onPointerDown`, and reports activation through `onPress`.
+ * `stroke`, `strokeWidth`, and `color` with neutral fallbacks. Pressing it
+ * reports `onPointerDown`; clicking it reports `onPress`.
  *
  * Options:
  * - `lineStyle` — `solid`, `dashed`, or `dotted` selects the border pattern

@@ -2,18 +2,18 @@
  * Box interaction overlay combining outline, halo, and resize affordances.
  *
  * Centers outline and resize geometry with `centerOffset`. A supplied `haloTint`
- * paints the halo at `haloStacking`; resize targets use `affordanceStacking` and
- * report handle and viewport point through `onResizeGrab` without propagating
- * their pointer press.
+ * paints the halo at `haloStacking`; resize targets use `affordanceStacking`. A
+ * resize press reports its handle and viewport point through `onResizeGrab` and
+ * does not reach the surface beneath.
  *
  * Options:
  * - `selected` — on keeps the selection outline visible; off shows it only on
  *   parent hover
  * - `pending` — on adds a pending placement outline
  * - `resizeVisible` — on renders corner, midpoint, and full-edge resize targets
- * - `haloTone` — absent renders no default halo unless `haloTint` is supplied;
- *   `canvas` uses canvas ground and `faint` uses a translucent wash when tint is
- *   absent
+ * - `haloTone` — the halo's wash when `haloTint` is absent: `canvas` matches the
+ *   canvas ground, `faint` a translucent wash; with neither tone nor tint, no
+ *   halo renders
  */
 
 import type { ReactElement } from "react";

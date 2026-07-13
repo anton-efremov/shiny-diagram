@@ -3,8 +3,8 @@
  *
  * Centers visible handles and wider edge targets around the host boundary using
  * `centerOffset`, placing edge targets at `stacking` and handles one plane above.
- * Pointer press prevents selection and propagation, then reports the named
- * handle and viewport point through `onGrab`.
+ * A press neither selects nor reaches the surface beneath; it reports the
+ * grabbed handle and viewport point through `onGrab`.
  */
 
 import type { CSSProperties, PointerEvent, ReactElement } from "react";

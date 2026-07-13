@@ -2,8 +2,8 @@
  * Styled box surface framing vertically arranged content with user values.
  *
  * Fills its host with `children`, uses `title` as the tooltip, applies `fill`,
- * `stroke`, `strokeWidth`, and `color` with base fallbacks, and reports
- * activation through `onPress`.
+ * `stroke`, `strokeWidth`, and `color` with base fallbacks, and reports `onPress`
+ * when clicked.
  *
  * Options:
  * - `lineStyle` — `solid`, `dashed`, or `dotted` selects the border pattern

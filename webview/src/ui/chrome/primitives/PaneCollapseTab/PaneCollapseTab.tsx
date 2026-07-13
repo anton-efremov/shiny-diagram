@@ -1,7 +1,7 @@
 /**
  * Collapse tab mounted against a pane edge.
  *
- * Reports activation through `onToggle` and supplies the matching expand or
+ * Clicking the tab reports `onToggle` and supplies the matching expand or
  * collapse accessible instruction.
  *
  * Options:

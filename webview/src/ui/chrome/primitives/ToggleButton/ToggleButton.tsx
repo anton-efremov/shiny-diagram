@@ -3,11 +3,12 @@
  *
  * Renders `icon` when supplied, uses `title` as the tooltip and as the
  * accessible name when `label` is absent, exposes `pressed`, and reports
- * activation through `onClick`.
+ * `onClick` when clicked.
  *
  * Options:
  * - `pressed` — on shows the toggle selected
- * - `disabled` — on prevents activation and shows unavailable treatment
+ * - `disabled` — on prevents the control from being pressed and shows it as
+ *   unavailable
  * - `size` — the control's fixed presentation:
  *   - `micro` is a compact in-field square
  *   - `compact` is icon-only when `label` is absent, otherwise a full-width

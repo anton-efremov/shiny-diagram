@@ -5,12 +5,15 @@ entries record current behavior and contract friction only; they propose no fix.
 
 ## Naming
 
-- **ReservedBackLink** — The component selects `affordance` and
-  `hiddenAffordance`, while its stylesheet defines `link` and `reservedBlank`.
-  The hidden state therefore leaves the button visibly rendered even though it
-  is removed from focus and accessibility.
-- **InlineActionButton** — `visible={false}` sounds like absence, but only makes
-  the button transparent; it remains focusable and activatable.
+- **ToggleButton** — The `size` values `nodeTile` and `relationshipTile` encode
+  domain vocabulary in a library option, including “relationship” directly.
+- **StatusSurfaceFrame** — The `variant` values `error-list` and `code-list` are
+  kebab-case while option values elsewhere use camelCase.
+- **Button / ReservedBackLink** — `Button.visible` duplicates the
+  space-preserving obligation expressed by the `Reserved` prefix without carrying
+  that prefix, overlapping the purpose of `ReservedBackLink`.
+- **ColorSelect** — The `glyph` modifier uses the data-prop vocabulary reserved
+  elsewhere for a `GlyphDescriptor`.
 - **EditableEdgeText** — `isEditRequestEnabled` gates edit requests from a single
   click but not from a double-click, so the name overstates the state it controls.
 - **EditableTextList** — `isEditStartEnabled` controls three behaviors: editing,
@@ -42,6 +45,12 @@ entries record current behavior and contract friction only; they propose no fix.
 - **EdgeTextSurface** — Pill width is estimated from character count using one
   fixed character width. Proportional glyphs can therefore produce excess space
   or extend beyond the estimated surface.
+- **InlineActionButton** — `visible={false}` makes the control invisible but
+  leaves it focusable and activatable, producing an invisible interactive
+  control.
+- **GridFrame** — The `workspace`, `canvas`, and `shell` variants frame three
+  unrelated compositions under one name; the workspace form arranges the whole
+  editor and is arguably outside the canvas wing.
 
 ## Contract asymmetry
 
@@ -58,6 +67,15 @@ entries record current behavior and contract friction only; they propose no fix.
 - **ValidationPopup / InlineValidationPopup** — Both dismiss on every window
   pointer press, including presses inside the popup. Other popup composites
   distinguish inside interaction from outside dismissal.
+- **TextField / InlineTextField** — Chrome and canvas model the same treatment
+  axis with different contract shapes: `appearance` plus `situation` in chrome,
+  versus `tone` in canvas.
+- **InlineCommitTextField** — `display` bundles content, treatment, and an edit
+  handler into one object prop instead of exposing the same concerns with the
+  surrounding contract's shapes.
+- **HullSurfaceFrame / StickyNoteSurfaceFrame / StyledBoxSurfaceFrame** — Canvas
+  surface frames report clicks through `onPress`, while chrome elements use
+  `onClick` for the same event grammar.
 
 ## Open-typed configuration
 
@@ -87,3 +105,6 @@ entries record current behavior and contract friction only; they propose no fix.
 - **FieldGrid** — Each row's `alignment` is a closed modifier nested inside the
   `rows` data catalog. The law defines classification for component props but not
   for modifiers nested inside data entries.
+- **Dropdown** — Preview capabilities live on the exported `DropdownOption`
+  boundary type, but exported boundary types have no annotation home under the
+  current law.

@@ -5,9 +5,10 @@
  * row opens an editor governed by `validate`; completion trims and reports
  * `onRowCommit`. The hover add action uses `addLabel` and `addTitle`, and reports
  * nonempty trimmed additions through `onRowAdd`. Pointer dragging reports
- * `onRowReorder` with source row and destination gap; Escape cancels an active
- * drag. Actions use `actionStacking`, validation uses `validationStacking`, and
- * `surface` supplies an explicit action ground.
+ * `onRowReorder` with source row and destination gap; a drag can be cancelled
+ * from the keyboard, leaving the order unchanged. Actions use `actionStacking`,
+ * validation uses `validationStacking`, and `surface` supplies an explicit action
+ * ground.
  *
  * Options:
  * - `isEditStartEnabled` — on permits row editing, reordering, and adding; off

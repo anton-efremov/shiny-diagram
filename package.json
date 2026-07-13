@@ -38,12 +38,13 @@
     "compile": "tsc -p ./",
     "typecheck": "tsc -p ./ --noEmit && tsc -p ./tsconfig.webview.json --noEmit",
     "check:boundaries": "node scripts/check-webview-boundaries.mjs",
+    "check:planes": "node scripts/check-planes.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint extension-host webview/src",
     "planes": "node scripts/update-planes.mjs",
     "test": "vitest run",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run check:boundaries",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run check:boundaries && npm run check:planes",
     "prepare": "git config core.hooksPath .githooks"
   },
   "devDependencies": {

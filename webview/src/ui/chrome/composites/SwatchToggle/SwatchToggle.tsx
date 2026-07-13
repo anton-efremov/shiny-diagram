@@ -2,11 +2,11 @@
  * Toggle button containing a styled box swatch.
  *
  * Renders `label` and the supplied box `styleValues`, exposes `pressed`, and
- * reports activation through `onClick`.
+ * reports `onClick` when clicked.
  *
  * Options:
  * - `pressed` — on shows the swatch selected
- * - `disabled` — on prevents activation and dims the control
+ * - `disabled` — on prevents the control from being pressed and dims it
  */
 
 import type { ReactElement } from "react";

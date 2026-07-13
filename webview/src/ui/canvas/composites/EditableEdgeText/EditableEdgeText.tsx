@@ -1,11 +1,11 @@
 /**
  * Editable edge text swapping a centered pill for a width-tracking editor.
  *
- * Displays `text`; a rest-state click reports `onSelect` and may report
- * `onEditRequest`, while double-click always reports both. During editing the
- * field grows with its local draft up to a fixed region, validates trivially,
- * and routes completion through `onCommit`; invalid blur, Escape, and cancel all
- * report `onDiscard`. Validation overlays use `validationStacking`.
+ * Displays `text`; clicking it while at rest reports `onSelect` and may report
+ * `onEditRequest`, while double-clicking always reports both. During editing the
+ * field grows with the draft up to a fixed maximum; committing reports
+ * `onCommit`; abandoning or cancelling reports `onDiscard`. Validation overlays
+ * use `validationStacking`.
  *
  * Options:
  * - `treatment` — `label` uses light label treatment; `multiplicity` uses dark

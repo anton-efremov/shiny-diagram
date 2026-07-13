@@ -1,9 +1,10 @@
 /**
- * Validation popup anchored to its rendered call site.
+ * Validation popup anchored to the element it is rendered beside.
  *
  * Joins `messages` into one single-line alert, truncating overflow, and places
- * it above the anchor or below when viewport space requires. Escape, any window
- * pointer press, and the dismiss control each report `onDismiss`.
+ * it above the anchor or below when viewport space requires. Dismissing it —
+ * from the keyboard, by clicking anywhere outside, or by its own dismiss control
+ * — reports `onDismiss`.
  */
 
 import { useLayoutEffect } from "react";

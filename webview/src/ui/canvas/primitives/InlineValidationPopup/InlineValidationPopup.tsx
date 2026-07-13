@@ -1,10 +1,10 @@
 /**
- * Inline validation popup anchored to its rendered call site.
+ * Inline validation popup anchored to the element it is rendered beside.
  *
  * Joins `messages` into one single-line alert, truncating overflow, and places
  * it above the anchor or below when viewport space requires at the supplied
- * `stacking` plane. Escape, any window pointer press, and the dismiss control
- * each report `onDismiss`.
+ * `stacking` plane. Dismissing it — from the keyboard, by clicking anywhere
+ * outside, or by its own dismiss control — reports `onDismiss`.
  */
 
 import { useLayoutEffect } from "react";

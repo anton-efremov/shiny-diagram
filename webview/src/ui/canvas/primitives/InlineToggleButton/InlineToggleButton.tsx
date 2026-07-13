@@ -2,7 +2,7 @@
  * Inline glyph toggle calibrated for diagram text controls.
  *
  * Renders `glyph`, uses `label` as its accessible name and tooltip, reports
- * activation through `onPress`, and uses `surface` when supplied instead of the
+ * `onPress` when clicked, and uses `surface` when supplied instead of the
  * selected fallback surface.
  *
  * Options:

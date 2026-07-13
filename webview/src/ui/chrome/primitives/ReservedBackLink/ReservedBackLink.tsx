@@ -1,12 +1,11 @@
 /**
  * Back-navigation button that keeps its place when unavailable.
  *
- * Renders `label` as the button content and reports activation through
- * `onClick`.
+ * Renders `label` as the button content; clicking it reports `onClick`.
  *
  * Options:
- * - `visible` — on exposes the control normally; off removes it from the
- *   accessibility tree and focus order while it remains visibly rendered
+ * - `visible` — off hides the control while its layout space is kept; it leaves
+ *   the focus order and accessibility tree
  */
 
 import type { ReactElement } from "react";

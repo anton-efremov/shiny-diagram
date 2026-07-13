@@ -1,13 +1,14 @@
 /**
  * Clearable text field with validation and a commit lifecycle.
  *
- * Holds `initialValue` as a draft and resets to new incoming values. Editing
- * validates through `validate`: Enter or valid blur reports `onCommit`; invalid
- * blur restores the committed value and reports `onDiscard` with its messages;
- * Escape restores it and reports `onCancel`. Validation failures remain visible
- * after Enter until dismissed or edited. While a nonempty draft has focus, the
- * clear action empties it and reports `onClear`. `ariaLabel` always names the
- * field and its clear action.
+ * Holds `initialValue` as a draft and resets to new incoming values. `validate`
+ * gates completion: confirming a valid draft, or leaving the field with one,
+ * reports `onCommit`; leaving with an invalid draft restores the committed value
+ * and reports `onDiscard` with its messages; backing out restores it and reports
+ * `onCancel`. A failed confirmation keeps its messages visible until dismissed
+ * or the draft changes. While a nonempty draft has focus, the clear action
+ * empties it and reports `onClear`. `ariaLabel` always names the field and its
+ * clear action.
  *
  * Options:
  * - `disabled` — on prevents editing and removes the clear action

@@ -89,12 +89,11 @@
 
 Button for a labeled command with an optional glyph.
 
-Renders `label` beside `icon` when supplied and reports activation through
-`onClick`.
+Renders `label` beside `icon` when supplied; clicking it reports `onClick`.
 
 Options:
 
-- `disabled` — on shows the command unavailable and prevents activation
+- `disabled` — on shows the command as unavailable and it cannot be pressed
 - `tone` — the command's emphasis:
   - `neutral` uses a quiet surface that gains emphasis on hover
   - `danger` uses error emphasis that fills on hover
@@ -125,9 +124,9 @@ type ButtonProps = {
 
 Dismiss button with a compact cross glyph.
 
-Uses `label` as its accessible name and tooltip. Pointer press prevents the
-pending focus change before reporting `onMouseDown`; activation reports
-`onClick`.
+Uses `label` as its accessible name and tooltip. Pressing it does not steal
+focus from the field it sits in and reports the press through `onMouseDown`;
+clicking it reports `onClick`.
 
 Options:
 
@@ -147,7 +146,7 @@ type DismissButtonProps = {
 
 Collapse tab mounted against a pane edge.
 
-Reports activation through `onToggle` and supplies the matching expand or
+Clicking the tab reports `onToggle` and supplies the matching expand or
 collapse accessible instruction.
 
 Options:
@@ -166,13 +165,12 @@ type PaneCollapseTabProps = {
 
 Back-navigation button that keeps its place when unavailable.
 
-Renders `label` as the button content and reports activation through
-`onClick`.
+Renders `label` as the button content; clicking it reports `onClick`.
 
 Options:
 
-- `visible` — on exposes the control normally; off removes it from the
-  accessibility tree and focus order while it remains visibly rendered
+- `visible` — off hides the control while its layout space is kept; it leaves
+  the focus order and accessibility tree
 
 ```ts
 type ReservedBackLinkProps = {
@@ -220,7 +218,7 @@ accessible name.
 
 Options:
 
-- `disabled` — on prevents editing and shows unavailable treatment
+- `disabled` — on prevents editing and shows it as unavailable
 - `invalid` — on exposes invalid state and error treatment
 - `autoFocus` — on requests focus when the field mounts
 - `hasEndAction` — on reserves trailing room for an overlaid action
@@ -252,12 +250,13 @@ Toggle button for a glyph, an optional label, and persistent pressed state.
 
 Renders `icon` when supplied, uses `title` as the tooltip and as the
 accessible name when `label` is absent, exposes `pressed`, and reports
-activation through `onClick`.
+`onClick` when clicked.
 
 Options:
 
 - `pressed` — on shows the toggle selected
-- `disabled` — on prevents activation and shows unavailable treatment
+- `disabled` — on prevents the control from being pressed and shows it as
+  unavailable
 - `size` — the control's fixed presentation:
   - `micro` is a compact in-field square
   - `compact` is icon-only when `label` is absent, otherwise a full-width
@@ -279,11 +278,12 @@ type ToggleButtonProps = {
 
 ### [ValidationPopup](./chrome/primitives/ValidationPopup/ValidationPopup.tsx)
 
-Validation popup anchored to its rendered call site.
+Validation popup anchored to the element it is rendered beside.
 
 Joins `messages` into one single-line alert, truncating overflow, and places
-it above the anchor or below when viewport space requires. Escape, any window
-pointer press, and the dismiss control each report `onDismiss`.
+it above the anchor or below when viewport space requires. Dismissing it —
+from the keyboard, by clicking anywhere outside, or by its own dismiss control
+— reports `onDismiss`.
 
 ```ts
 type ValidationPopupProps = {
@@ -301,15 +301,16 @@ Color selector with a swatch-grid popup and immediate selection.
 Shows `value` through the selected `glyph`; null uses the `baseValue` preview
 and "multiple" shows a mixed state. The popup combines `documentColors` with
 the hue, shade, and neutral `presets`; choosing a color or Base reports
-`onChange` and restores trigger focus. Outside press and Escape close without
-selection. Preset focus moves within the six-column grid with arrow, Home,
-and End keys.
+`onChange` and returns focus to the control. Closing it without choosing —
+clicking outside or from the keyboard — reports nothing. The six-column grid
+is keyboard-navigable.
 
 Options:
 
 - `glyph` — `fill` renders a filled square, `stroke` a line, and `text` a
   letter sample
-- `disabled` — on prevents opening and shows unavailable treatment
+- `disabled` — on means the list cannot be opened and shows the control as
+  unavailable
 
 ```ts
 type ColorSelectProps = {
@@ -327,13 +328,14 @@ type ColorSelectProps = {
 
 Clearable text field with validation and a commit lifecycle.
 
-Holds `initialValue` as a draft and resets to new incoming values. Editing
-validates through `validate`: Enter or valid blur reports `onCommit`; invalid
-blur restores the committed value and reports `onDiscard` with its messages;
-Escape restores it and reports `onCancel`. Validation failures remain visible
-after Enter until dismissed or edited. While a nonempty draft has focus, the
-clear action empties it and reports `onClear`. `ariaLabel` always names the
-field and its clear action.
+Holds `initialValue` as a draft and resets to new incoming values. `validate`
+gates completion: confirming a valid draft, or leaving the field with one,
+reports `onCommit`; leaving with an invalid draft restores the committed value
+and reports `onDiscard` with its messages; backing out restores it and reports
+`onCancel`. A failed confirmation keeps its messages visible until dismissed
+or the draft changes. While a nonempty draft has focus, the clear action
+empties it and reports `onClear`. `ariaLabel` always names the field and its
+clear action.
 
 Options:
 
@@ -394,11 +396,12 @@ Text field with validation, commit lifecycle, and optional cancellation.
 
 Holds `initialValue` as a draft, reports each edit through `onDraftChange`,
 and resets when the incoming value changes. `validate` gates completion:
-Enter or valid blur reports `onCommit`; invalid blur restores the committed
-value and reports `onDiscard` with its messages. Escape and the optional
-cancel action restore the value and report `onCancel`. Enter failures remain
-visible until dismissed or edited. `ariaLabel` always supplies the accessible
-name.
+confirming a valid draft, or leaving the field with one, reports `onCommit`;
+leaving with an invalid draft restores the committed value and reports
+`onDiscard` with its messages; backing out or using the optional cancel action
+restores it and reports `onCancel`. A failed confirmation keeps its messages
+visible until dismissed or the draft changes. `ariaLabel` always supplies the
+accessible name.
 
 Options:
 
@@ -432,18 +435,19 @@ type CommitTextFieldProps = {
 
 ### [Dropdown](./chrome/composites/Dropdown/Dropdown.tsx)
 
-Dropdown with text, styled swatch, line, text, and endpoint previews.
+Dropdown whose entries can carry visual previews beside or instead of text.
 
 Selects the matching entry from `options` for `value`, falling back visually
-to the first entry when unmatched. Activation toggles the list; Escape while
-focus remains inside closes it and restores trigger focus. Choosing an entry
-closes the list and reports its value through `onChange`. Each option may
-provide a labeled or swatch-only preview, with selected and mixed visual data
-carried by the option catalog.
+to the first entry when unmatched. The user opens the list from the closed
+control and closes it the same way; closing it from the keyboard returns focus
+to the control. Choosing an entry closes the list and reports its value through
+`onChange`. Each entry may show a text label, a preview, or both, as its options
+entry supplies.
 
 Options:
 
-- `disabled` — on prevents trigger activation and shows unavailable treatment
+- `disabled` — on means the list cannot be opened and shows the control as
+  unavailable
 
 ```ts
 type DropdownProps = {
@@ -461,14 +465,16 @@ Line-treatment selector with sampled values and immediate selection.
 Shows `value`, using `defaultValue` for Base or the preview when values are
 mixed. The popup orders Base, unused `presets`, then `documentValues`, treating
 equivalent representations as equal. Choosing a row reports `onChange`, where
-Base reports null, then restores trigger focus. Outside press and Escape close
-without selection; arrows, Home, and End move row focus. `popupWidth` sets the
-popup's minimum width before viewport clamping.
+Base reports null, then returns focus to the control. Closing it without
+choosing — clicking outside or from the keyboard — reports nothing; the row
+list is keyboard-navigable. `popupWidth` sets the popup's minimum width before
+viewport clamping.
 
 Options:
 
 - `kind` — `width` varies the sample's thickness; `dash` varies its pattern
-- `disabled` — on prevents opening and shows unavailable treatment
+- `disabled` — on means the list cannot be opened and shows the control as
+  unavailable
 
 ```ts
 type StrokeSelectProps = {
@@ -488,12 +494,12 @@ type StrokeSelectProps = {
 Toggle button containing a styled box swatch.
 
 Renders `label` and the supplied box `styleValues`, exposes `pressed`, and
-reports activation through `onClick`.
+reports `onClick` when clicked.
 
 Options:
 
 - `pressed` — on shows the swatch selected
-- `disabled` — on prevents activation and dims the control
+- `disabled` — on prevents the control from being pressed and dims it
 
 ```ts
 type SwatchToggleProps = {
@@ -706,8 +712,9 @@ type EdgeEndpointHandleProps = {
 
 Endpoint marker definition rendering descriptor geometry at marker scale.
 
-Registers the marker under `id`, draws every path and anchor from `glyph`, and
-uses the descriptor's filled and dashed states.
+Defines the marker under `id` for edge paths to link; draws the descriptor's
+(`glyph`) paths at marker scale, attached at the descriptor's anchor, and uses
+its filled and dashed states.
 
 Options:
 
@@ -791,11 +798,11 @@ type EdgePathProps = {
 
 ### [EdgeTextSurface](./canvas/primitives/EdgeTextSurface/EdgeTextSurface.tsx)
 
-Edge-text pill centered at the current drawing origin.
+Edge-text pill sized to its text.
 
-Renders `text` on a single line and sizes its pill from character count, with
-a fixed minimum width and height. Pointer input remains available on both text
-and surface.
+Renders `text` on a single line and sizes itself to its text with fixed
+minimums, centered on the point where the consumer places it. Pointer input
+remains available on both text and surface.
 
 Options:
 
@@ -845,18 +852,18 @@ type HaloRingProps = {
 
 Inline action button for cancel and add affordances.
 
-Renders `glyph`, uses `label` as its accessible name, uses `title` as the
-tooltip when supplied, and reports activation through `onPress`. Pointer press
-prevents a pending field blur. `surface` overrides the selected fallback
+Renders `glyph`, uses `label` as its accessible name, and uses `title` as the
+tooltip when supplied. Pressing it does not steal focus from the field it sits
+in; clicking it reports `onPress`. `surface` overrides the selected fallback
 surface.
 
 Options:
 
 - `treatment` — `cancel` is a compact circular error action; `add` fills its
   host with a quiet rounded action
-- `disabled` — on prevents activation
+- `disabled` — on prevents the control from being pressed
 - `visible` — off makes the control transparent while retaining focus and
-  activation
+  interaction
 - `surfaceTone` — `default` uses the canvas surface, `base` the base fill, and
   `neutral` a neutral wash when `surface` is absent
 
@@ -885,8 +892,8 @@ through `onChange`, and forwards focus loss and keyboard input through
 Options:
 
 - `autoFocus` — on requests focus when the area mounts
-- `treatment` — `body` fills its container without resizing; `row` grows to
-  its scroll height whenever the draft changes
+- `treatment` — `body` fills its container without resizing; `row` grows with
+  its content as the draft changes
 - `invalid` — on shows invalid treatment for the row form
 - `hasEndAction` — on reserves trailing room for an overlaid row action
 
@@ -941,7 +948,7 @@ type InlineTextBlockProps = {
 
 Inline text button for a compact momentary action.
 
-Renders `label` as its content and reports activation through `onPress`.
+Renders `label` as its content; clicking it reports `onPress`.
 
 ```ts
 type InlineTextButtonProps = {
@@ -985,7 +992,7 @@ type InlineTextFieldProps = {
 Inline glyph toggle calibrated for diagram text controls.
 
 Renders `glyph`, uses `label` as its accessible name and tooltip, reports
-activation through `onPress`, and uses `surface` when supplied instead of the
+`onPress` when clicked, and uses `surface` when supplied instead of the
 selected fallback surface.
 
 Options:
@@ -1007,12 +1014,12 @@ type InlineToggleButtonProps = {
 
 ### [InlineValidationPopup](./canvas/primitives/InlineValidationPopup/InlineValidationPopup.tsx)
 
-Inline validation popup anchored to its rendered call site.
+Inline validation popup anchored to the element it is rendered beside.
 
 Joins `messages` into one single-line alert, truncating overflow, and places
 it above the anchor or below when viewport space requires at the supplied
-`stacking` plane. Escape, any window pointer press, and the dismiss control
-each report `onDismiss`.
+`stacking` plane. Dismissing it — from the keyboard, by clicking anywhere
+outside, or by its own dismiss control — reports `onDismiss`.
 
 ```ts
 type InlineValidationPopupProps = {
@@ -1028,8 +1035,8 @@ Resize affordance with corner, midpoint, and full-edge grab targets.
 
 Centers visible handles and wider edge targets around the host boundary using
 `centerOffset`, placing edge targets at `stacking` and handles one plane above.
-Pointer press prevents selection and propagation, then reports the named
-handle and viewport point through `onGrab`.
+A press neither selects nor reaches the surface beneath; it reports the
+grabbed handle and viewport point through `onGrab`.
 
 ```ts
 type ResizeAffordanceProps = {
@@ -1058,9 +1065,9 @@ type AttachmentEdgeProps = {
 Box interaction overlay combining outline, halo, and resize affordances.
 
 Centers outline and resize geometry with `centerOffset`. A supplied `haloTint`
-paints the halo at `haloStacking`; resize targets use `affordanceStacking` and
-report handle and viewport point through `onResizeGrab` without propagating
-their pointer press.
+paints the halo at `haloStacking`; resize targets use `affordanceStacking`. A
+resize press reports its handle and viewport point through `onResizeGrab` and
+does not reach the surface beneath.
 
 Options:
 
@@ -1068,9 +1075,9 @@ Options:
   parent hover
 - `pending` — on adds a pending placement outline
 - `resizeVisible` — on renders corner, midpoint, and full-edge resize targets
-- `haloTone` — absent renders no default halo unless `haloTint` is supplied;
-  `canvas` uses canvas ground and `faint` uses a translucent wash when tint is
-  absent
+- `haloTone` — the halo's wash when `haloTint` is absent: `canvas` matches the
+  canvas ground, `faint` a translucent wash; with neither tone nor tint, no
+  halo renders
 
 ```ts
 type BoxInteractionOverlayProps = {
@@ -1090,11 +1097,11 @@ type BoxInteractionOverlayProps = {
 
 Editable edge text swapping a centered pill for a width-tracking editor.
 
-Displays `text`; a rest-state click reports `onSelect` and may report
-`onEditRequest`, while double-click always reports both. During editing the
-field grows with its local draft up to a fixed region, validates trivially,
-and routes completion through `onCommit`; invalid blur, Escape, and cancel all
-report `onDiscard`. Validation overlays use `validationStacking`.
+Displays `text`; clicking it while at rest reports `onSelect` and may report
+`onEditRequest`, while double-clicking always reports both. During editing the
+field grows with the draft up to a fixed maximum; committing reports
+`onCommit`; abandoning or cancelling reports `onDiscard`. Validation overlays
+use `validationStacking`.
 
 Options:
 
@@ -1126,9 +1133,10 @@ Renders `rows`, preserving each row's text and emphasis. Clicking an enabled
 row opens an editor governed by `validate`; completion trims and reports
 `onRowCommit`. The hover add action uses `addLabel` and `addTitle`, and reports
 nonempty trimmed additions through `onRowAdd`. Pointer dragging reports
-`onRowReorder` with source row and destination gap; Escape cancels an active
-drag. Actions use `actionStacking`, validation uses `validationStacking`, and
-`surface` supplies an explicit action ground.
+`onRowReorder` with source row and destination gap; a drag can be cancelled
+from the keyboard, leaving the order unchanged. Actions use `actionStacking`,
+validation uses `validationStacking`, and `surface` supplies an explicit action
+ground.
 
 Options:
 
@@ -1185,10 +1193,11 @@ type GhostEdgeProps = {
 
 Multiline commit field swapping wrapped display text for a full-area editor.
 
-Displays `displayText` and reports display activation through `onEditRequest`.
-Editing begins from `initialValue`; blur or the action labeled by `saveLabel`
-reports `onCommit`, while Escape restores the initial value and reports
-`onCancel`. Enter remains ordinary multiline input.
+Displays `displayText`; clicking it reports `onEditRequest`. Editing begins
+from `initialValue`; leaving the editor or using the action labeled by
+`saveLabel` reports `onCommit`, while backing out restores the initial value
+and reports `onCancel`. Line breaks are typed as ordinary input; committing is
+only by the save action or by leaving the editor.
 
 Options:
 
@@ -1216,10 +1225,11 @@ Inline commit field swapping optional display content for validated editing.
 Begins its draft at `initialValue`, reports edits through `onDraftChange`, and
 resets when that value changes. In display state, `display` supplies text,
 treatment, and edit request. In edit state, `ariaLabel` names the field and
-`validate` gates completion: Enter or valid blur reports `onCommit`; invalid
-blur restores the value and reports `onDiscard` with messages; Escape and the
-cancel action restore it and report `onCancel`. Validation uses
-`validationStacking`, while `surface` supplies an explicit cancel ground.
+`validate` gates completion: confirming a valid draft, or leaving the field
+with one, reports `onCommit`; leaving with an invalid draft restores the value
+and reports `onDiscard` with messages; backing out or using the cancel action
+restores it and reports `onCancel`. Validation uses `validationStacking`,
+while `surface` supplies an explicit cancel ground.
 
 Options:
 
@@ -1257,11 +1267,12 @@ Inline commit field with mutually exclusive underline and italic controls.
 
 Converts `initialValue` and subsequent edits to one line, initializes its
 formatting from `initialEmphasis`, and resets both when incoming values change.
-`validate` gates completion: Enter or valid blur reports text and emphasis
-through `onCommit`; invalid blur restores both and reports `onDiscard` with
-messages; Escape and cancel restore both and report `onCancel`. Controls use
-`actionStacking`, validation uses `validationStacking`, and `surface` supplies
-an explicit action ground.
+`validate` gates completion: confirming a valid draft, or leaving the field
+with one, reports text and emphasis through `onCommit`; leaving with an invalid
+draft restores both and reports `onDiscard` with messages; backing out or
+cancelling restores both and reports `onCancel`. Controls use `actionStacking`,
+validation uses `validationStacking`, and `surface` supplies an explicit action
+ground.
 
 Options:
 
@@ -1292,8 +1303,9 @@ type InlineEmphasisCommitTextFieldProps = {
 Rectangle-draw overlay capturing pointer gestures across its complete surface.
 
 Routes pointer phases through `onPointerDown`, `onPointerMove`, and
-`onPointerUp` at the supplied `stacking` plane, suppressing selection and drag
-treatment. When `rect` is non-null, it also renders the pending rectangle.
+`onPointerUp` at the supplied `stacking` plane. Text selection and native
+dragging do not engage while drawing. When `rect` is non-null, it also renders
+the pending rectangle.
 
 ```ts
 type RectDrawOverlayProps = {
@@ -1425,8 +1437,8 @@ type GridFrameProps =
 Hull surface frame with user-supplied color and border values.
 
 Fills its host with `children`, uses `title` as the tooltip, applies `fill`,
-`stroke`, `strokeWidth`, and `color` with neutral fallbacks, reports mouse
-press through `onPointerDown`, and reports activation through `onPress`.
+`stroke`, `strokeWidth`, and `color` with neutral fallbacks. Pressing it
+reports `onPointerDown`; clicking it reports `onPress`.
 
 Options:
 
@@ -1451,7 +1463,7 @@ type HullSurfaceFrameProps = {
 Sticky-note surface framing content with movable-object treatment.
 
 Fills its host with `children`, uses `title` as the tooltip, and reports
-activation through `onPress`.
+`onPress` when clicked.
 
 Options:
 
@@ -1472,8 +1484,8 @@ type StickyNoteSurfaceFrameProps = {
 Styled box surface framing vertically arranged content with user values.
 
 Fills its host with `children`, uses `title` as the tooltip, applies `fill`,
-`stroke`, `strokeWidth`, and `color` with base fallbacks, and reports
-activation through `onPress`.
+`stroke`, `strokeWidth`, and `color` with base fallbacks, and reports `onPress`
+when clicked.
 
 Options:
 

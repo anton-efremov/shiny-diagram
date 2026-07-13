@@ -1,15 +1,16 @@
 /**
- * Dropdown with text, styled swatch, line, text, and endpoint previews.
+ * Dropdown whose entries can carry visual previews beside or instead of text.
  *
  * Selects the matching entry from `options` for `value`, falling back visually
- * to the first entry when unmatched. Activation toggles the list; Escape while
- * focus remains inside closes it and restores trigger focus. Choosing an entry
- * closes the list and reports its value through `onChange`. Each option may
- * provide a labeled or swatch-only preview, with selected and mixed visual data
- * carried by the option catalog.
+ * to the first entry when unmatched. The user opens the list from the closed
+ * control and closes it the same way; closing it from the keyboard returns focus
+ * to the control. Choosing an entry closes the list and reports its value through
+ * `onChange`. Each entry may show a text label, a preview, or both, as its options
+ * entry supplies.
  *
  * Options:
- * - `disabled` — on prevents trigger activation and shows unavailable treatment
+ * - `disabled` — on means the list cannot be opened and shows the control as
+ *   unavailable
  */
 
 import { useRef, useState } from "react";

@@ -4,10 +4,11 @@
  * Begins its draft at `initialValue`, reports edits through `onDraftChange`, and
  * resets when that value changes. In display state, `display` supplies text,
  * treatment, and edit request. In edit state, `ariaLabel` names the field and
- * `validate` gates completion: Enter or valid blur reports `onCommit`; invalid
- * blur restores the value and reports `onDiscard` with messages; Escape and the
- * cancel action restore it and report `onCancel`. Validation uses
- * `validationStacking`, while `surface` supplies an explicit cancel ground.
+ * `validate` gates completion: confirming a valid draft, or leaving the field
+ * with one, reports `onCommit`; leaving with an invalid draft restores the value
+ * and reports `onDiscard` with messages; backing out or using the cancel action
+ * restores it and reports `onCancel`. Validation uses `validationStacking`,
+ * while `surface` supplies an explicit cancel ground.
  *
  * Options:
  * - `isEditing` — off renders `display` or nothing; on renders the field

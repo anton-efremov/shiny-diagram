@@ -3,11 +3,12 @@
  *
  * Holds `initialValue` as a draft, reports each edit through `onDraftChange`,
  * and resets when the incoming value changes. `validate` gates completion:
- * Enter or valid blur reports `onCommit`; invalid blur restores the committed
- * value and reports `onDiscard` with its messages. Escape and the optional
- * cancel action restore the value and report `onCancel`. Enter failures remain
- * visible until dismissed or edited. `ariaLabel` always supplies the accessible
- * name.
+ * confirming a valid draft, or leaving the field with one, reports `onCommit`;
+ * leaving with an invalid draft restores the committed value and reports
+ * `onDiscard` with its messages; backing out or using the optional cancel action
+ * restores it and reports `onCancel`. A failed confirmation keeps its messages
+ * visible until dismissed or the draft changes. `ariaLabel` always supplies the
+ * accessible name.
  *
  * Options:
  * - `disabled` — on prevents editing

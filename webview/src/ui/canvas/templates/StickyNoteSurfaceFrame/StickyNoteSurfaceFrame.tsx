@@ -2,7 +2,7 @@
  * Sticky-note surface framing content with movable-object treatment.
  *
  * Fills its host with `children`, uses `title` as the tooltip, and reports
- * activation through `onPress`.
+ * `onPress` when clicked.
  *
  * Options:
  * - `dragging` — off shows the ready-to-move cursor; on dims the surface and

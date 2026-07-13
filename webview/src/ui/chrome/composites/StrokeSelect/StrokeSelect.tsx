@@ -4,13 +4,15 @@
  * Shows `value`, using `defaultValue` for Base or the preview when values are
  * mixed. The popup orders Base, unused `presets`, then `documentValues`, treating
  * equivalent representations as equal. Choosing a row reports `onChange`, where
- * Base reports null, then restores trigger focus. Outside press and Escape close
- * without selection; arrows, Home, and End move row focus. `popupWidth` sets the
- * popup's minimum width before viewport clamping.
+ * Base reports null, then returns focus to the control. Closing it without
+ * choosing — clicking outside or from the keyboard — reports nothing; the row
+ * list is keyboard-navigable. `popupWidth` sets the popup's minimum width before
+ * viewport clamping.
  *
  * Options:
  * - `kind` — `width` varies the sample's thickness; `dash` varies its pattern
- * - `disabled` — on prevents opening and shows unavailable treatment
+ * - `disabled` — on means the list cannot be opened and shows the control as
+ *   unavailable
  */
 
 import { useEffect, useRef, useState } from "react";

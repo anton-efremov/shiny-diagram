@@ -3,11 +3,12 @@
  *
  * Converts `initialValue` and subsequent edits to one line, initializes its
  * formatting from `initialEmphasis`, and resets both when incoming values change.
- * `validate` gates completion: Enter or valid blur reports text and emphasis
- * through `onCommit`; invalid blur restores both and reports `onDiscard` with
- * messages; Escape and cancel restore both and report `onCancel`. Controls use
- * `actionStacking`, validation uses `validationStacking`, and `surface` supplies
- * an explicit action ground.
+ * `validate` gates completion: confirming a valid draft, or leaving the field
+ * with one, reports text and emphasis through `onCommit`; leaving with an invalid
+ * draft restores both and reports `onDiscard` with messages; backing out or
+ * cancelling restores both and reports `onCancel`. Controls use `actionStacking`,
+ * validation uses `validationStacking`, and `surface` supplies an explicit action
+ * ground.
  *
  * Options:
  * - `initialEmphasis` — null begins without emphasis; `underline` or `italic`

@@ -1,9 +1,9 @@
 /**
  * Dismiss button with a compact cross glyph.
  *
- * Uses `label` as its accessible name and tooltip. Pointer press prevents the
- * pending focus change before reporting `onMouseDown`; activation reports
- * `onClick`.
+ * Uses `label` as its accessible name and tooltip. Pressing it does not steal
+ * focus from the field it sits in and reports the press through `onMouseDown`;
+ * clicking it reports `onClick`.
  *
  * Options:
  * - `small` — off renders a standard circular control; on renders the reduced

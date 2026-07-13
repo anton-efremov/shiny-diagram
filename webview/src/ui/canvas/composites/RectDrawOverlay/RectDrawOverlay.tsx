@@ -2,8 +2,9 @@
  * Rectangle-draw overlay capturing pointer gestures across its complete surface.
  *
  * Routes pointer phases through `onPointerDown`, `onPointerMove`, and
- * `onPointerUp` at the supplied `stacking` plane, suppressing selection and drag
- * treatment. When `rect` is non-null, it also renders the pending rectangle.
+ * `onPointerUp` at the supplied `stacking` plane. Text selection and native
+ * dragging do not engage while drawing. When `rect` is non-null, it also renders
+ * the pending rectangle.
  */
 
 import type { CSSProperties, PointerEvent, ReactElement } from "react";

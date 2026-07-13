@@ -5,11 +5,9 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import * as uiCatalog from "./planes/ui-catalog.mjs";
+import { planes, planesByName } from "./planes/registry.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const planes = [uiCatalog];
-const planesByName = new Map(planes.map((plane) => [plane.name, plane]));
 const requestedNames = process.argv.slice(2);
 
 if (requestedNames.length > 1) {

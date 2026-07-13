@@ -1,9 +1,9 @@
 /**
- * Edge-text pill centered at the current drawing origin.
+ * Edge-text pill sized to its text.
  *
- * Renders `text` on a single line and sizes its pill from character count, with
- * a fixed minimum width and height. Pointer input remains available on both text
- * and surface.
+ * Renders `text` on a single line and sizes itself to its text with fixed
+ * minimums, centered on the point where the consumer places it. Pointer input
+ * remains available on both text and surface.
  *
  * Options:
  * - `variant` — `label` uses light label treatment; `multiplicity` uses dark

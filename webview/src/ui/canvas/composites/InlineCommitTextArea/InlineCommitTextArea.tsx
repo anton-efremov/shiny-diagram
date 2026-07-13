@@ -1,10 +1,11 @@
 /**
  * Multiline commit field swapping wrapped display text for a full-area editor.
  *
- * Displays `displayText` and reports display activation through `onEditRequest`.
- * Editing begins from `initialValue`; blur or the action labeled by `saveLabel`
- * reports `onCommit`, while Escape restores the initial value and reports
- * `onCancel`. Enter remains ordinary multiline input.
+ * Displays `displayText`; clicking it reports `onEditRequest`. Editing begins
+ * from `initialValue`; leaving the editor or using the action labeled by
+ * `saveLabel` reports `onCommit`, while backing out restores the initial value
+ * and reports `onCancel`. Line breaks are typed as ordinary input; committing is
+ * only by the save action or by leaving the editor.
  *
  * Options:
  * - `isEditing` — off renders wrapped display text; on renders the editor and

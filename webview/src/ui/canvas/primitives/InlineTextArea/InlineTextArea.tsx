@@ -7,8 +7,8 @@
  *
  * Options:
  * - `autoFocus` — on requests focus when the area mounts
- * - `treatment` — `body` fills its container without resizing; `row` grows to
- *   its scroll height whenever the draft changes
+ * - `treatment` — `body` fills its container without resizing; `row` grows with
+ *   its content as the draft changes
  * - `invalid` — on shows invalid treatment for the row form
  * - `hasEndAction` — on reserves trailing room for an overlaid row action
  */

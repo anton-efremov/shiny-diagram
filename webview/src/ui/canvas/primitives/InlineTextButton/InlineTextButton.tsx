@@ -1,7 +1,7 @@
 /**
  * Inline text button for a compact momentary action.
  *
- * Renders `label` as its content and reports activation through `onPress`.
+ * Renders `label` as its content; clicking it reports `onPress`.
  */
 
 import type { ReactElement } from "react";

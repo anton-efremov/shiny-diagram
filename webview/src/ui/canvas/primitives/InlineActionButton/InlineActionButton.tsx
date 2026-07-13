@@ -1,17 +1,17 @@
 /**
  * Inline action button for cancel and add affordances.
  *
- * Renders `glyph`, uses `label` as its accessible name, uses `title` as the
- * tooltip when supplied, and reports activation through `onPress`. Pointer press
- * prevents a pending field blur. `surface` overrides the selected fallback
+ * Renders `glyph`, uses `label` as its accessible name, and uses `title` as the
+ * tooltip when supplied. Pressing it does not steal focus from the field it sits
+ * in; clicking it reports `onPress`. `surface` overrides the selected fallback
  * surface.
  *
  * Options:
  * - `treatment` — `cancel` is a compact circular error action; `add` fills its
  *   host with a quiet rounded action
- * - `disabled` — on prevents activation
+ * - `disabled` — on prevents the control from being pressed
  * - `visible` — off makes the control transparent while retaining focus and
- *   activation
+ *   interaction
  * - `surfaceTone` — `default` uses the canvas surface, `base` the base fill, and
  *   `neutral` a neutral wash when `surface` is absent
  */

@@ -1,8 +1,9 @@
 /**
  * Endpoint marker definition rendering descriptor geometry at marker scale.
  *
- * Registers the marker under `id`, draws every path and anchor from `glyph`, and
- * uses the descriptor's filled and dashed states.
+ * Defines the marker under `id` for edge paths to link; draws the descriptor's
+ * (`glyph`) paths at marker scale, attached at the descriptor's anchor, and uses
+ * its filled and dashed states.
  *
  * Options:
  * - `side` — `source` reverses automatically at the path start; `target` follows

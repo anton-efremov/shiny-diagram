@@ -6,7 +6,7 @@
  * accessible name.
  *
  * Options:
- * - `disabled` — on prevents editing and shows unavailable treatment
+ * - `disabled` — on prevents editing and shows it as unavailable
  * - `invalid` — on exposes invalid state and error treatment
  * - `autoFocus` — on requests focus when the field mounts
  * - `hasEndAction` — on reserves trailing room for an overlaid action

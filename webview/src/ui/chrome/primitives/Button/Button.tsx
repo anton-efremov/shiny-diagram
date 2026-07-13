@@ -1,11 +1,10 @@
 /**
  * Button for a labeled command with an optional glyph.
  *
- * Renders `label` beside `icon` when supplied and reports activation through
- * `onClick`.
+ * Renders `label` beside `icon` when supplied; clicking it reports `onClick`.
  *
  * Options:
- * - `disabled` — on shows the command unavailable and prevents activation
+ * - `disabled` — on shows the command as unavailable and it cannot be pressed
  * - `tone` — the command's emphasis:
  *   - `neutral` uses a quiet surface that gains emphasis on hover
  *   - `danger` uses error emphasis that fills on hover
