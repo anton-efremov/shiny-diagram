@@ -3,7 +3,8 @@
  *
  * Fills its host with `children`, uses `title` as the tooltip, applies `fill`,
  * `stroke`, `strokeWidth`, `lineStyle`, and `color` with base fallbacks, and
- * reports `onClick` when clicked. `placementCursor` selects the placement cursor.
+ * reports `onClick` when clicked. `placementCursor` selects the placement cursor;
+ * `elementRef` exposes the surface host for consumer-owned measurement.
  *
  * Used by: class surfaces.
  *
@@ -12,7 +13,7 @@
  * - `placementCursor` — on shows that relationship placement is available
  */
 
-import type { CSSProperties, MouseEvent, ReactElement, ReactNode } from "react";
+import type { CSSProperties, MouseEvent, ReactElement, ReactNode, Ref } from "react";
 import styles from "./StyledBoxSurfaceFrame.module.css";
 
 type StyledBoxSurfaceFrameProps = {
@@ -26,6 +27,7 @@ type StyledBoxSurfaceFrameProps = {
   readonly dragging: boolean;
   readonly placementCursor: boolean;
   readonly onClick: (event: MouseEvent<HTMLDivElement>) => void;
+  readonly elementRef?: Ref<HTMLDivElement>;
 };
 
 export default function StyledBoxSurfaceFrame({
@@ -39,6 +41,7 @@ export default function StyledBoxSurfaceFrame({
   placementCursor,
   children,
   onClick,
+  elementRef,
 }: StyledBoxSurfaceFrameProps): ReactElement {
   const style = {
     "--styled-box-fill": fill,
@@ -56,7 +59,7 @@ export default function StyledBoxSurfaceFrame({
     .join(" ");
 
   return (
-    <div className={className} style={style} title={title} onClick={onClick}>
+    <div ref={elementRef} className={className} style={style} title={title} onClick={onClick}>
       {children}
     </div>
   );

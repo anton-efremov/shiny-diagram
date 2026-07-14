@@ -1,15 +1,16 @@
 /**
  * Box header frame centering primary content between optional vertical slots.
  *
- * Maintains `minHeight`, places `validation` first, then full-width `leading`,
- * `primary`, and `trailing` slots, and draws the lower separator from
+ * Maintains `minHeight`, places `validation` first, then centers intrinsically
+ * sized display content in the full-width `leading`, `primary`, and `trailing`
+ * slots while editors retain the slot width, and draws the lower separator from
  * `separatorColor`, `separatorThickness`, and `separatorLineStyle` with base
- * fallbacks.
+ * fallbacks. `elementRef` exposes the header host for consumer-owned measurement.
  *
  * Used by: the title region of a class.
  */
 
-import type { CSSProperties, ReactElement, ReactNode } from "react";
+import type { CSSProperties, ReactElement, ReactNode, Ref } from "react";
 import styles from "./BoxHeaderFrame.module.css";
 
 type BoxHeaderFrameProps = {
@@ -21,6 +22,7 @@ type BoxHeaderFrameProps = {
   readonly separatorThickness?: string;
   readonly separatorLineStyle: "solid" | "dashed" | "dotted";
   readonly minHeight: number;
+  readonly elementRef?: Ref<HTMLElement>;
 };
 
 export default function BoxHeaderFrame({
@@ -32,6 +34,7 @@ export default function BoxHeaderFrame({
   leading,
   primary,
   trailing,
+  elementRef,
 }: BoxHeaderFrameProps): ReactElement {
   const style = {
     "--box-header-min-height": `${minHeight}px`,
@@ -41,7 +44,7 @@ export default function BoxHeaderFrame({
   } as CSSProperties;
 
   return (
-    <header className={styles.header} style={style}>
+    <header ref={elementRef} className={styles.header} style={style}>
       {validation}
       {leading ? <div className={styles.leading}>{leading}</div> : null}
       <div className={styles.primary}>{primary}</div>

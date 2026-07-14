@@ -89,9 +89,9 @@ const relationshipTools: readonly ToolPaneItem[] = [
     icon: inheritanceGlyph,
     name: "Inheritance",
     seed: {
-      sourceEndpointKind: "triangle",
+      sourceEndpointKind: "none",
       lineKind: "solid",
-      targetEndpointKind: "none",
+      targetEndpointKind: "triangle",
       sourceMultiplicity: null,
       targetMultiplicity: null,
       label: null,

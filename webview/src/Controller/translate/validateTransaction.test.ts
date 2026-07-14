@@ -126,7 +126,7 @@ describe("validateTransaction", () => {
     ]);
   });
 
-  it("rejects note text with literal newlines", () => {
+  it("accepts note text with literal newlines for Mermaid encoding", () => {
     const errors = validateTransaction(
       [
         {
@@ -138,13 +138,7 @@ describe("validateTransaction", () => {
       graphWithClasses([])
     );
 
-    expect(errors).toEqual([
-      {
-        commandIndex: 0,
-        message:
-          'Note text "line one\nline two" would be reinterpreted by Mermaid because literal newlines cannot be represented inside note strings',
-      },
-    ]);
+    expect(errors).toEqual([]);
   });
 
   it("accepts backslashes as literal note text", () => {

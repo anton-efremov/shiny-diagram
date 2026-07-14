@@ -4,6 +4,7 @@
 
 import type { CSSProperties } from "react";
 import { Handle, Position } from "@xyflow/react";
+import { NODE_ABOVE_CONTENT_Z_INDEX } from "../../../../../../../config/editorUiConfig";
 
 const SIDE_TO_POSITION: Record<string, Position> = {
   top: Position.Top,
@@ -44,6 +45,7 @@ const CONNECT_HANDLE_STYLE: CSSProperties = {
   border: 0,
   background: "transparent",
   opacity: 0,
+  zIndex: NODE_ABOVE_CONTENT_Z_INDEX,
 };
 
 export default function ReactFlowConnectionHandlesAdapter({
@@ -54,7 +56,7 @@ export default function ReactFlowConnectionHandlesAdapter({
     <>
       {/* framework-adaptation nesting exception: existing Handle adapter lives under ClassBox. */}
       <Handle
-        style={isConnectSourceEnabled ? CONNECT_HANDLE_STYLE : HIDDEN_HANDLE_STYLE}
+        style={CONNECT_HANDLE_STYLE}
         id="connect"
         type="source"
         position={Position.Top}

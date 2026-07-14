@@ -1,9 +1,9 @@
 /**
  * Compartment stack separating flexible content regions.
  *
- * Places `compartments` vertically in order and draws separators before every
- * region after the first, using `separatorColor`, `separatorThickness`, and
- * `separatorLineStyle` with base fallbacks.
+ * Places `compartments` vertically at their natural content heights and draws
+ * separators before every region after the first, using `separatorColor`,
+ * `separatorThickness`, and `separatorLineStyle` with base fallbacks.
  *
  * Used by: class title and member compartments.
  */

@@ -28,6 +28,7 @@ type NoteBoxNodeData = {
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
   readonly onTextBlockEditCancel: () => void;
+  readonly onContentHeightChange: (noteId: NoteId, height: number) => void;
 };
 
 type NoteBoxNode = Node<NoteBoxNodeData, "noteBox">;
@@ -47,11 +48,36 @@ export default function ReactFlowNoteAdapter(props: NodeProps<NoteBoxNode>): Rea
         onNoteResizeHandlePress={props.data.onNoteResizeHandlePress}
         onTextBlockEditStart={props.data.onTextBlockEditStart}
         onTextBlockEditCancel={props.data.onTextBlockEditCancel}
+        onContentHeightChange={props.data.onContentHeightChange}
       />
-      <Handle id="top" type="source" position={Position.Top} style={{ opacity: 0 }} />
-      <Handle id="right" type="source" position={Position.Right} style={{ opacity: 0 }} />
-      <Handle id="bottom" type="source" position={Position.Bottom} style={{ opacity: 0 }} />
-      <Handle id="left" type="source" position={Position.Left} style={{ opacity: 0 }} />
+      <Handle
+        id="top"
+        type="source"
+        position={Position.Top}
+        style={{ opacity: 0 }}
+        isConnectable={false}
+      />
+      <Handle
+        id="right"
+        type="source"
+        position={Position.Right}
+        style={{ opacity: 0 }}
+        isConnectable={false}
+      />
+      <Handle
+        id="bottom"
+        type="source"
+        position={Position.Bottom}
+        style={{ opacity: 0 }}
+        isConnectable={false}
+      />
+      <Handle
+        id="left"
+        type="source"
+        position={Position.Left}
+        style={{ opacity: 0 }}
+        isConnectable={false}
+      />
     </>
   );
 }

@@ -30,6 +30,10 @@ export function updateReorderDrag(
   });
 }
 
+export function toRenderedReorderGap(draggedIndex: number, dropGap: number): number {
+  return dropGap > draggedIndex ? dropGap + 1 : dropGap;
+}
+
 function toDropGap(
   listElement: HTMLElement | null,
   draggedIndex: number,

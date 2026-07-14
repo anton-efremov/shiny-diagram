@@ -1,9 +1,9 @@
 /**
- * @behavior Note selection, direct editing, and blur-discard popup state.
+ * @behavior Note selection, content-height measurement, direct editing, and blur-discard popup state.
  * @render Note-box node.
  */
 
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import type { Point, Rect } from "../../../../../../../shared/geometry";
 import type { NoteId } from "../../../../../../../shared/ids";
@@ -39,6 +39,7 @@ type NoteBoxProps = {
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
   readonly onTextBlockEditCancel: () => void;
+  readonly onContentHeightChange: (noteId: NoteId, height: number) => void;
 };
 
 export default function NoteBox({
@@ -52,13 +53,48 @@ export default function NoteBox({
   onNoteResizeHandlePress,
   onTextBlockEditStart,
   onTextBlockEditCancel,
+  onContentHeightChange,
 }: NoteBoxProps): ReactElement {
   // State creation: local state - blur-discard validation messages for note text edits
   const [discardErrors, setDiscardErrors] = useState<readonly string[]>([]);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
 
   // UI props derivation
   const isEditing = editingState.kind === "noteText" && editingState.noteId === view.noteId;
   const isNewBlankNote = view.text.trim() === "";
+
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
+    const content = contentRef.current;
+    if (!frame || !content) return undefined;
+    const measure = () => {
+      const style = window.getComputedStyle(frame);
+      const borders = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+      const textarea = content.querySelector("textarea");
+      if (!textarea) {
+        onContentHeightChange(view.noteId, Math.ceil(content.offsetHeight + borders));
+        return;
+      }
+      const editor = textarea.parentElement?.parentElement;
+      const editorStyle = editor ? window.getComputedStyle(editor) : null;
+      const editorPadding = editorStyle
+        ? parseFloat(editorStyle.paddingTop) + parseFloat(editorStyle.paddingBottom)
+        : 0;
+      onContentHeightChange(
+        view.noteId,
+        Math.ceil(textarea.scrollHeight + editorPadding + borders)
+      );
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(content);
+    content.addEventListener("input", measure);
+    return () => {
+      observer.disconnect();
+      content.removeEventListener("input", measure);
+    };
+  }, [isEditing, onContentHeightChange, view.noteId]);
 
   const onResizeGrab = (handle: ResizeHandle, point: Point) => {
     onNoteResizeHandlePress(view.noteId, bounds, handle, point);
@@ -84,7 +120,12 @@ export default function NoteBox({
   });
 
   return (
-    <StickyNoteSurfaceFrame title={view.text} dragging={isDragging} onClick={onNoteBoxClick}>
+    <StickyNoteSurfaceFrame
+      elementRef={frameRef}
+      title={view.text}
+      dragging={isDragging}
+      onClick={onNoteBoxClick}
+    >
       <BoxInteractionOverlay
         selected={isSelected}
         pending={false}
@@ -93,18 +134,22 @@ export default function NoteBox({
         affordanceStacking={NODE_ABOVE_CONTENT_Z_INDEX}
         onResizeGrab={onResizeGrab}
       />
-      {discardErrors.length > 0 ? (
-        <InlineValidationPopup
-          messages={discardErrors}
-          stacking={INLINE_VALIDATION_POPUP_Z_INDEX}
-          onDismiss={onDiscardDismiss}
-        />
-      ) : null}
       <InlineCommitTextArea
+        elementRef={contentRef}
         initialValue={view.text.trim()}
         displayText={view.text}
         isEditing={isEditing}
+        isEditEnabled={isSelected}
         saveLabel="Save"
+        validation={
+          discardErrors.length > 0 ? (
+            <InlineValidationPopup
+              messages={discardErrors}
+              stacking={INLINE_VALIDATION_POPUP_Z_INDEX}
+              onDismiss={onDiscardDismiss}
+            />
+          ) : undefined
+        }
         onEditRequest={isSelected ? onNoteTextDoubleClick : onNoteTextClick}
         onCommit={(text) => {
           const errors = onTextCommit(text.trim());

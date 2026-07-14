@@ -67,6 +67,7 @@ body[data-vscode-theme-kind="vscode-high-contrast"] {
     transparent
   );
   --shiny-inline-field-radius: 2px;
+  --shiny-inline-content-field-min-width: 48px;
   --shiny-inline-field-outline-width: 1px;
   --shiny-inline-field-outline-style: solid;
   --shiny-inline-field-inset-outline: inset 0 0 0 var(--shiny-inline-field-outline-width)
@@ -123,6 +124,7 @@ body[data-vscode-theme-kind="vscode-high-contrast"] {
 
 :root {
   --shiny-canvas-selection: var(--vscode-focusBorder);
+  --shiny-edge-endpoint-handle: var(--shiny-positive);
   --shiny-canvas-accent-outline: var(--vscode-focusBorder);
   --shiny-accent-tint: var(--vscode-focusBorder);
   --shiny-edge-label-background: color-mix(in srgb, var(--shiny-canvas-paper) 72%, transparent);
@@ -245,6 +247,7 @@ body[data-vscode-theme-kind="vscode-high-contrast"] {
 
 body[data-vscode-theme-kind="vscode-light"] {
   --shiny-canvas-overlay-faint: color-mix(in srgb, var(--shiny-canvas-ink) 3%, transparent);
+  --shiny-canvas-overlay-strong: color-mix(in srgb, var(--shiny-canvas-ink) 8%, transparent);
   --shiny-edge-caption-background: color-mix(in srgb, var(--shiny-canvas-paper) 88%, transparent);
   --shiny-edge-caption-outline: color-mix(in srgb, var(--shiny-canvas-ink) 24%, transparent);
   --shiny-canvas-edge-caption-text: var(--shiny-canvas-ink);
@@ -264,12 +267,14 @@ body[data-vscode-theme-kind="vscode-light"] {
 
 body[data-vscode-theme-kind="vscode-dark"] {
   --shiny-canvas-overlay-faint: color-mix(in srgb, var(--shiny-canvas-paper) 3%, transparent);
+  --shiny-canvas-overlay-strong: color-mix(in srgb, var(--shiny-canvas-paper) 8%, transparent);
   --shiny-attachment-preview-stroke: #805d00;
   --shiny-attachment-edge-stroke: #8a6d1d;
 }
 
 body[data-vscode-theme-kind="vscode-high-contrast"] {
   --shiny-canvas-overlay-faint: transparent;
+  --shiny-canvas-overlay-strong: transparent;
   --shiny-attachment-preview-stroke: color-mix(in srgb, #805d00 72%, var(--shiny-canvas-ink));
   --shiny-attachment-edge-stroke: color-mix(in srgb, #8a6d1d 72%, var(--shiny-canvas-ink));
 }

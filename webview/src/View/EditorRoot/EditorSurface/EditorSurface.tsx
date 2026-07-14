@@ -91,6 +91,7 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
     onTextBlockEditStart,
     onTextBlockEditCancel,
   } = useInteractions({
+    classIds: view.classes.map((classView) => classView.classId),
     relationships: view.relationships,
     editingState,
     nodePlacementState,

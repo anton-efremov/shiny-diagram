@@ -1,18 +1,18 @@
 /**
- * @fileoverview Translates `class.directStyle.property.set`.
+ * Makes one of three write options:
  *
- * Emits one logical write intent for changing one direct style property of a class.
- *
- * a. ReplaceValueIntent if entry for requested property exists
- *
- * b. InsertEntryIntent if entry for requested property is missing
- * in direct style declaration statement
- * - Written after the latest property entry in that direct style statement.
- *
- * c. InsertStatementIntent with requested entry if direct style statement is missing
- * - Written after the latest direct style statement in the class's scope.
- * - if no direct style statements - after style assignement statement
- * - Otherwise, after the latest non-spatial-annotation statement
+ * a. property entry already written → property **value** 
+ *    - in place
+ * 
+ * b. direct style statement exists → property **entry**
+ *    - after the latest entry in that statement
+ * 
+ * c. otherwise → direct style **statement** carrying the entry, 
+ *    in **diagram scope** (anchored at first match):
+ *    - after latest direct style statement
+ *    - after latest style application statement
+ *    - after latest non-spatial statement of any kind
+ *    - at block opening
  */
 
 import type { EditorCommandOf } from "../../../View/commands";

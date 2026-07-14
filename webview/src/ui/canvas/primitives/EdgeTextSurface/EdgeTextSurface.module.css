@@ -1,12 +1,22 @@
 .text {
   font: var(--shiny-canvas-font-size-secondary) var(--shiny-canvas-font-family);
-  cursor: var(--shiny-cursor-text);
-  pointer-events: all;
 }
 
 .surface {
   stroke-width: var(--shiny-edge-text-outline-width);
+}
+
+.select,
+.edit {
   pointer-events: all;
+}
+
+.select {
+  cursor: var(--shiny-cursor-action);
+}
+
+.edit {
+  cursor: var(--shiny-cursor-default);
 }
 
 .surface.label {

@@ -186,7 +186,7 @@ function EdgeText({
   readonly onEditCancel: () => void;
 }): ReactElement {
   return (
-    <g transform={`translate(${x} ${y})`}>
+    <g className={isEditing ? "nopan" : undefined} transform={`translate(${x} ${y})`}>
       <EditableEdgeText
         text={text}
         treatment={variant}

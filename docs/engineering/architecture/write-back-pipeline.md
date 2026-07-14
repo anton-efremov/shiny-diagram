@@ -2,10 +2,8 @@
 
 > **Implementation state:** Current
 > **Document state:** Current
-> **Last reviewed:** 2026-07-04
-> **Scope:** How a semantic `EditorCommand` becomes a `SourceEdit[]` transaction — the model it reads, the intent vocabulary between the two layers, and each layer's responsibilities.
-
-This document replaces the stale command model in `system-architecture.md` §7.1 and §7.4 (`DiagramTree` / `applyCommand` / per-command handlers), which describe a superseded architecture. See the staleness report for the remaining drift in that document.
+> **Last reviewed:** 2026-07-14
+> **Scope:** How a semantic `EditorCommand` becomes a `SourceEdit[]` transaction — the model it reads, the intent vocabulary between the two layers, each layer's responsibilities, and the management plane that catalogs every command's write rules.
 
 ## 1. Pipeline shape
 
@@ -95,9 +93,7 @@ The same/different-kind distinction is a translate-time fact that drives resolve
 
 ## 4. Translate (`Controller/translate/`)
 
-`translateCommands` (dispatcher) fans each `EditorCommand` out to a per-command worker in `workers/`:
-
-- `translateClassCreate`, `translateClassDuplicate`, `translateClassDelete`, `translateClassSpatialSet`, `translateClassDirectStylePropertySet`.
+`translateCommands` (dispatcher) fans each `EditorCommand` out to a per-command translator in `workers/` — one translator per command; the full command → translator map and each translator's write rules are cataloged in the management plane (§7).
 
 Workers emit intents by:
 
@@ -138,3 +134,62 @@ classDiagram
 
 - **Translate** emits an `insertStatement` whose `payload` is the source block sliced from `sourceText` with `ConversationThread` → `ConversationThread_1` (members verbatim, normalized to relative indent), anchored `afterSameKind` on the source class; plus a spatial-annotation `insertStatement` and, if present, a style `insertStatement`.
 - **Resolve** re-indents the payload to the anchor base, leads with EOL, and (since the anchor is a same-kind sibling) adds no blank line. The result is a `ConversationThread_1` block byte-identical to the source except the name — visibility markers, `~TextMessage~`, and `void` all preserved.
+
+## 7. Write-back management plane
+
+Every translator carries its write rules as an annotation; a generated catalog aggregates them into one reviewable file. The annotation on the translator is the law; the catalog is its projection — never edited by hand.
+
+### 7.1 Catalog
+
+- **`webview/src/Controller/translate/WRITEBACK-CATALOG.md`** — one entry per `EditorCommand`, grouped by object family, each entry rendering: a link to the translator, its annotation verbatim, and the command's payload type sliced from `View/commands/editorCommands.ts`.
+- Coverage is counted against the dispatcher: every command routed by `translateCommands` is an entry; an unannotated translator renders as a visible gap.
+
+### 7.2 Annotation format
+
+The annotation is the TSDoc block immediately before the exported translator function. It states the translator's writes — not its implementation — in one of three templates.
+
+**All writes emitted:**
+
+```
+Makes <N> writes:                        // or: Makes <N> groups of writes:
+
+1. <write>
+2. <write>
+```
+
+**Exclusive options — top-down, first matching condition wins:**
+
+```
+Makes one of <N> write options:
+
+a. <condition> → <write>
+b. otherwise → Makes <N> writes:         // an option holding several writes nests
+   1. <write>                            //   a full "Makes <N> writes:" / "Makes <N> groups of writes:" block
+   2. <write>
+```
+
+**A write is one line plus placement bullets:**
+
+```
+<term> **<unit>** [, in **<scope>**] [, for every <item>] [(anchored at first match)]
+- after <anchor>                         // waterfall: tried top-down, last line unconditional
+- at block opening
+```
+
+- `<term> **<unit>**` pairs come from the closed lists in [Mermaid Vocabulary](./mermaid-vocabulary.md) — no improvised names:
+  - **statement** — a statement term from Vocabulary §2.1, e.g. `class declaration **statement**`
+  - **entry** — an entry term from Vocabulary §4.2, e.g. `style property **entry**`
+  - **value** — a value term from Vocabulary §4.2, e.g. `class label **value**`
+- `<scope>` names the receiving block (Vocabulary §1.2): **diagram body**, **namespace body**, or **class body**.
+- `<anchor>` phrases locate statements by their §2.1 terms, e.g. `after the latest class declaration statement in scope`.
+- Deletions read `<term> **statement** deleted`.
+- `, for every <item>` is the iterator — one write per matching item, e.g. `, for every style application statement targeting the class`.
+- No-op and error conditions are trailing prose lines.
+- Conditions state observable source facts (existence, nullability) — never implementation.
+
+Canonical examples: [`translateClassCreate`](../../../webview/src/Controller/translate/workers/translateClassCreate.ts) (write-list with waterfalls), [`translateClassDirectStylePropertySet`](../../../webview/src/Controller/translate/workers/translateClassDirectStylePropertySet.ts) (options across all three grammar units), [`translateParentNamespaceSet`](../../../webview/src/Controller/translate/workers/translateParentNamespaceSet.ts) (iterator write), [`translateClassDelete`](../../../webview/src/Controller/translate/workers/translateClassDelete.ts) (groups of deletions), [`translateRelationshipLabelSet`](../../../webview/src/Controller/translate/workers/translateRelationshipLabelSet.ts) (option with nested write-list).
+
+### 7.3 Generation and checks
+
+- **`scripts/planes/writeback-catalog.mjs`** generates the catalog; regenerate with `npm run planes -- writeback-catalog`.
+- **`npm run check:planes`** (part of `npm run check`) fails on: a stale committed catalog, a dispatcher command without an annotated translator, and annotation blocks violating the format above.

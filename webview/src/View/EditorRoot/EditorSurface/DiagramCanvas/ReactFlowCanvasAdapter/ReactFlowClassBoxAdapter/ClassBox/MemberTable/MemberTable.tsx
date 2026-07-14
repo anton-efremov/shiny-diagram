@@ -1,9 +1,9 @@
 /**
  * @behavior Class member grouping and command routing.
- * @render Member compartments inside a class box.
+ * @render Persistent attribute and method compartments inside a class box.
  */
 
-import type { ReactElement } from "react";
+import type { ReactElement, Ref } from "react";
 import { useState } from "react";
 import type { ClassId } from "../../../../../../../../shared/ids";
 import type { MemberClassifier } from "../../../../../../../../shared/uml";
@@ -36,6 +36,7 @@ type MemberTableProps = {
   ) => void;
   readonly onTextBlockEditCancel: () => void;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
+  readonly elementRef?: Ref<HTMLDivElement>;
 };
 
 export default function MemberTable({
@@ -45,12 +46,13 @@ export default function MemberTable({
   separatorThickness,
   separatorLineStyle,
   inlineSurface,
+  onTextBlockEditStart,
   onTextBlockEditCancel,
+  elementRef,
 }: MemberTableProps): ReactElement {
   const [discardErrors, setDiscardErrors] = useState<readonly string[]>([]);
   const fields = view.members.filter((member) => member.kind === "field");
   const methods = view.members.filter((member) => member.kind === "method");
-  const hasFieldsAndMethods = fields.length > 0 && methods.length > 0;
   const { onMemberCommit, onMemberDelete, onMemberCreate, onMemberMove } = useInteractions(
     view.classId,
     onTextBlockEditCancel
@@ -92,6 +94,19 @@ export default function MemberTable({
         if (!member) return;
         onMemberMove("field", fields, member.memberId, to);
       }}
+      onEditStart={(target) => {
+        onTextBlockEditStart(
+          target === "new"
+            ? { kind: "newMember", classId: view.classId, memberKind: "field" }
+            : {
+                kind: "member",
+                classId: view.classId,
+                memberKind: "field",
+                memberId: fields[target].memberId,
+              }
+        );
+      }}
+      onEditEnd={onTextBlockEditCancel}
     />
   );
   const methodList = (
@@ -122,19 +137,28 @@ export default function MemberTable({
         if (!member) return;
         onMemberMove("method", methods, member.memberId, to);
       }}
+      onEditStart={(target) => {
+        onTextBlockEditStart(
+          target === "new"
+            ? { kind: "newMember", classId: view.classId, memberKind: "method" }
+            : {
+                kind: "member",
+                classId: view.classId,
+                memberKind: "method",
+                memberId: methods[target].memberId,
+              }
+        );
+      }}
+      onEditEnd={onTextBlockEditCancel}
     />
   );
 
   return (
-    <BoxBodyFrame validation={validation}>
+    <BoxBodyFrame validation={validation} elementRef={elementRef}>
       <CompartmentStack
-        compartments={
-          hasFieldsAndMethods
-            ? [fieldList, methodList]
-            : [fields.length > 0 ? fieldList : methodList]
-        }
-        separatorColor={hasFieldsAndMethods ? separatorColor : undefined}
-        separatorThickness={hasFieldsAndMethods ? separatorThickness : undefined}
+        compartments={[fieldList, methodList]}
+        separatorColor={separatorColor}
+        separatorThickness={separatorThickness}
         separatorLineStyle={separatorLineStyle}
       />
     </BoxBodyFrame>

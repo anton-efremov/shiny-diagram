@@ -3,21 +3,18 @@
  */
 
 import type { ReactElement } from "react";
-import type { Point } from "../../../../../../../shared/geometry";
 import type { RelationshipSeed } from "../../../../../../state/editorStates";
 import { endpointGlyphs } from "../../RelationshipMarker/icons";
 import GhostEdge from "../../../../../../../ui/canvas/composites/GhostEdge/GhostEdge";
 
 type RelationshipGhostLineProps = {
   readonly seed: RelationshipSeed;
-  readonly startPoint: Point;
-  readonly endPoint: Point;
+  readonly d: string;
 };
 
 export default function RelationshipGhostLine({
   seed,
-  startPoint,
-  endPoint,
+  d,
 }: RelationshipGhostLineProps): ReactElement {
   // UI props derivation
   const sourceMarkerId = `relationship-placement-source-${seed.sourceEndpointKind}`;
@@ -25,8 +22,7 @@ export default function RelationshipGhostLine({
 
   return (
     <GhostEdge
-      startPoint={startPoint}
-      endPoint={endPoint}
+      d={d}
       lineKind={seed.lineKind}
       tone="accent"
       startMarker={

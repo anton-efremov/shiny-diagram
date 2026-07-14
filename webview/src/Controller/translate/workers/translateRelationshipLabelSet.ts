@@ -1,5 +1,13 @@
 /**
- * @fileoverview Translates relationship label changes into write intents.
+ * Makes one of two write options:
+ *
+ * a. label already written and new label non-null → label **value**
+ *    - in place
+ * 
+ * b. otherwise → two writes
+ *    1. old relationship **statement** deleted
+ *    2. new relationship **statement** 
+ *    - at the old location
  */
 
 import type { EditorCommandOf } from "../../../View/commands";

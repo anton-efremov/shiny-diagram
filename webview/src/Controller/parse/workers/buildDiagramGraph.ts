@@ -615,11 +615,15 @@ export function parseNoteStatement(raw: string): {
   if (textEnd === -1) return null;
 
   return {
-    text: raw.slice(quoteStart + 1, textEnd),
+    text: decodeNoteText(raw.slice(quoteStart + 1, textEnd)),
     textStart: quoteStart + 1,
     textEnd,
     attachedToClassId: match[1] ? toClassId(readIdentity(match[1])) : null,
   };
+}
+
+function decodeNoteText(text: string): string {
+  return text.replace(/\\n/g, "\n");
 }
 
 function findClosingQuote(raw: string, start: number): number {

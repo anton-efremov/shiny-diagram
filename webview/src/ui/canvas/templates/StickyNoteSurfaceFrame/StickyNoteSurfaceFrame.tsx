@@ -2,7 +2,8 @@
  * Sticky-note surface framing content with movable-object treatment.
  *
  * Fills its host with `children`, uses `title` as the tooltip, and reports
- * `onClick` when clicked.
+ * `onClick` when clicked. `elementRef` exposes the surface host for
+ * consumer-owned measurement.
  *
  * Used by: note surfaces.
  *
@@ -11,7 +12,7 @@
  *   shows active dragging
  */
 
-import type { MouseEvent, ReactElement, ReactNode } from "react";
+import type { MouseEvent, ReactElement, ReactNode, Ref } from "react";
 import styles from "./StickyNoteSurfaceFrame.module.css";
 
 type StickyNoteSurfaceFrameProps = {
@@ -19,6 +20,7 @@ type StickyNoteSurfaceFrameProps = {
   readonly children: ReactNode;
   readonly dragging: boolean;
   readonly onClick: (event: MouseEvent<HTMLDivElement>) => void;
+  readonly elementRef?: Ref<HTMLDivElement>;
 };
 
 export default function StickyNoteSurfaceFrame({
@@ -26,10 +28,12 @@ export default function StickyNoteSurfaceFrame({
   dragging,
   children,
   onClick,
+  elementRef,
 }: StickyNoteSurfaceFrameProps): ReactElement {
   return (
     <div
       className={`${styles.frame} ${dragging ? styles.dragging : ""}`}
+      ref={elementRef}
       title={title}
       onClick={onClick}
     >

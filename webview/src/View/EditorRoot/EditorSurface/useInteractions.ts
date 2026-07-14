@@ -76,6 +76,7 @@ type Interactions = {
 };
 
 type UseInteractionsInput = {
+  readonly classIds: readonly ClassId[];
   readonly relationships: readonly RelationshipView[];
   readonly editingState: EditingState;
   readonly nodePlacementState: NodePlacementState;
@@ -88,6 +89,7 @@ type UseInteractionsInput = {
 };
 
 export function useInteractions({
+  classIds,
   relationships,
   editingState,
   nodePlacementState,
@@ -257,6 +259,7 @@ export function useInteractions({
   const onRelationshipConnect = useCallback(
     (sourceClassId: ClassId, targetClassId: ClassId) => {
       if (nodePlacementState?.kind !== "relationship") return;
+      if (!classIds.includes(sourceClassId) || !classIds.includes(targetClassId)) return;
       // Implementing interaction through command transaction
       dispatchTransaction(
         toRelationshipCreateTransaction(nodePlacementState.seed, sourceClassId, targetClassId)
@@ -264,7 +267,7 @@ export function useInteractions({
       setNodePlacementState(null);
       setSelectionState((selectionState) => clearSelectionState(selectionState));
     },
-    [dispatchTransaction, nodePlacementState, setNodePlacementState, setSelectionState]
+    [classIds, dispatchTransaction, nodePlacementState, setNodePlacementState, setSelectionState]
   );
 
   const onRelationshipReconnect = useCallback(
@@ -273,6 +276,7 @@ export function useInteractions({
         (relationshipView) => relationshipView.relationshipId === relationshipId
       );
       if (!relationship) return;
+      if (!classIds.includes(newClassId)) return;
       const existingClassId =
         end === "source" ? relationship.sourceClassId : relationship.targetClassId;
       if (existingClassId === newClassId) return;
@@ -289,7 +293,7 @@ export function useInteractions({
         updateSelectedRelationshipId(selectionState, nextRelationshipId)
       );
     },
-    [dispatchTransaction, relationships, setSelectionState]
+    [classIds, dispatchTransaction, relationships, setSelectionState]
   );
 
   const onRelationshipSelect = useCallback(

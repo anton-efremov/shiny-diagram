@@ -1,14 +1,18 @@
 /**
  * Editable text list with insertion, emphasis editing, and pointer reordering.
  *
- * Renders `rows`, preserving each row's text and emphasis. Clicking an enabled
- * row opens an editor governed by `validate`; completion trims and reports
- * `onRowCommit`. The hover add action uses `addLabel` and `addTitle`, and reports
- * nonempty trimmed additions through `onRowAdd`. Pointer dragging reports
- * `onRowReorder` with source row and destination gap; a drag can be cancelled
- * from the keyboard, leaving the order unchanged. Actions use `actionStacking`,
- * validation uses `validationStacking`, and `surface` supplies an explicit action
- * ground over the class-member fallback.
+ * Renders `rows` at their natural wrapped height, preserving each row's text
+ * and emphasis. Disabled rows and their add region attach no pointer handlers or
+ * action control, leaving cursor choice and dragging to their host. Clicking an
+ * enabled row opens an editor governed by `validate`; completion trims and
+ * reports `onRowCommit`. The hover add action uses `addLabel` and `addTitle`, and reports
+ * nonempty trimmed additions through `onRowAdd`. An enabled row press is owned
+ * exclusively by the list: pointer dragging reports `onRowReorder` with source
+ * row and destination gap, while preventing a host drag from starting; a drag
+ * can be cancelled from the keyboard, leaving the order unchanged. Actions use
+ * `actionStacking`, validation uses `validationStacking`, and `surface` supplies
+ * an explicit action ground over the class-member fallback. Editing lifecycle
+ * is reported through `onEditStart` and `onEditEnd`.
  *
  * Used by: class attribute and operation rows.
  *
@@ -23,7 +27,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import type { ReactElement } from "react";
 import type { GlyphDescriptor } from "../../../../shared/glyph";
 import type { ReorderDragState } from "../../../core/reorderGesture";
-import { updateReorderDrag } from "../../../core/reorderGesture";
+import { toRenderedReorderGap, updateReorderDrag } from "../../../core/reorderGesture";
 import DropIndicator from "../../primitives/DropIndicator/DropIndicator";
 import InlineActionButton from "../../primitives/InlineActionButton/InlineActionButton";
 import InlineTextBlock from "../../primitives/InlineTextBlock/InlineTextBlock";
@@ -57,6 +61,8 @@ type EditableTextListProps = {
   readonly onRowCommit: (index: number, value: string, emphasis: TextEmphasis | null) => void;
   readonly onRowAdd: (value: string, emphasis: TextEmphasis | null) => void;
   readonly onRowReorder: (from: number, to: number) => void;
+  readonly onEditStart: (target: number | "new") => void;
+  readonly onEditEnd: () => void;
 };
 
 const ADD_GLYPH: GlyphDescriptor = {
@@ -78,12 +84,22 @@ export default function EditableTextList({
   onRowCommit,
   onRowAdd,
   onRowReorder,
+  onEditStart,
+  onEditEnd,
 }: EditableTextListProps): ReactElement {
   const listRef = useRef<HTMLDivElement | null>(null);
   const suppressClickRef = useRef(false);
   const [editingIndex, setEditingIndex] = useState<number | "new" | null>(null);
   const [dragState, setDragState] = useState<ReorderDragState | null>(null);
   const [isAddHovered, setIsAddHovered] = useState(false);
+  const beginEditing = (target: number | "new") => {
+    onEditStart(target);
+    setEditingIndex(target);
+  };
+  const endEditing = () => {
+    setEditingIndex(null);
+    onEditEnd();
+  };
 
   useEffect(() => {
     if (!dragState?.isActive) return undefined;
@@ -100,8 +116,9 @@ export default function EditableTextList({
     <div ref={listRef} className={`${styles.list} ${dragState?.isActive ? styles.dragging : ""}`}>
       {rows.map((row, index) => {
         const isDragged = dragState?.index === index;
+        const indicatorGap = dragState ? toRenderedDropGap(dragState) : null;
         const indicator =
-          dragState?.isActive && dragState.dropGap === index && !isDragged ? (
+          dragState?.isActive && indicatorGap === index && !isDragged ? (
             <DropIndicator key={`drop-before-${index}`} />
           ) : null;
 
@@ -118,19 +135,19 @@ export default function EditableTextList({
                 surface={surface}
                 onCommit={(value, emphasis) => {
                   onRowCommit(index, value.trim(), isEmphasisEditable ? emphasis : null);
-                  setEditingIndex(null);
+                  endEditing();
                 }}
-                onDiscard={() => setEditingIndex(null)}
-                onCancel={() => setEditingIndex(null)}
+                onDiscard={endEditing}
+                onCancel={endEditing}
               />
-            ) : (
+            ) : isEditable ? (
               <button
                 type="button"
-                className={`${styles.rowHost} ${isEditable ? styles.editable : ""} ${isDragged ? styles.dragged : ""} ${row.emphasis === "underline" ? styles.underlined : ""} ${row.emphasis === "italic" ? styles.italic : ""}`}
+                className={`${styles.rowHost} ${styles.editable} ${isDragged ? styles.dragged : ""} ${row.emphasis === "underline" ? styles.underlined : ""} ${row.emphasis === "italic" ? styles.italic : ""}`}
                 data-reorder-row="true"
                 onPointerDown={(event) => {
+                  event.preventDefault();
                   event.stopPropagation();
-                  if (!isEditable) return;
                   event.currentTarget.setPointerCapture(event.pointerId);
                   setDragState({
                     index,
@@ -158,30 +175,49 @@ export default function EditableTextList({
                   }
                   setDragState(null);
                 }}
+                onClick={() => {
+                  if (suppressClickRef.current) {
+                    suppressClickRef.current = false;
+                    return;
+                  }
+                  beginEditing(index);
+                }}
               >
                 <InlineTextBlock
                   text={row.text}
                   variant="row"
                   onEditRequest={(event) => {
                     event.stopPropagation();
-                    if (!isEditable) return;
                     if (suppressClickRef.current) {
                       suppressClickRef.current = false;
                       return;
                     }
-                    setEditingIndex(index);
+                    beginEditing(index);
                   }}
                 />
               </button>
+            ) : (
+              <div
+                className={`${styles.rowHost} ${row.emphasis === "underline" ? styles.underlined : ""} ${row.emphasis === "italic" ? styles.italic : ""}`}
+              >
+                <InlineTextBlock
+                  text={row.text}
+                  isEditEnabled={false}
+                  variant="row"
+                  onEditRequest={() => undefined}
+                />
+              </div>
             )}
           </Fragment>
         );
       })}
-      {dragState?.isActive && dragState.dropGap === rows.length ? <DropIndicator /> : null}
+      {dragState?.isActive && toRenderedDropGap(dragState) === rows.length ? (
+        <DropIndicator />
+      ) : null}
       <div
         className={styles.addCell}
-        onPointerEnter={() => setIsAddHovered(true)}
-        onPointerLeave={() => setIsAddHovered(false)}
+        onPointerEnter={isEditable ? () => setIsAddHovered(true) : undefined}
+        onPointerLeave={isEditable ? () => setIsAddHovered(false) : undefined}
       >
         {editingIndex === "new" ? (
           <Editor
@@ -195,25 +231,28 @@ export default function EditableTextList({
               if (value.trim() !== "") {
                 onRowAdd(value.trim(), isEmphasisEditable ? emphasis : null);
               }
-              setEditingIndex(null);
+              endEditing();
             }}
-            onDiscard={() => setEditingIndex(null)}
-            onCancel={() => setEditingIndex(null)}
+            onDiscard={endEditing}
+            onCancel={endEditing}
           />
-        ) : (
+        ) : isEditable ? (
           <InlineActionButton
             glyph={ADD_GLYPH}
             label={addLabel}
             title={addTitle}
             treatment="add"
-            disabled={!isEditable}
-            visible={isAddHovered && isEditable}
-            onClick={() => setEditingIndex("new")}
+            visible={isAddHovered}
+            onClick={() => beginEditing("new")}
           />
-        )}
+        ) : null}
       </div>
     </div>
   );
+}
+
+function toRenderedDropGap(dragState: ReorderDragState): number {
+  return toRenderedReorderGap(dragState.index, dragState.dropGap);
 }
 
 function Editor({

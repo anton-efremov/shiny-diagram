@@ -33,6 +33,7 @@ type ClassBoxNodeData = {
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
   readonly onTextBlockEditCancel: () => void;
+  readonly onContentHeightChange: (classId: ClassId, height: number) => void;
 };
 
 type ClassBoxNode = Node<ClassBoxNodeData, "classBox">;
@@ -56,6 +57,7 @@ export default function ReactFlowClassBoxNodeAdapter(props: NodeProps<ClassBoxNo
       editingState={props.data.editingState}
       onTextBlockEditStart={props.data.onTextBlockEditStart}
       onTextBlockEditCancel={props.data.onTextBlockEditCancel}
+      onContentHeightChange={props.data.onContentHeightChange}
     />
   );
 }

@@ -1,8 +1,9 @@
 /**
  * Hull header frame holding one line of heading content.
  *
- * Places `children` in a fixed-height, full-width strip with an inset from the
- * hull edge.
+ * Places intrinsically sized `children` at the leading edge of a fixed-height,
+ * full-width strip with an inset from the hull edge; content may grow to the
+ * strip's available width.
  *
  * Used by: a namespace heading.
  */

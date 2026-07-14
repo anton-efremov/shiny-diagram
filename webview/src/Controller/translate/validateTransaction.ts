@@ -314,11 +314,6 @@ function validateNoteText(text: string): readonly string[] {
       `Note text "${text}" would be reinterpreted by Mermaid because double quotes end note strings`,
     ];
   }
-  if (text.includes("\n") || text.includes("\r")) {
-    return [
-      `Note text "${text}" would be reinterpreted by Mermaid because literal newlines cannot be represented inside note strings`,
-    ];
-  }
   return [];
 }
 

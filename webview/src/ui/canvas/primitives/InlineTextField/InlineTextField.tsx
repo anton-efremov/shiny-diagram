@@ -1,9 +1,9 @@
 /**
  * Inline text field for controlled single-line entry.
  *
- * Displays `value`, uses `ariaLabel` as its accessible name, reports edits
- * through `onChange`, and forwards focus loss and keyboard input through
- * `onBlur` and `onKeyDown`.
+ * Displays `value` with a text-entry cursor, uses `ariaLabel` as its accessible
+ * name, reports edits through `onChange`, and forwards focus loss and keyboard
+ * input through `onBlur` and `onKeyDown`.
  *
  * Lifecycle:
  * - `invalid` — on shows invalid outline treatment

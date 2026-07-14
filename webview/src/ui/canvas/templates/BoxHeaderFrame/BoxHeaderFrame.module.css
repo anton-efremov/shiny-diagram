@@ -17,9 +17,17 @@
 .leading,
 .primary,
 .trailing {
+  display: flex;
+  justify-content: center;
   width: 100%;
   max-width: 100%;
   overflow: visible;
+}
+
+.leading > *,
+.primary > *,
+.trailing > * {
+  max-width: 100%;
 }
 
 .leading {

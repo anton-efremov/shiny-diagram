@@ -9,7 +9,7 @@ import type {
   NodeChange as ReactFlowNodeChange,
 } from "@xyflow/react";
 import type { Point, Rect } from "../../../../../shared/geometry";
-import type { ClassId, NamespaceId, RelationshipId } from "../../../../../shared/ids";
+import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../../../../shared/ids";
 import { toClassId } from "../../../../../shared/ids";
 import type {
   ClassBoxPlacementState,
@@ -33,6 +33,8 @@ import {
   NAMESPACE_MARGIN,
   NAMESPACE_NODE_Z_INDEX,
   NOTE_NODE_Z_INDEX,
+  RELATIONSHIP_EDGE_Z_INDEX,
+  SELECTED_RELATIONSHIP_EDGE_Z_INDEX,
 } from "../../../../config/editorUiConfig";
 
 export type ClassBoxNodeData = {
@@ -57,6 +59,7 @@ export type ClassBoxNodeData = {
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
   readonly onTextBlockEditCancel: () => void;
+  readonly onContentHeightChange: (classId: ClassId, height: number) => void;
 };
 
 export type ClassBoxNodeDescriptor = ReactFlowNode<ClassBoxNodeData, "classBox">;
@@ -103,6 +106,7 @@ export type NoteBoxNodeData = {
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
   readonly onTextBlockEditCancel: () => void;
+  readonly onContentHeightChange: (noteId: NoteId, height: number) => void;
 };
 
 export type NoteBoxNodeDescriptor = ReactFlowNode<NoteBoxNodeData, "noteBox">;
@@ -165,7 +169,8 @@ export function toClassBoxNodeDescriptors(
   onClassResizeHandlePress: ClassBoxNodeData["onClassResizeHandlePress"],
   editingState: EditingState,
   onTextBlockEditStart: (editingState: Exclude<EditingState, { readonly kind: "none" }>) => void,
-  onTextBlockEditCancel: () => void
+  onTextBlockEditCancel: () => void,
+  onContentHeightChange: ClassBoxNodeData["onContentHeightChange"]
 ): ClassBoxNodeDescriptor[] {
   const selected = new Set<ClassId>(selectedClassIds);
   return classes.flatMap((classView) => {
@@ -192,6 +197,7 @@ export function toClassBoxNodeDescriptors(
           editingState,
           onTextBlockEditStart,
           onTextBlockEditCancel,
+          onContentHeightChange,
         },
         selectable: false,
         focusable: false,
@@ -392,7 +398,8 @@ export function toNoteBoxNodeDescriptors(
   onNoteResizeEnd: (change: NoteBoxPlacementChange) => void,
   onNoteResizeHandlePress: NoteBoxNodeData["onNoteResizeHandlePress"],
   onTextBlockEditStart: (editingState: Exclude<EditingState, { readonly kind: "none" }>) => void,
-  onTextBlockEditCancel: () => void
+  onTextBlockEditCancel: () => void,
+  onContentHeightChange: NoteBoxNodeData["onContentHeightChange"]
 ): NoteBoxNodeDescriptor[] {
   return notes.flatMap((noteView) => {
     const placement = noteBoxPlacementState.rectByNoteId.get(noteView.noteId);
@@ -414,6 +421,7 @@ export function toNoteBoxNodeDescriptors(
           onNoteResizeHandlePress,
           onTextBlockEditStart,
           onTextBlockEditCancel,
+          onContentHeightChange,
         },
         selectable: false,
         focusable: false,
@@ -502,7 +510,7 @@ export function toRelationshipEdgeDescriptors(
           onRelationshipSelect,
         },
         type: "relationship",
-        zIndex: isSelected ? 1001 : 0,
+        zIndex: isSelected ? SELECTED_RELATIONSHIP_EDGE_Z_INDEX : RELATIONSHIP_EDGE_Z_INDEX,
         reconnectable: isSelected && !isRelationshipPlacementArmed,
         selectable: false,
         focusable: false,
@@ -544,6 +552,7 @@ export function toNoteAttachmentEdgeDescriptors(
             noteAttachState.kind === "attaching" && noteAttachState.noteId === noteView.noteId,
         },
         type: "noteAttachment",
+        reconnectable: false,
         selectable: false,
         focusable: false,
       },

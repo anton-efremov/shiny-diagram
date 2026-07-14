@@ -1,5 +1,5 @@
 /**
- * Endpoint handle marking a visible relationship reconnect point.
+ * Endpoint handle marking a visible relationship reconnect point with positive reconnect emphasis.
  *
  * Centers a noninteractive circular handle at `point`.
  *

@@ -1,8 +1,8 @@
 /**
  * Ghost edge assembling optional marker definitions around a preview line.
  *
- * Draws from `startPoint` to `endPoint` with the preview's `lineKind`, defining
- * and linking `startMarker` and `endMarker` when supplied.
+ * Draws `d` with the preview's `lineKind`, defining and linking `startMarker`
+ * and `endMarker` when supplied.
  *
  * Modifiers:
  * - `tone` — the preview identity:
@@ -12,13 +12,11 @@
 
 import type { ReactElement } from "react";
 import type { MarkerGlyphDescriptor } from "../../../../shared/glyph";
-import type { Point } from "../../../../shared/geometry";
 import EdgeEndpointMarker from "../../primitives/EdgeEndpointMarker/EdgeEndpointMarker";
 import EdgeGhostLine from "../../primitives/EdgeGhostLine/EdgeGhostLine";
 
 type GhostEdgeProps = {
-  readonly startPoint: Point;
-  readonly endPoint: Point;
+  readonly d: string;
   readonly lineKind: "solid" | "dashed";
   readonly startMarker?: { readonly id: string; readonly glyph: MarkerGlyphDescriptor };
   readonly endMarker?: { readonly id: string; readonly glyph: MarkerGlyphDescriptor };
@@ -26,8 +24,7 @@ type GhostEdgeProps = {
 };
 
 export default function GhostEdge({
-  startPoint,
-  endPoint,
+  d,
   lineKind,
   tone,
   startMarker,
@@ -54,8 +51,7 @@ export default function GhostEdge({
         ) : null}
       </defs>
       <EdgeGhostLine
-        startPoint={startPoint}
-        endPoint={endPoint}
+        d={d}
         lineKind={lineKind}
         tone={tone}
         startMarkerId={startMarker?.id}

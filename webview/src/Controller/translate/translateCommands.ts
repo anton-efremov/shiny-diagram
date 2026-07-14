@@ -8,7 +8,7 @@ import type {
   EditorCommandTransaction,
   TransactionOutcome,
 } from "../../View/commands";
-import type { ClassId, RelationshipId } from "../../shared/ids";
+import type { ClassId, NoteId, RelationshipId } from "../../shared/ids";
 import type { RelationshipEndpointKind, RelationshipLineKind } from "../../shared/uml";
 import type { DiagramGraph } from "../model/diagramGraph";
 import type { ProvenanceIndex } from "../model/provenanceIndex";
@@ -82,6 +82,7 @@ export function translateCommands(
   provenance: ProvenanceIndex,
   sourceText: string
 ): { readonly intents: WriteIntent[]; readonly outcome: TransactionOutcome } {
+  assertRelationshipClassEndpoints(transaction, graph);
   const context = createTranslateContext(graph);
   const operatorPatchBatch = collectRelationshipOperatorPatches(transaction, graph);
   const endpointsPatchBatch = collectRelationshipEndpointsPatches(transaction);
@@ -112,6 +113,28 @@ export function translateCommands(
   );
 
   return { intents, outcome: context.toTransactionOutcome() };
+}
+
+function assertRelationshipClassEndpoints(
+  transaction: EditorCommandTransaction,
+  graph: DiagramGraph
+): void {
+  const requireClass = (classId: ClassId) => {
+    if (graph.classes.has(classId) && !graph.notes.has(classId as unknown as NoteId)) return;
+    throw new Error(`Relationship endpoint ${classId} is not a class identity`);
+  };
+
+  for (const command of transaction) {
+    if (command.type === "relationship.create") {
+      requireClass(command.source.classId);
+      requireClass(command.target.classId);
+    } else if (
+      command.type === "relationship.source.class.set" ||
+      command.type === "relationship.target.class.set"
+    ) {
+      requireClass(command.classId);
+    }
+  }
 }
 
 function translateCommand(

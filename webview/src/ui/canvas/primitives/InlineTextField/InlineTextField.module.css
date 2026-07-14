@@ -13,6 +13,7 @@
   font: inherit;
   line-height: inherit;
   text-align: inherit;
+  cursor: var(--shiny-cursor-text);
 }
 
 .field:focus-visible {

@@ -1,8 +1,8 @@
 /**
- * Ghost edge line between two points with optional endpoint markers.
+ * Ghost edge path with optional endpoint markers.
  *
- * Draws from `startPoint` to `endPoint` with the preview's `lineKind` and links
- * marker definitions named by `startMarkerId` and `endMarkerId` when supplied.
+ * Draws `d` with the preview's `lineKind` and links marker definitions named by
+ * `startMarkerId` and `endMarkerId` when supplied.
  *
  * Modifiers:
  * - `tone` — the preview identity:
@@ -11,12 +11,10 @@
  */
 
 import type { ReactElement } from "react";
-import type { Point } from "../../../../shared/geometry";
 import styles from "./EdgeGhostLine.module.css";
 
 type EdgeGhostLineProps = {
-  readonly startPoint: Point;
-  readonly endPoint: Point;
+  readonly d: string;
   readonly lineKind: "solid" | "dashed";
   readonly startMarkerId?: string;
   readonly endMarkerId?: string;
@@ -24,8 +22,7 @@ type EdgeGhostLineProps = {
 };
 
 export default function EdgeGhostLine({
-  startPoint,
-  endPoint,
+  d,
   lineKind,
   tone,
   startMarkerId,
@@ -36,12 +33,9 @@ export default function EdgeGhostLine({
     .join(" ");
 
   return (
-    <line
+    <path
       className={className}
-      x1={startPoint.x}
-      y1={startPoint.y}
-      x2={endPoint.x}
-      y2={endPoint.y}
+      d={d}
       markerStart={startMarkerId ? `url(#${startMarkerId})` : undefined}
       markerEnd={endMarkerId ? `url(#${endMarkerId})` : undefined}
     />

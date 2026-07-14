@@ -1,25 +1,40 @@
 classDiagram
-			class ConversationThread_1["addd"] {
-					<<interface>>
-					+addParticipant(UserContact participant) void
-					+addMessage(TextMessage message)
-					+UUID id
-					+List~UserContact~ participants
-					+List~TextMessage~ messages
-			}
+						  			class ConversationThread_1["addd"] {
+						  					<<interface>>
+						  					+addParticipant(UserContact participant) void
+						  					+addMessage(TextMessage message)
+						  					+UUID id
+						  					+List~UserContact~ participants
+						  					+List~TextMessage~ messages
+						  			}
+						  											class UserContact {
+						  												+UUID id
+						  												+String emailAddress
+						  												+List~CommunicationChannel~ preferredChannels
+						  												+String name
+						  												+removeCommunicationChannel(UUID channelId) void
+						  											}
 																	class ConversationThread {
-																		+UUID id
-																		+List~TextMessage~ messages
-																		+List~UserContact~ participants
-																		+ ListShmist
-																		+addMessage(TextMessage message) void
 																		+addParticipant(UserContact participant) void
+																		+UUID id
+																		<<interface>>
+																		
+																		+List~UserContact~ participants
+																		+List~TextMessage~ messages
+																		+ ListShmist
+																		ffff
+																		+addMessage(TextMessage message) void
+																	}
+																	class NewClass {
+																	  f()
 																	}
 
 direction TB
 
 
 	UserContact "0..1" <--> "0..*" ConversationThread_1 : hahaddkkkkk
+	ConversationThread_1 "0..1" --> ConversationThread : hoi
+	NewClass ..|> UserContact
 
 
     %% Native Style Applications
@@ -34,28 +49,23 @@ direction TB
     classDef style1 fill:#ed8936,stroke:#ffffff,stroke-width:4,stroke-dasharray:4 4,color:#ffffff
 
     class ConversationThread_1:::style2
+    class NewClass:::PineSelected
 
 
     %% @style:`NewNamespace.NewNamespace2` fill=#934343
 
-    %% @note: x=80 y=-222 w=376 h=137
-    note for ConversationThread "Changed contentff"
+    %% @note: x=600 y=-429 w=262 h=86
+    note for ConversationThread "Changed note"
     %% @note: x=-324 y=1106 w=18426=96639300393
 
 
-	%% @spatial:ConversationThread x=517 y=-218 w=243 h=256
+	%% @spatial:ConversationThread x=642 y=-298 w=289 h=338
 
-	%% @spatial:UserContact x=75 y=315 w=358 h=358
+	%% @spatial:UserContact x=192 y=174 w=358 h=358
+	%% @spatial:ConversationThread_1 x=666 y=185 w=211 h=318
+	%% @spatial:NewClass x=208 y=-285 w=237 h=280
+	%% @spatial:`note:0` x=40 y=572 w=200 h=150
 
-	%% @spatial:ConversationThread_1 x=609 y=118 w=211 h=318
-
-											class UserContact {
-												+UUID id
-												+String emailAddress
-												+List~CommunicationChannel~ preferredChannels
-												+String name
-												+removeCommunicationChannel(UUID channelId) void
-											}
 
 
 

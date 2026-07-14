@@ -862,7 +862,7 @@ Used by: member-row reordering.
 
 ### [EdgeEndpointHandle](./canvas/primitives/EdgeEndpointHandle/EdgeEndpointHandle.tsx)
 
-Endpoint handle marking a visible relationship reconnect point.
+Endpoint handle marking a visible relationship reconnect point with positive reconnect emphasis.
 
 Centers a noninteractive circular handle at `point`.
 
@@ -910,10 +910,10 @@ type EdgeEndpointMarkerProps = {
 
 ### [EdgeGhostLine](./canvas/primitives/EdgeGhostLine/EdgeGhostLine.tsx)
 
-Ghost edge line between two points with optional endpoint markers.
+Ghost edge path with optional endpoint markers.
 
-Draws from `startPoint` to `endPoint` with the preview's `lineKind` and links
-marker definitions named by `startMarkerId` and `endMarkerId` when supplied.
+Draws `d` with the preview's `lineKind` and links marker definitions named by
+`startMarkerId` and `endMarkerId` when supplied.
 
 Modifiers:
 
@@ -923,8 +923,7 @@ Modifiers:
 
 ```ts
 type EdgeGhostLineProps = {
-  readonly startPoint: Point;
-  readonly endPoint: Point;
+  readonly d: string;
   readonly lineKind: "solid" | "dashed";
   readonly startMarkerId?: string;
   readonly endMarkerId?: string;
@@ -985,10 +984,15 @@ Edge-text pill sized to its text.
 
 Renders `text` on a single line and sizes itself to its text with fixed
 minimums, centered on the point where the consumer places it. Pointer input
-remains available on both text and surface.
+remains available across both text and surface.
 
 Modifiers:
 
+- `interaction` — the pill's resting pointer role:
+  - `select` presents an action cursor. Used by: labels and multiplicities on
+    unselected relationships
+  - `edit` presents the default cursor. Used by: labels and multiplicities on
+    selected relationships
 - `variant` — the edge-text situation:
   - `label` uses light label treatment. Used by: relationship labels
   - `multiplicity` uses dark caption treatment. Used by: endpoint
@@ -997,6 +1001,7 @@ Modifiers:
 ```ts
 type EdgeTextSurfaceProps = {
   readonly text: string;
+  readonly interaction: "select" | "edit";
   readonly variant: "label" | "multiplicity";
 };
 ```
@@ -1120,9 +1125,15 @@ type InlineTextAreaProps = {
 Non-editable text on a canvas surface.
 
 Renders the text (`text`) exactly where its editable counterpart appears,
-so swapping display for editing does not shift a pixel. Clicking asks to
-edit (`onEditRequest`) — the element only requests; opening an editor is
-the consumer's decision.
+so swapping display for editing does not shift a pixel. When editing is
+enabled, clicking asks to edit (`onEditRequest`) — the element only requests;
+opening an editor is the consumer's decision. Otherwise it attaches no
+pointer handlers and leaves cursor choice to its host.
+
+Lifecycle:
+
+- `isEditEnabled` — on accepts edit requests and presents the default cursor;
+  off lets pointer interaction and cursor presentation fall through
 
 Modifiers:
 
@@ -1133,13 +1144,14 @@ Modifiers:
     stereotypes and aliases
   - `heading` renders one medium left-aligned line and ellipsizes overflow.
     Used by: namespace headings
-  - `body` fills its container with multiline text, wrapping anywhere and
-    clipping text past the bottom. Used by: note bodies
+  - `body` renders multiline text at its natural wrapped height. Used by:
+    note bodies
   - `row` renders compact padded text that wraps. Used by: class-member rows
 
 ```ts
 type InlineTextBlockProps = {
   readonly text: string;
+  readonly isEditEnabled?: boolean;
   readonly variant: "primary" | "secondary" | "heading" | "body" | "row";
   readonly onEditRequest: (event: MouseEvent<HTMLDivElement>) => void;
 };
@@ -1164,9 +1176,9 @@ type InlineTextButtonProps = {
 
 Inline text field for controlled single-line entry.
 
-Displays `value`, uses `ariaLabel` as its accessible name, reports edits
-through `onChange`, and forwards focus loss and keyboard input through
-`onBlur` and `onKeyDown`.
+Displays `value` with a text-entry cursor, uses `ariaLabel` as its accessible
+name, reports edits through `onChange`, and forwards focus loss and keyboard
+input through `onBlur` and `onKeyDown`.
 
 Lifecycle:
 
@@ -1321,17 +1333,20 @@ type BoxInteractionOverlayProps = {
 
 Editable edge text swapping a centered pill for a width-tracking editor.
 
-Displays `text`; clicking it while at rest reports `onSelect` and may report
-`onEditRequest`, while double-clicking always reports both. During editing the
-field grows with the draft up to a fixed maximum; committing reports
-`onCommit`; abandoning or cancelling reports `onCancel`. Validation overlays
-use `validationStacking`.
+Displays `text` through three interaction states. An unselected resting pill
+owns pointer input: clicking reports `onSelect`, while double-clicking also
+reports `onEditRequest`. A selected resting pill reports both from one click.
+During editing the field grows with the draft up to a fixed maximum and owns
+pointer input so caret placement cannot reach the edge beneath; committing
+reports `onCommit`; abandoning or cancelling reports `onCancel`. Validation
+overlays use `validationStacking`.
 
 Lifecycle:
 
 - `isEditing` — off renders the text pill; on renders the editor
-- `isClickEditEnabled` — on lets a single click request editing; double-click
-  requests editing in either state
+- `isClickEditEnabled` — on gives the resting pill a default cursor and makes
+  one click request editing; off gives it an action cursor and requires a
+  double-click to request editing
 
 Modifiers:
 
@@ -1358,14 +1373,18 @@ type EditableEdgeTextProps = {
 
 Editable text list with insertion, emphasis editing, and pointer reordering.
 
-Renders `rows`, preserving each row's text and emphasis. Clicking an enabled
-row opens an editor governed by `validate`; completion trims and reports
-`onRowCommit`. The hover add action uses `addLabel` and `addTitle`, and reports
-nonempty trimmed additions through `onRowAdd`. Pointer dragging reports
-`onRowReorder` with source row and destination gap; a drag can be cancelled
-from the keyboard, leaving the order unchanged. Actions use `actionStacking`,
-validation uses `validationStacking`, and `surface` supplies an explicit action
-ground over the class-member fallback.
+Renders `rows` at their natural wrapped height, preserving each row's text
+and emphasis. Disabled rows and their add region attach no pointer handlers or
+action control, leaving cursor choice and dragging to their host. Clicking an
+enabled row opens an editor governed by `validate`; completion trims and
+reports `onRowCommit`. The hover add action uses `addLabel` and `addTitle`, and reports
+nonempty trimmed additions through `onRowAdd`. An enabled row press is owned
+exclusively by the list: pointer dragging reports `onRowReorder` with source
+row and destination gap, while preventing a host drag from starting; a drag
+can be cancelled from the keyboard, leaving the order unchanged. Actions use
+`actionStacking`, validation uses `validationStacking`, and `surface` supplies
+an explicit action ground over the class-member fallback. Editing lifecycle
+is reported through `onEditStart` and `onEditEnd`.
 
 Used by: class attribute and operation rows.
 
@@ -1390,6 +1409,8 @@ type EditableTextListProps = {
   readonly onRowCommit: (index: number, value: string, emphasis: TextEmphasis | null) => void;
   readonly onRowAdd: (value: string, emphasis: TextEmphasis | null) => void;
   readonly onRowReorder: (from: number, to: number) => void;
+  readonly onEditStart: (target: number | "new") => void;
+  readonly onEditEnd: () => void;
 };
 ```
 
@@ -1411,8 +1432,8 @@ export type EditableTextListRow = {
 
 Ghost edge assembling optional marker definitions around a preview line.
 
-Draws from `startPoint` to `endPoint` with the preview's `lineKind`, defining
-and linking `startMarker` and `endMarker` when supplied.
+Draws `d` with the preview's `lineKind`, defining and linking `startMarker`
+and `endMarker` when supplied.
 
 Modifiers:
 
@@ -1422,8 +1443,7 @@ Modifiers:
 
 ```ts
 type GhostEdgeProps = {
-  readonly startPoint: Point;
-  readonly endPoint: Point;
+  readonly d: string;
   readonly lineKind: "solid" | "dashed";
   readonly startMarker?: { readonly id: string; readonly glyph: MarkerGlyphDescriptor };
   readonly endMarker?: { readonly id: string; readonly glyph: MarkerGlyphDescriptor };
@@ -1435,11 +1455,14 @@ type GhostEdgeProps = {
 
 Multiline commit field swapping wrapped display text for a full-area editor.
 
-Displays `displayText`; clicking it reports `onEditRequest`. Editing begins
-from `initialValue`; leaving the editor or using the action labeled by
-`saveLabel` reports `onCommit`, while backing out restores the initial value
-and reports `onCancel`. Line breaks are typed as ordinary input; committing is
-only by the save action or by leaving the editor.
+Displays `displayText`; when display editing is enabled, clicking it reports
+`onEditRequest`, otherwise pointer behavior falls through. Editing begins from
+`initialValue`; leaving the editor or using the action labeled by `saveLabel`
+reports `onCommit`, while backing out restores the initial value and reports
+`onCancel`. Line breaks are typed as ordinary input; committing is only by the
+save action or by leaving the editor. The optional `validation` remains
+anchored beside the text region in either state. `elementRef` exposes the
+content host for consumer-owned measurement.
 
 Used by: note-body display and editing.
 
@@ -1447,16 +1470,20 @@ Lifecycle:
 
 - `isEditing` — off renders wrapped display text; on renders the editor and
   save action
+- `isEditEnabled` — on makes display text request editing; off leaves it inert
 
 ```ts
 type InlineCommitTextAreaProps = {
   readonly initialValue: string;
   readonly displayText: string;
   readonly saveLabel: string;
+  readonly validation?: ReactNode;
   readonly isEditing: boolean;
+  readonly isEditEnabled?: boolean;
   readonly onEditRequest: (event: MouseEvent<HTMLDivElement>) => void;
   readonly onCommit: (value: string) => void;
   readonly onCancel: () => void;
+  readonly elementRef?: Ref<HTMLDivElement>;
 };
 ```
 
@@ -1466,27 +1493,32 @@ Inline commit field swapping optional display content for validated editing.
 
 Begins its draft at `initialValue`, reports edits through `onDraftChange`, and
 resets when that value changes. In display state, `displayText` supplies text
-and clicking it reports `onEditRequest`, using the selected `treatment`. In
-edit state, `ariaLabel` names the field and `validate` gates completion:
+using the selected `treatment`; when display editing is enabled, clicking it
+reports `onEditRequest`, otherwise pointer behavior falls through. In edit
+state, `ariaLabel` names the field and `validate` gates completion:
 confirming a valid draft, or leaving the field with one, reports `onCommit`;
 leaving with an invalid draft restores the value and reports `onDiscard` with
 messages; backing out or using the cancel action restores it and reports
 `onCancel`. Validation uses `validationStacking`, while `surface` supplies an
-explicit cancel ground over the treatment-selected fallback.
+explicit cancel ground over the treatment-selected fallback. Header
+treatments open at the display text's intrinsic width, then follow the draft
+between a usable minimum and their container's available width.
 
 Lifecycle:
 
 - `isEditing` — off renders `displayText` or nothing; on renders the field
+- `isEditEnabled` — on makes display text request editing; off leaves it inert
 - `isCancelVisible` — on reserves trailing room and shows a cancel action
 
 Modifiers:
 
 - `treatment` — the editor's alignment with its display state:
-  - `primary` aligns with prominent centered text. Used by: class titles
+  - `primary` content-sizes prominent centered editing with its display text.
+    Used by: class titles
   - `secondary` aligns with secondary text. Used by: class stereotypes and
-    aliases
-  - `heading` aligns with left-aligned heading text. Used by: namespace
-    headings
+    aliases, content-sizing their editors with the decorated display text
+  - `heading` content-sizes left-aligned heading editing with its display text.
+    Used by: namespace headings
   - `label` aligns with the light edge-text pill. Used by: relationship labels
   - `multiplicity` aligns with the dark edge-text pill. Used by: endpoint
     multiplicities
@@ -1499,6 +1531,7 @@ type InlineCommitTextFieldProps = DisplayState & {
   readonly validationStacking: number;
   readonly validate: (draft: string) => readonly string[];
   readonly isEditing: boolean;
+  readonly isEditEnabled?: boolean;
   readonly isCancelVisible?: boolean;
   readonly treatment: InlineTextTreatment;
   readonly onCommit: (value: string) => void;
@@ -1565,7 +1598,8 @@ type RectDrawOverlayProps = {
 Box body frame stacking validation and content in a flexible region.
 
 Places the optional `validation` slot before `children`, allowing the body to
-grow and shrink while leaving overflow visible.
+take its natural content height while leaving overflow visible; `elementRef`
+exposes the body host for consumer-owned measurement.
 
 Used by: class member compartments.
 
@@ -1573,6 +1607,7 @@ Used by: class member compartments.
 type BoxBodyFrameProps = {
   readonly validation?: ReactNode;
   readonly children: ReactNode;
+  readonly elementRef?: Ref<HTMLDivElement>;
 };
 ```
 
@@ -1580,10 +1615,11 @@ type BoxBodyFrameProps = {
 
 Box header frame centering primary content between optional vertical slots.
 
-Maintains `minHeight`, places `validation` first, then full-width `leading`,
-`primary`, and `trailing` slots, and draws the lower separator from
+Maintains `minHeight`, places `validation` first, then centers intrinsically
+sized display content in the full-width `leading`, `primary`, and `trailing`
+slots while editors retain the slot width, and draws the lower separator from
 `separatorColor`, `separatorThickness`, and `separatorLineStyle` with base
-fallbacks.
+fallbacks. `elementRef` exposes the header host for consumer-owned measurement.
 
 Used by: the title region of a class.
 
@@ -1597,6 +1633,7 @@ type BoxHeaderFrameProps = {
   readonly separatorThickness?: string;
   readonly separatorLineStyle: "solid" | "dashed" | "dotted";
   readonly minHeight: number;
+  readonly elementRef?: Ref<HTMLElement>;
 };
 ```
 
@@ -1656,9 +1693,9 @@ type CanvasViewportFrameProps = {
 
 Compartment stack separating flexible content regions.
 
-Places `compartments` vertically in order and draws separators before every
-region after the first, using `separatorColor`, `separatorThickness`, and
-`separatorLineStyle` with base fallbacks.
+Places `compartments` vertically at their natural content heights and draws
+separators before every region after the first, using `separatorColor`,
+`separatorThickness`, and `separatorLineStyle` with base fallbacks.
 
 Used by: class title and member compartments.
 
@@ -1675,8 +1712,9 @@ type CompartmentStackProps = {
 
 Hull header frame holding one line of heading content.
 
-Places `children` in a fixed-height, full-width strip with an inset from the
-hull edge.
+Places intrinsically sized `children` at the leading edge of a fixed-height,
+full-width strip with an inset from the hull edge; content may grow to the
+strip's available width.
 
 Used by: a namespace heading.
 
@@ -1715,7 +1753,8 @@ type HullSurfaceFrameProps = {
 Sticky-note surface framing content with movable-object treatment.
 
 Fills its host with `children`, uses `title` as the tooltip, and reports
-`onClick` when clicked.
+`onClick` when clicked. `elementRef` exposes the surface host for
+consumer-owned measurement.
 
 Used by: note surfaces.
 
@@ -1730,6 +1769,7 @@ type StickyNoteSurfaceFrameProps = {
   readonly children: ReactNode;
   readonly dragging: boolean;
   readonly onClick: (event: MouseEvent<HTMLDivElement>) => void;
+  readonly elementRef?: Ref<HTMLDivElement>;
 };
 ```
 
@@ -1739,7 +1779,8 @@ Styled box surface framing vertically arranged content with user values.
 
 Fills its host with `children`, uses `title` as the tooltip, applies `fill`,
 `stroke`, `strokeWidth`, `lineStyle`, and `color` with base fallbacks, and
-reports `onClick` when clicked. `placementCursor` selects the placement cursor.
+reports `onClick` when clicked. `placementCursor` selects the placement cursor;
+`elementRef` exposes the surface host for consumer-owned measurement.
 
 Used by: class surfaces.
 
@@ -1760,5 +1801,6 @@ type StyledBoxSurfaceFrameProps = {
   readonly dragging: boolean;
   readonly placementCursor: boolean;
   readonly onClick: (event: MouseEvent<HTMLDivElement>) => void;
+  readonly elementRef?: Ref<HTMLDivElement>;
 };
 ```

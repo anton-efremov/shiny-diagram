@@ -3,25 +3,30 @@
  *
  * Begins its draft at `initialValue`, reports edits through `onDraftChange`, and
  * resets when that value changes. In display state, `displayText` supplies text
- * and clicking it reports `onEditRequest`, using the selected `treatment`. In
- * edit state, `ariaLabel` names the field and `validate` gates completion:
+ * using the selected `treatment`; when display editing is enabled, clicking it
+ * reports `onEditRequest`, otherwise pointer behavior falls through. In edit
+ * state, `ariaLabel` names the field and `validate` gates completion:
  * confirming a valid draft, or leaving the field with one, reports `onCommit`;
  * leaving with an invalid draft restores the value and reports `onDiscard` with
  * messages; backing out or using the cancel action restores it and reports
  * `onCancel`. Validation uses `validationStacking`, while `surface` supplies an
- * explicit cancel ground over the treatment-selected fallback.
+ * explicit cancel ground over the treatment-selected fallback. Header
+ * treatments open at the display text's intrinsic width, then follow the draft
+ * between a usable minimum and their container's available width.
  *
  * Lifecycle:
  * - `isEditing` — off renders `displayText` or nothing; on renders the field
+ * - `isEditEnabled` — on makes display text request editing; off leaves it inert
  * - `isCancelVisible` — on reserves trailing room and shows a cancel action
  *
  * Modifiers:
  * - `treatment` — the editor's alignment with its display state:
- *   - `primary` aligns with prominent centered text. Used by: class titles
+ *   - `primary` content-sizes prominent centered editing with its display text.
+ *     Used by: class titles
  *   - `secondary` aligns with secondary text. Used by: class stereotypes and
- *     aliases
- *   - `heading` aligns with left-aligned heading text. Used by: namespace
- *     headings
+ *     aliases, content-sizing their editors with the decorated display text
+ *   - `heading` content-sizes left-aligned heading editing with its display text.
+ *     Used by: namespace headings
  *   - `label` aligns with the light edge-text pill. Used by: relationship labels
  *   - `multiplicity` aligns with the dark edge-text pill. Used by: endpoint
  *     multiplicities
@@ -55,6 +60,7 @@ type InlineCommitTextFieldProps = DisplayState & {
   readonly validationStacking: number;
   readonly validate: (draft: string) => readonly string[];
   readonly isEditing: boolean;
+  readonly isEditEnabled?: boolean;
   readonly isCancelVisible?: boolean;
   readonly treatment: InlineTextTreatment;
   readonly onCommit: (value: string) => void;
@@ -74,6 +80,7 @@ export default function InlineCommitTextField({
   displayText,
   onEditRequest,
   isEditing,
+  isEditEnabled = true,
   treatment,
   validate,
   ariaLabel,
@@ -97,19 +104,35 @@ export default function InlineCommitTextField({
   if (!isEditing) {
     const displayVariant = toDisplayVariant(treatment);
     return displayText !== undefined && displayVariant ? (
-      <InlineTextBlock text={displayText} variant={displayVariant} onEditRequest={onEditRequest} />
+      <InlineTextBlock
+        text={displayText}
+        isEditEnabled={isEditEnabled}
+        variant={displayVariant}
+        onEditRequest={onEditRequest}
+      />
     ) : null;
   }
 
   const tone =
     treatment === "label" ? "label" : treatment === "multiplicity" ? "multiplicity" : "default";
+  const isContentSized = isHeaderTreatment(treatment);
 
   return (
     <div
-      className={`${styles.editor} ${styles[treatment]}`}
+      className={`${styles.editor} ${styles[treatment]} ${isContentSized ? styles.contentSized : ""}`}
       onPointerDown={(event) => event.stopPropagation()}
       onMouseDown={(event) => event.stopPropagation()}
     >
+      {isContentSized ? (
+        <>
+          <span className={styles.sizer} aria-hidden="true">
+            {displayText || " "}
+          </span>
+          <span className={styles.sizer} aria-hidden="true">
+            {lifecycle.draft || " "}
+          </span>
+        </>
+      ) : null}
       <InlineTextField
         value={lifecycle.draft}
         invalid={lifecycle.messages.length > 0}
@@ -147,6 +170,10 @@ function toDisplayVariant(
   treatment: InlineTextTreatment
 ): "primary" | "secondary" | "heading" | null {
   return treatment === "label" || treatment === "multiplicity" ? null : treatment;
+}
+
+function isHeaderTreatment(treatment: InlineTextTreatment): boolean {
+  return treatment === "primary" || treatment === "secondary" || treatment === "heading";
 }
 
 function toCancelSurfaceTone(treatment: InlineTextTreatment): "default" | "base" | "neutral" {

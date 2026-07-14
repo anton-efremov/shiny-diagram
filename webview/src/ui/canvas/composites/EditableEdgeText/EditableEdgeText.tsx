@@ -1,16 +1,19 @@
 /**
  * Editable edge text swapping a centered pill for a width-tracking editor.
  *
- * Displays `text`; clicking it while at rest reports `onSelect` and may report
- * `onEditRequest`, while double-clicking always reports both. During editing the
- * field grows with the draft up to a fixed maximum; committing reports
- * `onCommit`; abandoning or cancelling reports `onCancel`. Validation overlays
- * use `validationStacking`.
+ * Displays `text` through three interaction states. An unselected resting pill
+ * owns pointer input: clicking reports `onSelect`, while double-clicking also
+ * reports `onEditRequest`. A selected resting pill reports both from one click.
+ * During editing the field grows with the draft up to a fixed maximum and owns
+ * pointer input so caret placement cannot reach the edge beneath; committing
+ * reports `onCommit`; abandoning or cancelling reports `onCancel`. Validation
+ * overlays use `validationStacking`.
  *
  * Lifecycle:
  * - `isEditing` — off renders the text pill; on renders the editor
- * - `isClickEditEnabled` — on lets a single click request editing; double-click
- *   requests editing in either state
+ * - `isClickEditEnabled` — on gives the resting pill a default cursor and makes
+ *   one click request editing; off gives it an action cursor and requires a
+ *   double-click to request editing
  *
  * Modifiers:
  * - `treatment` — the edge-text situation:
@@ -73,6 +76,8 @@ export default function EditableEdgeText({
           className={styles.editorHost}
           onPointerDown={(event) => event.stopPropagation()}
           onMouseDown={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
+          onDoubleClick={(event) => event.stopPropagation()}
         >
           <InlineCommitTextField
             initialValue={text}
@@ -92,6 +97,24 @@ export default function EditableEdgeText({
     );
   }
 
+  if (!isClickEditEnabled) {
+    return (
+      <g
+        onClick={(event) => {
+          event.stopPropagation();
+          onSelect();
+        }}
+        onDoubleClick={(event) => {
+          event.stopPropagation();
+          onSelect();
+          onEditRequest();
+        }}
+      >
+        <EdgeTextSurface text={text} interaction="select" variant={treatment} />
+      </g>
+    );
+  }
+
   return (
     <g
       onClick={(event) => {
@@ -99,13 +122,8 @@ export default function EditableEdgeText({
         onSelect();
         if (isClickEditEnabled) onEditRequest();
       }}
-      onDoubleClick={(event) => {
-        event.stopPropagation();
-        onSelect();
-        onEditRequest();
-      }}
     >
-      <EdgeTextSurface text={text} variant={treatment} />
+      <EdgeTextSurface text={text} interaction="edit" variant={treatment} />
     </g>
   );
 }

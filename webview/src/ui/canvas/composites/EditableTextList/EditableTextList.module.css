@@ -5,21 +5,21 @@
 }
 
 .rowHost {
+  flex: 0 0 auto;
   min-width: 0;
   padding: 0;
   border: none;
   color: inherit;
   background: transparent;
   font: inherit;
-  cursor: var(--shiny-cursor-default);
 }
 
 .editable {
-  cursor: var(--shiny-cursor-action);
+  cursor: var(--shiny-cursor-default);
 }
 
 .editable:hover {
-  background: var(--shiny-canvas-overlay-faint);
+  background: var(--shiny-canvas-overlay-strong);
 }
 
 .underlined {
@@ -38,7 +38,13 @@
   user-select: none;
 }
 
+.dragging .editable,
+.dragging .editable > * {
+  cursor: var(--shiny-cursor-move-active);
+}
+
 .addCell {
+  flex: 0 0 auto;
   display: flex;
   min-height: var(--shiny-inline-add-min-height);
   padding: 2px 0;
@@ -51,6 +57,7 @@
 }
 
 .editorHost {
+  flex: 0 0 auto;
   width: 100%;
   font-size: var(--shiny-canvas-font-size-secondary);
   line-height: var(--shiny-canvas-line-height-secondary);

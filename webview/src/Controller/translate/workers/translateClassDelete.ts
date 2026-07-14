@@ -1,18 +1,16 @@
 /**
- * @fileoverview Translates `class.delete`.
+ * Makes five groups of writes — each group only where the statement exists:
  *
- * Emits deletion of every explicit source statement owned by or attached to the
- * deleted class (in case they exist)
+ * 1. class declaration **statement** deleted, incl. members
  *
- * 1. Class declaration block (incl. members)
+ * 2. spatial annotation **statement** deleted
  *
- * 2. Spatial annotation
+ * 3. relationship **statements** deleted — every relationship where the class
+ *    is the source or the target endpoint
  *
- * 3. Relationships (where the source class is either the source endpoint or the target endpoint).
+ * 4. direct style **statement** deleted
  *
- * 4. Direct style statements
- *
- * 5. Style application statements
+ * 5. style application **statements** deleted, for every application targeting the class
  */
 
 import type { EditorCommandOf } from "../../../View/commands";

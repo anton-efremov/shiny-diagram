@@ -1,10 +1,10 @@
 /**
- * @behavior Class resize command dispatch and header blur-discard popup state.
+ * @behavior Class content-height measurement, resize dispatch, and header blur-discard popup state.
  * @render Class-box node.
  */
 
 import type { MouseEvent, ReactElement } from "react";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import ReactFlowConnectionHandlesAdapter from "./ReactFlowConnectionHandlesAdapter/ReactFlowConnectionHandlesAdapter";
 import MemberTable from "./MemberTable/MemberTable";
 import { useInteractions } from "./useInteractions";
@@ -49,6 +49,7 @@ type ClassBoxProps = {
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
   readonly onTextBlockEditCancel: () => void;
+  readonly onContentHeightChange: (classId: ClassId, height: number) => void;
 };
 
 type ConnectionHandleDescriptor = {
@@ -84,9 +85,33 @@ export default function ClassBox({
   editingState,
   onTextBlockEditStart,
   onTextBlockEditCancel,
+  onContentHeightChange,
 }: ClassBoxProps): ReactElement {
   // State creation: local state - blur-discard validation messages for header direct edits
   const [headerDiscardErrors, setHeaderDiscardErrors] = useState<readonly string[]>([]);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
+    const header = headerRef.current;
+    const body = bodyRef.current;
+    if (!frame || !header || !body) return undefined;
+    const measure = () => {
+      const style = window.getComputedStyle(frame);
+      const borders = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+      onContentHeightChange(
+        view.classId,
+        Math.ceil(header.offsetHeight + body.offsetHeight + borders)
+      );
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    observer.observe(body);
+    return () => observer.disconnect();
+  }, [onContentHeightChange, view.classId]);
 
   // Event handler props derivation
   const { onClassBoxClick, onHeaderCommit } = useInteractions(view.classId, onClassSelect);
@@ -125,6 +150,7 @@ export default function ClassBox({
       displayText={`<<${view.header.stereotype}>>`}
       onEditRequest={requestHeaderEdit("annotation")}
       isEditing={isHeaderEditing(editingState, view.classId, "annotation")}
+      isEditEnabled={isSelected}
       treatment="secondary"
       validate={(text) => onHeaderCommit("annotation", text.trim() || null)}
       ariaLabel="Annotation"
@@ -144,6 +170,7 @@ export default function ClassBox({
       displayText={view.header.name}
       onEditRequest={requestHeaderEdit("name")}
       isEditing={isHeaderEditing(editingState, view.classId, "name")}
+      isEditEnabled={isSelected}
       treatment="primary"
       validate={(text) => onHeaderCommit("name", text.trim())}
       ariaLabel="Class name"
@@ -164,6 +191,7 @@ export default function ClassBox({
         displayText={`as ${view.header.label}`}
         onEditRequest={requestHeaderEdit("label")}
         isEditing={isHeaderEditing(editingState, view.classId, "label")}
+        isEditEnabled={isSelected}
         treatment="secondary"
         validate={(text) => onHeaderCommit("label", text.trim() || null)}
         ariaLabel="Class label"
@@ -180,6 +208,7 @@ export default function ClassBox({
 
   return (
     <StyledBoxSurfaceFrame
+      elementRef={frameRef}
       title={view.classId}
       fill={resolvedStyle.fill}
       stroke={resolvedStyle.stroke}
@@ -206,6 +235,7 @@ export default function ClassBox({
         isConnectSourceEnabled={isConnectSourceEnabled}
       />
       <BoxHeaderFrame
+        elementRef={headerRef}
         minHeight={CLASS_BOX_HEADER_MIN_HEIGHT}
         separatorColor={separatorColor}
         separatorThickness={separatorThickness}
@@ -224,6 +254,7 @@ export default function ClassBox({
         trailing={label}
       />
       <MemberTable
+        elementRef={bodyRef}
         view={{ classId: view.classId, members: view.members }}
         isSelected={isSelected}
         separatorColor={separatorColor}

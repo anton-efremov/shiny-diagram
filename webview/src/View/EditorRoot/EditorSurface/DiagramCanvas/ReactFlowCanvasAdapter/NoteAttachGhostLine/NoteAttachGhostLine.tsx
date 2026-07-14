@@ -20,8 +20,7 @@ export default function NoteAttachGhostLine({
   return (
     <CanvasOverlayFrame stacking={NOTE_ATTACH_GHOST_Z_INDEX}>
       <EdgeGhostLine
-        startPoint={sourcePoint}
-        endPoint={targetPoint}
+        d={`M ${sourcePoint.x} ${sourcePoint.y} L ${targetPoint.x} ${targetPoint.y}`}
         lineKind="dashed"
         tone="attachment"
       />

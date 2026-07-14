@@ -1,5 +1,16 @@
 /**
- * @fileoverview Translates class and namespace parent namespace changes.
+ * Makes three writes:
+ *
+ * 1. namespace declaration **statement** deleted
+ * 
+ * 2. namespace declaration **statement**, in the **target scope** (anchored at first match)
+ *    - after latest namespace in target scope, except old ancestors (they cannot be anchors, 
+ *    since they might become empty and get deleted in the end of the transaction)
+ *    - after latest statement of any kind
+ *    - at block opening
+ * 
+ * 3. for each renamed descendant namespace with a style statement → namespace style declaration 
+ *    target **value**, in place
  */
 
 import type { EditorCommandOf } from "../../../View/commands";

@@ -1,5 +1,6 @@
 .textObject {
   overflow: visible;
+  pointer-events: all;
 }
 
 .editorHost {
