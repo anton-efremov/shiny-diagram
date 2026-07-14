@@ -16,20 +16,20 @@ import { createTranslateContext } from "./translateContext";
 import type { TranslateContext } from "./translateContext";
 import type { WriteIntent } from "./writeIntent";
 import { applyVacancyPostPass } from "./vacancyPostPass";
-import { translateClassCreate } from "./workers/translateClassCreate";
-import { translateClassAppliedStyleSet } from "./workers/translateClassAppliedStyleSet";
-import { translateClassDelete } from "./workers/translateClassDelete";
-import { translateClassDirectStyleSet } from "./workers/translateClassDirectStylePropertySet";
+import { translateClassCreate } from "./workers/Class/translateClassCreate";
+import { translateClassAppliedStyleSet } from "./workers/Class/translateClassAppliedStyleSet";
+import { translateClassDelete } from "./workers/Class/translateClassDelete";
+import { translateClassDirectStyleSet } from "./workers/Class/translateClassDirectStylePropertySet";
 import {
   translateClassDirectStyleClear,
   translateClassDirectStyleSet as translateClassFullDirectStyleSet,
-} from "./workers/translateClassDirectStyleSet";
-import { translateClassDuplicate } from "./workers/translateClassDuplicate";
+} from "./workers/Class/translateClassDirectStyleSet";
+import { translateClassDuplicate } from "./workers/Class/translateClassDuplicate";
 import {
   translateClassAnnotationSet,
   translateClassLabelSet,
   translateClassNameSet,
-} from "./workers/translateClassHeader";
+} from "./workers/Class/translateClassHeader";
 import {
   translateClassAttributeCreate,
   translateClassAttributeDelete,
@@ -39,42 +39,40 @@ import {
   translateClassMethodDelete,
   translateClassMethodMove,
   translateClassMethodSet,
-} from "./workers/translateClassMember";
-import { translateClassSpatialSet } from "./workers/translateClassSpatialSet";
-import {
-  translateClassParentNamespaceSet,
-  translateNamespaceParentNamespaceSet,
-} from "./workers/translateParentNamespaceSet";
-import { translateRelationshipCreate } from "./workers/translateRelationshipCreate";
-import { translateRelationshipDelete } from "./workers/translateRelationshipDelete";
-import { translateRelationshipEndpointsPatch } from "./workers/translateRelationshipEndpointsPatch";
-import { translateRelationshipLabelSet } from "./workers/translateRelationshipLabelSet";
-import { translateRelationshipLineKindSet } from "./workers/translateRelationshipLineKindSet";
-import { translateRelationshipOperatorPatch } from "./workers/translateRelationshipOperatorPatch";
-import { translateRelationshipSourceClassSet } from "./workers/translateRelationshipSourceClassSet";
-import { translateRelationshipSourceEndpointKindSet } from "./workers/translateRelationshipSourceEndpointKindSet";
-import { translateRelationshipSourceMultiplicitySet } from "./workers/translateRelationshipSourceMultiplicitySet";
-import { translateRelationshipTargetClassSet } from "./workers/translateRelationshipTargetClassSet";
-import { translateRelationshipTargetEndpointKindSet } from "./workers/translateRelationshipTargetEndpointKindSet";
-import { translateRelationshipTargetMultiplicitySet } from "./workers/translateRelationshipTargetMultiplicitySet";
-import { translateNoteAttachmentSet } from "./workers/translateNoteAttachmentSet";
-import { translateNoteCreate } from "./workers/translateNoteCreate";
-import { translateNoteDelete } from "./workers/translateNoteDelete";
-import { translateNoteDuplicate } from "./workers/translateNoteDuplicate";
-import { translateNoteSpatialSet } from "./workers/translateNoteSpatialSet";
-import { translateNoteTextSet } from "./workers/translateNoteTextSet";
-import { translateNamespaceCreate } from "./workers/translateNamespaceCreate";
+} from "./workers/Class/translateClassMember";
+import { translateClassSpatialSet } from "./workers/Class/translateClassSpatialSet";
+import { translateClassParentNamespaceSet } from "./workers/Class/translateClassParentNamespaceSet";
+import { translateNamespaceParentNamespaceSet } from "./workers/Namespace/translateNamespaceParentNamespaceSet";
+import { translateRelationshipCreate } from "./workers/Relationship/translateRelationshipCreate";
+import { translateRelationshipDelete } from "./workers/Relationship/translateRelationshipDelete";
+import { translateRelationshipEndpointsPatch } from "./workers/Relationship/translateRelationshipEndpointsPatch";
+import { translateRelationshipLabelSet } from "./workers/Relationship/translateRelationshipLabelSet";
+import { translateRelationshipLineKindSet } from "./workers/Relationship/translateRelationshipLineKindSet";
+import { translateRelationshipOperatorPatch } from "./workers/Relationship/translateRelationshipOperatorPatch";
+import { translateRelationshipSourceClassSet } from "./workers/Relationship/translateRelationshipSourceClassSet";
+import { translateRelationshipSourceEndpointKindSet } from "./workers/Relationship/translateRelationshipSourceEndpointKindSet";
+import { translateRelationshipSourceMultiplicitySet } from "./workers/Relationship/translateRelationshipSourceMultiplicitySet";
+import { translateRelationshipTargetClassSet } from "./workers/Relationship/translateRelationshipTargetClassSet";
+import { translateRelationshipTargetEndpointKindSet } from "./workers/Relationship/translateRelationshipTargetEndpointKindSet";
+import { translateRelationshipTargetMultiplicitySet } from "./workers/Relationship/translateRelationshipTargetMultiplicitySet";
+import { translateNoteAttachmentSet } from "./workers/Note/translateNoteAttachmentSet";
+import { translateNoteCreate } from "./workers/Note/translateNoteCreate";
+import { translateNoteDelete } from "./workers/Note/translateNoteDelete";
+import { translateNoteDuplicate } from "./workers/Note/translateNoteDuplicate";
+import { translateNoteSpatialSet } from "./workers/Note/translateNoteSpatialSet";
+import { translateNoteTextSet } from "./workers/Note/translateNoteTextSet";
+import { translateNamespaceCreate } from "./workers/Namespace/translateNamespaceCreate";
 import {
   translateNamespaceDelete,
   translateNamespaceNameSet,
   translateNamespaceStyleSet,
-} from "./workers/translateNamespaceProperties";
+} from "./workers/Namespace/translateNamespaceProperties";
 import {
   translateStyleDefinitionCreate,
   translateStyleDefinitionDelete,
   translateStyleDefinitionNameSet,
   translateStyleDefinitionPropertySet,
-} from "./workers/translateStyleDefinition";
+} from "./workers/Style/translateStyleDefinition";
 
 export function translateCommands(
   transaction: EditorCommandTransaction,

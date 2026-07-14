@@ -46,6 +46,7 @@
 .addCell {
   flex: 0 0 auto;
   display: flex;
+  box-sizing: content-box;
   min-height: var(--shiny-inline-add-min-height);
   padding: 2px 0;
   align-items: stretch;

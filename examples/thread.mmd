@@ -9,8 +9,8 @@ classDiagram
 						  			}
 						  											class UserContact {
 						  												+UUID id
-						  												+String emailAddress
 						  												+List~CommunicationChannel~ preferredChannels
+						  												+String emailAddress
 						  												+String name
 						  												+removeCommunicationChannel(UUID channelId) void
 						  											}
@@ -33,23 +33,25 @@ direction TB
 
 
 	UserContact "0..1" <--> "0..*" ConversationThread_1 : hahaddkkkkk
-	ConversationThread_1 "0..1" --> ConversationThread : hoi
-	NewClass ..|> UserContact
+	ConversationThread_1 "0..1" --> NewClass : hoi
+	NewClass ..|> ConversationThread
 
 
     %% Native Style Applications
 
-    style UserContact stroke:#FFFFFF,color:#ccefeb,stroke-width:4
-    style ConversationThread fill:#ccefeb,stroke:#275340,stroke-width:1px,color:#50317f
 
 
     %% Native Style Definitions
     classDef PineSelected stroke-width:1px,stroke:#275340,fill:#779c8c,color:#FFFFFF
     classDef style2 fill:#50317f,stroke:#ed8936,stroke-width:1px,stroke-dasharray:none,color:#ffffff
     classDef style1 fill:#ed8936,stroke:#ffffff,stroke-width:4,stroke-dasharray:4 4,color:#ffffff
+    classDef style3 stroke:#FFFFFF,stroke-width:4,color:#ccefeb
 
     class ConversationThread_1:::style2
     class NewClass:::PineSelected
+    class ConversationThread:::style2
+
+    style UserContact fill:#ed8936
 
 
     %% @style:`NewNamespace.NewNamespace2` fill=#934343
@@ -59,11 +61,11 @@ direction TB
     %% @note: x=-324 y=1106 w=18426=96639300393
 
 
-	%% @spatial:ConversationThread x=642 y=-298 w=289 h=338
+	%% @spatial:ConversationThread x=598 y=-285 w=289 h=338
 
-	%% @spatial:UserContact x=192 y=174 w=358 h=358
-	%% @spatial:ConversationThread_1 x=666 y=185 w=211 h=318
-	%% @spatial:NewClass x=208 y=-285 w=237 h=280
+	%% @spatial:UserContact x=135 y=159 w=358 h=358
+	%% @spatial:ConversationThread_1 x=688 y=185 w=172 h=291
+	%% @spatial:NewClass x=242 y=-238 w=237 h=280
 	%% @spatial:`note:0` x=40 y=572 w=200 h=150
 
 

@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ReactElement } from "react";
+import type { CSSProperties, ReactElement } from "react";
 import {
   ConnectionMode,
   Controls,
@@ -68,6 +68,14 @@ import type {
   NamespaceResizePointerState,
   NoteResizePointerState,
 } from "./useInteractions";
+
+type ReactFlowRuntimeStyle = CSSProperties & {
+  readonly "--rf-reconnect-radius": string;
+};
+
+const REACT_FLOW_RUNTIME_STYLE: ReactFlowRuntimeStyle = {
+  "--rf-reconnect-radius": `${RELATIONSHIP_RECONNECT_RADIUS}px`,
+};
 
 const nodeTypes = {
   classBox: ReactFlowClassBoxNodeAdapter,
@@ -524,6 +532,7 @@ export default function ReactFlowCanvasAdapter({
         connectionMode={ConnectionMode.Loose}
         isValidConnection={isValidRelationshipConnection}
         reconnectRadius={RELATIONSHIP_RECONNECT_RADIUS}
+        style={REACT_FLOW_RUNTIME_STYLE}
         connectionLineComponent={connectionLineComponent}
         fitView
         nodesDraggable={

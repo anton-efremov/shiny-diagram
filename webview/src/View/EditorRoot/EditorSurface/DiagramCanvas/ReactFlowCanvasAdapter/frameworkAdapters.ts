@@ -34,7 +34,6 @@ import {
   NAMESPACE_NODE_Z_INDEX,
   NOTE_NODE_Z_INDEX,
   RELATIONSHIP_EDGE_Z_INDEX,
-  SELECTED_RELATIONSHIP_EDGE_Z_INDEX,
 } from "../../../../config/editorUiConfig";
 
 export type ClassBoxNodeData = {
@@ -510,7 +509,9 @@ export function toRelationshipEdgeDescriptors(
           onRelationshipSelect,
         },
         type: "relationship",
-        zIndex: isSelected ? SELECTED_RELATIONSHIP_EDGE_Z_INDEX : RELATIONSHIP_EDGE_Z_INDEX,
+        className: `shiny-reconnect-source-${sourceSide} shiny-reconnect-target-${targetSide}`,
+        zIndex: RELATIONSHIP_EDGE_Z_INDEX,
+        selected: isSelected,
         reconnectable: isSelected && !isRelationshipPlacementArmed,
         selectable: false,
         focusable: false,

@@ -6,7 +6,7 @@ import type { MutableRefObject, ReactElement } from "react";
 import { type ConnectionLineComponentProps, type XYPosition } from "@xyflow/react";
 import type { RelationshipSeed } from "../../../../../state/editorStates";
 import RelationshipGhostLine from "./RelationshipGhostLine/RelationshipGhostLine";
-import { getFlexibleEdgePath } from "../edgeGeometry";
+import { getFlexibleEdgePath, getFloatingTargetPosition } from "../edgeGeometry";
 
 /** Ghost seed for connection drags that carry no relationship styling of their own. */
 const NEUTRAL_RELATIONSHIP_SEED: RelationshipSeed = {
@@ -29,10 +29,8 @@ type RelationshipConnectionLineAdapterProps = ConnectionLineComponentProps & {
 export default function RelationshipConnectionLineAdapter({
   fromX,
   fromY,
-  toX,
-  toY,
   fromPosition,
-  toPosition,
+  pointer,
   placementSeed,
   placementStartPointRef,
   placementPointerRef,
@@ -42,18 +40,24 @@ export default function RelationshipConnectionLineAdapter({
   // Framework prop and event adaptation
   const seed = placementSeed ?? reconnectSeedRef.current ?? NEUTRAL_RELATIONSHIP_SEED;
   const startPoint = placementStartPointRef.current ?? { x: fromX, y: fromY };
-  const endPoint = placementSeed
-    ? (placementPointerRef.current ?? { x: toX, y: toY })
+  const trackedPointer = placementSeed
+    ? (placementPointerRef.current ?? pointer)
     : reconnectSeedRef.current
-      ? (reconnectPointerRef.current ?? { x: toX, y: toY })
-      : { x: toX, y: toY };
+      ? (reconnectPointerRef.current ?? pointer)
+      : pointer;
+  const targetPosition = getFloatingTargetPosition({
+    sourceX: startPoint.x,
+    sourceY: startPoint.y,
+    targetX: trackedPointer.x,
+    targetY: trackedPointer.y,
+  });
   const [d] = getFlexibleEdgePath({
     sourceX: startPoint.x,
     sourceY: startPoint.y,
     sourcePosition: fromPosition,
-    targetX: endPoint.x,
-    targetY: endPoint.y,
-    targetPosition: toPosition,
+    targetX: trackedPointer.x,
+    targetY: trackedPointer.y,
+    targetPosition,
   });
 
   return <RelationshipGhostLine seed={seed} d={d} />;

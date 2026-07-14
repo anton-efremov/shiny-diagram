@@ -864,7 +864,8 @@ Used by: member-row reordering.
 
 Endpoint handle marking a visible relationship reconnect point with positive reconnect emphasis.
 
-Centers a noninteractive circular handle at `point`.
+Centers a noninteractive circular handle at `point`; the surrounding
+framework-owned reconnect target remains invisible.
 
 Used by: relationship reconnection.
 
@@ -1064,7 +1065,8 @@ Modifiers:
 - `treatment` — the action situation:
   - `cancel` is a compact circular error action. Used by: canvas text
     cancellation
-  - `add` fills its host with a quiet rounded action. Used by: member addition
+  - `add` fills the reserved add region with a quiet rounded action without
+    increasing its natural height. Used by: member addition
 - `surfaceTone` — the action ground when `surface` is absent:
   - `default` uses the canvas surface. Used by: relationship text cancellation
   - `base` uses the base fill. Used by: class-member actions

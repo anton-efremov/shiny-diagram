@@ -1,7 +1,8 @@
 /**
  * Endpoint handle marking a visible relationship reconnect point with positive reconnect emphasis.
  *
- * Centers a noninteractive circular handle at `point`.
+ * Centers a noninteractive circular handle at `point`; the surrounding
+ * framework-owned reconnect target remains invisible.
  *
  * Used by: relationship reconnection.
  *

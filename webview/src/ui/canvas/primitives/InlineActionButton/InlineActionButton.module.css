@@ -39,7 +39,7 @@
 
 .add {
   width: 100%;
-  height: 100%;
+  height: var(--shiny-inline-add-min-height);
   border: none;
   border-radius: var(--shiny-inline-action-add-radius);
   color: inherit;
@@ -49,6 +49,7 @@
 .add svg {
   width: var(--shiny-inline-action-add-glyph-size);
   height: var(--shiny-inline-action-add-glyph-size);
+  max-height: 100%;
 }
 
 .button svg {

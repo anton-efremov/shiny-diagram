@@ -6,15 +6,21 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { collectComponents } from "./planes/ui-catalog.mjs";
+import { collectWritebackEntries } from "./planes/writeback-catalog.mjs";
 import { planes } from "./planes/registry.mjs";
 import { analyzeModifierUtilization } from "./modifier-utilization.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const violations = [];
 const components = await collectComponents({ repoRoot });
+const writebackEntries = await collectWritebackEntries({ repoRoot });
+
+// MIGRATION SWITCH: flip to true once the translator annotation backfill is complete.
+const WRITEBACK_ANNOTATION_PRESENCE_IS_VIOLATION = false;
 
 await checkPlaneStaleness();
 checkUiCatalogAnnotations();
+checkWritebackAnnotations();
 await checkModifierUtilization();
 
 if (violations.length > 0) {
@@ -70,6 +76,43 @@ function checkUiCatalogAnnotations() {
     for (const boundaryType of component.boundaryTypes) {
       checkBoundaryTypeStructure(component, boundaryType);
     }
+  }
+}
+
+function checkWritebackAnnotations() {
+  for (const entry of writebackEntries) {
+    if (entry.annotation === null) {
+      const issue = {
+        location: entry.filePath,
+        rule: "write-back annotation presence",
+        subject: JSON.stringify(entry.commandName),
+        message: "No translator annotation was found; the catalog renders a placeholder.",
+        fix: "Add the write-rule TSDoc immediately before the exported translator function, then run `npm run planes`.",
+      };
+      if (WRITEBACK_ANNOTATION_PRESENCE_IS_VIOLATION) addViolation(issue);
+      else console.warn(`${issue.location} [${issue.rule}] ${issue.subject}: ${issue.message}`);
+      continue;
+    }
+
+    const header = entry.annotation.split("\n", 1)[0];
+    if (
+      /^Makes (?:\d+|one|two|three|four|five|six|seven|eight|nine|ten) writes:/.test(header) ||
+      /^Makes (?:\d+|one|two|three|four|five|six|seven|eight|nine|ten) groups of writes(?:\s|:)/.test(
+        header
+      ) ||
+      /^Makes one of (?:\d+|one|two|three|four|five|six|seven|eight|nine|ten) write options:/.test(
+        header
+      )
+    ) {
+      continue;
+    }
+    addViolation({
+      location: entry.filePath,
+      rule: "write-back annotation header",
+      subject: JSON.stringify(entry.commandName),
+      message: `Annotation opens with an invalid header: ${JSON.stringify(header)}.`,
+      fix: "Use one of the header sentence formats in write-back-pipeline.md §7.2, then run `npm run planes`.",
+    });
   }
 }
 

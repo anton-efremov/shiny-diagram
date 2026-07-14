@@ -46,7 +46,7 @@ export const reactFlowCanvasBoundaryProps = {
   selectionOnDrag: false,
   autoPanOnSelection: false,
   elevateNodesOnSelect: false,
-  elevateEdgesOnSelect: false,
+  elevateEdgesOnSelect: true,
   selectionKeyCode: null,
   multiSelectionKeyCode: null,
 

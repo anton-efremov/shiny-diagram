@@ -50,6 +50,7 @@ A token's category is its function in place; the same glyph may serve different 
 | namespace declaration statement      | `namespace Domain { ... }`           | diagram body, namespace body |
 | block member statement               | `+name`                              | class body                   |
 | short member statement               | `User : +name`                       | diagram body                 |
+| class annotation statement           | `<<interface>>`                      | class body                   |
 | relationship statement               | `User --> Order : places`            | diagram body                 |
 | lollipop interface statement         | `Service ()-- Client`                | diagram body                 |
 | style definition statement           | `classDef warning fill:#f00`         | diagram body                 |
@@ -79,8 +80,7 @@ First-level composition of every statement, in the categories defined at chapter
 | **class name** | identifier | `User` |
 | **class generic** | clause: a literal enclosed in `~ ~` | `~T~` |
 | **class label** | clause: a literal enclosed in `[" "]` | `["User account"]` |
-| **class annotation** | clause: a literal enclosed in `<< >>`, on its own line inside the body | `<<interface>>` |
-| **class body** | block: block member statements and the class annotation | `{ ... }` |
+| **class body** | block: block member statements and the class annotation statement | `{ ... }` |
 
 **block member statement** — `+addMessage(Message m) void*`
 
@@ -94,6 +94,12 @@ First-level composition of every statement, in the categories defined at chapter
 | --- | --- | --- |
 | **member owner** | identifier, followed by the fixed operator `:` | `User :` |
 | **member text** | as in the block member statement | `+name$` |
+
+**class annotation statement** — `<<interface>>`
+
+| Component | Composition | Span |
+| --- | --- | --- |
+| **class annotation** | literal enclosed in `<< >>` | `<<interface>>` |
 
 **relationship statement** — `User "1" --> "0..*" Order : places`
 
@@ -188,7 +194,7 @@ A single write addresses exactly one unit; the unit dictates the legal operation
 
 | Statement | Values |
 | --- | --- |
-| class declaration | class name, class generic, class label, class annotation |
+| class declaration | class name, class generic, class label |
 | block / short member | member text, member owner |
 | relationship | endpoint, multiplicity, relationship operator, relationship label |
 | style definition | style definition name, style property value |

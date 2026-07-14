@@ -26,3 +26,25 @@ body {
   font-family: var(--shiny-chrome-font-family);
   color: var(--shiny-chrome-text);
 }
+
+/* React Flow offsets reconnect circles one radius outside their endpoints.
+   Translate them back so the invisible hit target is centered on the visible dot. */
+.react-flow__edge.shiny-reconnect-source-left .react-flow__edgeupdater-source,
+.react-flow__edge.shiny-reconnect-target-left .react-flow__edgeupdater-target {
+  transform: translateX(var(--rf-reconnect-radius));
+}
+
+.react-flow__edge.shiny-reconnect-source-right .react-flow__edgeupdater-source,
+.react-flow__edge.shiny-reconnect-target-right .react-flow__edgeupdater-target {
+  transform: translateX(calc(-1 * var(--rf-reconnect-radius)));
+}
+
+.react-flow__edge.shiny-reconnect-source-top .react-flow__edgeupdater-source,
+.react-flow__edge.shiny-reconnect-target-top .react-flow__edgeupdater-target {
+  transform: translateY(var(--rf-reconnect-radius));
+}
+
+.react-flow__edge.shiny-reconnect-source-bottom .react-flow__edgeupdater-source,
+.react-flow__edge.shiny-reconnect-target-bottom .react-flow__edgeupdater-target {
+  transform: translateY(calc(-1 * var(--rf-reconnect-radius)));
+}
