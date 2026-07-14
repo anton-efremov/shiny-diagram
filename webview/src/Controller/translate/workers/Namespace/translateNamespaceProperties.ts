@@ -23,6 +23,18 @@ import {
 import { movedStatementPayload } from "../../placement/moveStatementSlice";
 import type { BlockRef, StatementAnchor, StatementRef, WriteIntent } from "../../writeIntent";
 
+/**
+ * Makes two groups of writes — only for namespace identities changed by the rename:
+ *
+ * 1. namespace name **value**, for the renamed namespace and every descendant whose written
+ *    namespace name changes
+ *    - in place
+ * 2. namespace style target **value**, for every renamed namespace with a namespace style
+ *    annotation statement
+ *    - in place
+ *
+ * No-op when the namespace is missing or its resulting namespace name is unchanged.
+ */
 export function translateNamespaceNameSet(
   command: EditorCommandOf<"namespace.name.set">,
   graph: DiagramGraph,
@@ -41,6 +53,24 @@ export function translateNamespaceNameSet(
   ]);
 }
 
+/**
+ * Makes one of three write options:
+ *
+ * a. namespace style annotation statement exists and the new style is null or has no
+ *    non-null properties → namespace style annotation **statement** deleted
+ * b. namespace style annotation statement exists and the new style has a non-null property
+ *    → namespace style properties **value**
+ *    - in place
+ * c. otherwise → namespace style annotation **statement**, in **diagram body** (anchored at
+ *    first match)
+ *    - after the latest namespace style annotation statement
+ *    - after the latest spatial annotation statement
+ *    - after the latest statement of any kind
+ *    - at block opening
+ *
+ * No-op when no namespace style annotation statement exists and the new style is null or has
+ * no non-null properties.
+ */
 export function translateNamespaceStyleSet(
   command: EditorCommandOf<"namespace.style.set">,
   graph: DiagramGraph,
@@ -90,6 +120,28 @@ export function translateNamespaceStyleSet(
   ];
 }
 
+/**
+ * Makes four groups of writes:
+ *
+ * 1. class declaration **statement** (source block, verbatim), in the parent **namespace
+ *    body**, or **diagram body** if no parent namespace, for every direct class (anchored at
+ *    first match)
+ *    - after the latest statement matching the first moved declaration kind before the
+ *      deleted namespace declaration statement
+ *    - after the latest statement of any kind before the deleted namespace declaration
+ *      statement
+ *    - at block opening
+ * 2. namespace declaration **statement** (source block, verbatim), in the parent **namespace
+ *    body**, or **diagram body** if no parent namespace, for every direct namespace (anchored
+ *    at first match)
+ *    - after the latest statement matching the first moved declaration kind before the
+ *      deleted namespace declaration statement
+ *    - after the latest statement of any kind before the deleted namespace declaration
+ *      statement
+ *    - at block opening
+ * 3. namespace declaration **statement** deleted
+ * 4. namespace style annotation **statement** deleted, when it exists
+ */
 export function translateNamespaceDelete(
   command: EditorCommandOf<"namespace.delete">,
   graph: DiagramGraph,

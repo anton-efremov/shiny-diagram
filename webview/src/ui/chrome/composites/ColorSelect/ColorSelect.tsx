@@ -1,10 +1,11 @@
 /**
  * Color selector with a swatch-grid popup and immediate selection.
  *
- * Shows `value` through the selected `preview`; null uses the `baseValue` preview
+ * Shows `value` through the selected `preview`; null uses the `constantValue` preview
  * and "multiple" shows a mixed state. The popup combines `documentColors` with
- * the hue, shade, and neutral `presets`; choosing a color or Base reports
- * `onChange` and returns focus to the control. Closing it without choosing
+ * the hue, shade, and neutral `presets`; the constant is an ordinary preset and
+ * choosing it reports null so the authored property is cleared. Choosing a color
+ * reports `onChange` and returns focus to the control. Closing it without choosing
  * reports nothing: an outside press leaves focus where the click placed it,
  * while keyboard dismissal returns focus to the control. The six-column grid is
  * keyboard-navigable, and the popup paints at the supplied `stacking` plane.
@@ -56,7 +57,7 @@ type ColorSelectProps = {
   readonly value: string | null | "multiple";
   readonly presets: ColorSelectPresetCatalog;
   readonly documentColors: readonly string[];
-  readonly baseValue?: string;
+  readonly constantValue: string;
   readonly stacking: number;
   readonly disabled?: boolean;
   readonly preview: "fill" | "stroke" | "text";
@@ -71,7 +72,7 @@ export default function ColorSelect({
   value,
   presets,
   documentColors,
-  baseValue,
+  constantValue,
   stacking,
   disabled = false,
   onChange,
@@ -92,8 +93,8 @@ export default function ColorSelect({
   const palette = toPalette(presets);
   const isMultiple = value === "multiple";
 
-  function selectValue(nextValue: string | null): void {
-    onChange(nextValue);
+  function selectValue(nextValue: string): void {
+    onChange(colorsEqual(nextValue, constantValue) ? null : nextValue);
     dismissAndRestoreFocus();
   }
 
@@ -165,7 +166,11 @@ export default function ColorSelect({
         aria-expanded={isOpen}
         onClick={openPopup}
       >
-        <ColorPreview preview={preview} value={value} emphasized={value !== null && !isMultiple} />
+        <ColorPreview
+          preview={preview}
+          value={value === null ? constantValue : value}
+          emphasized={!isMultiple}
+        />
         <SelectorChevron />
       </button>
       {isOpen ? (
@@ -185,27 +190,15 @@ export default function ColorSelect({
               </div>
             </section>
           ) : null}
-          <button
-            type="button"
-            className={styles.defaultOption}
-            aria-pressed={!isMultiple && value === null}
-            onClick={() => selectValue(null)}
-          >
-            <span
-              className={`${styles.defaultSwatch} ${styles[preview]}`}
-              style={{ "--color-select-value": baseValue } as CSSProperties}
-              aria-hidden="true"
-            />
-            <span>{!baseValue || isTokenValue(baseValue) ? "Base" : `Base ${baseValue}`}</span>
-          </button>
-          <div className={styles.divider} />
           <div className={styles.paletteGrid} role="grid" aria-label="Preset colors">
             {palette.map((preset, index) => (
               <ColorOption
                 key={preset.value}
                 value={preset.value}
                 label={preset.name}
-                selected={!isMultiple && colorsEqual(preset.value, value)}
+                selected={
+                  !isMultiple && colorsEqual(preset.value, value === null ? constantValue : value)
+                }
                 tabIndex={index === paletteFocusIndex ? 0 : -1}
                 buttonRef={(element) => {
                   paletteRefs.current[index] = element;
@@ -306,8 +299,4 @@ function normalizeColor(value: string): string {
   return shortHex
     ? `#${shortHex[1]}${shortHex[1]}${shortHex[2]}${shortHex[2]}${shortHex[3]}${shortHex[3]}`
     : normalized;
-}
-
-function isTokenValue(value: string): boolean {
-  return value.startsWith("var(");
 }

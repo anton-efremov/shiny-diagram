@@ -17,6 +17,14 @@ import {
 } from "../../anchors/statementAnchors";
 import { composeRelationshipStatement } from "./relationshipSyntax";
 
+/**
+ * Makes one write:
+ *
+ * 1. relationship **statement**, in **diagram body** (anchored at first match)
+ *    - after the latest relationship statement
+ *    - after the latest statement of any kind except spatial annotation statements
+ *    - at block opening
+ */
 export function translateRelationshipCreate(
   command: EditorCommandOf<"relationship.create">,
   graph: DiagramGraph,

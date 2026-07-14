@@ -17,6 +17,16 @@ import { insertNotePair } from "../../placement/notePairPlacement";
 import type { TranslateContext } from "../../translateContext";
 import type { BlockRef, StatementAnchor, WriteIntent } from "../../writeIntent";
 
+/**
+ * Makes two writes:
+ *
+ * 1. note annotation **statement**, in **diagram body** (anchored at first match)
+ *    - after the latest note statement
+ *    - after the latest statement of any kind
+ *    - at block opening
+ * 2. note **statement**, in **diagram body**
+ *    - immediately after the new note annotation statement
+ */
 export function translateNoteCreate(
   command: EditorCommandOf<"note.create">,
   graph: DiagramGraph,

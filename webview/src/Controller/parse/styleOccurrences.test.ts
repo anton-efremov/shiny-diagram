@@ -52,4 +52,17 @@ namespace Domain {
       },
     ]);
   });
+
+  it("keeps Mermaid classDef default outside the semantic style catalog", () => {
+    const result = parseDiagram(`classDiagram
+classDef default fill:pink
+class User
+`);
+    expect(result.status).not.toBe("invalidSyntax");
+    if (result.status === "invalidSyntax") return;
+
+    expect(result.graph.styleDefinitions.size).toBe(0);
+    expect(result.graph.styleOccurrences).toEqual([]);
+    expect(result.provenance.styleDefinitions.size).toBe(0);
+  });
 });

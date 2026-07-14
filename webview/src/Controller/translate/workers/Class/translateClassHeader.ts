@@ -13,6 +13,30 @@ import { insertFirstClassBlockChildIntoBlocklessClass } from "../../placement/cl
 import type { TranslateContext } from "../../translateContext";
 import type { WriteIntent } from "../../writeIntent";
 
+/**
+ * Makes seven groups of writes — the class name is always written; remaining groups only
+ * under their stated source conditions:
+ *
+ * 1. class name **value**
+ *    - in place
+ * 2. class generic **value**, when the class generic is already written
+ *    - in place
+ * 3. endpoint **value**, for every relationship endpoint naming the class when the class
+ *    name changes
+ *    - in place
+ * 4. direct style target **value**, when the class name changes and the direct style
+ *    statement exists
+ *    - in place
+ * 5. spatial target **value**, when the class name changes and the spatial annotation
+ *    statement exists
+ *    - in place
+ * 6. style application target **value**, for every style application statement targeting
+ *    the class when the class name changes
+ *    - in place
+ * 7. member owner **value**, for every short member statement owned by the class when the
+ *    class name changes
+ *    - in place
+ */
 export function translateClassNameSet(
   command: EditorCommandOf<"class.name.set">,
   graph: DiagramGraph,
@@ -54,6 +78,19 @@ export function translateClassNameSet(
   return intents;
 }
 
+/**
+ * Makes one of three write options:
+ *
+ * a. class label already written → class label **value**
+ *    - in place
+ * b. class label absent, new label non-null, and class generic written → class generic
+ *    **value**, carrying the original value and the new class label
+ *    - in place
+ * c. otherwise → class name **value**, carrying the original value and the new class label
+ *    - in place
+ *
+ * No-op when the class label is absent and the new label is null.
+ */
 export function translateClassLabelSet(
   command: EditorCommandOf<"class.label.set">,
   graph: DiagramGraph,

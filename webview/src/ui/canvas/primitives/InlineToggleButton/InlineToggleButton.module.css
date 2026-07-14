@@ -1,5 +1,5 @@
 .button {
-  --inline-toggle-default-surface: var(--shiny-canvas-base-fill);
+  --inline-toggle-default-surface: var(--shiny-canvas-unstyled-node-fill);
 
   display: inline-grid;
   align-items: center;

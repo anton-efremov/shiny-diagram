@@ -18,10 +18,10 @@ import HullHeaderFrame from "../../../../../../../ui/canvas/templates/HullHeader
 import HullSurfaceFrame from "../../../../../../../ui/canvas/templates/HullSurfaceFrame/HullSurfaceFrame";
 import {
   INLINE_VALIDATION_POPUP_Z_INDEX,
-  NAMESPACE_DEFAULT_STROKE_WIDTH,
   NODE_ABOVE_CONTENT_Z_INDEX,
   NODE_BEHIND_CONTENT_Z_INDEX,
 } from "../../../../../../config/editorUiConfig";
+import { NAMESPACE_STYLE_CONSTANTS } from "../../../../../../config/styleConstants";
 import { useInteractions } from "./useInteractions";
 
 type NamespaceBoxProps = {
@@ -63,11 +63,11 @@ export default function NamespaceBox({
   const [discardErrors, setDiscardErrors] = useState<readonly string[]>([]);
 
   // UI props derivation
-  const strokeWidth = toCssLength(
-    view.style?.strokeWidth ?? String(NAMESPACE_DEFAULT_STROKE_WIDTH)
-  );
+  const strokeWidth = toCssLength(view.style?.strokeWidth ?? NAMESPACE_STYLE_CONSTANTS.strokeWidth);
   const selectionCenterOffset = toPixelLength(strokeWidth) + 2;
-  const lineStyle = toCssLineStyle(view.style?.strokeDasharray);
+  const lineStyle = toCssLineStyle(
+    view.style?.strokeDasharray ?? NAMESPACE_STYLE_CONSTANTS.strokeDasharray
+  );
 
   // Event handler props derivation
   const { onNamespaceClick, onNamespacePress, onLabelClick, onLabelDoubleClick, onNameCommit } =
@@ -86,11 +86,11 @@ export default function NamespaceBox({
   return (
     <HullSurfaceFrame
       title={view.namespaceId}
-      fill={view.style?.fill ?? undefined}
-      stroke={view.style?.stroke ?? undefined}
+      fill={view.style?.fill ?? NAMESPACE_STYLE_CONSTANTS.fill}
+      stroke={view.style?.stroke ?? NAMESPACE_STYLE_CONSTANTS.stroke}
       strokeWidth={strokeWidth}
       lineStyle={lineStyle}
-      color={view.style?.color ?? undefined}
+      color={view.style?.color ?? NAMESPACE_STYLE_CONSTANTS.color}
       onPressStart={onNamespacePress}
       onClick={onNamespaceClick}
     >

@@ -1093,6 +1093,7 @@ function checkTokenConsumption() {
     for (const match of source.matchAll(/--shiny-/g)) {
       const isAllowed =
         isUnder(file, UI_ROOT) ||
+        file === "View/config/styleConstants.ts" ||
         (absoluteFile.endsWith(".css") && isUnder(file, "Shell")) ||
         file === "styles.css";
       if (isAllowed) continue;
@@ -1103,7 +1104,7 @@ function checkTokenConsumption() {
         column: location.column,
         kind: "token consumption",
         specifier: "--shiny-",
-        rule: "Brand token boundary: --shiny-* strings may appear only in ui, Shell CSS, or styles.css; Controller, Bridge, and mermaidRenderer are not brand consumers",
+        rule: "Brand token boundary: --shiny-* strings may appear only in ui, View/config/styleConstants.ts, Shell CSS, or styles.css; Controller, Bridge, and mermaidRenderer are not brand consumers",
       });
     }
 

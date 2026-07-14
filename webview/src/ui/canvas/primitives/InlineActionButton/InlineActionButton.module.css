@@ -10,11 +10,11 @@
 }
 
 .base {
-  --inline-action-default-surface: var(--shiny-canvas-base-fill);
+  --inline-action-default-surface: var(--shiny-canvas-unstyled-node-fill);
 }
 
 .neutral {
-  --inline-action-default-surface: var(--shiny-neutral-wash);
+  --inline-action-default-surface: var(--shiny-canvas-unstyled-hull-fill);
 }
 
 .cancel {

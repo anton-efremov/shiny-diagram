@@ -5,6 +5,18 @@
 import type { EditorCommandOf } from "../../../../View/commands";
 import type { WriteIntent } from "../../writeIntent";
 
+/**
+ * Makes four writes:
+ *
+ * 1. spatial coordinate **value** for x
+ *    - in place
+ * 2. spatial coordinate **value** for y
+ *    - in place
+ * 3. spatial coordinate **value** for w
+ *    - in place
+ * 4. spatial coordinate **value** for h
+ *    - in place
+ */
 export function translateNoteSpatialSet(
   command: EditorCommandOf<"note.spatial.set">
 ): WriteIntent[] {

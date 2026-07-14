@@ -21,3 +21,52 @@
 ## Annotation backfill findings
 
 - **Resolved — `class.annotation.set`:** the amended vocabulary defines the independently written `<<…>>` line as a class annotation statement, so the existing-body insertion maps directly to that statement at the class-body opening. The in-place path targets the class annotation literal. For a blockless class, the placement helper replaces the last written header value—class label, then class generic, otherwise class name—with that original value plus a new body containing the annotation statement; the five-option annotation records those distinct write targets. No translator test directly covers this command.
+- **Resolved — class member create/move placement:** the selected anchor now carries its written form into payload composition. A short-member sibling produces `<class name> : <member text>` in the diagram body; a block-member sibling or class-body opening produces bare member text in the class body. Move always copies only the member-text span and re-dresses it for the target form, independently of its source form. Focused translator tests cover create after both forms, both move conversions, an all-short append, and the no-preceding-member block opening.
+
+## Annotation backfill command log
+
+- `class.create` — retained the canonical two-statement declaration/spatial write list.
+- `class.duplicate` — modeled declaration and spatial writes as unconditional groups and the mutually exclusive direct-style/application copies as conditional groups.
+- `class.delete` — retained the canonical five conditional deletion groups.
+- `class.name.set` — recorded the always-written class name plus conditional generic and rename-cascade value groups.
+- `class.label.set` — separated existing-label replacement from label insertion through the generic or name value span.
+- `class.annotation.set` — recorded the resolved statement insertion and blockless header-value branches.
+- `class.spatial.set` — separated four coordinate replacements, statement insertion, and statement deletion.
+- `class.parentNamespace.set` — recorded delete plus verbatim declaration insertion through the shared placement waterfall.
+- `class.directStyle.property.set` — retained the canonical value/entry/statement options.
+- `class.directStyle.set` — used conditional groups for statement creation and per-property delete, replace, and insert operations.
+- `class.directStyle.clear` — recorded the conditional direct-style statement deletion.
+- `class.appliedStyle.set` — separated statement deletion, application-name replacement, and statement creation.
+- `class.attribute.create` — separated unchanged blockless header-value writes from short-form and block-form statement insertion selected by the anchor sibling.
+- `class.attribute.set` — recorded one member-text value replacement.
+- `class.attribute.delete` — selected block-member or short-member deletion by written form.
+- `class.attribute.move` — recorded source-form deletion and target-anchor-form insertion, including owner dressing for short form.
+- `class.method.create` — separated unchanged blockless header-value writes from short-form and block-form statement insertion selected by the anchor sibling.
+- `class.method.set` — recorded one member-text value replacement.
+- `class.method.delete` — selected block-member or short-member deletion by written form.
+- `class.method.move` — recorded source-form deletion and target-anchor-form insertion, including owner dressing for short form.
+- `relationship.create` — recorded one relationship statement with the complete diagram-body anchor waterfall.
+- `relationship.delete` — recorded one relationship statement deletion.
+- `relationship.source.class.set` — recorded the source endpoint value replacement.
+- `relationship.target.class.set` — recorded the target endpoint value replacement.
+- `relationship.source.endpointKind.set` — recorded the composed relationship-operator value replacement.
+- `relationship.target.endpointKind.set` — recorded the composed relationship-operator value replacement.
+- `relationship.lineKind.set` — recorded the composed relationship-operator value replacement.
+- `relationship.source.multiplicity.set` — separated in-place multiplicity replacement from whole-statement rewrite.
+- `relationship.target.multiplicity.set` — separated in-place multiplicity replacement from whole-statement rewrite.
+- `relationship.label.set` — retained the canonical in-place label or whole-statement rewrite options.
+- `note.create` — described the combined insertion payload as its semantic note-annotation/note statement pair.
+- `note.delete` — recorded deletion of the note and its conditional bound annotation.
+- `note.text.set` — recorded one note-text value replacement.
+- `note.spatial.set` — recorded the four note-annotation coordinate value replacements.
+- `note.attachment.set` — recorded note deletion and insertion at the paired old location without moving the bound annotation.
+- `note.duplicate` — described the combined insertion payload as a new note-annotation/note statement pair after the source note.
+- `namespace.create` — recorded deletion of each selected declaration and insertion of one namespace block carrying their source blocks.
+- `namespace.delete` — separated direct class/namespace unwrap insertions from namespace and optional style-annotation deletions.
+- `namespace.name.set` — recorded declaration-name and style-target rename cascades only where written spelling changes.
+- `namespace.style.set` — separated annotation deletion, properties replacement, and statement creation.
+- `namespace.parentNamespace.set` — retained the canonical declaration move and descendant style-target rename description.
+- `style.definition.create` — recorded one style-definition insertion plus style applications for requested classes; observed that `sourceKind` is ignored and the translator always emits `classDef`, although current UI callers send only `classDef`.
+- `style.definition.delete` — recorded conditional definition deletion and application deletions.
+- `style.definition.name.set` — recorded definition-name replacement and application-name cascade.
+- `style.definition.property.set` — separated property value replacement, entry insertion, and entry deletion.

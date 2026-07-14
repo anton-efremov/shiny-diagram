@@ -27,12 +27,12 @@ describe("toDocumentColors", () => {
     expect(toDocumentColors(styles)).toEqual(["#FFF", "#123", "#456", "#ABC", "#789"]);
   });
 
-  it("derives the default value and only off-catalog document stroke values", () => {
+  it("carries the role constant and source-ordered document stroke values", () => {
     const styles: readonly StyleView[] = [
       {
         kind: "declared",
-        styleDefId: toStyleDefId("default"),
-        name: "default",
+        styleDefId: toStyleDefId("Wide"),
+        name: "Wide",
         properties: { ...properties(null, null, null), strokeWidth: "3.5" },
       },
       {
@@ -47,8 +47,8 @@ describe("toDocumentColors", () => {
       },
     ];
 
-    expect(toStrokeSelectUIProps(styles, { strokeWidth: "3.5" }, "strokeWidth", "1px")).toEqual({
-      defaultValue: "3.5",
+    expect(toStrokeSelectUIProps(styles, "strokeWidth", "1px")).toEqual({
+      constantValue: "1px",
       documentValues: ["3.5", "1px"],
     });
   });
@@ -67,8 +67,8 @@ describe("toDocumentColors", () => {
       },
     ];
 
-    expect(toStrokeSelectUIProps(styles, {}, "strokeDasharray", "0")).toEqual({
-      defaultValue: "0",
+    expect(toStrokeSelectUIProps(styles, "strokeDasharray", "0")).toEqual({
+      constantValue: "0",
       documentValues: ["0", "5  5"],
     });
   });

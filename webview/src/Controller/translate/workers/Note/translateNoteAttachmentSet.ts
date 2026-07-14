@@ -16,6 +16,16 @@ import {
 import { composeNoteStatement } from "../../syntax/noteSyntax";
 import type { StatementAnchor, StatementRef, WriteIntent } from "../../writeIntent";
 
+/**
+ * Makes two writes:
+ *
+ * 1. old note **statement** deleted
+ * 2. new note **statement**, in **diagram body**
+ *    - at the old location, immediately after the bound note annotation statement when it
+ *      exists
+ *
+ * Errors when the note or requested attachment class is missing.
+ */
 export function translateNoteAttachmentSet(
   command: EditorCommandOf<"note.attachment.set">,
   graph: DiagramGraph,

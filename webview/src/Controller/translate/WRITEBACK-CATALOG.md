@@ -4,12 +4,12 @@
 
 | Family | Annotated | Total |
 |---|---:|---:|
-| Class | 4 | 20 |
-| Relationship | 1 | 10 |
-| Note | 0 | 6 |
-| Namespace | 1 | 5 |
-| Style | 0 | 4 |
-| **Overall** | **6** | **45** |
+| Class | 20 | 20 |
+| Relationship | 10 | 10 |
+| Note | 6 | 6 |
+| Namespace | 5 | 5 |
+| Style | 4 | 4 |
+| **Overall** | **45** | **45** |
 
 # Contents
 
@@ -98,7 +98,23 @@ Makes two writes:
 }
 ```
 
-_not yet annotated_
+Makes four groups of writes — the first two always; each style group only under its
+stated source condition:
+
+1. class declaration **statement** (source block verbatim except class name), in the
+   source class's **parent namespace body**, or **diagram body** if it has no parent
+   namespace
+   - after the source class declaration statement
+2. spatial annotation **statement**, in **diagram body**
+   - after the source spatial annotation statement
+3. direct style **statement**, in **diagram body**, when the source direct style
+   statement exists
+   - after the source direct style statement
+4. style application **statement**, in **diagram body**, when no source direct style
+   statement exists and a source style application statement exists
+   - after the source style application statement
+
+Errors when the source class, its spatial data, or a required source statement is missing.
 
 ### [`class.delete`](./workers/Class/translateClassDelete.ts)
 
@@ -128,7 +144,28 @@ Makes five groups of writes — each group only where the statement exists:
 }
 ```
 
-_not yet annotated_
+Makes seven groups of writes — the class name is always written; remaining groups only
+under their stated source conditions:
+
+1. class name **value**
+   - in place
+2. class generic **value**, when the class generic is already written
+   - in place
+3. endpoint **value**, for every relationship endpoint naming the class when the class
+   name changes
+   - in place
+4. direct style target **value**, when the class name changes and the direct style
+   statement exists
+   - in place
+5. spatial target **value**, when the class name changes and the spatial annotation
+   statement exists
+   - in place
+6. style application target **value**, for every style application statement targeting
+   the class when the class name changes
+   - in place
+7. member owner **value**, for every short member statement owned by the class when the
+   class name changes
+   - in place
 
 ### [`class.label.set`](./workers/Class/translateClassHeader.ts)
 
@@ -140,7 +177,17 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one of three write options:
+
+a. class label already written → class label **value**
+   - in place
+b. class label absent, new label non-null, and class generic written → class generic
+   **value**, carrying the original value and the new class label
+   - in place
+c. otherwise → class name **value**, carrying the original value and the new class label
+   - in place
+
+No-op when the class label is absent and the new label is null.
 
 ### [`class.annotation.set`](./workers/Class/translateClassHeader.ts)
 
@@ -181,7 +228,25 @@ No-op when the class annotation is absent and the new annotation is null.
 }
 ```
 
-_not yet annotated_
+Makes one of three write options:
+
+a. spatial annotation already written and new spatial data non-null → Makes four writes:
+   1. spatial coordinate **value** for x
+      - in place
+   2. spatial coordinate **value** for y
+      - in place
+   3. spatial coordinate **value** for w
+      - in place
+   4. spatial coordinate **value** for h
+      - in place
+b. spatial annotation absent and new spatial data non-null → spatial annotation
+   **statement**, in **diagram body** (anchored at first match)
+   - after the latest spatial annotation statement
+   - after the latest statement of any kind
+   - at block opening
+c. otherwise → spatial annotation **statement** deleted
+
+No-op when the spatial annotation is absent and the new spatial data is null.
 
 ### [`class.parentNamespace.set`](./workers/Class/translateClassParentNamespaceSet.ts)
 
@@ -193,7 +258,14 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes two writes:
+
+1. class declaration **statement** deleted
+2. class declaration **statement** (source block, verbatim), in the **target namespace
+   body**, or **diagram body** if no target namespace (anchored at first match)
+   - after the latest class declaration statement
+   - after the latest statement of any kind
+   - at block opening
 
 ### [`class.directStyle.property.set`](./workers/Class/translateClassDirectStylePropertySet.ts)
 
@@ -231,7 +303,24 @@ Deletes the entry when value is null; no-op if it was never written.
 }
 ```
 
-_not yet annotated_
+Makes four groups of writes — each group only under its stated source and value
+conditions:
+
+1. direct style **statement**, in **diagram body**, when no direct style statement exists
+   and at least one new property value is non-null (anchored at first match)
+   - after the latest direct style statement
+   - after the latest style application statement
+   - after the latest statement of any kind except spatial annotation statements
+   - at block opening
+2. style property **entry** deleted, for every written property whose new value is null
+3. style property **value**, for every written property whose new value is non-null
+   - in place
+4. style property **entry**, for every unwritten property whose new value is non-null
+   (anchored at first match)
+   - after the latest style property entry
+   - at list opening
+
+No-op when no direct style statement exists and every new property value is null.
 
 ### [`class.directStyle.clear`](./workers/Class/translateClassDirectStyleSet.ts)
 
@@ -242,7 +331,9 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one group of writes — only where the direct style statement exists:
+
+1. direct style **statement** deleted
 
 ### [`class.appliedStyle.set`](./workers/Class/translateClassAppliedStyleSet.ts)
 
@@ -254,7 +345,22 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one of three write options:
+
+a. style application statement exists and new style definition is null → style
+   application **statement** deleted
+b. style application statement exists and new style definition is non-null → style
+   application name **value**
+   - in place
+c. otherwise → style application **statement**, in **diagram body** (anchored at first
+   match)
+   - after the latest style application statement
+   - after the latest direct style or style definition statement
+   - after the latest statement of any kind except spatial annotation statements
+   - at block opening
+
+No-op when no style application statement exists and the new style definition is null,
+or when the written style application name is unchanged.
 
 ### [`class.attribute.create`](./workers/Class/translateClassMember.ts)
 
@@ -268,7 +374,27 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one of five write options:
+
+a. no class body, appending, and class label written → class label **value**, carrying the
+   original value and a new class body with the block member statement
+   - in place
+b. no class body, appending, no class label, and class generic written → class generic
+   **value**, carrying the original value and a new class body with the block member
+   statement
+   - in place
+c. no class body, appending, and neither class label nor class generic written → class name
+   **value**, carrying the original value and a new class body with the block member
+   statement
+   - in place
+d. preceding attribute is a short member statement → short member **statement**, in
+   **diagram body**
+   - after the preceding short member statement
+e. otherwise → block member **statement**, in **class body** (anchored at first match)
+   - after the preceding block member statement
+   - at block opening
+
+Errors when the class or a requested insertion anchor is missing.
 
 ### [`class.attribute.set`](./workers/Class/translateClassMember.ts)
 
@@ -281,7 +407,10 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one write:
+
+1. member text **value**
+   - in place
 
 ### [`class.attribute.delete`](./workers/Class/translateClassMember.ts)
 
@@ -292,7 +421,10 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one of two write options:
+
+a. attribute written in block form → block member **statement** deleted
+b. otherwise → short member **statement** deleted
 
 ### [`class.attribute.move`](./workers/Class/translateClassMember.ts)
 
@@ -305,7 +437,20 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes four groups of writes — one deletion selected by the source form and one insertion
+selected by the anchor form:
+
+1. block member **statement** deleted, when the moved attribute is written in block form
+2. short member **statement** deleted, when the moved attribute is written in short form
+3. short member **statement** carrying the source member text with the target class owner,
+   in **diagram body**, when the preceding attribute is a short member statement
+   - after the preceding short member statement
+4. block member **statement** carrying the source member text, in **class body**, otherwise
+   (anchored at first match)
+   - after the preceding block member statement
+   - at block opening
+
+Errors when the class, moved attribute, or a requested insertion anchor is missing.
 
 ### [`class.method.create`](./workers/Class/translateClassMember.ts)
 
@@ -319,7 +464,27 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one of five write options:
+
+a. no class body, appending, and class label written → class label **value**, carrying the
+   original value and a new class body with the block member statement
+   - in place
+b. no class body, appending, no class label, and class generic written → class generic
+   **value**, carrying the original value and a new class body with the block member
+   statement
+   - in place
+c. no class body, appending, and neither class label nor class generic written → class name
+   **value**, carrying the original value and a new class body with the block member
+   statement
+   - in place
+d. preceding method is a short member statement → short member **statement**, in **diagram
+   body**
+   - after the preceding short member statement
+e. otherwise → block member **statement**, in **class body** (anchored at first match)
+   - after the preceding block member statement
+   - at block opening
+
+Errors when the class or a requested insertion anchor is missing.
 
 ### [`class.method.set`](./workers/Class/translateClassMember.ts)
 
@@ -332,7 +497,10 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one write:
+
+1. member text **value**
+   - in place
 
 ### [`class.method.delete`](./workers/Class/translateClassMember.ts)
 
@@ -343,7 +511,10 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one of two write options:
+
+a. method written in block form → block member **statement** deleted
+b. otherwise → short member **statement** deleted
 
 ### [`class.method.move`](./workers/Class/translateClassMember.ts)
 
@@ -356,7 +527,20 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes four groups of writes — one deletion selected by the source form and one insertion
+selected by the anchor form:
+
+1. block member **statement** deleted, when the moved method is written in block form
+2. short member **statement** deleted, when the moved method is written in short form
+3. short member **statement** carrying the source member text with the target class owner,
+   in **diagram body**, when the preceding method is a short member statement
+   - after the preceding short member statement
+4. block member **statement** carrying the source member text, in **class body**, otherwise
+   (anchored at first match)
+   - after the preceding block member statement
+   - at block opening
+
+Errors when the class, moved method, or a requested insertion anchor is missing.
 
 # Relationship
 
@@ -372,7 +556,12 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one write:
+
+1. relationship **statement**, in **diagram body** (anchored at first match)
+   - after the latest relationship statement
+   - after the latest statement of any kind except spatial annotation statements
+   - at block opening
 
 ### [`relationship.delete`](./workers/Relationship/translateRelationshipDelete.ts)
 
@@ -383,7 +572,9 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one write:
+
+1. relationship **statement** deleted
 
 ### [`relationship.source.class.set`](./workers/Relationship/translateRelationshipSourceClassSet.ts)
 
@@ -395,7 +586,10 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one write:
+
+1. endpoint **value** for the source endpoint
+   - in place
 
 ### [`relationship.target.class.set`](./workers/Relationship/translateRelationshipTargetClassSet.ts)
 
@@ -407,7 +601,10 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one write:
+
+1. endpoint **value** for the target endpoint
+   - in place
 
 ### [`relationship.source.endpointKind.set`](./workers/Relationship/translateRelationshipSourceEndpointKindSet.ts)
 
@@ -419,7 +616,12 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one write:
+
+1. relationship operator **value**
+   - in place
+
+No-op when the relationship is missing.
 
 ### [`relationship.target.endpointKind.set`](./workers/Relationship/translateRelationshipTargetEndpointKindSet.ts)
 
@@ -431,7 +633,12 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one write:
+
+1. relationship operator **value**
+   - in place
+
+No-op when the relationship is missing.
 
 ### [`relationship.lineKind.set`](./workers/Relationship/translateRelationshipLineKindSet.ts)
 
@@ -443,7 +650,12 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one write:
+
+1. relationship operator **value**
+   - in place
+
+No-op when the relationship is missing.
 
 ### [`relationship.source.multiplicity.set`](./workers/Relationship/translateRelationshipSourceMultiplicitySet.ts)
 
@@ -455,7 +667,17 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one of two write options:
+
+a. source multiplicity already written and new multiplicity non-null → multiplicity
+   **value**
+   - in place
+b. otherwise → Makes two writes:
+   1. old relationship **statement** deleted
+   2. new relationship **statement**
+      - at the old location
+
+No-op when the relationship is missing or the source multiplicity is unchanged.
 
 ### [`relationship.target.multiplicity.set`](./workers/Relationship/translateRelationshipTargetMultiplicitySet.ts)
 
@@ -467,7 +689,17 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one of two write options:
+
+a. target multiplicity already written and new multiplicity non-null → multiplicity
+   **value**
+   - in place
+b. otherwise → Makes two writes:
+   1. old relationship **statement** deleted
+   2. new relationship **statement**
+      - at the old location
+
+No-op when the relationship is missing or the target multiplicity is unchanged.
 
 ### [`relationship.label.set`](./workers/Relationship/translateRelationshipLabelSet.ts)
 
@@ -503,7 +735,14 @@ No-op when the relationship is missing or the label is unchanged.
 }
 ```
 
-_not yet annotated_
+Makes two writes:
+
+1. note annotation **statement**, in **diagram body** (anchored at first match)
+   - after the latest note statement
+   - after the latest statement of any kind
+   - at block opening
+2. note **statement**, in **diagram body**
+   - immediately after the new note annotation statement
 
 ### [`note.delete`](./workers/Note/translateNoteDelete.ts)
 
@@ -514,7 +753,10 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes two groups of writes — the note always; its bound annotation only where it exists:
+
+1. note annotation **statement** deleted
+2. note **statement** deleted
 
 ### [`note.text.set`](./workers/Note/translateNoteTextSet.ts)
 
@@ -526,7 +768,10 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one write:
+
+1. note text **value**
+   - in place
 
 ### [`note.spatial.set`](./workers/Note/translateNoteSpatialSet.ts)
 
@@ -538,7 +783,16 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes four writes:
+
+1. spatial coordinate **value** for x
+   - in place
+2. spatial coordinate **value** for y
+   - in place
+3. spatial coordinate **value** for w
+   - in place
+4. spatial coordinate **value** for h
+   - in place
 
 ### [`note.attachment.set`](./workers/Note/translateNoteAttachmentSet.ts)
 
@@ -550,7 +804,14 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes two writes:
+
+1. old note **statement** deleted
+2. new note **statement**, in **diagram body**
+   - at the old location, immediately after the bound note annotation statement when it
+     exists
+
+Errors when the note or requested attachment class is missing.
 
 ### [`note.duplicate`](./workers/Note/translateNoteDuplicate.ts)
 
@@ -561,7 +822,14 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes two writes:
+
+1. note annotation **statement**, in **diagram body**
+   - after the source note statement
+2. note **statement**, in **diagram body**
+   - immediately after the new note annotation statement
+
+Errors when the source note, its spatial data, or its source statement is missing.
 
 # Namespace
 
@@ -575,7 +843,13 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes three groups of writes:
+
+1. class declaration **statement** deleted, for every initial class
+2. namespace declaration **statement** deleted, for every initial namespace
+3. namespace declaration **statement** carrying the moved source blocks verbatim, in
+   **diagram body**
+   - at block opening
 
 ### [`namespace.delete`](./workers/Namespace/translateNamespaceProperties.ts)
 
@@ -586,7 +860,26 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes four groups of writes:
+
+1. class declaration **statement** (source block, verbatim), in the parent **namespace
+   body**, or **diagram body** if no parent namespace, for every direct class (anchored at
+   first match)
+   - after the latest statement matching the first moved declaration kind before the
+     deleted namespace declaration statement
+   - after the latest statement of any kind before the deleted namespace declaration
+     statement
+   - at block opening
+2. namespace declaration **statement** (source block, verbatim), in the parent **namespace
+   body**, or **diagram body** if no parent namespace, for every direct namespace (anchored
+   at first match)
+   - after the latest statement matching the first moved declaration kind before the
+     deleted namespace declaration statement
+   - after the latest statement of any kind before the deleted namespace declaration
+     statement
+   - at block opening
+3. namespace declaration **statement** deleted
+4. namespace style annotation **statement** deleted, when it exists
 
 ### [`namespace.name.set`](./workers/Namespace/translateNamespaceProperties.ts)
 
@@ -598,7 +891,16 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes two groups of writes — only for namespace identities changed by the rename:
+
+1. namespace name **value**, for the renamed namespace and every descendant whose written
+   namespace name changes
+   - in place
+2. namespace style target **value**, for every renamed namespace with a namespace style
+   annotation statement
+   - in place
+
+No-op when the namespace is missing or its resulting namespace name is unchanged.
 
 ### [`namespace.style.set`](./workers/Namespace/translateNamespaceProperties.ts)
 
@@ -610,7 +912,22 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one of three write options:
+
+a. namespace style annotation statement exists and the new style is null or has no
+   non-null properties → namespace style annotation **statement** deleted
+b. namespace style annotation statement exists and the new style has a non-null property
+   → namespace style properties **value**
+   - in place
+c. otherwise → namespace style annotation **statement**, in **diagram body** (anchored at
+   first match)
+   - after the latest namespace style annotation statement
+   - after the latest spatial annotation statement
+   - after the latest statement of any kind
+   - at block opening
+
+No-op when no namespace style annotation statement exists and the new style is null or has
+no non-null properties.
 
 ### [`namespace.parentNamespace.set`](./workers/Namespace/translateNamespaceParentNamespaceSet.ts)
 
@@ -648,7 +965,19 @@ Makes three writes:
 }
 ```
 
-_not yet annotated_
+Makes two groups of writes:
+
+1. style definition **statement**, in **diagram body** (anchored at first match)
+   - after the latest style definition statement
+   - after the latest direct style or style application statement
+   - after the latest statement of any kind except spatial annotation statements
+   - at block opening
+2. style application **statement**, in **diagram body**, for every requested target class
+   (anchored at first match)
+   - after the latest style application statement
+   - after the latest style definition or direct style statement
+   - after the latest statement of any kind except spatial annotation statements
+   - at block opening
 
 ### [`style.definition.delete`](./workers/Style/translateStyleDefinition.ts)
 
@@ -659,7 +988,11 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes two groups of writes — each group only where the statement exists:
+
+1. style definition **statement** deleted
+2. style application **statement** deleted, for every application naming the style
+   definition
 
 ### [`style.definition.name.set`](./workers/Style/translateStyleDefinition.ts)
 
@@ -671,7 +1004,13 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes two groups of writes:
+
+1. style definition name **value**
+   - in place
+2. style application name **value**, for every style application statement naming the style
+   definition
+   - in place
 
 ### [`style.definition.property.set`](./workers/Style/translateStyleDefinition.ts)
 
@@ -684,4 +1023,15 @@ _not yet annotated_
 }
 ```
 
-_not yet annotated_
+Makes one of three write options:
+
+a. style property entry already written and new value non-null → style property **value**
+   - in place
+b. style property entry absent and new value non-null → style property **entry** (anchored
+   at first match)
+   - after the latest style property entry
+   - at list opening
+c. otherwise → style property **entry** deleted
+
+No-op when the style definition statement is missing, or when the style property entry is
+absent and the new value is null.

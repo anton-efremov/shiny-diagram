@@ -5,24 +5,23 @@
 
 import type { ReactElement } from "react";
 import { STYLE_PROPERTIES, type StylePropertyName } from "../../../../../../shared/style";
-import type { BaseStyleView, DeclaredStyleView } from "../../../../../views/schema";
-import { PURE_STYLE_DEFAULTS } from "../../../../../config/stylePresets";
+import type { DeclaredStyleView } from "../../../../../views/schema";
+import { CLASS_STYLE_CONSTANTS } from "../../../../../config/styleConstants";
 import FieldGrid from "../../../../../../ui/chrome/templates/FieldGrid/FieldGrid";
 import StylePropertyControl from "./StylePropertyControl/StylePropertyControl";
 import type { ColorSelectPresetCatalog } from "../../../../../../ui/chrome/composites/ColorSelect/ColorSelect";
 
 type ChangeStylePaletteProps = {
-  readonly view: BaseStyleView | DeclaredStyleView["properties"];
+  readonly view: DeclaredStyleView["properties"];
   readonly presets: ColorSelectPresetCatalog;
   readonly documentColors: readonly string[];
   readonly widthSelectUIProps: StrokeSelectUIProps;
   readonly dashSelectUIProps: StrokeSelectUIProps;
-  readonly baseStyle: BaseStyleView;
   readonly onPropertyChange: (property: StylePropertyName, value: string | null) => void;
 };
 
 type StrokeSelectUIProps = {
-  readonly defaultValue: string;
+  readonly constantValue: string;
   readonly documentValues: readonly string[];
 };
 
@@ -32,7 +31,6 @@ export default function ChangeStylePalette({
   documentColors,
   widthSelectUIProps,
   dashSelectUIProps,
-  baseStyle,
   onPropertyChange,
 }: ChangeStylePaletteProps): ReactElement {
   return (
@@ -46,11 +44,12 @@ export default function ChangeStylePalette({
             value={view[name] ?? null}
             presets={presets}
             documentColors={documentColors}
-            baseValue={baseStyle[name] ?? PURE_STYLE_DEFAULTS[name]}
-            defaultValue={
+            constantValue={
               name === "strokeWidth"
-                ? widthSelectUIProps.defaultValue
-                : dashSelectUIProps.defaultValue
+                ? widthSelectUIProps.constantValue
+                : name === "strokeDasharray"
+                  ? dashSelectUIProps.constantValue
+                  : CLASS_STYLE_CONSTANTS[name]
             }
             documentValues={
               name === "strokeWidth"

@@ -9,23 +9,17 @@ import type { TransactionResult } from "../../../../commands/editorCommands";
 import type { DeclaredStyleView, DiagramView } from "../../../../views/schema";
 import Button from "../../../../../ui/chrome/primitives/Button/Button";
 import ReservedBackLink from "../../../../../ui/chrome/primitives/ReservedBackLink/ReservedBackLink";
-import ControlGroup from "../../../../../ui/chrome/templates/ControlGroup/ControlGroup";
 import PaneSection from "../../../../../ui/chrome/templates/PaneSection/PaneSection";
-import TextBlock from "../../../../../ui/chrome/primitives/TextBlock/TextBlock";
 import ChangeStylePalette from "./ChangeStylePalette/ChangeStylePalette";
 import SavedStyles from "./SavedStyles/SavedStyles";
 import StyleNameEditor from "./StyleNameEditor/StyleNameEditor";
 import { useInteractions } from "./useInteractions";
 import { COLOR_PRESETS } from "../../../../config/stylePresets";
-import {
-  CLASS_DEFAULT_STROKE_WIDTH,
-  DEFAULT_STROKE_DASHARRAY,
-} from "../../../../config/editorUiConfig";
+import { CLASS_STYLE_CONSTANTS } from "../../../../config/styleConstants";
 import { toDocumentColors, toStrokeSelectUIProps } from "./childProps";
-import { PURE_STROKE_DEFAULTS } from "../../../../config/stylePresets";
 
 type DiagramEditPaneProps = {
-  readonly view: Pick<DiagramView, "styles" | "baseStyle">;
+  readonly view: Pick<DiagramView, "styles">;
   readonly selectionState: SelectionState;
   readonly onSelectionRestore: (selectionState: SelectionState) => void;
   readonly onStyleSelect: (styleDefId: DeclaredStyleView["styleDefId"]) => void;
@@ -46,9 +40,7 @@ export default function DiagramEditPane({
 }: DiagramEditPaneProps): ReactElement {
   // View and State slice props derivation
   const declaredStyles = view.styles.filter((styleView) => styleView.kind === "declared");
-  const namedStyles = declaredStyles.filter((styleView) => styleView.name !== "default");
-  const materializedBase = declaredStyles.find((styleView) => styleView.name === "default");
-  const isBaseSelected = selectionState.kind === "style" && selectionState.styleDefId === "default";
+  const namedStyles = declaredStyles;
   const selectedStyle =
     selectionState.kind === "style"
       ? namedStyles.find((styleView) => styleView.styleDefId === selectionState.styleDefId)
@@ -59,31 +51,19 @@ export default function DiagramEditPane({
   const documentColors = toDocumentColors(view.styles);
   const widthSelectUIProps = toStrokeSelectUIProps(
     view.styles,
-    view.baseStyle,
     "strokeWidth",
-    CLASS_DEFAULT_STROKE_WIDTH
+    CLASS_STYLE_CONSTANTS.strokeWidth
   );
   const dashSelectUIProps = toStrokeSelectUIProps(
     view.styles,
-    view.baseStyle,
     "strokeDasharray",
-    DEFAULT_STROKE_DASHARRAY
+    CLASS_STYLE_CONSTANTS.strokeDasharray
   );
 
   // Event handler props derivation
-  const {
-    onCreate,
-    onBack,
-    onSetAsDefault,
-    onResetBase,
-    onDelete,
-    onBasePropertyChange,
-    onNamedStylePropertyChange,
-  } = useInteractions({
+  const { onCreate, onBack, onDelete, onNamedStylePropertyChange } = useInteractions({
     styles: declaredStyles,
     selectedStyle,
-    materializedBase,
-    baseStyle: view.baseStyle,
     origin,
     onSelectionRestore,
     onStyleCreateCommitted,
@@ -94,40 +74,10 @@ export default function DiagramEditPane({
       <ReservedBackLink label="← Back" visible={origin !== undefined} onClick={onBack} />
       <SavedStyles
         view={namedStyles}
-        baseStyle={view.baseStyle}
         selectionState={selectionState}
         onStyleSelect={onStyleSelect}
         onCreate={onCreate}
       />
-      {isBaseSelected ? (
-        <>
-          <PaneSection label="Edit base style">
-            <TextBlock text="Applies to every class wherever its style does not set a property." />
-            <ChangeStylePalette
-              view={view.baseStyle}
-              presets={COLOR_PRESETS}
-              documentColors={documentColors}
-              widthSelectUIProps={{
-                ...widthSelectUIProps,
-                defaultValue: PURE_STROKE_DEFAULTS.strokeWidth,
-              }}
-              dashSelectUIProps={{
-                ...dashSelectUIProps,
-                defaultValue: PURE_STROKE_DEFAULTS.strokeDasharray,
-              }}
-              baseStyle={{}}
-              onPropertyChange={onBasePropertyChange}
-            />
-          </PaneSection>
-          <PaneSection label="Actions">
-            <Button
-              label="Reset base"
-              disabled={Object.keys(view.baseStyle).length === 0}
-              onClick={onResetBase}
-            />
-          </PaneSection>
-        </>
-      ) : null}
       {selectedStyle && selectionState.kind === "style" ? (
         <>
           <PaneSection label="Edit style">
@@ -142,15 +92,11 @@ export default function DiagramEditPane({
               documentColors={documentColors}
               widthSelectUIProps={widthSelectUIProps}
               dashSelectUIProps={dashSelectUIProps}
-              baseStyle={view.baseStyle}
               onPropertyChange={onNamedStylePropertyChange}
             />
           </PaneSection>
           <PaneSection label="Actions">
-            <ControlGroup columns={2}>
-              <Button label="Set as base" onClick={onSetAsDefault} />
-              <Button label="Delete style" variant="danger" onClick={onDelete} />
-            </ControlGroup>
+            <Button label="Delete style" variant="danger" onClick={onDelete} />
           </PaneSection>
         </>
       ) : null}

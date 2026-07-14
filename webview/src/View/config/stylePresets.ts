@@ -3,6 +3,7 @@
  */
 
 import type { StylePropertyName } from "../../shared/style";
+import { CLASS_STYLE_CONSTANTS, NAMESPACE_STYLE_CONSTANTS } from "./styleConstants";
 
 type ColorPresetCatalog = {
   readonly hues: readonly {
@@ -84,6 +85,10 @@ export const COLOR_PRESETS: ColorPresetCatalog = {
     },
   ],
   neutrals: [
+    { name: "Shiny class surface", value: CLASS_STYLE_CONSTANTS.fill },
+    { name: "Shiny class ink", value: CLASS_STYLE_CONSTANTS.stroke },
+    { name: "Shiny namespace surface", value: NAMESPACE_STYLE_CONSTANTS.fill },
+    { name: "Shiny namespace outline", value: NAMESPACE_STYLE_CONSTANTS.stroke },
     { name: "White", value: "#ffffff" },
     { name: "Light grey", value: "#c9cdd2" },
     { name: "Medium light grey", value: "#969ca3" },
@@ -93,16 +98,8 @@ export const COLOR_PRESETS: ColorPresetCatalog = {
   ],
 };
 
-export const WIDTH_PRESETS = ["1", "2", "4"] as const;
-export const DASH_PRESETS = ["0", "4 4", "1 3"] as const;
-
-export const PURE_STROKE_DEFAULTS = {
-  strokeWidth: "1",
-  strokeDasharray: "0",
-} as const;
-
-export const PURE_STYLE_DEFAULTS: Readonly<Partial<Record<StylePropertyName, string>>> =
-  PURE_STROKE_DEFAULTS;
+export const WIDTH_PRESETS = ["1", "2", "3", "4"] as const;
+export const DASH_PRESETS = ["0", "1 3", "4 4", "8 4"] as const;
 
 export const STYLE_PRESETS = {
   fill: COLOR_PRESETS,

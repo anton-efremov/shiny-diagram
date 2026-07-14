@@ -17,14 +17,11 @@ import PaneSection from "../../../../../ui/chrome/templates/PaneSection/PaneSect
 import Button from "../../../../../ui/chrome/primitives/Button/Button";
 import ControlGroup from "../../../../../ui/chrome/templates/ControlGroup/ControlGroup";
 import { COLOR_PRESETS } from "../../../../config/stylePresets";
-import {
-  CLASS_DEFAULT_STROKE_WIDTH,
-  DEFAULT_STROKE_DASHARRAY,
-} from "../../../../config/editorUiConfig";
+import { CLASS_STYLE_CONSTANTS } from "../../../../config/styleConstants";
 import { toDocumentColors, toStrokeSelectUIProps } from "./childProps";
 
 type ClassEditPaneProps = {
-  readonly view: Pick<DiagramView, "classes" | "styles" | "baseStyle">;
+  readonly view: Pick<DiagramView, "classes" | "styles">;
   readonly selectionState: Extract<SelectionState, { readonly kind: "classes" }>;
   readonly onStyleSelect: (
     styleDefId: StyleDefId,
@@ -44,9 +41,7 @@ export default function ClassEditPane({
 }: ClassEditPaneProps): ReactElement {
   // View and State slice props derivation
   const selectedClassIds = new Set(selectionState.classIds);
-  const declaredStyles = view.styles
-    .filter((styleView) => styleView.kind === "declared")
-    .filter((styleView) => styleView.name !== "default");
+  const declaredStyles = view.styles.filter((styleView) => styleView.kind === "declared");
   const selectedClasses = view.classes.filter((classView) =>
     selectedClassIds.has(classView.classId)
   );
@@ -66,15 +61,13 @@ export default function ClassEditPane({
   const documentColors = toDocumentColors(view.styles);
   const widthSelectUIProps = toStrokeSelectUIProps(
     view.styles,
-    view.baseStyle,
     "strokeWidth",
-    CLASS_DEFAULT_STROKE_WIDTH
+    CLASS_STYLE_CONSTANTS.strokeWidth
   );
   const dashSelectUIProps = toStrokeSelectUIProps(
     view.styles,
-    view.baseStyle,
     "strokeDasharray",
-    DEFAULT_STROKE_DASHARRAY
+    CLASS_STYLE_CONSTANTS.strokeDasharray
   );
 
   // Event handler props derivation
@@ -117,7 +110,6 @@ export default function ClassEditPane({
           documentColors={documentColors}
           widthSelectUIProps={widthSelectUIProps}
           dashSelectUIProps={dashSelectUIProps}
-          baseStyle={view.baseStyle}
         />
       </PaneSection>
       <PaneSection label="Actions">

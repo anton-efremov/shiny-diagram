@@ -20,12 +20,28 @@ import { composeStyleEntries, composeStyleEntry } from "../../syntax/styleSyntax
 import { spellIdentity } from "../../../model/identitySpelling";
 import type { TranslateContext } from "../../translateContext";
 
+/**
+ * Makes two groups of writes:
+ *
+ * 1. style definition **statement**, in **diagram body** (anchored at first match)
+ *    - after the latest style definition statement
+ *    - after the latest direct style or style application statement
+ *    - after the latest statement of any kind except spatial annotation statements
+ *    - at block opening
+ * 2. style application **statement**, in **diagram body**, for every requested target class
+ *    (anchored at first match)
+ *    - after the latest style application statement
+ *    - after the latest style definition or direct style statement
+ *    - after the latest statement of any kind except spatial annotation statements
+ *    - at block opening
+ */
 export function translateStyleDefinitionCreate(
   command: EditorCommandOf<"style.definition.create">,
   graph: DiagramGraph,
   provenance: ProvenanceIndex,
   context: TranslateContext
 ): WriteIntent[] {
+  assertNamedStyleName(command.name);
   const styleDefId = toStyleDefId(command.name);
   context.recordStyleCreated(styleDefId);
   const classDef = composeStyleDefinition(styleDefId, command.properties);
@@ -45,6 +61,13 @@ export function translateStyleDefinitionCreate(
   ];
 }
 
+/**
+ * Makes two groups of writes — each group only where the statement exists:
+ *
+ * 1. style definition **statement** deleted
+ * 2. style application **statement** deleted, for every application naming the style
+ *    definition
+ */
 export function translateStyleDefinitionDelete(
   command: EditorCommandOf<"style.definition.delete">,
   graph: DiagramGraph,
@@ -72,11 +95,21 @@ export function translateStyleDefinitionDelete(
   ];
 }
 
+/**
+ * Makes two groups of writes:
+ *
+ * 1. style definition name **value**
+ *    - in place
+ * 2. style application name **value**, for every style application statement naming the style
+ *    definition
+ *    - in place
+ */
 export function translateStyleDefinitionNameSet(
   command: EditorCommandOf<"style.definition.name.set">,
   graph: DiagramGraph,
   context: TranslateContext
 ): WriteIntent[] {
+  assertNamedStyleName(command.name);
   context.recordStyleRenamed(command.styleDefId, toStyleDefId(command.name));
   return [
     {
@@ -98,6 +131,26 @@ export function translateStyleDefinitionNameSet(
   ];
 }
 
+function assertNamedStyleName(name: string): void {
+  if (name === "default") {
+    throw new Error('The Mermaid "default" pseudo-style is foreign and cannot be emitted.');
+  }
+}
+
+/**
+ * Makes one of three write options:
+ *
+ * a. style property entry already written and new value non-null → style property **value**
+ *    - in place
+ * b. style property entry absent and new value non-null → style property **entry** (anchored
+ *    at first match)
+ *    - after the latest style property entry
+ *    - at list opening
+ * c. otherwise → style property **entry** deleted
+ *
+ * No-op when the style definition statement is missing, or when the style property entry is
+ * absent and the new value is null.
+ */
 export function translateStyleDefinitionPropertySet(
   command: EditorCommandOf<"style.definition.property.set">,
   provenance: ProvenanceIndex

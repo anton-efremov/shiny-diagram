@@ -9,8 +9,8 @@ import {
   type StyleProperties,
   type StylePropertyName,
 } from "../../../../../../shared/style";
-import type { BaseStyleView, ClassView } from "../../../../../views/schema";
-import { PURE_STYLE_DEFAULTS } from "../../../../../config/stylePresets";
+import type { ClassView } from "../../../../../views/schema";
+import { CLASS_STYLE_CONSTANTS } from "../../../../../config/styleConstants";
 import type { ColorSelectPresetCatalog } from "../../../../../../ui/chrome/composites/ColorSelect/ColorSelect";
 import FieldGrid from "../../../../../../ui/chrome/templates/FieldGrid/FieldGrid";
 import StylePropertyControl from "./StylePropertyControl/StylePropertyControl";
@@ -30,11 +30,10 @@ type ChangeStylePaletteProps = {
   readonly documentColors: readonly string[];
   readonly widthSelectUIProps: StrokeSelectUIProps;
   readonly dashSelectUIProps: StrokeSelectUIProps;
-  readonly baseStyle: BaseStyleView;
 };
 
 type StrokeSelectUIProps = {
-  readonly defaultValue: string;
+  readonly constantValue: string;
   readonly documentValues: readonly string[];
 };
 
@@ -44,7 +43,6 @@ export default function ChangeStylePalette({
   documentColors,
   widthSelectUIProps,
   dashSelectUIProps,
-  baseStyle,
 }: ChangeStylePaletteProps): ReactElement {
   // Event handler props derivation
   const { onPropertyChange } = useInteractions(view);
@@ -60,11 +58,12 @@ export default function ChangeStylePalette({
             value={toCommonPropertyValue(view, name)}
             presets={presets}
             documentColors={documentColors}
-            baseValue={baseStyle[name] ?? PURE_STYLE_DEFAULTS[name]}
-            defaultValue={
+            constantValue={
               name === "strokeWidth"
-                ? widthSelectUIProps.defaultValue
-                : dashSelectUIProps.defaultValue
+                ? widthSelectUIProps.constantValue
+                : name === "strokeDasharray"
+                  ? dashSelectUIProps.constantValue
+                  : CLASS_STYLE_CONSTANTS[name]
             }
             documentValues={
               name === "strokeWidth"

@@ -52,11 +52,10 @@ function reconcileSelectionStateWithElements(
         : toClassSelectionState(classIds);
     }
     case "style":
-      return selectionState.styleDefId === "default" ||
-        diagram.styles.some(
-          (styleView) =>
-            styleView.kind === "declared" && styleView.styleDefId === selectionState.styleDefId
-        )
+      return diagram.styles.some(
+        (styleView) =>
+          styleView.kind === "declared" && styleView.styleDefId === selectionState.styleDefId
+      )
         ? selectionState
         : { kind: "none" };
     case "relationship":

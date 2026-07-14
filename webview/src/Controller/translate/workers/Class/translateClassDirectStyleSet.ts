@@ -19,6 +19,26 @@ import {
 import { composeStyleEntries, composeStyleEntry } from "../../syntax/styleSyntax";
 import { spellIdentity } from "../../../model/identitySpelling";
 
+/**
+ * Makes four groups of writes — each group only under its stated source and value
+ * conditions:
+ *
+ * 1. direct style **statement**, in **diagram body**, when no direct style statement exists
+ *    and at least one new property value is non-null (anchored at first match)
+ *    - after the latest direct style statement
+ *    - after the latest style application statement
+ *    - after the latest statement of any kind except spatial annotation statements
+ *    - at block opening
+ * 2. style property **entry** deleted, for every written property whose new value is null
+ * 3. style property **value**, for every written property whose new value is non-null
+ *    - in place
+ * 4. style property **entry**, for every unwritten property whose new value is non-null
+ *    (anchored at first match)
+ *    - after the latest style property entry
+ *    - at list opening
+ *
+ * No-op when no direct style statement exists and every new property value is null.
+ */
 export function translateClassDirectStyleSet(
   command: EditorCommandOf<"class.directStyle.set">,
   graph: DiagramGraph,
@@ -64,6 +84,11 @@ export function translateClassDirectStyleSet(
   });
 }
 
+/**
+ * Makes one group of writes — only where the direct style statement exists:
+ *
+ * 1. direct style **statement** deleted
+ */
 export function translateClassDirectStyleClear(
   command: EditorCommandOf<"class.directStyle.clear">,
   provenance: ProvenanceIndex

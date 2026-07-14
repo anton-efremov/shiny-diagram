@@ -1,25 +1,4 @@
-/**
- * @fileoverview Translates `class.duplicate`.
- *
- * Emits the duplicate as three logical statement insertions. The style insertion
- * is omitted when the source class has no explicit style representation.
- *
- * 1. Class declaration block (incl. members)
- * - Written after the source class statement.
- *
- * 2. Spatial annotation
- * - Written after the source class spatial annotation.
- *
- * 3. Style annotation, preserving the source representation
- *
- *   a. Direct style statement of the source in case the source class has direct style
- *     - Written after the direct style statement of the source class.
- *
- *   b. Style application statement of source's style in case the source class has a style application
- *     - Written after the style application statement of the source class.
- *
- *   c. No statement if the source class has no style.
- */
+/** @fileoverview Translates `class.duplicate`. */
 
 import type { ClassNode, DiagramGraph, StyleApplicationEdge } from "../../../model/diagramGraph";
 import type { ProvenanceIndex } from "../../../model/provenanceIndex";
@@ -34,6 +13,25 @@ import { composeSpatialAnnotation } from "../../syntax/spatialSyntax";
 import { composeStyleEntry } from "../../syntax/styleSyntax";
 import { spellIdentity } from "../../../model/identitySpelling";
 
+/**
+ * Makes four groups of writes — the first two always; each style group only under its
+ * stated source condition:
+ *
+ * 1. class declaration **statement** (source block verbatim except class name), in the
+ *    source class's **parent namespace body**, or **diagram body** if it has no parent
+ *    namespace
+ *    - after the source class declaration statement
+ * 2. spatial annotation **statement**, in **diagram body**
+ *    - after the source spatial annotation statement
+ * 3. direct style **statement**, in **diagram body**, when the source direct style
+ *    statement exists
+ *    - after the source direct style statement
+ * 4. style application **statement**, in **diagram body**, when no source direct style
+ *    statement exists and a source style application statement exists
+ *    - after the source style application statement
+ *
+ * Errors when the source class, its spatial data, or a required source statement is missing.
+ */
 export function translateClassDuplicate(
   command: EditorCommandOf<"class.duplicate">,
   graph: DiagramGraph,

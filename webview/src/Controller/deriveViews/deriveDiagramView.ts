@@ -7,7 +7,7 @@ import type { DiagramView } from "../../View/views";
 import { deriveClassBoxViews } from "./workers/deriveClassBoxViews";
 import { deriveNamespaceBoxViews } from "./workers/deriveNamespaceBoxViews";
 import { deriveRelationshipViews } from "./workers/deriveRelationshipViews";
-import { deriveBaseStyleView, deriveStyleViews } from "./workers/deriveStyleViews";
+import { deriveStyleViews } from "./workers/deriveStyleViews";
 import { deriveNoteViews } from "./workers/deriveNoteViews";
 
 /**
@@ -20,6 +20,5 @@ export function deriveDiagramView(model: DiagramGraph): DiagramView {
     relationships: deriveRelationshipViews(model),
     notes: deriveNoteViews(model),
     styles: deriveStyleViews(model),
-    baseStyle: deriveBaseStyleView(model),
   };
 }

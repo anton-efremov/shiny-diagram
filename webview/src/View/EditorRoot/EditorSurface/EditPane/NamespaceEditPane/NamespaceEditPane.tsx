@@ -11,11 +11,8 @@ import type { SelectionState } from "../../../../state/editorStates";
 import Button from "../../../../../ui/chrome/primitives/Button/Button";
 import CommitTextField from "../../../../../ui/chrome/composites/CommitTextField/CommitTextField";
 import { COLOR_PRESETS } from "../../../../config/stylePresets";
-import {
-  CHROME_VALIDATION_ABOVE_CONTROL_Z_INDEX,
-  DEFAULT_STROKE_DASHARRAY,
-  NAMESPACE_DEFAULT_STROKE_WIDTH,
-} from "../../../../config/editorUiConfig";
+import { CHROME_VALIDATION_ABOVE_CONTROL_Z_INDEX } from "../../../../config/editorUiConfig";
+import { NAMESPACE_STYLE_CONSTANTS } from "../../../../config/styleConstants";
 import PaneSection from "../../../../../ui/chrome/templates/PaneSection/PaneSection";
 import FieldGrid from "../../../../../ui/chrome/templates/FieldGrid/FieldGrid";
 import ControlGroup from "../../../../../ui/chrome/templates/ControlGroup/ControlGroup";
@@ -25,7 +22,7 @@ import { useInteractions } from "./useInteractions";
 import StylePropertyControl from "./StylePropertyControl/StylePropertyControl";
 
 type NamespaceEditPaneProps = {
-  readonly view: Pick<DiagramView, "namespaces" | "styles" | "baseStyle">;
+  readonly view: Pick<DiagramView, "namespaces" | "styles">;
   readonly selectionState: Extract<SelectionState, { readonly kind: "namespace" }>;
   readonly onNamespaceRenameCommitted: (
     result: TransactionResult,
@@ -54,15 +51,13 @@ export default function NamespaceEditPane({
   const documentColors = toDocumentColors(view.styles);
   const widthSelectUIProps = toStrokeSelectUIProps(
     view.styles,
-    view.baseStyle,
     "strokeWidth",
-    `${NAMESPACE_DEFAULT_STROKE_WIDTH}px`
+    NAMESPACE_STYLE_CONSTANTS.strokeWidth
   );
   const dashSelectUIProps = toStrokeSelectUIProps(
     view.styles,
-    view.baseStyle,
     "strokeDasharray",
-    DEFAULT_STROKE_DASHARRAY
+    NAMESPACE_STYLE_CONSTANTS.strokeDasharray
   );
 
   // Event handler props derivation
@@ -96,11 +91,12 @@ export default function NamespaceEditPane({
                 value={style[name]}
                 presets={COLOR_PRESETS}
                 documentColors={documentColors}
-                baseValue={view.baseStyle[name]}
-                defaultValue={
+                constantValue={
                   name === "strokeWidth"
-                    ? widthSelectUIProps.defaultValue
-                    : dashSelectUIProps.defaultValue
+                    ? widthSelectUIProps.constantValue
+                    : name === "strokeDasharray"
+                      ? dashSelectUIProps.constantValue
+                      : NAMESPACE_STYLE_CONSTANTS[name]
                 }
                 documentValues={
                   name === "strokeWidth"

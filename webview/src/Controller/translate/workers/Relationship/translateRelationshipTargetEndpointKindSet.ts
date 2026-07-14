@@ -7,6 +7,14 @@ import type { DiagramGraph } from "../../../model/diagramGraph";
 import type { WriteIntent } from "../../writeIntent";
 import { replaceRelationshipOperator } from "./relationshipEditSyntax";
 
+/**
+ * Makes one write:
+ *
+ * 1. relationship operator **value**
+ *    - in place
+ *
+ * No-op when the relationship is missing.
+ */
 export function translateRelationshipTargetEndpointKindSet(
   command: EditorCommandOf<"relationship.target.endpointKind.set">,
   graph: DiagramGraph

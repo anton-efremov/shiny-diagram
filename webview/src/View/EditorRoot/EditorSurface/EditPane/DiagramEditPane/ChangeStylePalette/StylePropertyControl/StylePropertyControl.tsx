@@ -16,8 +16,7 @@ type StylePropertyControlProps = {
   readonly value: string | null;
   readonly presets: ColorSelectPresetCatalog;
   readonly documentColors: readonly string[];
-  readonly baseValue?: string;
-  readonly defaultValue: string;
+  readonly constantValue: string;
   readonly documentValues: readonly string[];
   readonly onChange: (value: string | null) => void;
 };
@@ -27,8 +26,7 @@ export default function StylePropertyControl({
   value,
   presets,
   documentColors,
-  baseValue,
-  defaultValue,
+  constantValue,
   documentValues,
   onChange,
 }: StylePropertyControlProps): ReactElement {
@@ -40,7 +38,7 @@ export default function StylePropertyControl({
         value={value}
         presets={presets}
         documentColors={documentColors}
-        baseValue={baseValue}
+        constantValue={constantValue}
         stacking={CHROME_SELECTOR_POPUP_ABOVE_CONTROL_Z_INDEX}
         onChange={onChange}
       />
@@ -51,7 +49,7 @@ export default function StylePropertyControl({
     <StrokeSelect
       kind={property === "strokeWidth" ? "width" : "dash"}
       value={value}
-      defaultValue={defaultValue}
+      constantValue={constantValue}
       presets={property === "strokeWidth" ? WIDTH_PRESETS : DASH_PRESETS}
       documentValues={documentValues}
       stacking={CHROME_SELECTOR_POPUP_ABOVE_CONTROL_Z_INDEX}

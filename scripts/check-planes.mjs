@@ -16,7 +16,7 @@ const components = await collectComponents({ repoRoot });
 const writebackEntries = await collectWritebackEntries({ repoRoot });
 
 // MIGRATION SWITCH: flip to true once the translator annotation backfill is complete.
-const WRITEBACK_ANNOTATION_PRESENCE_IS_VIOLATION = false;
+const WRITEBACK_ANNOTATION_PRESENCE_IS_VIOLATION = true;
 
 await checkPlaneStaleness();
 checkUiCatalogAnnotations();
@@ -96,7 +96,9 @@ function checkWritebackAnnotations() {
 
     const header = entry.annotation.split("\n", 1)[0];
     if (
-      /^Makes (?:\d+|one|two|three|four|five|six|seven|eight|nine|ten) writes:/.test(header) ||
+      /^Makes one write:/.test(header) ||
+      /^Makes (?:\d+|two|three|four|five|six|seven|eight|nine|ten) writes:/.test(header) ||
+      /^Makes one group of writes(?:\s|:)/.test(header) ||
       /^Makes (?:\d+|one|two|three|four|five|six|seven|eight|nine|ten) groups of writes(?:\s|:)/.test(
         header
       ) ||

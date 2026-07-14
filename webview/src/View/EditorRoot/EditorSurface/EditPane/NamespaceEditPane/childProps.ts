@@ -2,13 +2,13 @@
  * @behavior Namespace reset transaction inputs plus source-ordered color and stroke-selector UI prop derivation.
  */
 
-import type { BaseStyleView, StyleView } from "../../../../views/schema";
+import type { StyleView } from "../../../../views/schema";
 import type { NamespaceView } from "../../../../views/schema";
 import type { StylePropertyName } from "../../../../../shared/style";
 import type { NamespaceId } from "../../../../../shared/ids";
 
 type StrokeSelectUIProps = {
-  readonly defaultValue: string;
+  readonly constantValue: string;
   readonly documentValues: readonly string[];
 };
 
@@ -44,11 +44,9 @@ export function toDocumentColors(styles: readonly StyleView[]): readonly string[
 
 export function toStrokeSelectUIProps(
   styles: readonly StyleView[],
-  baseStyle: BaseStyleView,
   property: Extract<StylePropertyName, "strokeWidth" | "strokeDasharray">,
-  rendererDefault: string
+  constantValue: string
 ): StrokeSelectUIProps {
-  const defaultValue = baseStyle[property] ?? rendererDefault;
   const seen = new Set<string>();
   const documentValues: string[] = [];
 
@@ -60,7 +58,7 @@ export function toStrokeSelectUIProps(
     seen.add(key);
     documentValues.push(property === "strokeDasharray" && key === "0" ? "0" : value);
   }
-  return { defaultValue, documentValues };
+  return { constantValue, documentValues };
 }
 
 // Private helpers

@@ -321,10 +321,11 @@ type ValidationPopupProps = {
 
 Color selector with a swatch-grid popup and immediate selection.
 
-Shows `value` through the selected `preview`; null uses the `baseValue` preview
+Shows `value` through the selected `preview`; null uses the `constantValue` preview
 and "multiple" shows a mixed state. The popup combines `documentColors` with
-the hue, shade, and neutral `presets`; choosing a color or Base reports
-`onChange` and returns focus to the control. Closing it without choosing
+the hue, shade, and neutral `presets`; the constant is an ordinary preset and
+choosing it reports null so the authored property is cleared. Choosing a color
+reports `onChange` and returns focus to the control. Closing it without choosing
 reports nothing: an outside press leaves focus where the click placed it,
 while keyboard dismissal returns focus to the control. The six-column grid is
 keyboard-navigable, and the popup paints at the supplied `stacking` plane.
@@ -346,7 +347,7 @@ type ColorSelectProps = {
   readonly value: string | null | "multiple";
   readonly presets: ColorSelectPresetCatalog;
   readonly documentColors: readonly string[];
-  readonly baseValue?: string;
+  readonly constantValue: string;
   readonly stacking: number;
   readonly disabled?: boolean;
   readonly preview: "fill" | "stroke" | "text";
@@ -559,10 +560,12 @@ export type DropdownOption = {
 
 Line-treatment selector with sampled values and immediate selection.
 
-Shows `value`, using `defaultValue` for Base or the preview when values are
-mixed. The popup orders Base, unused `presets`, then `documentValues`, treating
-equivalent representations as equal. Choosing a row reports `onChange`, where
-Base reports null, then returns focus to the control. Closing it without
+Shows `value`, using `constantValue` for an unauthored property or the preview
+when values are mixed. The popup always shows every `presets` entry in Standard,
+then every `documentValues` entry independently in In this diagram; equivalent
+values remain visible in both sections. The constant is an ordinary
+preset and choosing it reports null through `onChange` so the authored property is
+cleared; every other row reports its value. Choosing returns focus to the control. Closing it without
 choosing reports nothing: an outside press leaves focus where the click placed
 it, while keyboard dismissal returns focus to the control; the row list is
 keyboard-navigable. `popupWidth` sets the popup's minimum width before viewport
@@ -582,7 +585,7 @@ Modifiers:
 ```ts
 type StrokeSelectProps = {
   readonly value: string | null | "multiple";
-  readonly defaultValue: string;
+  readonly constantValue: string;
   readonly presets: readonly string[];
   readonly documentValues: readonly string[];
   readonly popupWidth?: number;

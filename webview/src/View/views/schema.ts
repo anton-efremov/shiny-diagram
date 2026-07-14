@@ -17,7 +17,6 @@
  */
 
 import type { StyleProperties } from "../../shared/style";
-import type { StylePropertyName } from "../../shared/style";
 import type { Rect } from "../../shared/geometry";
 import type {
   MemberClassifier,
@@ -91,8 +90,6 @@ export type StyleView =
       readonly properties: StyleProperties;
     };
 
-export type BaseStyleView = Readonly<Partial<Record<StylePropertyName, string>>>;
-
 export type RelationshipView = {
   readonly relationshipId: RelationshipId;
   readonly sourceClassId: ClassId;
@@ -120,7 +117,6 @@ export type DiagramView = {
   readonly relationships: readonly RelationshipView[];
   readonly notes: readonly NoteView[];
   readonly styles: readonly StyleView[];
-  readonly baseStyle: BaseStyleView;
 };
 
 /* ── Root contract (Controller -> View) ──────────────────────────────────── */

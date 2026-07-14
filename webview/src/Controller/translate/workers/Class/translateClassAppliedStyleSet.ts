@@ -16,6 +16,24 @@ import {
   STATEMENT_KINDS,
 } from "../../anchors/statementAnchors";
 
+/**
+ * Makes one of three write options:
+ *
+ * a. style application statement exists and new style definition is null → style
+ *    application **statement** deleted
+ * b. style application statement exists and new style definition is non-null → style
+ *    application name **value**
+ *    - in place
+ * c. otherwise → style application **statement**, in **diagram body** (anchored at first
+ *    match)
+ *    - after the latest style application statement
+ *    - after the latest direct style or style definition statement
+ *    - after the latest statement of any kind except spatial annotation statements
+ *    - at block opening
+ *
+ * No-op when no style application statement exists and the new style definition is null,
+ * or when the written style application name is unchanged.
+ */
 export function translateClassAppliedStyleSet(
   command: EditorCommandOf<"class.appliedStyle.set">,
   graph: DiagramGraph,

@@ -171,9 +171,3 @@ body[data-vscode-theme-kind="vscode-high-contrast"] {
   --shiny-chrome-overlay-faint: transparent;
   --shiny-overlay-strong: var(--shiny-chrome-text);
 }
-
-:root {
-  --shiny-chrome-base-fill: var(--vscode-editor-background);
-  --shiny-chrome-base-stroke: var(--vscode-editor-foreground);
-  --shiny-chrome-base-text: var(--vscode-editor-foreground);
-}

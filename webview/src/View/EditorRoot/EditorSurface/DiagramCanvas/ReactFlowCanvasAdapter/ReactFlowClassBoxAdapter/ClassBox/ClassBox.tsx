@@ -16,7 +16,8 @@ import StyledBoxSurfaceFrame from "../../../../../../../ui/canvas/templates/Styl
 import type { Point, Rect } from "../../../../../../../shared/geometry";
 import type { ClassId } from "../../../../../../../shared/ids";
 import type { EditingState } from "../../../../../../state/editorStates";
-import type { BaseStyleView, ClassView } from "../../../../../../views/schema";
+import type { ClassView } from "../../../../../../views/schema";
+import { CLASS_STYLE_CONSTANTS } from "../../../../../../config/styleConstants";
 import {
   CLASS_BOX_HEADER_MIN_HEIGHT,
   INLINE_VALIDATION_POPUP_Z_INDEX,
@@ -28,7 +29,6 @@ import { STYLE_PROPERTIES } from "../../../../../../../shared/style";
 
 type ClassBoxProps = {
   readonly view: ClassView;
-  readonly baseStyle: BaseStyleView;
   readonly bounds: Rect;
   readonly isSelected: boolean;
   readonly isDragging: boolean;
@@ -71,7 +71,6 @@ const CONNECTION_HANDLES: readonly ConnectionHandleDescriptor[] = [
 
 export default function ClassBox({
   view,
-  baseStyle,
   bounds,
   isSelected,
   isDragging,
@@ -119,8 +118,7 @@ export default function ClassBox({
   // UI props derivation
   const resolvedStyle = Object.fromEntries(
     STYLE_PROPERTIES.flatMap(({ name }) => {
-      const value = view.style?.[name] ?? baseStyle[name];
-      return value === undefined ? [] : [[name, value]];
+      return [[name, view.style?.[name] ?? CLASS_STYLE_CONSTANTS[name]]];
     })
   );
   const separatorColor = resolvedStyle.stroke;

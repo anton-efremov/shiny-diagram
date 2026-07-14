@@ -15,6 +15,16 @@ import type { StatementAnchor, WriteIntent } from "../../writeIntent";
 
 const DUPLICATE_OFFSET = 24;
 
+/**
+ * Makes two writes:
+ *
+ * 1. note annotation **statement**, in **diagram body**
+ *    - after the source note statement
+ * 2. note **statement**, in **diagram body**
+ *    - immediately after the new note annotation statement
+ *
+ * Errors when the source note, its spatial data, or its source statement is missing.
+ */
 export function translateNoteDuplicate(
   command: EditorCommandOf<"note.duplicate">,
   graph: DiagramGraph,

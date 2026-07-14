@@ -1,14 +1,4 @@
-/**
- * @fileoverview Translates `class.spatial.set`.
- *
- * Emits write intents depending on existence of spatial annotations for requested class:
- *
- * a. Four ReplaceValueIntent's for each value in spatial annotation
- *
- * b. InsertStatementIntent if spatial annotation is missing
- *   - Written after the latest class spatial annotation in the target scope.
- *   - If no class spatial annotations - after latest statement of any kind.
- */
+/** @fileoverview Translates `class.spatial.set`. */
 
 import type { EditorCommandOf } from "../../../../View/commands";
 import type { DiagramGraph } from "../../../model/diagramGraph";
@@ -23,6 +13,27 @@ import {
 } from "../../anchors/statementAnchors";
 import { composeSpatialAnnotation } from "../../syntax/spatialSyntax";
 
+/**
+ * Makes one of three write options:
+ *
+ * a. spatial annotation already written and new spatial data non-null → Makes four writes:
+ *    1. spatial coordinate **value** for x
+ *       - in place
+ *    2. spatial coordinate **value** for y
+ *       - in place
+ *    3. spatial coordinate **value** for w
+ *       - in place
+ *    4. spatial coordinate **value** for h
+ *       - in place
+ * b. spatial annotation absent and new spatial data non-null → spatial annotation
+ *    **statement**, in **diagram body** (anchored at first match)
+ *    - after the latest spatial annotation statement
+ *    - after the latest statement of any kind
+ *    - at block opening
+ * c. otherwise → spatial annotation **statement** deleted
+ *
+ * No-op when the spatial annotation is absent and the new spatial data is null.
+ */
 export function translateClassSpatialSet(
   command: EditorCommandOf<"class.spatial.set">,
   graph: DiagramGraph,

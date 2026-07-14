@@ -19,15 +19,12 @@ import {
   CHROME_PANE_EDGE_CONTROL_ABOVE_PANE_Z_INDEX,
   EDIT_PANE_WIDTH,
 } from "../../../config/editorUiConfig";
-import { PURE_STYLE_DEFAULTS } from "../../../config/stylePresets";
+import { CLASS_STYLE_CONSTANTS, resolveStyleProperties } from "../../../config/styleConstants";
 import PaneFrame from "../../../../ui/chrome/templates/PaneFrame/PaneFrame";
 import PaneCollapseTab from "../../../../ui/chrome/primitives/PaneCollapseTab/PaneCollapseTab";
 
 type EditPaneProps = {
-  readonly view: Pick<
-    DiagramView,
-    "classes" | "relationships" | "notes" | "styles" | "namespaces" | "baseStyle"
-  >;
+  readonly view: Pick<DiagramView, "classes" | "relationships" | "notes" | "styles" | "namespaces">;
   readonly selectionState: SelectionState;
   readonly onStyleSelect: (
     styleDefId: StyleDefId,
@@ -142,7 +139,7 @@ export default function EditPane({
           attachedClassLabel={attachedClass?.header.name ?? null}
           attachedClassStyle={
             attachedClass
-              ? { ...PURE_STYLE_DEFAULTS, ...view.baseStyle, ...attachedClass.style }
+              ? resolveStyleProperties(attachedClass.style, CLASS_STYLE_CONSTANTS)
               : null
           }
           onNoteAttachStart={onNoteAttachStart}
@@ -181,10 +178,7 @@ export default function EditPane({
 
 // Private helpers
 function toEditPaneScenario(
-  view: Pick<
-    DiagramView,
-    "classes" | "relationships" | "notes" | "styles" | "namespaces" | "baseStyle"
-  >,
+  view: Pick<DiagramView, "classes" | "relationships" | "notes" | "styles" | "namespaces">,
   selectionState: SelectionState
 ): EditPaneScenario {
   switch (selectionState.kind) {
@@ -202,9 +196,9 @@ function toEditPaneScenario(
         (styleView) =>
           styleView.kind === "declared" && styleView.styleDefId === selectionState.styleDefId
       );
-      return selectedStyle || selectionState.styleDefId === "default"
+      return selectedStyle
         ? { kind: "diagram", selectionState }
-        : { kind: "diagram", selectionState };
+        : { kind: "diagram", selectionState: { kind: "none" } };
     }
     case "relationship": {
       const selectedRelationship = view.relationships.find(

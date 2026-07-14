@@ -1,10 +1,12 @@
 /**
  * Line-treatment selector with sampled values and immediate selection.
  *
- * Shows `value`, using `defaultValue` for Base or the preview when values are
- * mixed. The popup orders Base, unused `presets`, then `documentValues`, treating
- * equivalent representations as equal. Choosing a row reports `onChange`, where
- * Base reports null, then returns focus to the control. Closing it without
+ * Shows `value`, using `constantValue` for an unauthored property or the preview
+ * when values are mixed. The popup always shows every `presets` entry in Standard,
+ * then every `documentValues` entry independently in In this diagram; equivalent
+ * values remain visible in both sections. The constant is an ordinary
+ * preset and choosing it reports null through `onChange` so the authored property is
+ * cleared; every other row reports its value. Choosing returns focus to the control. Closing it without
  * choosing reports nothing: an outside press leaves focus where the click placed
  * it, while keyboard dismissal returns focus to the control; the row list is
  * keyboard-navigable. `popupWidth` sets the popup's minimum width before viewport
@@ -29,7 +31,7 @@ import styles from "./StrokeSelect.module.css";
 
 type StrokeSelectProps = {
   readonly value: string | null | "multiple";
-  readonly defaultValue: string;
+  readonly constantValue: string;
   readonly presets: readonly string[];
   readonly documentValues: readonly string[];
   readonly popupWidth?: number;
@@ -42,7 +44,7 @@ type StrokeSelectProps = {
 export default function StrokeSelect({
   kind,
   value,
-  defaultValue,
+  constantValue,
   presets,
   documentValues,
   popupWidth = 148,
@@ -63,17 +65,12 @@ export default function StrokeSelect({
     focusRef: triggerRef,
     onDismiss: closePopup,
   });
-  const standardValues = presets.filter(
-    (preset) =>
-      !documentValues.some(
-        (documentValue) => normalizeValue(kind, documentValue) === normalizeValue(kind, preset)
-      )
-  );
-  const options = [null, ...standardValues, ...documentValues] as const;
+  const standardValues = presets;
+  const options = [...standardValues, ...documentValues] as const;
   const isMultiple = value === "multiple";
 
-  function selectValue(nextValue: string | null): void {
-    onChange(nextValue);
+  function selectValue(nextValue: string): void {
+    onChange(valuesEqual(kind, nextValue, constantValue) ? null : nextValue);
     dismissAndRestoreFocus();
   }
 
@@ -116,7 +113,7 @@ export default function StrokeSelect({
     "--stroke-select-popup-width": `${popupPosition.width}px`,
     zIndex: stacking,
   } as CSSProperties;
-  const triggerValue = value === null || isMultiple ? defaultValue : value;
+  const triggerValue = value === null || isMultiple ? constantValue : value;
 
   return (
     <div ref={containerRef} className={styles.strokeSelect}>
@@ -134,28 +131,17 @@ export default function StrokeSelect({
       </button>
       {isOpen ? (
         <div className={styles.popup} style={popupStyle} role="listbox">
-          <span className={styles.heading}>Base</span>
-          <StrokeOption
-            kind={kind}
-            value={defaultValue}
-            selected={!isMultiple && value === null}
-            tabIndex={focusIndex === 0 ? 0 : -1}
-            buttonRef={(element) => {
-              optionRefs.current[0] = element;
-            }}
-            onFocus={() => setFocusIndex(0)}
-            onKeyDown={(event) => moveFocus(event, 0)}
-            onSelect={() => selectValue(null)}
-          />
           <span className={styles.heading}>Standard</span>
           {standardValues.map((preset, index) => {
-            const optionIndex = index + 1;
+            const optionIndex = index;
             return (
               <StrokeOption
-                key={preset}
+                key={`standard:${preset}`}
                 kind={kind}
                 value={preset}
-                selected={!isMultiple && valuesEqual(kind, preset, value)}
+                selected={
+                  !isMultiple && valuesEqual(kind, preset, value === null ? constantValue : value)
+                }
                 tabIndex={focusIndex === optionIndex ? 0 : -1}
                 buttonRef={(element) => {
                   optionRefs.current[optionIndex] = element;
@@ -170,10 +156,10 @@ export default function StrokeSelect({
             <>
               <span className={styles.heading}>In this diagram</span>
               {documentValues.map((documentValue, index) => {
-                const optionIndex = standardValues.length + index + 1;
+                const optionIndex = standardValues.length + index;
                 return (
                   <StrokeOption
-                    key={documentValue}
+                    key={`document:${documentValue}`}
                     kind={kind}
                     value={documentValue}
                     selected={!isMultiple && valuesEqual(kind, documentValue, value)}
@@ -281,5 +267,7 @@ function normalizeValue(kind: StrokeSelectProps["kind"], value: string): string 
 }
 
 function toDisplayValue(kind: StrokeSelectProps["kind"], value: string): string {
-  return kind === "dash" && normalizeValue(kind, value) === "0" ? "0" : value;
+  if (kind === "dash") return normalizeValue(kind, value) === "0" ? "0" : value;
+  const normalized = normalizeValue(kind, value);
+  return /^-?(?:\d+(?:\.\d+)?|\.\d+)$/.test(normalized) ? `${normalized}px` : value;
 }

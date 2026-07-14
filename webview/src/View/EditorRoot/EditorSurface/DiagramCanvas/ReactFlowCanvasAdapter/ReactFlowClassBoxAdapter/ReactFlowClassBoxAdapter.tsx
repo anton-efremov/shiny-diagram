@@ -7,13 +7,12 @@ import type { ReactElement } from "react";
 import type { Point, Rect } from "../../../../../../shared/geometry";
 import type { ClassId } from "../../../../../../shared/ids";
 import type { EditingState } from "../../../../../state/editorStates";
-import type { BaseStyleView, ClassView } from "../../../../../views/schema";
+import type { ClassView } from "../../../../../views/schema";
 import type { NamespaceResizeHandle } from "../frameworkAdapters";
 import ClassBox from "./ClassBox/ClassBox";
 
 type ClassBoxNodeData = {
   readonly view: ClassView;
-  readonly baseStyle: BaseStyleView;
   readonly bounds: Rect;
   readonly isSelected: boolean;
   readonly isResizeVisible: boolean;
@@ -43,7 +42,6 @@ export default function ReactFlowClassBoxNodeAdapter(props: NodeProps<ClassBoxNo
   return (
     <ClassBox
       view={props.data.view}
-      baseStyle={props.data.baseStyle}
       bounds={props.data.bounds}
       isSelected={props.data.isSelected}
       isDragging={props.dragging ?? false}

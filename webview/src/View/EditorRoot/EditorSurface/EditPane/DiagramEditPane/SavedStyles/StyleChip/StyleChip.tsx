@@ -7,6 +7,10 @@ import type { ReactElement } from "react";
 import type { StyleDefId } from "../../../../../../../shared/ids";
 import type { DeclaredStyleView } from "../../../../../../views/schema";
 import SwatchToggle from "../../../../../../../ui/chrome/composites/SwatchToggle/SwatchToggle";
+import {
+  CLASS_STYLE_CONSTANTS,
+  resolveStyleProperties,
+} from "../../../../../../config/styleConstants";
 
 type StyleChipProps = {
   readonly view: DeclaredStyleView;
@@ -22,7 +26,7 @@ export default function StyleChip({ view, pressed, onStyleSelect }: StyleChipPro
 
   return (
     <SwatchToggle
-      styleValues={view.properties}
+      styleValues={resolveStyleProperties(view.properties, CLASS_STYLE_CONSTANTS)}
       label={view.name}
       pressed={pressed}
       onClick={onClick}

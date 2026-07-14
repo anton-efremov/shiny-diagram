@@ -9,6 +9,12 @@ import { composeRelationshipId } from "../../../model/relationshipIdentity";
 import type { TranslateContext } from "../../translateContext";
 import type { WriteIntent } from "../../writeIntent";
 
+/**
+ * Makes one write:
+ *
+ * 1. endpoint **value** for the target endpoint
+ *    - in place
+ */
 export function translateRelationshipTargetClassSet(
   command: EditorCommandOf<"relationship.target.class.set">,
   graph: DiagramGraph,

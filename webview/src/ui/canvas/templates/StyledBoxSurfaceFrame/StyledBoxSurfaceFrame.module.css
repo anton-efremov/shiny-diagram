@@ -8,9 +8,9 @@
   overflow: visible;
   border: var(--styled-box-stroke-width, var(--shiny-base-stroke-width))
     var(--styled-box-line-style, var(--shiny-base-stroke-style))
-    var(--styled-box-stroke, var(--shiny-canvas-base-stroke));
-  color: var(--styled-box-color, var(--shiny-canvas-base-text));
-  background: var(--styled-box-fill, var(--shiny-canvas-base-fill));
+    var(--styled-box-stroke, var(--shiny-canvas-unstyled-node-stroke));
+  color: var(--styled-box-color, var(--shiny-canvas-unstyled-node-text));
+  background: var(--styled-box-fill, var(--shiny-canvas-unstyled-node-fill));
   font-family: var(--shiny-canvas-font-family);
   font-size: var(--shiny-canvas-font-size-primary);
   cursor: var(--shiny-cursor-move-ready);

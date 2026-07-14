@@ -11,6 +11,15 @@ import { anchorBlockOpening } from "../../anchors/statementAnchors";
 import { movedStatementPayload } from "../../placement/moveStatementSlice";
 import type { TranslateContext } from "../../translateContext";
 
+/**
+ * Makes three groups of writes:
+ *
+ * 1. class declaration **statement** deleted, for every initial class
+ * 2. namespace declaration **statement** deleted, for every initial namespace
+ * 3. namespace declaration **statement** carrying the moved source blocks verbatim, in
+ *    **diagram body**
+ *    - at block opening
+ */
 export function translateNamespaceCreate(
   command: EditorCommandOf<"namespace.create">,
   provenance: ProvenanceIndex,

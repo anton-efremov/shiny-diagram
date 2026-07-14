@@ -44,7 +44,6 @@ body[data-vscode-theme-kind="vscode-high-contrast"] {
 
 :root {
   --shiny-canvas-font-family: var(--vscode-font-family);
-  --shiny-canvas-text: var(--vscode-editor-foreground);
   --shiny-canvas-text-muted: var(--vscode-descriptionForeground);
   --shiny-canvas-text-error: var(--vscode-errorForeground);
   --shiny-canvas-glyph-stroke-width: 1.5px;
@@ -55,8 +54,6 @@ body[data-vscode-theme-kind="vscode-high-contrast"] {
   --shiny-canvas-app-bg: var(--vscode-editor-background);
   --shiny-canvas-surface: var(--vscode-editorWidget-background);
   --shiny-canvas-elevation-high: 0 4px 10px rgb(0 0 0 / 35%);
-  --shiny-neutral-wash: rgba(166, 166, 166, 0.1);
-  --shiny-neutral-outline: #a6a6a6;
   --shiny-canvas-button-radius: 6px;
   --shiny-canvas-inline-field-background: color-mix(in srgb, currentColor 14%, transparent);
   --shiny-canvas-inline-field-outline: color-mix(in srgb, currentColor 78%, transparent);
@@ -285,9 +282,12 @@ body[data-vscode-theme-kind="vscode-high-contrast"] {
     --vscode-editorWhitespace-foreground,
     var(--vscode-editorIndentGuide-background1, var(--vscode-editorLineNumber-foreground))
   );
-  --shiny-canvas-base-fill: var(--vscode-editor-background);
-  --shiny-canvas-base-stroke: var(--vscode-editor-foreground);
-  --shiny-canvas-base-text: var(--vscode-editor-foreground);
+  --shiny-canvas-unstyled-node-fill: var(--vscode-editor-background);
+  --shiny-canvas-unstyled-node-stroke: var(--vscode-editor-foreground);
+  --shiny-canvas-unstyled-node-text: var(--vscode-editor-foreground);
+  --shiny-canvas-unstyled-hull-fill: rgba(166, 166, 166, 0.1);
+  --shiny-canvas-unstyled-hull-stroke: #a6a6a6;
+  --shiny-canvas-unstyled-hull-text: var(--vscode-editor-foreground);
   --shiny-base-stroke-width: 1px;
   --shiny-base-stroke-style: solid;
   --shiny-note-bg: #fff4b8;

@@ -5,11 +5,7 @@
 
 import type { ReactElement } from "react";
 import type { StylePropertyName } from "../../../../../../shared/style";
-import {
-  DASH_PRESETS,
-  PURE_STYLE_DEFAULTS,
-  WIDTH_PRESETS,
-} from "../../../../../config/stylePresets";
+import { DASH_PRESETS, WIDTH_PRESETS } from "../../../../../config/stylePresets";
 import { CHROME_SELECTOR_POPUP_ABOVE_CONTROL_Z_INDEX } from "../../../../../config/editorUiConfig";
 import ColorSelect from "../../../../../../ui/chrome/composites/ColorSelect/ColorSelect";
 import type { ColorSelectPresetCatalog } from "../../../../../../ui/chrome/composites/ColorSelect/ColorSelect";
@@ -20,8 +16,7 @@ type StylePropertyControlProps = {
   readonly value: string | null;
   readonly presets: ColorSelectPresetCatalog;
   readonly documentColors: readonly string[];
-  readonly baseValue: string | undefined;
-  readonly defaultValue: string;
+  readonly constantValue: string;
   readonly documentValues: readonly string[];
   readonly onChange: (value: string | null) => void;
 };
@@ -31,8 +26,7 @@ export default function StylePropertyControl({
   value,
   presets,
   documentColors,
-  baseValue,
-  defaultValue,
+  constantValue,
   documentValues,
   onChange,
 }: StylePropertyControlProps): ReactElement {
@@ -43,7 +37,7 @@ export default function StylePropertyControl({
         preview={property === "color" ? "text" : property}
         presets={presets}
         documentColors={documentColors}
-        baseValue={baseValue ?? PURE_STYLE_DEFAULTS[property]}
+        constantValue={constantValue}
         value={value}
         stacking={CHROME_SELECTOR_POPUP_ABOVE_CONTROL_Z_INDEX}
         onChange={onChange}
@@ -55,7 +49,7 @@ export default function StylePropertyControl({
     <StrokeSelect
       kind={property === "strokeWidth" ? "width" : "dash"}
       value={value}
-      defaultValue={defaultValue}
+      constantValue={constantValue}
       presets={property === "strokeWidth" ? WIDTH_PRESETS : DASH_PRESETS}
       documentValues={documentValues}
       stacking={CHROME_SELECTOR_POPUP_ABOVE_CONTROL_Z_INDEX}

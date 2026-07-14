@@ -8,6 +8,7 @@ import type { MemberKind } from "../../../../shared/uml";
 import type { ClassNode, DiagramGraph } from "../../../model/diagramGraph";
 import type { ProvenanceIndex } from "../../../model/provenanceIndex";
 import type { SourcePosition, SourceSpan } from "../../../model/sourceEdit";
+import { spellIdentity } from "../../../model/identitySpelling";
 import { toSourceMemberText } from "../../../model/memberText";
 import {
   anchorBlockOpening,
@@ -17,6 +18,12 @@ import {
 import { insertFirstClassBlockChildIntoBlocklessClass } from "../../placement/classBlockEnsure";
 import type { StatementAnchor, StatementRef, WriteIntent } from "../../writeIntent";
 
+/**
+ * Makes one write:
+ *
+ * 1. member text **value**
+ *    - in place
+ */
 export function translateClassAttributeSet(
   command: EditorCommandOf<"class.attribute.set">
 ): WriteIntent[] {
@@ -29,6 +36,12 @@ export function translateClassAttributeSet(
   ];
 }
 
+/**
+ * Makes one write:
+ *
+ * 1. member text **value**
+ *    - in place
+ */
 export function translateClassMethodSet(
   command: EditorCommandOf<"class.method.set">
 ): WriteIntent[] {
@@ -41,6 +54,12 @@ export function translateClassMethodSet(
   ];
 }
 
+/**
+ * Makes one of two write options:
+ *
+ * a. attribute written in block form → block member **statement** deleted
+ * b. otherwise → short member **statement** deleted
+ */
 export function translateClassAttributeDelete(
   command: EditorCommandOf<"class.attribute.delete">,
   provenance: ProvenanceIndex
@@ -48,6 +67,12 @@ export function translateClassAttributeDelete(
   return [deleteMemberIntent(command.attributeId, provenance)];
 }
 
+/**
+ * Makes one of two write options:
+ *
+ * a. method written in block form → block member **statement** deleted
+ * b. otherwise → short member **statement** deleted
+ */
 export function translateClassMethodDelete(
   command: EditorCommandOf<"class.method.delete">,
   provenance: ProvenanceIndex
@@ -55,6 +80,29 @@ export function translateClassMethodDelete(
   return [deleteMemberIntent(command.methodId, provenance)];
 }
 
+/**
+ * Makes one of five write options:
+ *
+ * a. no class body, appending, and class label written → class label **value**, carrying the
+ *    original value and a new class body with the block member statement
+ *    - in place
+ * b. no class body, appending, no class label, and class generic written → class generic
+ *    **value**, carrying the original value and a new class body with the block member
+ *    statement
+ *    - in place
+ * c. no class body, appending, and neither class label nor class generic written → class name
+ *    **value**, carrying the original value and a new class body with the block member
+ *    statement
+ *    - in place
+ * d. preceding attribute is a short member statement → short member **statement**, in
+ *    **diagram body**
+ *    - after the preceding short member statement
+ * e. otherwise → block member **statement**, in **class body** (anchored at first match)
+ *    - after the preceding block member statement
+ *    - at block opening
+ *
+ * Errors when the class or a requested insertion anchor is missing.
+ */
 export function translateClassAttributeCreate(
   command: EditorCommandOf<"class.attribute.create">,
   graph: DiagramGraph,
@@ -73,21 +121,45 @@ export function translateClassAttributeCreate(
       payload
     );
   }
+  const placement = memberCreatePlacement(
+    graph,
+    provenance,
+    graph.classes.get(command.classId),
+    "field",
+    command.beforeAttributeId
+  );
   return [
     {
       kind: "insertStatement",
-      payload,
-      anchor: memberCreateAnchor(
-        graph,
-        provenance,
-        graph.classes.get(command.classId),
-        "field",
-        command.beforeAttributeId
-      ),
+      payload: composeMemberStatement(command.classId, payload, placement.form),
+      anchor: placement.anchor,
     },
   ];
 }
 
+/**
+ * Makes one of five write options:
+ *
+ * a. no class body, appending, and class label written → class label **value**, carrying the
+ *    original value and a new class body with the block member statement
+ *    - in place
+ * b. no class body, appending, no class label, and class generic written → class generic
+ *    **value**, carrying the original value and a new class body with the block member
+ *    statement
+ *    - in place
+ * c. no class body, appending, and neither class label nor class generic written → class name
+ *    **value**, carrying the original value and a new class body with the block member
+ *    statement
+ *    - in place
+ * d. preceding method is a short member statement → short member **statement**, in **diagram
+ *    body**
+ *    - after the preceding short member statement
+ * e. otherwise → block member **statement**, in **class body** (anchored at first match)
+ *    - after the preceding block member statement
+ *    - at block opening
+ *
+ * Errors when the class or a requested insertion anchor is missing.
+ */
 export function translateClassMethodCreate(
   command: EditorCommandOf<"class.method.create">,
   graph: DiagramGraph,
@@ -106,21 +178,38 @@ export function translateClassMethodCreate(
       payload
     );
   }
+  const placement = memberCreatePlacement(
+    graph,
+    provenance,
+    graph.classes.get(command.classId),
+    "method",
+    command.beforeMethodId
+  );
   return [
     {
       kind: "insertStatement",
-      payload,
-      anchor: memberCreateAnchor(
-        graph,
-        provenance,
-        graph.classes.get(command.classId),
-        "method",
-        command.beforeMethodId
-      ),
+      payload: composeMemberStatement(command.classId, payload, placement.form),
+      anchor: placement.anchor,
     },
   ];
 }
 
+/**
+ * Makes four groups of writes — one deletion selected by the source form and one insertion
+ * selected by the anchor form:
+ *
+ * 1. block member **statement** deleted, when the moved attribute is written in block form
+ * 2. short member **statement** deleted, when the moved attribute is written in short form
+ * 3. short member **statement** carrying the source member text with the target class owner,
+ *    in **diagram body**, when the preceding attribute is a short member statement
+ *    - after the preceding short member statement
+ * 4. block member **statement** carrying the source member text, in **class body**, otherwise
+ *    (anchored at first match)
+ *    - after the preceding block member statement
+ *    - at block opening
+ *
+ * Errors when the class, moved attribute, or a requested insertion anchor is missing.
+ */
 export function translateClassAttributeMove(
   command: EditorCommandOf<"class.attribute.move">,
   graph: DiagramGraph,
@@ -128,16 +217,43 @@ export function translateClassAttributeMove(
   sourceText: string
 ): WriteIntent[] {
   const classNode = graph.classes.get(command.classId);
+  const placement = memberCreatePlacement(
+    graph,
+    provenance,
+    classNode,
+    "field",
+    command.beforeAttributeId
+  );
   return [
     deleteMemberIntent(command.attributeId, provenance),
     {
       kind: "insertStatement",
-      payload: readMemberSource(command.attributeId, provenance, sourceText),
-      anchor: memberCreateAnchor(graph, provenance, classNode, "field", command.beforeAttributeId),
+      payload: composeMemberStatement(
+        command.classId,
+        readMemberSource(command.attributeId, provenance, sourceText),
+        placement.form
+      ),
+      anchor: placement.anchor,
     },
   ];
 }
 
+/**
+ * Makes four groups of writes — one deletion selected by the source form and one insertion
+ * selected by the anchor form:
+ *
+ * 1. block member **statement** deleted, when the moved method is written in block form
+ * 2. short member **statement** deleted, when the moved method is written in short form
+ * 3. short member **statement** carrying the source member text with the target class owner,
+ *    in **diagram body**, when the preceding method is a short member statement
+ *    - after the preceding short member statement
+ * 4. block member **statement** carrying the source member text, in **class body**, otherwise
+ *    (anchored at first match)
+ *    - after the preceding block member statement
+ *    - at block opening
+ *
+ * Errors when the class, moved method, or a requested insertion anchor is missing.
+ */
 export function translateClassMethodMove(
   command: EditorCommandOf<"class.method.move">,
   graph: DiagramGraph,
@@ -145,12 +261,23 @@ export function translateClassMethodMove(
   sourceText: string
 ): WriteIntent[] {
   const classNode = graph.classes.get(command.classId);
+  const placement = memberCreatePlacement(
+    graph,
+    provenance,
+    classNode,
+    "method",
+    command.beforeMethodId
+  );
   return [
     deleteMemberIntent(command.methodId, provenance),
     {
       kind: "insertStatement",
-      payload: readMemberSource(command.methodId, provenance, sourceText),
-      anchor: memberCreateAnchor(graph, provenance, classNode, "method", command.beforeMethodId),
+      payload: composeMemberStatement(
+        command.classId,
+        readMemberSource(command.methodId, provenance, sourceText),
+        placement.form
+      ),
+      anchor: placement.anchor,
     },
   ];
 }
@@ -171,13 +298,18 @@ function isBlocklessClass(classId: ClassNode["id"], provenance: ProvenanceIndex)
   return provenance.classes.get(classId)?.body === null;
 }
 
-function memberCreateAnchor(
+type MemberPlacement = {
+  readonly anchor: StatementAnchor;
+  readonly form: "block" | "short";
+};
+
+function memberCreatePlacement(
   graph: DiagramGraph,
   provenance: ProvenanceIndex,
   classNode: ClassNode | undefined,
   kind: MemberKind,
   beforeMemberId: AttributeId | MethodId | null
-): StatementAnchor {
+): MemberPlacement {
   if (!classNode) throw new Error("Cannot insert member into missing class");
 
   const classRecord = provenance.classes.get(classNode.id);
@@ -192,13 +324,28 @@ function memberCreateAnchor(
       : orderedMembers.findIndex((member) => member.id === beforeMemberId);
   const previous = beforeIndex > 0 ? orderedMembers[beforeIndex - 1] : null;
   if (previous) {
-    return requireSameKindAnchor(provenance, {
-      kind: provenance.blockMembers.has(previous.id) ? "blockMember" : "shortMember",
-      memberId: previous.id,
-    });
+    const form = provenance.blockMembers.has(previous.id) ? "block" : "short";
+    return {
+      anchor: requireSameKindAnchor(provenance, {
+        kind: form === "block" ? "blockMember" : "shortMember",
+        memberId: previous.id,
+      }),
+      form,
+    };
   }
 
-  return anchorBlockOpening({ kind: "class", classId: classNode.id });
+  return {
+    anchor: anchorBlockOpening({ kind: "class", classId: classNode.id }),
+    form: "block",
+  };
+}
+
+function composeMemberStatement(
+  classId: ClassNode["id"],
+  memberText: string,
+  form: MemberPlacement["form"]
+): string {
+  return form === "short" ? `${spellIdentity(classId)} : ${memberText}` : memberText;
 }
 
 function requireSameKindAnchor(
