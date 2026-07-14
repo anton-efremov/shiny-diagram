@@ -18,8 +18,8 @@
 .label {
   min-width: 0;
   overflow: hidden;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--shiny-chrome-font-size-control);
+  font-weight: var(--shiny-chrome-font-weight-emphasis);
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;

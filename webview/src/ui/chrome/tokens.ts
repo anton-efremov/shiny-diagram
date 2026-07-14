@@ -6,7 +6,6 @@
  * tunes behavior; this file asserts chrome visual identity.
  */
 
-export const GLYPH_COLOR = "currentColor";
 export const GLYPH_EMPTY_FILL = "none";
 export const GLYPH_STROKE_LINE_CAP = "round";
 export const GLYPH_STROKE_LINE_JOIN = "round";

@@ -1,0 +1,11 @@
+/**
+ * @render Selector disclosure glyph treatment.
+ */
+
+.chevron {
+  display: block;
+  place-self: center;
+  width: 8px;
+  height: 5px;
+  overflow: visible;
+}

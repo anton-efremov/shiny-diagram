@@ -8,7 +8,9 @@
  * concludes the edit: committed (`onCommit`), discarded (`onDiscard` —
  * receives the draft's messages), or cancelled (`onCancel`). A draft
  * failing validation (`validate`) shows its messages and is never committed.
- * The menu paints at `menuStacking`, and validation paints at
+ * While the menu is open, keyboard dismissal closes it and returns focus to its
+ * control without cancelling the field draft; an outside press closes it without
+ * moving focus. The menu paints at `menuStacking`, and validation paints at
  * `validationStacking`.
  *
  * Used by: class stereotypes and relationship endpoint multiplicities.
@@ -20,13 +22,15 @@
  *   (`ariaLabel`) always remains
  */
 
-import { useEffect, useRef, useState } from "react";
-import type { KeyboardEvent, ReactElement } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { ReactElement } from "react";
 import type { DropdownOption } from "../Dropdown/Dropdown";
 import TextField from "../../primitives/TextField/TextField";
+import SelectorChevron from "../../primitives/SelectorChevron/SelectorChevron";
 import ValidationPopup from "../../primitives/ValidationPopup/ValidationPopup";
 import styles from "./CommitComboBox.module.css";
 import { useCommitLifecycle } from "../../../core/commitLifecycle";
+import { usePopupDismiss } from "../../../core/usePopupDismiss";
 
 type CommitComboBoxProps = {
   readonly initialValue: string;
@@ -60,6 +64,13 @@ export default function CommitComboBox({
   const comboBoxRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const lifecycle = useCommitLifecycle({ initialValue, validate, onCommit, onDiscard, onCancel });
+  const closePopup = useCallback(() => setIsOpen(false), []);
+  usePopupDismiss({
+    isOpen,
+    boundaryRef: comboBoxRef,
+    focusRef: menuButtonRef,
+    onDismiss: closePopup,
+  });
   const selectedOption = options.find((option) => option.value === initialValue);
   const renderedOptions = [...options, { value: "__custom", label: "Custom" }];
 
@@ -70,37 +81,6 @@ export default function CommitComboBox({
   useEffect(() => {
     if (disabled) setIsOpen(false);
   }, [disabled]);
-
-  useEffect(() => {
-    if (!isOpen) return undefined;
-
-    function handlePointerDown(event: PointerEvent): void {
-      if (comboBoxRef.current?.contains(event.target as Node)) return;
-      setIsOpen(false);
-    }
-
-    function handleWindowKeyDown(event: globalThis.KeyboardEvent): void {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      setIsOpen(false);
-      menuButtonRef.current?.focus();
-    }
-
-    window.addEventListener("pointerdown", handlePointerDown);
-    window.addEventListener("keydown", handleWindowKeyDown);
-    return () => {
-      window.removeEventListener("pointerdown", handlePointerDown);
-      window.removeEventListener("keydown", handleWindowKeyDown);
-    };
-  }, [isOpen]);
-
-  function handleComboKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
-    if (!isOpen || event.key !== "Escape") return;
-    event.preventDefault();
-    event.stopPropagation();
-    setIsOpen(false);
-    menuButtonRef.current?.focus();
-  }
 
   function selectValue(nextValue: string): void {
     setIsOpen(false);
@@ -119,7 +99,7 @@ export default function CommitComboBox({
   return (
     <div className={visibleLabel === undefined ? styles.comboWithoutLabel : styles.combo}>
       {visibleLabel === undefined ? null : <span className={styles.label}>{visibleLabel}</span>}
-      <div ref={comboBoxRef} className={styles.comboBox} onKeyDown={handleComboKeyDown}>
+      <div ref={comboBoxRef} className={styles.comboBox}>
         {isCustom ? (
           <TextField
             value={lifecycle.draft}
@@ -153,7 +133,9 @@ export default function CommitComboBox({
           aria-expanded={isOpen}
           onMouseDown={(event) => event.preventDefault()}
           onClick={() => setIsOpen((current) => !current)}
-        />
+        >
+          <SelectorChevron />
+        </button>
         {isOpen ? (
           <div className={styles.menu} style={{ zIndex: menuStacking }} role="listbox">
             {renderedOptions.map((option) => (

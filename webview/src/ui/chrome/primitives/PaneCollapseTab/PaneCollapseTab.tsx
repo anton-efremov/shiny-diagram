@@ -47,7 +47,6 @@ export default function PaneCollapseTab({
           d="m6 4 4 4-4 4"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />

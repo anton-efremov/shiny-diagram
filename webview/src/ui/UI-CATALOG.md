@@ -4,13 +4,13 @@
 
 | Wing        | Tier       | Annotated |  Total |
 | ----------- | ---------- | --------: | -----: |
-| Chrome      | Primitives |         9 |      9 |
+| Chrome      | Primitives |        10 |     10 |
 | Chrome      | Composites |         7 |      7 |
 | Chrome      | Templates  |         7 |      7 |
 | Canvas      | Primitives |        19 |     19 |
 | Canvas      | Composites |         9 |      9 |
 | Canvas      | Templates  |        10 |     10 |
-| **Overall** |            |    **61** | **61** |
+| **Overall** |            |    **62** | **62** |
 
 # Contents
 
@@ -20,6 +20,7 @@
     - [DismissButton](#dismissbutton)
     - [PaneCollapseTab](#panecollapsetab)
     - [ReservedBackLink](#reservedbacklink)
+    - [SelectorChevron](#selectorchevron)
     - [StyledBoxSwatch](#styledboxswatch)
     - [TextBlock](#textblock)
     - [TextField](#textfield)
@@ -103,7 +104,7 @@ Lifecycle:
 Modifiers:
 
 - `variant` — the command's designed situation:
-  - `standard` uses the ordinary full-width command surface. Used by:
+  - `default` uses the ordinary full-width command surface. Used by:
     duplicate, style, generation, and attachment commands
   - `danger` uses error emphasis that fills on hover. Used by: delete commands
   - `rowAction` sizes to its content at the trailing edge with reduced height,
@@ -116,7 +117,7 @@ type ButtonProps = {
   readonly icon?: GlyphDescriptor;
   readonly disabled?: boolean;
   readonly visible?: boolean;
-  readonly variant?: "standard" | "danger" | "rowAction";
+  readonly variant?: "default" | "danger" | "rowAction";
   readonly onClick?: () => void;
 };
 ```
@@ -180,6 +181,18 @@ type ReservedBackLinkProps = {
   readonly visible?: boolean;
   readonly onClick?: () => void;
 };
+```
+
+### [SelectorChevron](./chrome/primitives/SelectorChevron/SelectorChevron.tsx)
+
+Downward chevron marking a control that opens a choice list.
+
+Draws the list disclosure mark with element-owned SVG treatment.
+
+Used by: color, line, annotation, named-style, and relationship choices.
+
+```ts
+// This component accepts no props.
 ```
 
 ### [StyledBoxSwatch](./chrome/primitives/StyledBoxSwatch/StyledBoxSwatch.tsx)
@@ -311,9 +324,10 @@ Color selector with a swatch-grid popup and immediate selection.
 Shows `value` through the selected `preview`; null uses the `baseValue` preview
 and "multiple" shows a mixed state. The popup combines `documentColors` with
 the hue, shade, and neutral `presets`; choosing a color or Base reports
-`onChange` and returns focus to the control. Closing it without choosing —
-clicking outside or from the keyboard — reports nothing. The six-column grid
-is keyboard-navigable, and the popup paints at the supplied `stacking` plane.
+`onChange` and returns focus to the control. Closing it without choosing
+reports nothing: an outside press leaves focus where the click placed it,
+while keyboard dismissal returns focus to the control. The six-column grid is
+keyboard-navigable, and the popup paints at the supplied `stacking` plane.
 
 Lifecycle:
 
@@ -418,7 +432,9 @@ validation. Custom text is held as a draft until exactly one outcome
 concludes the edit: committed (`onCommit`), discarded (`onDiscard` —
 receives the draft's messages), or cancelled (`onCancel`). A draft
 failing validation (`validate`) shows its messages and is never committed.
-The menu paints at `menuStacking`, and validation paints at
+While the menu is open, keyboard dismissal closes it and returns focus to its
+control without cancelling the field draft; an outside press closes it without
+moving focus. The menu paints at `menuStacking`, and validation paints at
 `validationStacking`.
 
 Used by: class stereotypes and relationship endpoint multiplicities.
@@ -488,9 +504,9 @@ Dropdown whose entries can carry visual previews beside or instead of text.
 
 Selects the matching entry from `options` for `value`; an unmatched value
 leaves the closed control empty. The user opens the list from the closed
-control and closes it the same way. Closing it without choosing — by clicking
-outside or from the keyboard — returns focus to the control and reports
-nothing. Choosing an entry closes the list and reports its value through
+control and closes it the same way. Closing it without choosing reports
+nothing: an outside press leaves focus where the click placed it, while
+keyboard dismissal returns focus to the control. Choosing an entry closes the list and reports its value through
 `onChange`. Each entry may show a text label, a preview, or both, as its options
 entry supplies; the list paints at the supplied `stacking` plane.
 
@@ -547,9 +563,10 @@ Shows `value`, using `defaultValue` for Base or the preview when values are
 mixed. The popup orders Base, unused `presets`, then `documentValues`, treating
 equivalent representations as equal. Choosing a row reports `onChange`, where
 Base reports null, then returns focus to the control. Closing it without
-choosing — clicking outside or from the keyboard — reports nothing; the row
-list is keyboard-navigable. `popupWidth` sets the popup's minimum width before
-viewport clamping, and the popup paints at the supplied `stacking` plane.
+choosing reports nothing: an outside press leaves focus where the click placed
+it, while keyboard dismissal returns focus to the control; the row list is
+keyboard-navigable. `popupWidth` sets the popup's minimum width before viewport
+clamping, and the popup paints at the supplied `stacking` plane.
 
 Lifecycle:
 
@@ -1026,8 +1043,8 @@ type HaloRingProps = {
 
 Inline action button for cancel and add affordances.
 
-Renders `glyph`, uses `label` as its accessible name, and uses `title` as the
-tooltip when supplied. Pressing it does not steal focus from the field it sits
+Renders `glyph`, uses `label` as its accessible name, and shows `title` as the
+tooltip, defaulting to that accessible name. Pressing it does not steal focus from the field it sits
 in; clicking it reports `onClick`. `surface` overrides the selected fallback
 surface.
 

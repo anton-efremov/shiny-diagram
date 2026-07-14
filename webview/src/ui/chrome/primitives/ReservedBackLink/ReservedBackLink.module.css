@@ -11,8 +11,8 @@
   color: var(--shiny-chrome-text);
   background: transparent;
   font: inherit;
-  font-size: 12px;
-  cursor: pointer;
+  font-size: var(--shiny-chrome-font-size-control);
+  cursor: var(--shiny-chrome-cursor-action);
 }
 
 .link:hover {
@@ -20,7 +20,8 @@
 }
 
 .link:focus-visible {
-  outline: 2px solid var(--shiny-field-focus-border);
+  outline: var(--shiny-chrome-focus-outline-width) var(--shiny-chrome-focus-outline-style)
+    var(--shiny-field-focus-border);
   outline-offset: 1px;
 }
 

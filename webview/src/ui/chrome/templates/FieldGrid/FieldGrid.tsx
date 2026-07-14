@@ -52,8 +52,8 @@ export default function FieldGrid({ rows, variant = "styleName" }: FieldGridProp
           className={
             hasCompactLabel
               ? row.alignment === "start"
-                ? styles.startAlignedRow
-                : styles.row
+                ? styles.compactStartAlignedRow
+                : styles.compactRow
               : row.alignment === "start"
                 ? styles.standardStartAlignedRow
                 : styles.standardRow

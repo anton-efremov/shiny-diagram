@@ -73,7 +73,6 @@ export default function ValidationPopup({
               d="M5 5 11 11M11 5 5 11"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.5"
               strokeLinecap="round"
             />
           </svg>

@@ -10,7 +10,7 @@
  *
  * Modifiers:
  * - `variant` — the command's designed situation:
- *   - `standard` uses the ordinary full-width command surface. Used by:
+ *   - `default` uses the ordinary full-width command surface. Used by:
  *     duplicate, style, generation, and attachment commands
  *   - `danger` uses error emphasis that fills on hover. Used by: delete commands
  *   - `rowAction` sizes to its content at the trailing edge with reduced height,
@@ -20,12 +20,7 @@
 
 import type { ReactElement } from "react";
 import { GLYPH_VIEW_BOX, type GlyphDescriptor } from "../../../../shared/glyph";
-import {
-  GLYPH_COLOR,
-  GLYPH_EMPTY_FILL,
-  GLYPH_STROKE_LINE_CAP,
-  GLYPH_STROKE_LINE_JOIN,
-} from "../../tokens";
+import { GLYPH_EMPTY_FILL, GLYPH_STROKE_LINE_CAP, GLYPH_STROKE_LINE_JOIN } from "../../tokens";
 import styles from "./Button.module.css";
 
 type ButtonProps = {
@@ -33,7 +28,7 @@ type ButtonProps = {
   readonly icon?: GlyphDescriptor;
   readonly disabled?: boolean;
   readonly visible?: boolean;
-  readonly variant?: "standard" | "danger" | "rowAction";
+  readonly variant?: "default" | "danger" | "rowAction";
   readonly onClick?: () => void;
 };
 
@@ -41,7 +36,7 @@ export default function Button({
   label,
   icon,
   disabled = false,
-  variant = "standard",
+  variant = "default",
   visible = true,
   onClick,
 }: ButtonProps): ReactElement {
@@ -78,8 +73,8 @@ function ButtonGlyph({ glyph }: { readonly glyph: GlyphDescriptor }): ReactEleme
     <svg
       className={styles.glyph}
       viewBox={GLYPH_VIEW_BOX}
-      fill={glyph.filled ? GLYPH_COLOR : GLYPH_EMPTY_FILL}
-      stroke={GLYPH_COLOR}
+      fill={glyph.filled ? "currentColor" : GLYPH_EMPTY_FILL}
+      stroke="currentColor"
       strokeLinecap={GLYPH_STROKE_LINE_CAP}
       strokeLinejoin={GLYPH_STROKE_LINE_JOIN}
       aria-hidden="true"

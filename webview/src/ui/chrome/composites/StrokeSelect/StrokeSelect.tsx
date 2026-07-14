@@ -5,9 +5,10 @@
  * mixed. The popup orders Base, unused `presets`, then `documentValues`, treating
  * equivalent representations as equal. Choosing a row reports `onChange`, where
  * Base reports null, then returns focus to the control. Closing it without
- * choosing — clicking outside or from the keyboard — reports nothing; the row
- * list is keyboard-navigable. `popupWidth` sets the popup's minimum width before
- * viewport clamping, and the popup paints at the supplied `stacking` plane.
+ * choosing reports nothing: an outside press leaves focus where the click placed
+ * it, while keyboard dismissal returns focus to the control; the row list is
+ * keyboard-navigable. `popupWidth` sets the popup's minimum width before viewport
+ * clamping, and the popup paints at the supplied `stacking` plane.
  *
  * Lifecycle:
  * - `disabled` — on means the list cannot be opened and shows the control as
@@ -19,8 +20,11 @@
  *   - `dash` varies the sample's pattern. Used by: outline-dash controls
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent, ReactElement } from "react";
+import { useControlPopupPosition } from "../../../core/useControlPopupPosition";
+import { usePopupDismiss } from "../../../core/usePopupDismiss";
+import SelectorChevron from "../../primitives/SelectorChevron/SelectorChevron";
 import styles from "./StrokeSelect.module.css";
 
 type StrokeSelectProps = {
@@ -35,8 +39,6 @@ type StrokeSelectProps = {
   readonly onChange: (value: string | null) => void;
 };
 
-const VIEWPORT_GUTTER = 8;
-
 export default function StrokeSelect({
   kind,
   value,
@@ -50,14 +52,17 @@ export default function StrokeSelect({
 }: StrokeSelectProps): ReactElement {
   const [isOpen, setIsOpen] = useState(false);
   const [focusIndex, setFocusIndex] = useState(0);
-  const [popupPosition, setPopupPosition] = useState({
-    top: 0,
-    left: VIEWPORT_GUTTER,
-    width: popupWidth,
-  });
+  const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const popupRef = useRef<HTMLDivElement>(null);
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const popupPosition = useControlPopupPosition(isOpen, triggerRef, popupWidth);
+  const closePopup = useCallback(() => setIsOpen(false), []);
+  const { dismissAndRestoreFocus } = usePopupDismiss({
+    isOpen,
+    boundaryRef: containerRef,
+    focusRef: triggerRef,
+    onDismiss: closePopup,
+  });
   const standardValues = presets.filter(
     (preset) =>
       !documentValues.some(
@@ -67,53 +72,14 @@ export default function StrokeSelect({
   const options = [null, ...standardValues, ...documentValues] as const;
   const isMultiple = value === "multiple";
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const trigger = triggerRef.current;
-    if (trigger) {
-      const rect = trigger.getBoundingClientRect();
-      const width = Math.max(rect.width, popupWidth);
-      const left = Math.max(
-        VIEWPORT_GUTTER,
-        Math.min(rect.left, window.innerWidth - width - VIEWPORT_GUTTER)
-      );
-      setPopupPosition({ top: rect.bottom + 4, left, width });
-    }
-
-    function closeFromPointer(event: PointerEvent): void {
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-      if (triggerRef.current?.contains(target) || popupRef.current?.contains(target)) return;
-      closeAndRestoreFocus();
-    }
-
-    function closeFromEscape(event: globalThis.KeyboardEvent): void {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      closeAndRestoreFocus();
-    }
-
-    document.addEventListener("pointerdown", closeFromPointer);
-    document.addEventListener("keydown", closeFromEscape);
-    return () => {
-      document.removeEventListener("pointerdown", closeFromPointer);
-      document.removeEventListener("keydown", closeFromEscape);
-    };
-  }, [isOpen, popupWidth]);
-
-  function closeAndRestoreFocus(): void {
-    setIsOpen(false);
-    requestAnimationFrame(() => triggerRef.current?.focus());
-  }
-
   function selectValue(nextValue: string | null): void {
     onChange(nextValue);
-    closeAndRestoreFocus();
+    dismissAndRestoreFocus();
   }
 
   function togglePopup(): void {
     if (isOpen) {
-      closeAndRestoreFocus();
+      dismissAndRestoreFocus();
       return;
     }
     setFocusIndex(0);
@@ -153,7 +119,7 @@ export default function StrokeSelect({
   const triggerValue = value === null || isMultiple ? defaultValue : value;
 
   return (
-    <div className={styles.strokeSelect}>
+    <div ref={containerRef} className={styles.strokeSelect}>
       <button
         ref={triggerRef}
         type="button"
@@ -164,10 +130,10 @@ export default function StrokeSelect({
         onClick={togglePopup}
       >
         <LineSample kind={kind} value={triggerValue} multiple={isMultiple} />
-        <span className={styles.arrow} aria-hidden="true" />
+        <SelectorChevron />
       </button>
       {isOpen ? (
-        <div ref={popupRef} className={styles.popup} style={popupStyle} role="listbox">
+        <div className={styles.popup} style={popupStyle} role="listbox">
           <span className={styles.heading}>Base</span>
           <StrokeOption
             kind={kind}

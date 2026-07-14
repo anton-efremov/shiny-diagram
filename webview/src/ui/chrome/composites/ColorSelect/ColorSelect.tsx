@@ -4,9 +4,10 @@
  * Shows `value` through the selected `preview`; null uses the `baseValue` preview
  * and "multiple" shows a mixed state. The popup combines `documentColors` with
  * the hue, shade, and neutral `presets`; choosing a color or Base reports
- * `onChange` and returns focus to the control. Closing it without choosing —
- * clicking outside or from the keyboard — reports nothing. The six-column grid
- * is keyboard-navigable, and the popup paints at the supplied `stacking` plane.
+ * `onChange` and returns focus to the control. Closing it without choosing
+ * reports nothing: an outside press leaves focus where the click placed it,
+ * while keyboard dismissal returns focus to the control. The six-column grid is
+ * keyboard-navigable, and the popup paints at the supplied `stacking` plane.
  *
  * Lifecycle:
  * - `disabled` — on means the list cannot be opened and shows the control as
@@ -19,8 +20,11 @@
  *   - `text` renders a letter sample. Used by: text-color properties
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent, ReactElement } from "react";
+import { useControlPopupPosition } from "../../../core/useControlPopupPosition";
+import { usePopupDismiss } from "../../../core/usePopupDismiss";
+import SelectorChevron from "../../primitives/SelectorChevron/SelectorChevron";
 import styles from "./ColorSelect.module.css";
 
 /**
@@ -61,7 +65,6 @@ type ColorSelectProps = {
 
 const PALETTE_COLUMN_COUNT = 6;
 const POPUP_MIN_WIDTH = 164;
-const VIEWPORT_GUTTER = 8;
 
 export default function ColorSelect({
   preview,
@@ -75,64 +78,28 @@ export default function ColorSelect({
 }: ColorSelectProps): ReactElement {
   const [isOpen, setIsOpen] = useState(false);
   const [paletteFocusIndex, setPaletteFocusIndex] = useState(0);
-  const [popupPosition, setPopupPosition] = useState({
-    top: 0,
-    left: VIEWPORT_GUTTER,
-    width: POPUP_MIN_WIDTH,
-  });
+  const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const popupRef = useRef<HTMLDivElement>(null);
   const paletteRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const popupPosition = useControlPopupPosition(isOpen, triggerRef, POPUP_MIN_WIDTH);
+  const closePopup = useCallback(() => setIsOpen(false), []);
+  const { dismissAndRestoreFocus } = usePopupDismiss({
+    isOpen,
+    boundaryRef: containerRef,
+    focusRef: triggerRef,
+    onDismiss: closePopup,
+  });
   const palette = toPalette(presets);
   const isMultiple = value === "multiple";
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const trigger = triggerRef.current;
-    if (trigger) {
-      const rect = trigger.getBoundingClientRect();
-      const width = Math.max(rect.width, POPUP_MIN_WIDTH);
-      const left = Math.max(
-        VIEWPORT_GUTTER,
-        Math.min(rect.left, window.innerWidth - width - VIEWPORT_GUTTER)
-      );
-      setPopupPosition({ top: rect.bottom + 4, left, width });
-    }
-
-    function closeFromPointer(event: PointerEvent): void {
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-      if (triggerRef.current?.contains(target) || popupRef.current?.contains(target)) return;
-      closeAndRestoreFocus();
-    }
-
-    function closeFromEscape(event: globalThis.KeyboardEvent): void {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      closeAndRestoreFocus();
-    }
-
-    document.addEventListener("pointerdown", closeFromPointer);
-    document.addEventListener("keydown", closeFromEscape);
-    return () => {
-      document.removeEventListener("pointerdown", closeFromPointer);
-      document.removeEventListener("keydown", closeFromEscape);
-    };
-  }, [isOpen]);
-
-  function closeAndRestoreFocus(): void {
-    setIsOpen(false);
-    requestAnimationFrame(() => triggerRef.current?.focus());
-  }
-
   function selectValue(nextValue: string | null): void {
     onChange(nextValue);
-    closeAndRestoreFocus();
+    dismissAndRestoreFocus();
   }
 
   function openPopup(): void {
     if (isOpen) {
-      closeAndRestoreFocus();
+      dismissAndRestoreFocus();
       return;
     }
     setPaletteFocusIndex(0);
@@ -188,7 +155,7 @@ export default function ColorSelect({
   } as CSSProperties;
 
   return (
-    <div className={styles.colorSelect}>
+    <div ref={containerRef} className={styles.colorSelect}>
       <button
         ref={triggerRef}
         type="button"
@@ -199,10 +166,10 @@ export default function ColorSelect({
         onClick={openPopup}
       >
         <ColorPreview preview={preview} value={value} emphasized={value !== null && !isMultiple} />
-        <span className={styles.arrow} aria-hidden="true" />
+        <SelectorChevron />
       </button>
       {isOpen ? (
-        <div ref={popupRef} className={styles.popup} style={popupStyle}>
+        <div className={styles.popup} style={popupStyle}>
           {documentColors.length > 0 ? (
             <section className={styles.section} aria-label="In this diagram">
               <span className={styles.heading}>In this diagram</span>

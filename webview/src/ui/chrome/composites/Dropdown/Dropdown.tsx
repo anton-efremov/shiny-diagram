@@ -3,9 +3,9 @@
  *
  * Selects the matching entry from `options` for `value`; an unmatched value
  * leaves the closed control empty. The user opens the list from the closed
- * control and closes it the same way. Closing it without choosing — by clicking
- * outside or from the keyboard — returns focus to the control and reports
- * nothing. Choosing an entry closes the list and reports its value through
+ * control and closes it the same way. Closing it without choosing reports
+ * nothing: an outside press leaves focus where the click placed it, while
+ * keyboard dismissal returns focus to the control. Choosing an entry closes the list and reports its value through
  * `onChange`. Each entry may show a text label, a preview, or both, as its options
  * entry supplies; the list paints at the supplied `stacking` plane.
  *
@@ -16,11 +16,12 @@
  *   unavailable
  */
 
-import { useEffect, useRef, useState } from "react";
-import type { KeyboardEvent, ReactElement } from "react";
+import { useCallback, useRef, useState } from "react";
+import type { ReactElement } from "react";
 import type { CSSProperties } from "react";
-import { GLYPH_VIEW_BOX } from "../../../../shared/glyph";
 import type { StyleProperties } from "../../../../shared/style";
+import { usePopupDismiss } from "../../../core/usePopupDismiss";
+import SelectorChevron from "../../primitives/SelectorChevron/SelectorChevron";
 import styles from "./Dropdown.module.css";
 
 /**
@@ -64,46 +65,27 @@ export default function Dropdown({
   onChange,
 }: DropdownProps): ReactElement {
   const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
   const selectedOption = options.find((option) => option.value === value);
+  const closePopup = useCallback(() => setIsOpen(false), []);
+  usePopupDismiss({
+    isOpen,
+    boundaryRef: containerRef,
+    focusRef: triggerRef,
+    onDismiss: closePopup,
+  });
   const triggerStyle: CSSProperties & { "--dropdown-arrow-color"?: string } = {
     "--dropdown-arrow-color": selectedOption?.swatchStyle?.color ?? undefined,
   };
-
-  useEffect(() => {
-    if (!isOpen) return undefined;
-
-    function closeFromPointer(event: PointerEvent): void {
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-      if (triggerRef.current?.contains(target) || menuRef.current?.contains(target)) return;
-      closeAndRestoreFocus();
-    }
-
-    window.addEventListener("pointerdown", closeFromPointer);
-    return () => window.removeEventListener("pointerdown", closeFromPointer);
-  }, [isOpen]);
-
-  function closeAndRestoreFocus(): void {
-    setIsOpen(false);
-    requestAnimationFrame(() => triggerRef.current?.focus());
-  }
 
   function selectValue(nextValue: string): void {
     setIsOpen(false);
     onChange(nextValue);
   }
 
-  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>): void {
-    if (!isOpen || event.key !== "Escape") return;
-    event.preventDefault();
-    event.stopPropagation();
-    closeAndRestoreFocus();
-  }
-
   return (
-    <div className={styles.dropdown} onKeyDown={handleKeyDown}>
+    <div ref={containerRef} className={styles.dropdown}>
       <button
         ref={triggerRef}
         type="button"
@@ -124,14 +106,12 @@ export default function Dropdown({
             <span className={styles.triggerLabel}>{selectedOption?.label ?? ""}</span>
           )}
           <span className={styles.arrow} aria-hidden="true">
-            <svg viewBox={GLYPH_VIEW_BOX} aria-hidden="true" focusable="false">
-              <path d="M4 6h8l-4 5Z" fill="currentColor" />
-            </svg>
+            <SelectorChevron />
           </span>
         </span>
       </button>
       {isOpen ? (
-        <div ref={menuRef} className={styles.menu} style={{ zIndex: stacking }} role="listbox">
+        <div className={styles.menu} style={{ zIndex: stacking }} role="listbox">
           {options.map((option) => (
             <button
               key={option.value}

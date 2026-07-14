@@ -61,6 +61,10 @@ Modifiers come in three kinds. **Lifecycle** modifiers name states the element p
 
 Corollaries: an element never exposes a role and the axes that role governs — one owner per concern. A role vocabulary shared across elements (`surfaceTone`) recurs identically: an element adopting it adopts the whole value set, and divergence is a contract change. Naming gravity: roles are named `variant`, `treatment`, or `tone`; property axes by their axis noun; lifecycle modifiers `is*`/`has*` or a bare state adjective.
 
+### Selector convention
+
+Selectors — elements offering a closed choice from a popup (Dropdown, ColorSelect, StrokeSelect, CommitComboBox) — share one interaction grammar without sharing a shell: a trigger showing the current value with a SelectorChevron; a listbox popup with option children and roving focus; aria-haspopup/aria-expanded on the trigger; open/close toggled from the trigger; while open, Escape anywhere dismisses and restores trigger focus, an outside press dismisses without moving focus, and choosing an entry closes and reports. Dismissal and positioning machinery comes from core/ — never hand-rolled. A new selector adopts this grammar whole; divergence is a contract change.
+
 # Library structure
 
 - **`chrome/`** — elements of panes and header

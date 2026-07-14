@@ -36,13 +36,7 @@ export default function DismissButton({
       onClick={onClick}
     >
       <svg viewBox={GLYPH_VIEW_BOX} fill="none" aria-hidden="true" focusable="false">
-        <path
-          d="M5 5 11 11M11 5 5 11"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        />
+        <path d="M5 5 11 11M11 5 5 11" fill="none" stroke="currentColor" strokeLinecap="round" />
       </svg>
     </button>
   );

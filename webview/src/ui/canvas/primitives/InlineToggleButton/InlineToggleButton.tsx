@@ -13,12 +13,7 @@
 
 import type { CSSProperties, ReactElement } from "react";
 import { GLYPH_VIEW_BOX, type GlyphDescriptor } from "../../../../shared/glyph";
-import {
-  GLYPH_COLOR,
-  GLYPH_EMPTY_FILL,
-  GLYPH_STROKE_LINE_CAP,
-  GLYPH_STROKE_LINE_JOIN,
-} from "../../tokens";
+import { GLYPH_EMPTY_FILL, GLYPH_STROKE_LINE_CAP, GLYPH_STROKE_LINE_JOIN } from "../../tokens";
 import styles from "./InlineToggleButton.module.css";
 
 type InlineToggleButtonProps = {
@@ -49,8 +44,8 @@ export default function InlineToggleButton({
     >
       <svg
         viewBox={GLYPH_VIEW_BOX}
-        fill={glyph.filled ? GLYPH_COLOR : GLYPH_EMPTY_FILL}
-        stroke={GLYPH_COLOR}
+        fill={glyph.filled ? "currentColor" : GLYPH_EMPTY_FILL}
+        stroke="currentColor"
         strokeLinecap={GLYPH_STROKE_LINE_CAP}
         strokeLinejoin={GLYPH_STROKE_LINE_JOIN}
         aria-hidden="true"

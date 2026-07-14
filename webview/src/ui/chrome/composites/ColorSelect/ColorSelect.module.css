@@ -16,11 +16,12 @@
   min-width: 0;
   min-height: var(--shiny-control-height);
   padding: 5px 7px;
-  border: 1px solid var(--shiny-field-border);
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-field-border);
   border-radius: var(--shiny-field-radius);
   color: var(--shiny-field-fg);
   background: var(--shiny-chrome-field-bg);
-  cursor: pointer;
+  cursor: var(--shiny-chrome-cursor-action);
 }
 
 .trigger:hover:not(:disabled) {
@@ -32,27 +33,14 @@
 .trigger:focus-visible,
 .colorOption:focus-visible,
 .defaultOption:focus-visible {
-  outline: 2px solid var(--shiny-field-focus-border);
+  outline: var(--shiny-chrome-focus-outline-width) var(--shiny-chrome-focus-outline-style)
+    var(--shiny-field-focus-border);
   outline-offset: 1px;
 }
 
 .trigger:disabled {
   opacity: 0.58;
-  cursor: default;
-}
-
-.arrow {
-  place-self: center;
-}
-
-.arrow::before {
-  display: block;
-  width: 0;
-  height: 0;
-  border-top: 5px solid currentColor;
-  border-right: 4px solid transparent;
-  border-left: 4px solid transparent;
-  content: "";
+  cursor: var(--shiny-chrome-cursor-unavailable);
 }
 
 .glyph {
@@ -66,8 +54,9 @@
 .fill {
   width: 18px;
   height: 18px;
-  border: 1px solid var(--shiny-overlay-strong);
-  border-radius: 3px;
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-overlay-strong);
+  border-radius: var(--shiny-chrome-option-radius);
   background: currentColor;
 }
 
@@ -79,22 +68,23 @@
 }
 
 .text {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: var(--shiny-chrome-font-size-preview);
+  font-weight: var(--shiny-chrome-font-weight-strong);
 }
 
 .emphasized {
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px var(--shiny-chrome-text-muted);
+  border-radius: var(--shiny-chrome-preview-radius);
+  box-shadow: var(--shiny-chrome-preview-outline);
 }
 
 .stroke.emphasized,
 .text.emphasized {
-  box-shadow: none;
+  box-shadow: var(--shiny-chrome-shadow-clear);
 }
 
 .multiple {
-  border: 1px solid var(--shiny-border);
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-border);
   background: linear-gradient(
     135deg,
     var(--shiny-chrome-surface) 50%,
@@ -111,10 +101,11 @@
   gap: 8px;
   width: var(--color-select-popup-width);
   padding: 9px;
-  border: 1px solid var(--shiny-border);
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-border);
   border-radius: var(--shiny-chrome-button-radius);
   background: var(--shiny-chrome-surface);
-  box-shadow: 0 6px 18px var(--shiny-overlay-strong);
+  box-shadow: var(--shiny-chrome-selector-elevation);
 }
 
 .section {
@@ -125,8 +116,8 @@
 .heading,
 .defaultOption {
   color: var(--shiny-chrome-text-muted);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--shiny-chrome-font-size-detail);
+  font-weight: var(--shiny-chrome-font-weight-emphasis);
 }
 
 .documentGrid,
@@ -152,14 +143,16 @@
   width: 18px;
   height: 18px;
   padding: 0;
-  border: 1px solid var(--shiny-overlay-strong);
-  border-radius: 3px;
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-overlay-strong);
+  border-radius: var(--shiny-chrome-option-radius);
   background: var(--color-select-value);
-  cursor: pointer;
+  cursor: var(--shiny-chrome-cursor-action);
 }
 
 .colorOption[aria-pressed="true"] {
-  outline: 2px solid var(--shiny-chrome-accent-outline);
+  outline: var(--shiny-chrome-focus-outline-width) var(--shiny-chrome-focus-outline-style)
+    var(--shiny-chrome-accent-outline);
   outline-offset: 1px;
 }
 
@@ -171,21 +164,22 @@
   min-height: 26px;
   padding: 3px;
   border: 0;
-  border-radius: 3px;
+  border-radius: var(--shiny-chrome-option-radius);
   color: var(--shiny-chrome-text-muted);
   background: transparent;
   font: inherit;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--shiny-chrome-font-size-detail);
+  font-weight: var(--shiny-chrome-font-weight-emphasis);
   text-align: left;
-  cursor: pointer;
+  cursor: var(--shiny-chrome-cursor-action);
 }
 
 .defaultSwatch {
   width: 18px;
   height: 18px;
-  border: 1px solid var(--shiny-overlay-strong);
-  border-radius: 3px;
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-overlay-strong);
+  border-radius: var(--shiny-chrome-option-radius);
   background: var(--color-select-value, var(--shiny-chrome-field-bg));
 }
 
@@ -202,7 +196,8 @@
 }
 
 .defaultOption[aria-pressed="true"] .defaultSwatch {
-  outline: 2px solid var(--shiny-chrome-accent-outline);
+  outline: var(--shiny-chrome-focus-outline-width) var(--shiny-chrome-focus-outline-style)
+    var(--shiny-chrome-accent-outline);
   outline-offset: 1px;
 }
 

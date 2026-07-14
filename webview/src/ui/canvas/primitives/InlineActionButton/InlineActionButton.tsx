@@ -1,8 +1,8 @@
 /**
  * Inline action button for cancel and add affordances.
  *
- * Renders `glyph`, uses `label` as its accessible name, and uses `title` as the
- * tooltip when supplied. Pressing it does not steal focus from the field it sits
+ * Renders `glyph`, uses `label` as its accessible name, and shows `title` as the
+ * tooltip, defaulting to that accessible name. Pressing it does not steal focus from the field it sits
  * in; clicking it reports `onClick`. `surface` overrides the selected fallback
  * surface.
  *
@@ -24,12 +24,7 @@
 
 import type { CSSProperties, ReactElement } from "react";
 import { GLYPH_VIEW_BOX, type GlyphDescriptor } from "../../../../shared/glyph";
-import {
-  GLYPH_COLOR,
-  GLYPH_EMPTY_FILL,
-  GLYPH_STROKE_LINE_CAP,
-  GLYPH_STROKE_LINE_JOIN,
-} from "../../tokens";
+import { GLYPH_EMPTY_FILL, GLYPH_STROKE_LINE_CAP, GLYPH_STROKE_LINE_JOIN } from "../../tokens";
 import styles from "./InlineActionButton.module.css";
 
 type InlineActionButtonProps = {
@@ -69,8 +64,8 @@ export default function InlineActionButton({
     >
       <svg
         viewBox={GLYPH_VIEW_BOX}
-        fill={glyph.filled ? GLYPH_COLOR : GLYPH_EMPTY_FILL}
-        stroke={GLYPH_COLOR}
+        fill={glyph.filled ? "currentColor" : GLYPH_EMPTY_FILL}
+        stroke="currentColor"
         strokeLinecap={GLYPH_STROKE_LINE_CAP}
         strokeLinejoin={GLYPH_STROKE_LINE_JOIN}
         aria-hidden="true"

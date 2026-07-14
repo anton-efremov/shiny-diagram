@@ -119,8 +119,10 @@ function main() {
 
   checkCompositeImportCycles(compositeImportGraph);
   checkStylesheetOwnership();
+  checkCSSModuleClassIntegrity();
   checkCSSBrandbookImports();
   checkTokenConsumption();
+  checkBrandTokenUsage();
   checkCSSModuleShinyTokenDefinitions();
   checkCSSModuleLiteralColors();
 
@@ -891,6 +893,179 @@ function checkStylesheetOwnership() {
       kind: "stylesheet ownership",
       specifier: file,
       rule: "View stylesheet ownership: .module.css files must live under ui, never View",
+    });
+  }
+}
+
+function checkCSSModuleClassIntegrity() {
+  const moduleRecords = new Map();
+
+  for (const absoluteFile of listFiles(sourceRoot)) {
+    if (!absoluteFile.endsWith(".module.css")) continue;
+    const source = readFileSync(absoluteFile, "utf8");
+    const withoutComments = source.replace(/\/\*[\s\S]*?\*\//g, "");
+    const declarations = new Map();
+    for (const match of withoutComments.matchAll(/\.([_a-zA-Z][_a-zA-Z0-9-]*)/g)) {
+      const name = match[1];
+      if (declarations.has(name)) continue;
+      declarations.set(name, toLineColumn(source, source.indexOf(match[0])));
+    }
+    moduleRecords.set(path.normalize(absoluteFile), {
+      file: toSourceRelative(absoluteFile),
+      source,
+      declarations,
+      references: new Set(),
+      computedCandidates: new Set(),
+      computedPrefixes: new Set(),
+    });
+  }
+
+  for (const absoluteFile of listSourceFiles(sourceRoot)) {
+    const source = readFileSync(absoluteFile, "utf8");
+    const sourceFile = ts.createSourceFile(
+      absoluteFile,
+      source,
+      ts.ScriptTarget.Latest,
+      true,
+      absoluteFile.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS
+    );
+    const imports = new Map();
+
+    for (const statement of sourceFile.statements) {
+      if (
+        !ts.isImportDeclaration(statement) ||
+        !statement.importClause?.name ||
+        !ts.isStringLiteralLike(statement.moduleSpecifier) ||
+        !statement.moduleSpecifier.text.endsWith(".module.css")
+      ) {
+        continue;
+      }
+      const cssPath = path.normalize(
+        path.resolve(path.dirname(absoluteFile), statement.moduleSpecifier.text)
+      );
+      if (moduleRecords.has(cssPath)) {
+        imports.set(statement.importClause.name.text, moduleRecords.get(cssPath));
+      }
+    }
+    if (imports.size === 0) continue;
+
+    const literalValues = new Set();
+    function collectLiteralValues(node) {
+      if (ts.isLiteralTypeNode(node) && ts.isStringLiteralLike(node.literal)) {
+        literalValues.add(node.literal.text);
+      }
+      ts.forEachChild(node, collectLiteralValues);
+    }
+    collectLiteralValues(sourceFile);
+
+    function visit(node) {
+      if (
+        ts.isPropertyAccessExpression(node) &&
+        ts.isIdentifier(node.expression) &&
+        imports.has(node.expression.text)
+      ) {
+        const record = imports.get(node.expression.text);
+        const name = node.name.text;
+        record.references.add(name);
+        if (!record.declarations.has(name)) {
+          const location = sourceFile.getLineAndCharacterOfPosition(node.name.getStart(sourceFile));
+          report({
+            file: toSourceRelative(absoluteFile),
+            line: location.line + 1,
+            column: location.character + 1,
+            kind: "CSS module integrity",
+            specifier: `${node.expression.text}.${name}`,
+            rule: `CSS module class integrity: static access ${node.expression.text}.${name} must resolve to a class declared by the imported module`,
+          });
+        }
+      }
+
+      if (
+        ts.isElementAccessExpression(node) &&
+        ts.isIdentifier(node.expression) &&
+        imports.has(node.expression.text)
+      ) {
+        const record = imports.get(node.expression.text);
+        const argument = node.argumentExpression;
+        if (argument && ts.isStringLiteralLike(argument)) {
+          record.references.add(argument.text);
+          if (!record.declarations.has(argument.text)) {
+            const location = sourceFile.getLineAndCharacterOfPosition(
+              argument.getStart(sourceFile)
+            );
+            report({
+              file: toSourceRelative(absoluteFile),
+              line: location.line + 1,
+              column: location.character + 1,
+              kind: "CSS module integrity",
+              specifier: `${node.expression.text}[${JSON.stringify(argument.text)}]`,
+              rule: `CSS module class integrity: computed literal access must resolve to a class declared by the imported module`,
+            });
+          }
+        } else {
+          for (const value of literalValues) record.computedCandidates.add(value);
+          if (argument && ts.isTemplateExpression(argument)) {
+            record.computedPrefixes.add(argument.head.text);
+          }
+        }
+      }
+      ts.forEachChild(node, visit);
+    }
+    visit(sourceFile);
+  }
+
+  for (const record of moduleRecords.values()) {
+    for (const [name, location] of record.declarations) {
+      const isComputedReference =
+        record.computedCandidates.has(name) ||
+        [...record.computedPrefixes].some((prefix) => prefix && name.startsWith(prefix));
+      if (record.references.has(name) || isComputedReference) continue;
+      report({
+        file: record.file,
+        line: location.line,
+        column: location.column,
+        kind: "CSS module integrity",
+        specifier: `.${name}`,
+        rule: "CSS module class integrity: every declared class must be referenced statically or belong to a computed access domain in its importing source file",
+      });
+    }
+  }
+}
+
+function checkBrandTokenUsage() {
+  const definitions = new Map();
+  const references = new Set();
+
+  for (const absoluteFile of listFiles(sourceRoot)) {
+    if (!/\.(?:css|ts|tsx)$/.test(absoluteFile)) continue;
+    const file = toSourceRelative(absoluteFile);
+    const source = readFileSync(absoluteFile, "utf8");
+    for (const match of source.matchAll(/--shiny-[\w-]+/g)) {
+      const token = match[0];
+      const after = source.slice((match.index ?? 0) + token.length);
+      const isDefinition = /^\s*:/.test(after);
+      const isBrandbook = /^ui\/(?:chrome|canvas)\/tokens\.css$/.test(file);
+      if (isDefinition && isBrandbook) {
+        const entries = definitions.get(token) ?? [];
+        entries.push({ file, source, index: match.index ?? 0 });
+        definitions.set(token, entries);
+      } else {
+        references.add(token);
+      }
+    }
+  }
+
+  for (const [token, entries] of definitions) {
+    if (references.has(token)) continue;
+    const entry = entries[0];
+    const location = toLineColumn(entry.source, entry.index);
+    report({
+      file: entry.file,
+      line: location.line,
+      column: location.column,
+      kind: "token consumption",
+      specifier: token,
+      rule: "Brandbook token consumption: every --shiny-* definition must have at least one consumer; delete orphan tokens",
     });
   }
 }

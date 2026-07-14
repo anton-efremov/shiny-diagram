@@ -53,18 +53,11 @@ body[data-vscode-theme-kind="vscode-high-contrast"] {
 
 :root {
   --shiny-canvas-app-bg: var(--vscode-editor-background);
-  --shiny-canvas-layout-border: var(
-    --vscode-sideBar-border,
-    var(--vscode-editorGroup-border, var(--vscode-widget-border))
-  );
-  --shiny-layout-border-width: 1px;
-  --shiny-layout-border-style: solid;
   --shiny-canvas-surface: var(--vscode-editorWidget-background);
   --shiny-canvas-elevation-high: 0 4px 10px rgb(0 0 0 / 35%);
   --shiny-neutral-wash: rgba(166, 166, 166, 0.1);
   --shiny-neutral-outline: #a6a6a6;
   --shiny-canvas-button-radius: 6px;
-  --shiny-canvas-field-bg: var(--vscode-input-background);
   --shiny-canvas-inline-field-background: color-mix(in srgb, currentColor 14%, transparent);
   --shiny-canvas-inline-field-outline: color-mix(in srgb, currentColor 78%, transparent);
   --shiny-canvas-inline-field-focus-outline: color-mix(in srgb, currentColor 92%, transparent);

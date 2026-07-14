@@ -8,12 +8,13 @@
   min-width: 0;
   min-height: var(--shiny-control-height);
   padding: 6px 8px;
-  border: 1px solid var(--shiny-field-border);
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-field-border);
   border-radius: var(--shiny-field-radius);
   color: var(--shiny-field-fg);
   background: var(--shiny-chrome-field-bg);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--shiny-chrome-font-size-control);
 }
 
 .field::placeholder,
@@ -27,7 +28,8 @@
 
 .field:focus-visible,
 .fieldWithEndAction:focus-visible {
-  outline: 2px solid var(--shiny-field-focus-border);
+  outline: var(--shiny-chrome-focus-outline-width) var(--shiny-chrome-focus-outline-style)
+    var(--shiny-field-focus-border);
   outline-offset: 1px;
 }
 

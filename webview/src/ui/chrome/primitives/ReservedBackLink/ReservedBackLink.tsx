@@ -27,7 +27,7 @@ export default function ReservedBackLink({
   return (
     <button
       type="button"
-      className={visible ? styles.affordance : styles.hiddenAffordance}
+      className={visible ? styles.link : styles.reservedBlank}
       aria-hidden={!visible}
       tabIndex={visible ? 0 : -1}
       onClick={onClick}
