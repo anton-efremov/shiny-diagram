@@ -18,9 +18,11 @@ import type { ProvenanceIndex } from "../model/provenanceIndex";
 import type { SourceEdit } from "../model/sourceEdit";
 import type { WriteIntent } from "../translate";
 import { resolveDeleteEntry } from "./workers/deleteEntry";
+import { resolveDeleteClause } from "./workers/deleteClause";
 import { resolveDeleteRange } from "./workers/deleteRange";
 import { resolveDeleteStatement } from "./workers/deleteStatement";
 import { resolveInsertEntry } from "./workers/insertEntry";
+import { resolveInsertClause } from "./workers/insertClause";
 import { resolveInsertStatement } from "./workers/insertStatement";
 import { resolveReplaceValue } from "./workers/replaceValue";
 import type { SourcePosition } from "../model/sourceEdit";
@@ -50,6 +52,10 @@ function buildEdit(
       return resolveInsertEntry(intent, provenance);
     case "deleteEntry":
       return resolveDeleteEntry(intent, provenance, sourceText);
+    case "insertClause":
+      return resolveInsertClause(intent, provenance);
+    case "deleteClause":
+      return resolveDeleteClause(intent, provenance, sourceText);
     case "replaceValue":
       return resolveReplaceValue(intent, provenance);
     case "deleteRange":

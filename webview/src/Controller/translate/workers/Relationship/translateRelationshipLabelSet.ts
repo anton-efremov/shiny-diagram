@@ -1,25 +1,21 @@
 import type { EditorCommandOf } from "../../../../View/commands";
 import type { DiagramGraph } from "../../../model/diagramGraph";
-import type { ProvenanceIndex } from "../../../model/provenanceIndex";
 import type { WriteIntent } from "../../writeIntent";
-import { rewriteRelationship } from "./relationshipEditSyntax";
 
 /**
- * Makes one of two write options:
+ * Makes one of three write options:
  *
  * a. label already written and new label non-null → relationship label **value**
  *    - in place
- * b. otherwise → Makes two writes:
- *    1. old relationship **statement** deleted
- *    2. new relationship **statement**
- *       - at the old location
+ * b. label absent and new label non-null → relationship label **clause**
+ *    - after the target endpoint
+ * c. otherwise → relationship label **clause** deleted
  *
  * No-op when the relationship is missing or the label is unchanged.
  */
 export function translateRelationshipLabelSet(
   command: EditorCommandOf<"relationship.label.set">,
-  graph: DiagramGraph,
-  provenance: ProvenanceIndex
+  graph: DiagramGraph
 ): WriteIntent[] {
   const relationship = graph.relationships.get(command.relationshipId);
   if (!relationship) return [];
@@ -33,5 +29,28 @@ export function translateRelationshipLabelSet(
       },
     ];
   }
-  return rewriteRelationship(command.relationshipId, graph, provenance, { label: command.label });
+  if (command.label !== null) {
+    const clause = { kind: "relationshipLabel" as const, relationshipId: command.relationshipId };
+    return [
+      {
+        kind: "insertClause",
+        payload: command.label,
+        anchor: {
+          kind: "afterComponent",
+          clause,
+          component: {
+            kind: "relationshipEndpoint",
+            relationshipId: command.relationshipId,
+            side: "target",
+          },
+        },
+      },
+    ];
+  }
+  return [
+    {
+      kind: "deleteClause",
+      target: { kind: "relationshipLabel", relationshipId: command.relationshipId },
+    },
+  ];
 }

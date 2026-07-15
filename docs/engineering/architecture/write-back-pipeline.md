@@ -52,19 +52,22 @@ type SourceEdit     = { start: SourcePosition; end: SourcePosition; replacementT
 |---|---|---|
 | **statement** | a self-contained line or block (class, namespace, member, relationship, style line, identity-bound spatial annotation, note, statement-bound note annotation) | `insertStatement`, `deleteStatement` |
 | **entry** | a `key:value` pair inside a list (a style property) | `insertEntry`, `deleteEntry` |
+| **clause** | an optional component of a statement, inserted and deleted whole | `insertClause`, `deleteClause` |
 | **value** | a single overwrite-able span (a name, endpoint, coordinate, property value) | `replaceValue` |
 
-Rule: standalone units (statement, entry) can be inserted or deleted; a value can only be replaced — it cannot exist without its key nor be removed without removing its entry. There is **no** `replaceStatement`.
+Rule: statements, entries, and clauses can be inserted or deleted; a value can only be replaced — it cannot exist without its owning unit. There is **no** `replaceStatement` or `replaceClause`.
 
 Pairing invariant: a statement-bound annotation (`@note:`) binds to the statement on the immediately following line and is written, moved, and deleted **as a pair** with it — translate emits both statement operations in the same transaction, and no operation may separate the pair.
 
-The five intents:
+The seven intents:
 
 ```ts
 InsertStatementIntent = { kind: "insertStatement"; payload: string; anchor: StatementAnchor };
 DeleteStatementIntent = { kind: "deleteStatement"; target: StatementRef };
 InsertEntryIntent     = { kind: "insertEntry";     payload: string; anchor: EntryAnchor };
 DeleteEntryIntent     = { kind: "deleteEntry";     target: EntryRef };
+InsertClauseIntent    = { kind: "insertClause";    payload: string; anchor: ClauseAnchor };
+DeleteClauseIntent    = { kind: "deleteClause";    target: ClauseRef };
 ReplaceValueIntent    = { kind: "replaceValue";    payload: string; target: ValueRef };
 ```
 
@@ -72,6 +75,7 @@ ReplaceValueIntent    = { kind: "replaceValue";    payload: string; target: Valu
 
 - `StatementRef` — a whole statement (delete target / anchor sibling), e.g. `{ kind: "class", classId }`, `{ kind: "blockMember", memberId }`.
 - `EntryRef` — a style property, e.g. `{ kind: "directStyleProperty", classId, property }`.
+- `ClauseRef` — an optional statement component, e.g. `{ kind: "classGeneric", classId }`, `{ kind: "relationshipLabel", relationshipId }`.
 - `ValueRef` — an overwrite-able span, e.g. `{ kind: "className", classId }`, `{ kind: "spatialCoord", target, coord }`.
 - `BlockRef` — a container whose opening a first child inserts under: `diagram` | `class` | `namespace`.
 - `StyleListRef` — a property list a first entry inserts into: `directStyle` | `styleDef`.
@@ -87,6 +91,9 @@ StatementAnchor =
 EntryAnchor =
   | { kind: "afterEntry";        entry: EntryRef }
   | { kind: "afterListOpening";  list: StyleListRef };
+
+ClauseAnchor =
+  { kind: "afterComponent"; clause: ClauseRef; component: ValueRef };
 ```
 
 The same/different-kind distinction is a translate-time fact that drives resolve's blank-line policy — it lets resolve decide spacing without re-inspecting the payload.
@@ -179,6 +186,7 @@ b. otherwise → Makes <N> writes:         // an option holding several writes n
 - `<term> **<unit>**` pairs come from the closed lists in [Mermaid Vocabulary](./mermaid-vocabulary.md) — no improvised names:
   - **statement** — a statement term from Vocabulary §2.1, e.g. `class declaration **statement**`
   - **entry** — an entry term from Vocabulary §4.2, e.g. `style property **entry**`
+  - **clause** — a clause term from Vocabulary §4.2, e.g. `relationship label **clause**`
   - **value** — a value term from Vocabulary §4.2, e.g. `class label **value**`
 - `<scope>` names the receiving block (Vocabulary §1.2): **diagram body**, **namespace body**, or **class body**.
 - `<anchor>` phrases locate statements by their §2.1 terms, e.g. `after the latest class declaration statement in scope`.

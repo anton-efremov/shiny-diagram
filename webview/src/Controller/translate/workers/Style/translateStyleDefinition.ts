@@ -34,6 +34,8 @@ import type { TranslateContext } from "../../translateContext";
  *    - after the latest style definition or direct style statement
  *    - after the latest statement of any kind except spatial annotation statements
  *    - at block opening
+ *
+ * `sourceKind` is currently ignored; a classDef statement is always written.
  */
 export function translateStyleDefinitionCreate(
   command: EditorCommandOf<"style.definition.create">,

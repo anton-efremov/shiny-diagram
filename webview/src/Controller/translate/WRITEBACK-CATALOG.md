@@ -144,26 +144,30 @@ Makes five groups of writes — each group only where the statement exists:
 }
 ```
 
-Makes seven groups of writes — the class name is always written; remaining groups only
+Makes nine groups of writes — the class name is always written; remaining groups only
 under their stated source conditions:
 
 1. class name **value**
    - in place
-2. class generic **value**, when the class generic is already written
+2. class generic **value**, when the class generic and the new generic are written
    - in place
-3. endpoint **value**, for every relationship endpoint naming the class when the class
+3. class generic **clause** deleted, when the class generic is written and the new generic
+   is absent
+4. class generic **clause**, when the class generic is absent and the new generic is written
+   - after the class name
+5. endpoint **value**, for every relationship endpoint naming the class when the class
    name changes
    - in place
-4. direct style target **value**, when the class name changes and the direct style
+6. direct style target **value**, when the class name changes and the direct style
    statement exists
    - in place
-5. spatial target **value**, when the class name changes and the spatial annotation
+7. spatial target **value**, when the class name changes and the spatial annotation
    statement exists
    - in place
-6. style application target **value**, for every style application statement targeting
+8. style application target **value**, for every style application statement targeting
    the class when the class name changes
    - in place
-7. member owner **value**, for every short member statement owned by the class when the
+9. member owner **value**, for every short member statement owned by the class when the
    class name changes
    - in place
 
@@ -179,13 +183,12 @@ under their stated source conditions:
 
 Makes one of three write options:
 
-a. class label already written → class label **value**
+a. class label already written and new label non-null → class label **value**
    - in place
-b. class label absent, new label non-null, and class generic written → class generic
-   **value**, carrying the original value and the new class label
-   - in place
-c. otherwise → class name **value**, carrying the original value and the new class label
-   - in place
+b. class label absent and new label non-null → class label **clause** (anchored at first match)
+   - after the class generic
+   - after the class name
+c. otherwise → class label **clause** deleted
 
 No-op when the class label is absent and the new label is null.
 
@@ -199,22 +202,17 @@ No-op when the class label is absent and the new label is null.
 }
 ```
 
-Makes one of five write options:
+Makes one of three write options:
 
 a. class annotation already written → class annotation **value**
    - in place
 b. class annotation absent and class body written → class annotation **statement**, in the
    **class body**
    - at block opening
-c. no class body and class label written → class label **value**, carrying the original
-   value and a new class body with the class annotation statement
-   - in place
-d. no class body, no class label, and class generic written → class generic **value**,
-   carrying the original value and a new class body with the class annotation statement
-   - in place
-e. otherwise → class name **value**, carrying the original value and a new class body with
-   the class annotation statement
-   - in place
+c. otherwise → Makes two writes:
+   1. old class declaration **statement** deleted
+   2. new class declaration **statement** carrying the source declaration and a body with
+      the class annotation statement, at the old location
 
 No-op when the class annotation is absent and the new annotation is null.
 
@@ -374,23 +372,16 @@ or when the written style application name is unchanged.
 }
 ```
 
-Makes one of five write options:
+Makes one of three write options:
 
-a. no class body, appending, and class label written → class label **value**, carrying the
-   original value and a new class body with the block member statement
-   - in place
-b. no class body, appending, no class label, and class generic written → class generic
-   **value**, carrying the original value and a new class body with the block member
-   statement
-   - in place
-c. no class body, appending, and neither class label nor class generic written → class name
-   **value**, carrying the original value and a new class body with the block member
-   statement
-   - in place
-d. preceding attribute is a short member statement → short member **statement**, in
+a. no class body and appending → Makes two writes:
+   1. old class declaration **statement** deleted
+   2. new class declaration **statement** carrying the source declaration and a body with
+      the block member statement, at the old location
+b. preceding attribute is a short member statement → short member **statement**, in
    **diagram body**
    - after the preceding short member statement
-e. otherwise → block member **statement**, in **class body** (anchored at first match)
+c. otherwise → block member **statement**, in **class body** (anchored at first match)
    - after the preceding block member statement
    - at block opening
 
@@ -464,23 +455,16 @@ Errors when the class, moved attribute, or a requested insertion anchor is missi
 }
 ```
 
-Makes one of five write options:
+Makes one of three write options:
 
-a. no class body, appending, and class label written → class label **value**, carrying the
-   original value and a new class body with the block member statement
-   - in place
-b. no class body, appending, no class label, and class generic written → class generic
-   **value**, carrying the original value and a new class body with the block member
-   statement
-   - in place
-c. no class body, appending, and neither class label nor class generic written → class name
-   **value**, carrying the original value and a new class body with the block member
-   statement
-   - in place
-d. preceding method is a short member statement → short member **statement**, in **diagram
+a. no class body and appending → Makes two writes:
+   1. old class declaration **statement** deleted
+   2. new class declaration **statement** carrying the source declaration and a body with
+      the block member statement, at the old location
+b. preceding method is a short member statement → short member **statement**, in **diagram
    body**
    - after the preceding short member statement
-e. otherwise → block member **statement**, in **class body** (anchored at first match)
+c. otherwise → block member **statement**, in **class body** (anchored at first match)
    - after the preceding block member statement
    - at block opening
 
@@ -667,15 +651,14 @@ No-op when the relationship is missing.
 }
 ```
 
-Makes one of two write options:
+Makes one of three write options:
 
 a. source multiplicity already written and new multiplicity non-null → multiplicity
    **value**
    - in place
-b. otherwise → Makes two writes:
-   1. old relationship **statement** deleted
-   2. new relationship **statement**
-      - at the old location
+b. source multiplicity absent and new multiplicity non-null → source multiplicity **clause**
+   - after the source endpoint
+c. otherwise → source multiplicity **clause** deleted
 
 No-op when the relationship is missing or the source multiplicity is unchanged.
 
@@ -689,15 +672,14 @@ No-op when the relationship is missing or the source multiplicity is unchanged.
 }
 ```
 
-Makes one of two write options:
+Makes one of three write options:
 
 a. target multiplicity already written and new multiplicity non-null → multiplicity
    **value**
    - in place
-b. otherwise → Makes two writes:
-   1. old relationship **statement** deleted
-   2. new relationship **statement**
-      - at the old location
+b. target multiplicity absent and new multiplicity non-null → target multiplicity **clause**
+   - after the relationship operator
+c. otherwise → target multiplicity **clause** deleted
 
 No-op when the relationship is missing or the target multiplicity is unchanged.
 
@@ -711,14 +693,13 @@ No-op when the relationship is missing or the target multiplicity is unchanged.
 }
 ```
 
-Makes one of two write options:
+Makes one of three write options:
 
 a. label already written and new label non-null → relationship label **value**
    - in place
-b. otherwise → Makes two writes:
-   1. old relationship **statement** deleted
-   2. new relationship **statement**
-      - at the old location
+b. label absent and new label non-null → relationship label **clause**
+   - after the target endpoint
+c. otherwise → relationship label **clause** deleted
 
 No-op when the relationship is missing or the label is unchanged.
 
@@ -755,8 +736,8 @@ Makes two writes:
 
 Makes two groups of writes — the note always; its bound annotation only where it exists:
 
-1. note annotation **statement** deleted
-2. note **statement** deleted
+1. note **statement** deleted
+2. note annotation **statement** deleted, where it exists
 
 ### [`note.text.set`](./workers/Note/translateNoteTextSet.ts)
 
@@ -806,10 +787,10 @@ Makes four writes:
 
 Makes two writes:
 
-1. old note **statement** deleted
-2. new note **statement**, in **diagram body**
+1. new note **statement**, in **diagram body**
    - at the old location, immediately after the bound note annotation statement when it
      exists
+2. old note **statement** deleted
 
 Errors when the note or requested attachment class is missing.
 
@@ -978,6 +959,8 @@ Makes two groups of writes:
    - after the latest style definition or direct style statement
    - after the latest statement of any kind except spatial annotation statements
    - at block opening
+
+`sourceKind` is currently ignored; a classDef statement is always written.
 
 ### [`style.definition.delete`](./workers/Style/translateStyleDefinition.ts)
 

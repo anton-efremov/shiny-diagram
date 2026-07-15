@@ -15,7 +15,7 @@ import {
   anchorExactStatement,
   asSameKind,
 } from "../../anchors/statementAnchors";
-import { insertFirstClassBlockChildIntoBlocklessClass } from "../../placement/classBlockEnsure";
+import { rewriteBlocklessClassWithFirstChild } from "../../placement/classBlockEnsure";
 import type { StatementAnchor, StatementRef, WriteIntent } from "../../writeIntent";
 
 /**
@@ -81,23 +81,16 @@ export function translateClassMethodDelete(
 }
 
 /**
- * Makes one of five write options:
+ * Makes one of three write options:
  *
- * a. no class body, appending, and class label written → class label **value**, carrying the
- *    original value and a new class body with the block member statement
- *    - in place
- * b. no class body, appending, no class label, and class generic written → class generic
- *    **value**, carrying the original value and a new class body with the block member
- *    statement
- *    - in place
- * c. no class body, appending, and neither class label nor class generic written → class name
- *    **value**, carrying the original value and a new class body with the block member
- *    statement
- *    - in place
- * d. preceding attribute is a short member statement → short member **statement**, in
+ * a. no class body and appending → Makes two writes:
+ *    1. old class declaration **statement** deleted
+ *    2. new class declaration **statement** carrying the source declaration and a body with
+ *       the block member statement, at the old location
+ * b. preceding attribute is a short member statement → short member **statement**, in
  *    **diagram body**
  *    - after the preceding short member statement
- * e. otherwise → block member **statement**, in **class body** (anchored at first match)
+ * c. otherwise → block member **statement**, in **class body** (anchored at first match)
  *    - after the preceding block member statement
  *    - at block opening
  *
@@ -114,8 +107,9 @@ export function translateClassAttributeCreate(
     "field"
   );
   if (command.beforeAttributeId === null && isBlocklessClass(command.classId, provenance)) {
-    return insertFirstClassBlockChildIntoBlocklessClass(
+    return rewriteBlocklessClassWithFirstChild(
       command.classId,
+      graph,
       provenance,
       sourceText,
       payload
@@ -138,23 +132,16 @@ export function translateClassAttributeCreate(
 }
 
 /**
- * Makes one of five write options:
+ * Makes one of three write options:
  *
- * a. no class body, appending, and class label written → class label **value**, carrying the
- *    original value and a new class body with the block member statement
- *    - in place
- * b. no class body, appending, no class label, and class generic written → class generic
- *    **value**, carrying the original value and a new class body with the block member
- *    statement
- *    - in place
- * c. no class body, appending, and neither class label nor class generic written → class name
- *    **value**, carrying the original value and a new class body with the block member
- *    statement
- *    - in place
- * d. preceding method is a short member statement → short member **statement**, in **diagram
+ * a. no class body and appending → Makes two writes:
+ *    1. old class declaration **statement** deleted
+ *    2. new class declaration **statement** carrying the source declaration and a body with
+ *       the block member statement, at the old location
+ * b. preceding method is a short member statement → short member **statement**, in **diagram
  *    body**
  *    - after the preceding short member statement
- * e. otherwise → block member **statement**, in **class body** (anchored at first match)
+ * c. otherwise → block member **statement**, in **class body** (anchored at first match)
  *    - after the preceding block member statement
  *    - at block opening
  *
@@ -171,8 +158,9 @@ export function translateClassMethodCreate(
     "method"
   );
   if (command.beforeMethodId === null && isBlocklessClass(command.classId, provenance)) {
-    return insertFirstClassBlockChildIntoBlocklessClass(
+    return rewriteBlocklessClassWithFirstChild(
       command.classId,
+      graph,
       provenance,
       sourceText,
       payload

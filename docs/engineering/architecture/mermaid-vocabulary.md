@@ -190,6 +190,12 @@ A single write addresses exactly one unit; the unit dictates the legal operation
 | ---------------- | -------------------- |
 | style definition | style property entry |
 | direct style     | style property entry |
+- **clause** — insertion, deletion.
+
+| Statement | Clauses |
+| --- | --- |
+| class declaration | class generic, class label |
+| relationship | relationship label, source multiplicity, target multiplicity |
 - **value** — replace.
 
 | Statement | Values |
@@ -209,6 +215,6 @@ A single write addresses exactly one unit; the unit dictates the legal operation
 **Rules:**
 
 - Keywords, fixed operators, property names, and delimiters are never write targets; they change only as part of a statement or entry written whole.
-- An optional component is never inserted or deleted alone: its value is replaced in place; the component appears or disappears via a whole-statement rewrite (delete + insert).
+- An optional component is inserted or deleted as a clause; components that are not clauses change only via whole-statement rewrite.
 - Coordinate entries are never inserted or deleted — the fixed set of four admits only replacing their literals.
 - There is no whole-statement replace: a statement changes shape only by delete + insert.

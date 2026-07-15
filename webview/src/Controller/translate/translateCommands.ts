@@ -154,7 +154,7 @@ function translateCommand(
     case "class.label.set":
       return translateClassLabelSet(command, graph, provenance);
     case "class.annotation.set":
-      return translateClassAnnotationSet(command, provenance, sourceText);
+      return translateClassAnnotationSet(command, graph, provenance, sourceText);
     case "class.spatial.set":
       return translateClassSpatialSet(command, graph, provenance);
     case "class.parentNamespace.set":
@@ -198,11 +198,11 @@ function translateCommand(
     case "relationship.lineKind.set":
       return translateRelationshipLineKindSet(command, graph);
     case "relationship.source.multiplicity.set":
-      return translateRelationshipSourceMultiplicitySet(command, graph, provenance);
+      return translateRelationshipSourceMultiplicitySet(command, graph);
     case "relationship.target.multiplicity.set":
-      return translateRelationshipTargetMultiplicitySet(command, graph, provenance);
+      return translateRelationshipTargetMultiplicitySet(command, graph);
     case "relationship.label.set":
-      return translateRelationshipLabelSet(command, graph, provenance);
+      return translateRelationshipLabelSet(command, graph);
     case "note.create":
       return translateNoteCreate(command, graph, provenance, context);
     case "note.delete":

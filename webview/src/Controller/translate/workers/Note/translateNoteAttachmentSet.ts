@@ -19,10 +19,10 @@ import type { StatementAnchor, StatementRef, WriteIntent } from "../../writeInte
 /**
  * Makes two writes:
  *
- * 1. old note **statement** deleted
- * 2. new note **statement**, in **diagram body**
+ * 1. new note **statement**, in **diagram body**
  *    - at the old location, immediately after the bound note annotation statement when it
  *      exists
+ * 2. old note **statement** deleted
  *
  * Errors when the note or requested attachment class is missing.
  */

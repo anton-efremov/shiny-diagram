@@ -9,31 +9,35 @@ import type { ProvenanceIndex } from "../../../model/provenanceIndex";
 import { spellIdentity } from "../../../model/identitySpelling";
 import { toSourceGenericTypes } from "../../../model/memberText";
 import { anchorBlockOpening } from "../../anchors/statementAnchors";
-import { insertFirstClassBlockChildIntoBlocklessClass } from "../../placement/classBlockEnsure";
+import { rewriteBlocklessClassWithFirstChild } from "../../placement/classBlockEnsure";
 import type { TranslateContext } from "../../translateContext";
 import type { WriteIntent } from "../../writeIntent";
 
 /**
- * Makes seven groups of writes — the class name is always written; remaining groups only
+ * Makes nine groups of writes — the class name is always written; remaining groups only
  * under their stated source conditions:
  *
  * 1. class name **value**
  *    - in place
- * 2. class generic **value**, when the class generic is already written
+ * 2. class generic **value**, when the class generic and the new generic are written
  *    - in place
- * 3. endpoint **value**, for every relationship endpoint naming the class when the class
+ * 3. class generic **clause** deleted, when the class generic is written and the new generic
+ *    is absent
+ * 4. class generic **clause**, when the class generic is absent and the new generic is written
+ *    - after the class name
+ * 5. endpoint **value**, for every relationship endpoint naming the class when the class
  *    name changes
  *    - in place
- * 4. direct style target **value**, when the class name changes and the direct style
+ * 6. direct style target **value**, when the class name changes and the direct style
  *    statement exists
  *    - in place
- * 5. spatial target **value**, when the class name changes and the spatial annotation
+ * 7. spatial target **value**, when the class name changes and the spatial annotation
  *    statement exists
  *    - in place
- * 6. style application target **value**, for every style application statement targeting
+ * 8. style application target **value**, for every style application statement targeting
  *    the class when the class name changes
  *    - in place
- * 7. member owner **value**, for every short member statement owned by the class when the
+ * 9. member owner **value**, for every short member statement owned by the class when the
  *    class name changes
  *    - in place
  */
@@ -45,8 +49,6 @@ export function translateClassNameSet(
 ): WriteIntent[] {
   const parsed = parseDisplayClassName(command.name);
   const nextClassId = toClassId(parsed.identity);
-  const current = graph.classes.get(command.classId);
-  const currentGeneric = current?.genericType ?? null;
   const intents: WriteIntent[] = [];
 
   if (nextClassId !== command.classId) {
@@ -54,40 +56,50 @@ export function translateClassNameSet(
     intents.push(...renameClassReferences(command.classId, nextClassId, graph, provenance));
   }
 
-  const genericPayload = parsed.genericType ? toSourceGenericTypes(`<${parsed.genericType}>`) : "";
+  const genericPayload = parsed.genericType
+    ? toSourceGenericTypes(`<${parsed.genericType}>`)
+    : null;
   const hasGeneric = provenance.classes.get(command.classId)?.fields.genericType !== undefined;
-  if (hasGeneric) {
+  intents.unshift({
+    kind: "replaceValue",
+    target: { kind: "className", classId: command.classId },
+    payload: spellIdentity(nextClassId),
+  });
+  if (hasGeneric && genericPayload !== null) {
     intents.push({
       kind: "replaceValue",
       target: { kind: "classGenericType", classId: command.classId },
       payload: genericPayload,
     });
-    intents.unshift({
-      kind: "replaceValue",
-      target: { kind: "className", classId: command.classId },
-      payload: spellIdentity(nextClassId),
+  } else if (hasGeneric) {
+    intents.push({
+      kind: "deleteClause",
+      target: { kind: "classGeneric", classId: command.classId },
     });
-    return intents;
+  } else if (genericPayload !== null) {
+    const clause = { kind: "classGeneric" as const, classId: command.classId };
+    intents.push({
+      kind: "insertClause",
+      payload: genericPayload,
+      anchor: {
+        kind: "afterComponent",
+        clause,
+        component: { kind: "className", classId: command.classId },
+      },
+    });
   }
-
-  intents.unshift({
-    kind: "replaceValue",
-    target: { kind: "className", classId: command.classId },
-    payload: `${spellIdentity(nextClassId)}${currentGeneric === null ? genericPayload : ""}`,
-  });
   return intents;
 }
 
 /**
  * Makes one of three write options:
  *
- * a. class label already written → class label **value**
+ * a. class label already written and new label non-null → class label **value**
  *    - in place
- * b. class label absent, new label non-null, and class generic written → class generic
- *    **value**, carrying the original value and the new class label
- *    - in place
- * c. otherwise → class name **value**, carrying the original value and the new class label
- *    - in place
+ * b. class label absent and new label non-null → class label **clause** (anchored at first match)
+ *    - after the class generic
+ *    - after the class name
+ * c. otherwise → class label **clause** deleted
  *
  * No-op when the class label is absent and the new label is null.
  */
@@ -98,18 +110,11 @@ export function translateClassLabelSet(
 ): WriteIntent[] {
   const record = provenance.classes.get(command.classId);
   if (!record) throw new Error(`Missing provenance for class ${command.classId}`);
-  const node = graph.classes.get(command.classId);
-  if (!node) throw new Error(`Missing class ${command.classId}`);
+  if (!graph.classes.has(command.classId)) throw new Error(`Missing class ${command.classId}`);
 
   if (command.label === null) {
     if (!record.fields.labelFull) return [];
-    return [
-      {
-        kind: "replaceValue",
-        target: { kind: "classLabelFull", classId: command.classId },
-        payload: "",
-      },
-    ];
+    return [{ kind: "deleteClause", target: { kind: "classLabel", classId: command.classId } }];
   }
 
   if (record.fields.label) {
@@ -122,48 +127,40 @@ export function translateClassLabelSet(
     ];
   }
 
-  const labelPayload = `["${command.label}"]`;
-  if (record.fields.genericType) {
-    return [
-      {
-        kind: "replaceValue",
-        target: { kind: "classGenericType", classId: command.classId },
-        payload: `${toSourceGenericTypes(`<${node.genericType ?? ""}>`)}${labelPayload}`,
-      },
-    ];
-  }
-
+  const clause = { kind: "classLabel" as const, classId: command.classId };
   return [
     {
-      kind: "replaceValue",
-      target: { kind: "className", classId: command.classId },
-      payload: `${spellIdentity(command.classId)}${labelPayload}`,
+      kind: "insertClause",
+      payload: `["${command.label}"]`,
+      anchor: {
+        kind: "afterComponent",
+        clause,
+        component: record.fields.genericType
+          ? { kind: "classGenericType", classId: command.classId }
+          : { kind: "className", classId: command.classId },
+      },
     },
   ];
 }
 
 /**
- * Makes one of five write options:
+ * Makes one of three write options:
  *
  * a. class annotation already written → class annotation **value**
  *    - in place
  * b. class annotation absent and class body written → class annotation **statement**, in the
  *    **class body**
  *    - at block opening
- * c. no class body and class label written → class label **value**, carrying the original
- *    value and a new class body with the class annotation statement
- *    - in place
- * d. no class body, no class label, and class generic written → class generic **value**,
- *    carrying the original value and a new class body with the class annotation statement
- *    - in place
- * e. otherwise → class name **value**, carrying the original value and a new class body with
- *    the class annotation statement
- *    - in place
+ * c. otherwise → Makes two writes:
+ *    1. old class declaration **statement** deleted
+ *    2. new class declaration **statement** carrying the source declaration and a body with
+ *       the class annotation statement, at the old location
  *
  * No-op when the class annotation is absent and the new annotation is null.
  */
 export function translateClassAnnotationSet(
   command: EditorCommandOf<"class.annotation.set">,
+  graph: DiagramGraph,
   provenance: ProvenanceIndex,
   sourceText: string
 ): WriteIntent[] {
@@ -192,8 +189,9 @@ export function translateClassAnnotationSet(
     ];
   }
   if (!record.body) {
-    return insertFirstClassBlockChildIntoBlocklessClass(
+    return rewriteBlocklessClassWithFirstChild(
       command.classId,
+      graph,
       provenance,
       sourceText,
       payload

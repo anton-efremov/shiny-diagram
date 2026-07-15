@@ -705,8 +705,8 @@ function toRelationshipRecord(token: ParseToken): RelationshipRecord {
         ? {
             sourceMultiplicity: toLineFieldLocation(
               token,
-              sourceMultiplicityStart,
-              sourceMultiplicityStart + (match[3]?.length ?? 0) + 2
+              sourceMultiplicityStart + 1,
+              sourceMultiplicityStart + (match[3]?.length ?? 0) + 1
             ),
           }
         : {}),
@@ -715,8 +715,8 @@ function toRelationshipRecord(token: ParseToken): RelationshipRecord {
         ? {
             targetMultiplicity: toLineFieldLocation(
               token,
-              targetMultiplicityStart,
-              targetMultiplicityStart + (match[5]?.length ?? 0) + 2
+              targetMultiplicityStart + 1,
+              targetMultiplicityStart + (match[5]?.length ?? 0) + 1
             ),
           }
         : {}),
