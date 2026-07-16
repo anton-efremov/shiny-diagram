@@ -97,7 +97,11 @@
 }
 
 .glyph {
-  stroke-width: var(--shiny-chrome-glyph-stroke-width);
+  stroke-width: var(--shiny-chrome-tool-glyph-stroke-width);
+}
+
+.glyph path {
+  vector-effect: non-scaling-stroke;
 }
 
 .dashedGlyphPath {

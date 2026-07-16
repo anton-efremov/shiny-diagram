@@ -65,8 +65,8 @@ export default function WebViewHeader({
         <span className={styles.divider} aria-hidden="true" />
         <SegmentedControl
           options={[
-            { value: "mermaid", label: "Mermaid" },
             { value: "shiny", label: "Shiny" },
+            { value: "mermaid", label: "Mermaid" },
           ]}
           value={mode}
           onChange={onModeChange}

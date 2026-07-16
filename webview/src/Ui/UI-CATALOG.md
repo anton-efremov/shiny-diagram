@@ -255,12 +255,13 @@ type StatusDotProps = {
 
 ### [StyledBoxSwatch](./chrome/primitives/StyledBoxSwatch/StyledBoxSwatch.tsx)
 
-Swatch preview of box color and border styling.
+Swatch preview of box surface styling.
 
-Applies the supplied fill, stroke, text color, stroke width, and solid-or-
-dashed interpretation from `styleValues`, falling back independently for
-omitted values. The single-line `label` is both visible content and the
-accessible name; overflow ends in an ellipsis.
+Applies the supplied fill, stroke, text color, stroke width, and exact stroke
+dasharray from `styleValues`, falling back independently for omitted values.
+Stroke width is rendered at half scale, clamped from 1px to 3px, so every
+swatch uses one proportional miniature rule. The single-line `label` is both
+visible content and the accessible name; overflow ends in an ellipsis.
 
 Used by: attached-class and saved-style previews.
 

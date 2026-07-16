@@ -8,7 +8,7 @@
   min-width: 0;
   padding: 6px;
   border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
-    var(--shiny-border);
+    transparent;
   border-radius: var(--shiny-chrome-toggle-radius);
   color: var(--shiny-chrome-text);
   background: var(--shiny-chrome-surface);
@@ -16,9 +16,10 @@
 }
 
 .toggle[aria-pressed="true"]:not(:disabled) {
-  border-color: var(--shiny-chrome-accent-outline);
   background: var(--shiny-chrome-surface);
-  box-shadow: var(--shiny-chrome-tile-elevation-pressed);
+  box-shadow:
+    0 0 0 2px var(--shiny-chrome-accent-outline),
+    var(--shiny-chrome-tile-elevation-pressed);
 }
 
 .toggle:focus-visible {

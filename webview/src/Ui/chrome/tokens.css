@@ -55,6 +55,7 @@ body[data-vscode-theme-kind="vscode-high-contrast"] {
   );
   --shiny-chrome-status-error: var(--shiny-chrome-validation-border);
   --shiny-chrome-glyph-stroke-width: 1.5px;
+  --shiny-chrome-tool-glyph-stroke-width: 1px;
   --shiny-chrome-glyph-dash: 2 2;
   --shiny-chrome-font-size-detail: 11px;
   --shiny-chrome-font-size-control: 12px;
