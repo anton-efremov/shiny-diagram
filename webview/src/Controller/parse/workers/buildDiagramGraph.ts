@@ -449,9 +449,17 @@ function toProvenanceIndex(
 
 export function toDiagramRecord(tokens: readonly ParseToken[]): ProvenanceIndex["diagram"] {
   const headerToken = tokens.find((token) => token.raw.trim().startsWith("classDiagram"));
+  const directionToken = tokens.find((token) => token.type === "direction");
+  const configDirectiveTokens = tokens.filter((token) => token.type === "configDirective");
   if (!headerToken) {
     const empty = { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } };
-    return { self: empty, header: empty, body: empty };
+    return {
+      self: empty,
+      header: empty,
+      body: empty,
+      direction: null,
+      configDirectives: [],
+    };
   }
   const last = tokens.at(-1) ?? headerToken;
   return {
@@ -466,6 +474,8 @@ export function toDiagramRecord(tokens: readonly ParseToken[]): ProvenanceIndex[
       },
     },
     header: toHeaderLocation(headerToken),
+    direction: directionToken ? toSourceSpan(directionToken) : null,
+    configDirectives: configDirectiveTokens.map(toSourceSpan),
     body: {
       start: { line: headerToken.lineNumber + 1, character: 0 },
       end: {

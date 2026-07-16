@@ -3,6 +3,61 @@ import { toAttributeId, toClassId, toMethodId, toNamespaceId } from "../../share
 import { composeNoteId } from "../model/noteIdentity";
 import { parseDiagram } from "./parseDiagram";
 
+describe("parseDiagram direction provenance", () => {
+  it("records the direction line span", () => {
+    const result = parseDiagram(`classDiagram
+  direction LR
+`);
+
+    expect(result.status).not.toBe("invalidSyntax");
+    if (result.status === "invalidSyntax") return;
+    expect(result.provenance.diagram.direction).toEqual({
+      start: { line: 1, character: 0 },
+      end: { line: 1, character: 14 },
+    });
+  });
+
+  it("records null when direction is absent", () => {
+    const result = parseDiagram(`classDiagram
+`);
+
+    expect(result.status).not.toBe("invalidSyntax");
+    if (result.status === "invalidSyntax") return;
+    expect(result.provenance.diagram.direction).toBeNull();
+  });
+});
+
+describe("parseDiagram config-directive provenance", () => {
+  it("records directive spans in source order", () => {
+    const result = parseDiagram(`classDiagram
+%%{init: {"class": {"hideEmptyMembersBox": true}}}%%
+  %%{init: {"class": {"hierarchicalNamespaces": false}}}%%
+`);
+
+    expect(result.status).not.toBe("invalidSyntax");
+    if (result.status === "invalidSyntax") return;
+    expect(result.provenance.diagram.configDirectives).toEqual([
+      {
+        start: { line: 1, character: 0 },
+        end: { line: 1, character: 52 },
+      },
+      {
+        start: { line: 2, character: 0 },
+        end: { line: 2, character: 58 },
+      },
+    ]);
+  });
+
+  it("records an empty array when directives are absent", () => {
+    const result = parseDiagram(`classDiagram
+`);
+
+    expect(result.status).not.toBe("invalidSyntax");
+    if (result.status === "invalidSyntax") return;
+    expect(result.provenance.diagram.configDirectives).toEqual([]);
+  });
+});
+
 describe("parseDiagram member text blocks", () => {
   it("parses permissive valid members into display text and classifier flags", () => {
     const result = parseDiagram(`classDiagram

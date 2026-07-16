@@ -155,6 +155,7 @@ function isInvalidClassBodyStatement(token: ParseToken): boolean {
     case "spatialAnnotation":
     case "noteAnnotation":
     case "namespaceStyleAnnotation":
+    case "configDirective":
     case "noteStatement":
     case "namespace":
     case "knownIgnored":

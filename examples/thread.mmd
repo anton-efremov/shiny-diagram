@@ -1,5 +1,43 @@
 classDiagram
+
 direction TB
+
+namespace NewNamespace2 {
+  namespace NewNamespace {
+    class Attachment {
+      <<abstract>>
+      +UUID id
+      +string fileName
+      +int sizeBytes
+      +downloadUrl() string
+    }
+    class ImageAttachment {
+      +int width
+      +int height
+      +string thumbnailUrl
+    }
+    class FileAttachment {
+      +string mimeType
+      +string checksum
+    }
+    class GroupThread {
+      +string title
+      +UserContact owner
+      +rename(title: string) void
+      +transferOwnership(userId: UUID) void
+    }
+  }
+
+    class Presence {
+      <<enumeration>>
+      Online
+      Away
+      Offline
+    }
+
+}
+
+
 
 class ConversationThread {
   <<interface>>
@@ -16,12 +54,6 @@ class DirectThread {
   +isBlocked() boolean
 }
 
-class GroupThread {
-  +string title
-  +UserContact owner
-  +rename(title: string) void
-  +transferOwnership(userId: UUID) void
-}
 
 class UserContact {
   +UUID id
@@ -40,24 +72,8 @@ class TextMessage {
   +delete() void
 }
 
-class Attachment {
-  <<abstract>>
-  +UUID id
-  +string fileName
-  +int sizeBytes
-  +downloadUrl() string
-}
 
-class ImageAttachment {
-  +int width
-  +int height
-  +string thumbnailUrl
-}
 
-class FileAttachment {
-  +string mimeType
-  +string checksum
-}
 
 class MessageStatus {
   <<enumeration>>
@@ -68,12 +84,6 @@ class MessageStatus {
   Failed
 }
 
-class Presence {
-  <<enumeration>>
-  Online
-  Away
-  Offline
-}
 
 class ThreadRepository {
   +findById(id: UUID) ConversationThread
@@ -102,14 +112,14 @@ UserContact --> Presence : presence
 ThreadRepository ..> ConversationThread : persists
 NotificationService ..> TextMessage : observes
 NotificationService ..> ConversationThread : notifies
-%% @note: x=118 y=-32 w=180 h=96
 
+%% @note: x=1070 y=291 w=180 h=64
 note for ConversationThread "Central aggregate for a chat thread"
-%% @note: x=525 y=-81 w=180 h=96
-
+%% @note: x=1207 y=468 w=180 h=64
 note for TextMessage "Good resize test: fields, methods, and edges"
-%% @note: x=647 y=-180 w=180 h=96
 
+
+%% @note: x=666 y=42 w=180 h=64
 note for NotificationService "Dependency-only service for edge rendering"
 
 classDef pine fill:#779c8c,stroke:#275340,color:#ffffff
@@ -129,20 +139,22 @@ class Attachment attachmentStyle
 class ImageAttachment attachmentStyle
 class FileAttachment attachmentStyle
 
-%% @spatial:ConversationThread x=401 y=354 w=408 h=202
-%% @spatial:DirectThread x=40 y=664 w=232 h=106
-%% @spatial:GroupThread x=322 y=640 w=368 h=154
-%% @spatial:UserContact x=613 y=878 w=224 h=178
-%% @spatial:TextMessage x=1028 y=616 w=264 h=202
+%% @spatial:ConversationThread x=946 y=589 w=408 h=223
+%% @spatial:TextMessage x=1068 y=889 w=264 h=223
+%% @spatial:NotificationService x=540 y=385 w=420 h=131
+%% @spatial:UserContact x=738 y=900 w=224 h=200
+%% @spatial:Attachment x=1030 y=1356 w=240 h=183
+%% @spatial:DirectThread x=1434 y=885 w=232 h=131
+%% @spatial:FileAttachment x=1058 y=1579 w=184 h=131
+%% @spatial:GroupThread x=566 y=1356 w=368 h=177
+%% @spatial:ImageAttachment x=1042 y=1767 w=216 h=154
+%% @spatial:MessageStatus x=670 y=600 w=160 h=200
+%% @spatial:Presence x=1370 y=1217 w=160 h=160
+%% @spatial:ThreadRepository x=162 y=623 w=376 h=154
 
-%% @spatial:ImageAttachment x=927 y=1116 w=216 h=130
 
-%% @spatial:MessageStatus x=750 y=628 w=160 h=178
-%% @spatial:Presence x=645 y=1116 w=160 h=130
-%% @spatial:ThreadRepository x=100 y=164 w=376 h=130
-%% @spatial:NotificationService x=526 y=176 w=420 h=106
-%% @spatial:FileAttachment x=1208 y=1135 w=184 h=131
-%% @spatial:Attachment x=1230 y=912 w=240 h=177
+
+
 
 
 

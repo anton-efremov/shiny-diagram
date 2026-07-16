@@ -16,6 +16,7 @@ export type ParseTokenType =
   | "spatialAnnotation"
   | "noteAnnotation"
   | "namespaceStyleAnnotation"
+  | "configDirective"
   | "noteStatement"
   | "namespace"
   | "directive"
@@ -92,6 +93,7 @@ function detectLineType(raw: string): ParseTokenType {
   if (/^\s*%%\s+@spatial:/.test(raw)) return "spatialAnnotation";
   if (/^\s*%%\s+@note:/.test(raw)) return "noteAnnotation";
   if (/^\s*%%\s+@style:/.test(raw)) return "namespaceStyleAnnotation";
+  if (/^\s*%%\{\s*init\s*:.*\}%%\s*$/.test(raw)) return "configDirective";
   if (/^\s*%%/.test(raw)) return "directive";
   if (/^\s*classDef\s+/.test(raw)) return "styleDef";
   if (new RegExp(`^\\s*style\\s+${identity}\\s+`).test(raw)) return "classDirectStyle";
