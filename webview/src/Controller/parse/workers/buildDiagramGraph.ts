@@ -23,6 +23,7 @@ import type {
   StyleOccurrence,
   StyleDefNode,
 } from "../../model/diagramGraph";
+import type { DiagramDirection } from "../../../shared/uml";
 import type {
   BlockMemberRecord,
   ClassDirectStyleRecord,
@@ -50,6 +51,7 @@ import type { ParseToken } from "./tokenizer";
 import { toHeaderLocation, toLineFieldLocation, toSourceSpan } from "./toSourceSpan";
 
 type MutableGraphBuild = {
+  direction: DiagramDirection | null;
   readonly classes: Map<ClassNode["id"], ClassNode>;
   readonly styleDefinitions: Map<StyleDefNode["id"], StyleDefNode>;
   readonly namespaces: Map<NamespaceNode["id"], NamespaceNode>;
@@ -93,6 +95,7 @@ export type GraphBuildResult = {
 
 export function buildSpatiallyUnawareDiagramGraph(tokens: ParseToken[]): GraphBuildResult {
   const build: MutableGraphBuild = {
+    direction: null,
     classes: new Map(),
     styleDefinitions: new Map(),
     namespaces: new Map(),
@@ -143,6 +146,11 @@ function traverseTokens(
 ): void {
   for (const token of tokens) {
     switch (token.type) {
+      case "direction": {
+        const match = /^\s*direction\s+(TB|BT|RL|LR)\s*$/.exec(token.raw);
+        if (match) build.direction = match[1] as DiagramDirection;
+        break;
+      }
       case "classDeclaration": {
         const parsed = buildClassNode(token);
         if (parsed) {
@@ -401,7 +409,7 @@ function toDiagramGraph(build: MutableGraphBuild): DiagramGraph {
     diagram: {
       kind: "classDiagram",
       id: toDiagramId("classDiagram"),
-      direction: null,
+      direction: build.direction,
       config: {
         hideEmptyMembersBox: null,
         hierarchicalNamespaces: null,

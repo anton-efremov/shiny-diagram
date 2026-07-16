@@ -5,7 +5,7 @@
 import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
 import type { ReactElement } from "react";
 import { parseDiagram } from "./parse";
-import { deriveDiagramView } from "./deriveViews";
+import { deriveDiagramView, deriveUnpositionedClassViews } from "./deriveViews";
 import { resolveIntents } from "./resolve";
 import { translateCommands, validateTransaction } from "./translate";
 import type { DiagramGraph } from "./model/diagramGraph";
@@ -83,6 +83,7 @@ export default function ShinyController({
     }
 
     const diagram = diagramView ?? {
+      direction: null,
       classes: [],
       namespaces: [],
       relationships: [],
@@ -92,7 +93,7 @@ export default function ShinyController({
     if (parseResult.status === "missingAnnotations") {
       return {
         status: "missingAnnotations",
-        missingClassIds: parseResult.missingIds,
+        missingClasses: deriveUnpositionedClassViews(parseResult.graph),
         diagram,
       };
     }

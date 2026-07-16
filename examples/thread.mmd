@@ -1,5 +1,5 @@
 classDiagram
-direction LR
+direction TB
 
 class ConversationThread {
   <<interface>>
@@ -102,10 +102,32 @@ UserContact --> Presence : presence
 ThreadRepository ..> ConversationThread : persists
 NotificationService ..> TextMessage : observes
 NotificationService ..> ConversationThread : notifies
-%% @note: x=174 y=-180 w=180 h=96
+%% @note: x=1278 y=197 w=180 h=64
+%% @note: x=1278 y=197 w=180 h=64
 
+
+%% @note: x=1278 y=197 w=180 h=64
 note for ConversationThread "Central aggregate for a chat thread"
+%% @note: x=1060 y=468 w=180 h=64
+%% @note: x=1060 y=468 w=180 h=64
+%% @note: x=1060 y=468 w=180 h=64
+%% @note: x=1060 y=468 w=180 h=64
+%% @note: x=1343 y=423 w=180 h=64
+%% @note: x=1060 y=468 w=180 h=64
+%% @note: x=1343 y=423 w=180 h=64
+%% @note: x=1343 y=423 w=180 h=64
+%% @note: x=646 y=40 w=180 h=64
+
 note for TextMessage "Good resize test: fields, methods, and edges"
+%% @note: x=660 y=68 w=180 h=64
+%% @note: x=660 y=68 w=180 h=64
+%% @note: x=660 y=68 w=180 h=64
+%% @note: x=660 y=68 w=180 h=64
+%% @note: x=646 y=40 w=180 h=64
+%% @note: x=660 y=68 w=180 h=64
+%% @note: x=646 y=40 w=180 h=64
+%% @note: x=646 y=40 w=180 h=64
+
 note for NotificationService "Dependency-only service for edge rendering"
 
 classDef pine fill:#779c8c,stroke:#275340,color:#ffffff
@@ -120,21 +142,33 @@ class ThreadRepository serviceStyle
 class NotificationService serviceStyle
 class MessageStatus enumStyle
 class Presence enumStyle
+
 class Attachment attachmentStyle
 class ImageAttachment attachmentStyle
 class FileAttachment attachmentStyle
 
-%% @spatial:ConversationThread x=40 y=40 w=200 h=150
-%% @spatial:DirectThread x=280 y=40 w=200 h=150
-%% @spatial:GroupThread x=520 y=40 w=200 h=150
-%% @spatial:UserContact x=760 y=40 w=200 h=150
-%% @spatial:TextMessage x=1000 y=40 w=200 h=150
-%% @spatial:Attachment x=1240 y=40 w=200 h=150
-%% @spatial:ImageAttachment x=1480 y=40 w=200 h=150
-%% @spatial:FileAttachment x=1720 y=40 w=200 h=150
-%% @spatial:MessageStatus x=1960 y=40 w=200 h=150
-%% @spatial:Presence x=2200 y=40 w=200 h=150
-%% @spatial:ThreadRepository x=2440 y=40 w=200 h=150
-%% @spatial:NotificationService x=2680 y=40 w=200 h=150
+%% @spatial:ConversationThread x=401 y=354 w=408 h=202
+%% @spatial:DirectThread x=40 y=664 w=232 h=106
+%% @spatial:GroupThread x=322 y=640 w=368 h=154
+%% @spatial:UserContact x=613 y=878 w=224 h=178
+%% @spatial:TextMessage x=1028 y=616 w=264 h=202
+
+%% @spatial:ImageAttachment x=927 y=1116 w=216 h=130
+
+%% @spatial:MessageStatus x=750 y=628 w=160 h=178
+%% @spatial:Presence x=645 y=1116 w=160 h=130
+%% @spatial:ThreadRepository x=100 y=164 w=376 h=130
+%% @spatial:NotificationService x=526 y=176 w=420 h=106
+%% @spatial:FileAttachment x=1208 y=1135 w=184 h=131
+%% @spatial:Attachment x=1230 y=912 w=240 h=177
+
+
+
+
+
+
+
+
+
 
 

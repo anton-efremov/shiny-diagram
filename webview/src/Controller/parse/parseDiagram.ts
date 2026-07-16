@@ -146,6 +146,7 @@ function collectInvalidClassBodyDiagnosticsInto(
 function isInvalidClassBodyStatement(token: ParseToken): boolean {
   switch (token.type) {
     case "diagramHeader":
+    case "direction":
     case "classDeclaration":
     case "relationship":
     case "styleDef":

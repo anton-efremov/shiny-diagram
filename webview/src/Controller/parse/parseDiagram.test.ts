@@ -131,6 +131,47 @@ direction LR
     expect(result.status).toBe("ready");
   });
 
+  it.each(["TB", "BT", "LR", "RL"] as const)("parses diagram direction %s", (direction) => {
+    const result = parseDiagram(`classDiagram
+direction ${direction}
+class User
+%% @spatial:User x=10 y=20 w=220 h=160
+`);
+
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") return;
+    expect(result.graph.diagram.direction).toBe(direction);
+  });
+
+  it("uses null when diagram direction is absent", () => {
+    const result = parseDiagram(`classDiagram
+class User
+%% @spatial:User x=10 y=20 w=220 h=160
+`);
+
+    expect(result.status).toBe("ready");
+    if (result.status !== "ready") return;
+    expect(result.graph.diagram.direction).toBeNull();
+  });
+
+  it("preserves class members when applying a named style with space syntax", () => {
+    const result = parseDiagram(`classDiagram
+class FileAttachment {
+  +string mimeType
+  +string checksum
+}
+classDef attachmentStyle fill:#fff
+class FileAttachment attachmentStyle
+`);
+
+    expect(result.status).toBe("missingAnnotations");
+    if (result.status !== "missingAnnotations") return;
+    expect(result.graph.classes.get(toClassId("FileAttachment"))?.attributes).toHaveLength(2);
+    expect([...result.graph.styleApplications.values()][0]).toMatchObject({
+      targetId: toClassId("FileAttachment"),
+    });
+  });
+
   it("returns one diagnostic for each unrecognized statement", () => {
     const result = parseDiagram(`classDiagram
 class User

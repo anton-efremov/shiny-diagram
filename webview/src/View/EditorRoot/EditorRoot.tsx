@@ -29,9 +29,8 @@ export default function EditorRoot({
     if (view.status !== "missingAnnotations") return;
     if (generateRequest <= handledGenerateRequest.current) return;
     handledGenerateRequest.current = generateRequest;
-    onTransactionDispatch(
-      toMissingAnnotationsGenerateTransaction(view.missingClassIds, view.diagram.classes)
-    );
+    const transaction = toMissingAnnotationsGenerateTransaction(view.diagram, view.missingClasses);
+    if (transaction.length > 0) onTransactionDispatch(transaction);
   }, [generateRequest, onTransactionDispatch, view]);
 
   // Child component routing
