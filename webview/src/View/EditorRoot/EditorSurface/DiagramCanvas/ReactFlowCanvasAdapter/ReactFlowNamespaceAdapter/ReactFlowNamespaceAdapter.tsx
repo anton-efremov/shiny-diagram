@@ -7,6 +7,8 @@ import type { ReactElement } from "react";
 import type { NamespaceId } from "../../../../../../shared/ids";
 import type { Point, Rect } from "../../../../../../shared/geometry";
 import type { NamespaceView } from "../../../../../views/schema";
+import type { EditingState } from "../../../../../state/editorStates";
+import type { TransactionResult } from "../../../../../commands/editorCommands";
 import type { NamespaceResizeHandle } from "../frameworkAdapters";
 import NamespaceBox from "./NamespaceBox/NamespaceBox";
 
@@ -22,6 +24,15 @@ type NamespaceNodeData = {
     handle: NamespaceResizeHandle,
     screenPoint: Point
   ) => void;
+  readonly editingState: EditingState;
+  readonly onTextBlockEditStart: (
+    editingState: Exclude<EditingState, { readonly kind: "none" }>
+  ) => void;
+  readonly onTextBlockEditCancel: () => void;
+  readonly onNamespaceRenameCommitted: (
+    result: TransactionResult,
+    previousNamespaceId: NamespaceId
+  ) => void;
 };
 
 type NamespaceNode = Node<NamespaceNodeData, "namespaceBox">;
@@ -36,6 +47,10 @@ export default function ReactFlowNamespaceAdapter(props: NodeProps<NamespaceNode
       bounds={props.data.bounds}
       onNamespaceSelect={props.data.onNamespaceSelect}
       onNamespaceResizeHandlePress={props.data.onNamespaceResizeHandlePress}
+      editingState={props.data.editingState}
+      onTextBlockEditStart={props.data.onTextBlockEditStart}
+      onTextBlockEditCancel={props.data.onTextBlockEditCancel}
+      onNamespaceRenameCommitted={props.data.onNamespaceRenameCommitted}
     />
   );
 }

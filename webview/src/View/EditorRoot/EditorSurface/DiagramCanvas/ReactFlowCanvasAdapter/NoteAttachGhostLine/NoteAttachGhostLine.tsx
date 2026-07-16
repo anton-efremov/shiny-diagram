@@ -4,13 +4,9 @@
 
 import type { ReactElement } from "react";
 import type { Point } from "../../../../../../shared/geometry";
-import {
-  NOTE_ATTACH_GHOST_DASH_PATTERN,
-  NOTE_ATTACH_GHOST_STROKE,
-  NOTE_ATTACH_GHOST_STROKE_WIDTH,
-  NOTE_ATTACH_GHOST_Z_INDEX,
-} from "../../../../../config/editorUiConfig";
-import styles from "./NoteAttachGhostLine.module.css";
+import { NOTE_ATTACH_GHOST_Z_INDEX } from "../../../../../config/editorUiConfig";
+import EdgeGhostLine from "../../../../../../ui/canvas/primitives/EdgeGhostLine/EdgeGhostLine";
+import CanvasOverlayFrame from "../../../../../../ui/canvas/templates/CanvasOverlayFrame/CanvasOverlayFrame";
 
 type NoteAttachGhostLineProps = {
   readonly sourcePoint: Point;
@@ -22,17 +18,12 @@ export default function NoteAttachGhostLine({
   targetPoint,
 }: NoteAttachGhostLineProps): ReactElement {
   return (
-    <svg className={styles.layer} style={{ zIndex: NOTE_ATTACH_GHOST_Z_INDEX }} aria-hidden="true">
-      <line
-        className={styles.line}
-        x1={sourcePoint.x}
-        y1={sourcePoint.y}
-        x2={targetPoint.x}
-        y2={targetPoint.y}
-        stroke={NOTE_ATTACH_GHOST_STROKE}
-        strokeWidth={NOTE_ATTACH_GHOST_STROKE_WIDTH}
-        strokeDasharray={NOTE_ATTACH_GHOST_DASH_PATTERN}
+    <CanvasOverlayFrame stacking={NOTE_ATTACH_GHOST_Z_INDEX}>
+      <EdgeGhostLine
+        d={`M ${sourcePoint.x} ${sourcePoint.y} L ${targetPoint.x} ${targetPoint.y}`}
+        lineKind="dashed"
+        tone="attachment"
       />
-    </svg>
+    </CanvasOverlayFrame>
   );
 }

@@ -1,0 +1,155 @@
+/**
+ * @render Color glyph trigger and document/preset swatch popup.
+ */
+
+.colorSelect {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.trigger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--shiny-control-height);
+  padding: 5px 7px;
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-field-border);
+  border-radius: var(--shiny-field-radius);
+  color: var(--shiny-field-fg);
+  background: var(--shiny-chrome-field-bg);
+  cursor: var(--shiny-chrome-cursor-action);
+}
+
+.trigger:hover:not(:disabled) {
+  border-color: var(--shiny-field-hover-border);
+  color: var(--shiny-field-hover-fg);
+  background: var(--shiny-chrome-surface);
+}
+
+.trigger:focus-visible,
+.colorOption:focus-visible {
+  outline: var(--shiny-chrome-focus-outline-width) var(--shiny-chrome-focus-outline-style)
+    var(--shiny-field-focus-border);
+  outline-offset: 1px;
+}
+
+.trigger:disabled {
+  opacity: 0.58;
+  cursor: var(--shiny-chrome-cursor-unavailable);
+}
+
+.glyph {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 18px;
+  color: var(--color-select-value, var(--shiny-chrome-text-muted));
+}
+
+.fill {
+  width: 18px;
+  height: 18px;
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-overlay-strong);
+  border-radius: var(--shiny-chrome-option-radius);
+  background: currentColor;
+}
+
+.stroke::before {
+  width: 22px;
+  height: 3px;
+  background: currentColor;
+  content: "";
+}
+
+.text {
+  font-size: var(--shiny-chrome-font-size-preview);
+  font-weight: var(--shiny-chrome-font-weight-strong);
+}
+
+.emphasized {
+  border-radius: var(--shiny-chrome-preview-radius);
+  box-shadow: var(--shiny-chrome-preview-outline);
+}
+
+.stroke.emphasized,
+.text.emphasized {
+  box-shadow: var(--shiny-chrome-shadow-clear);
+}
+
+.multiple {
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-border);
+  background: linear-gradient(
+    135deg,
+    var(--shiny-chrome-surface) 50%,
+    var(--shiny-chrome-text-muted) 50%
+  );
+  color: transparent;
+}
+
+.popup {
+  position: fixed;
+  top: var(--color-select-popup-top);
+  left: var(--color-select-popup-left);
+  display: grid;
+  gap: 8px;
+  width: var(--color-select-popup-width);
+  padding: 9px;
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-border);
+  border-radius: var(--shiny-chrome-button-radius);
+  background: var(--shiny-chrome-surface);
+  box-shadow: var(--shiny-chrome-selector-elevation);
+}
+
+.section {
+  display: grid;
+  gap: 6px;
+}
+
+.heading {
+  color: var(--shiny-chrome-text-muted);
+  font-size: var(--shiny-chrome-font-size-detail);
+  font-weight: var(--shiny-chrome-font-weight-emphasis);
+}
+
+.documentGrid,
+.paletteGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 18px);
+  gap: 5px;
+}
+
+.paletteGrid {
+  justify-content: center;
+}
+
+.documentGrid {
+  grid-template-columns: repeat(auto-fill, 18px);
+}
+
+.paletteGrid > :nth-child(n + 25) {
+  margin-top: 5px;
+}
+
+.colorOption {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-overlay-strong);
+  border-radius: var(--shiny-chrome-option-radius);
+  background: var(--color-select-value);
+  cursor: var(--shiny-chrome-cursor-action);
+}
+
+.colorOption[aria-pressed="true"] {
+  outline: var(--shiny-chrome-focus-outline-width) var(--shiny-chrome-focus-outline-style)
+    var(--shiny-chrome-accent-outline);
+  outline-offset: 1px;
+}

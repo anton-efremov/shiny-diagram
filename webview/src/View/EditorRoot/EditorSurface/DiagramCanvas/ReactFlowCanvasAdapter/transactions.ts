@@ -159,6 +159,19 @@ export function toClassDropTransaction(
   ];
 }
 
+export function toClassResizeTransaction(classId: ClassId, rect: Rect): EditorCommandTransaction {
+  return [
+    {
+      type: "class.spatial.set" as const,
+      classId,
+      spatial: {
+        position: { x: Math.round(rect.x), y: Math.round(rect.y) },
+        size: { width: rect.w, height: rect.h },
+      },
+    },
+  ];
+}
+
 export function toTransitiveMemberClassIds(
   namespaceId: NamespaceId,
   view: Pick<DiagramView, "classes" | "namespaces">

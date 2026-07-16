@@ -15,7 +15,11 @@ export function composeNoteStatement(payload: NoteStatementPayload): string {
   const target = payload.attachedToClassId
     ? `for ${spellIdentity(payload.attachedToClassId)} `
     : "";
-  return `note ${target}"${payload.text}"`;
+  return `note ${target}"${composeNoteText(payload.text)}"`;
+}
+
+export function composeNoteText(text: string): string {
+  return text.replace(/\r\n?|\n/g, String.raw`\n`);
 }
 
 export function composeNoteAnnotation(spatial: SpatialAttachment): string {

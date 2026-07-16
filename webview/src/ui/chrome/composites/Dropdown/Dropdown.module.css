@@ -1,0 +1,254 @@
+/**
+ * @render Dropdown styling.
+ */
+
+.dropdown {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.trigger,
+.boxLabelTrigger,
+.option {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-field-border);
+  border-radius: var(--shiny-field-radius);
+  color: var(--shiny-field-fg);
+  background: var(--shiny-chrome-field-bg);
+  box-shadow: var(--shiny-chrome-control-elevation);
+  font: inherit;
+  text-align: left;
+  cursor: var(--shiny-chrome-cursor-action);
+}
+
+.trigger:hover:not(:disabled),
+.boxLabelTrigger:hover:not(:disabled) {
+  border-color: var(--shiny-field-hover-border);
+  color: var(--shiny-field-hover-fg);
+  background: var(--shiny-chrome-surface);
+}
+
+.option:hover {
+  color: var(--shiny-field-hover-fg);
+  background: var(--shiny-chrome-surface);
+}
+
+.iconOption {
+  border-color: transparent;
+  border-radius: var(--shiny-chrome-joined-radius);
+  background: transparent;
+  box-shadow: var(--shiny-chrome-shadow-clear);
+}
+
+.iconOption .swatchOnlyContent {
+  place-items: center;
+  padding: 4px 8px;
+}
+
+.iconOption:hover {
+  color: var(--shiny-field-hover-fg);
+  background: var(--shiny-chrome-surface);
+}
+
+.trigger:focus-visible,
+.boxLabelTrigger:focus-visible,
+.option:focus-visible {
+  outline: var(--shiny-chrome-focus-outline-width) var(--shiny-chrome-focus-outline-style)
+    var(--shiny-field-focus-border);
+  outline-offset: 1px;
+}
+
+.trigger:disabled,
+.boxLabelTrigger:disabled {
+  color: var(--shiny-chrome-text-muted);
+  cursor: var(--shiny-chrome-cursor-unavailable);
+  opacity: 0.58;
+}
+
+.triggerLabel,
+.optionLabel,
+.optionContent,
+.swatchOnlyContent,
+.boxLabelContent {
+  display: block;
+  min-height: var(--shiny-control-height);
+  padding: 7px 10px;
+  overflow: hidden;
+  font-size: var(--shiny-chrome-font-size-control);
+  font-weight: var(--shiny-chrome-font-weight-emphasis);
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.triggerContent {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16px;
+  align-items: center;
+  min-width: 0;
+}
+
+.boxLabelTrigger .triggerContent {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.triggerContent > .triggerLabel,
+.triggerContent > .optionContent,
+.triggerContent > .swatchOnlyContent,
+.triggerContent > .boxLabelContent {
+  padding-right: 4px;
+}
+
+.boxLabelTrigger .triggerContent > .boxLabelContent {
+  padding-right: 0;
+}
+
+.optionContent,
+.swatchOnlyContent,
+.boxLabelContent {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.swatchOnlyContent {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.boxLabelContent {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 0;
+}
+
+.swatch {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 16px;
+}
+
+.boxSwatch {
+  width: 16px;
+  border: var(--dropdown-swatch-stroke-width, 1px) solid
+    var(--dropdown-swatch-stroke, var(--shiny-border));
+  border-style: var(--dropdown-swatch-stroke-dasharray, solid);
+  color: var(--dropdown-swatch-color, var(--dropdown-swatch-stroke, var(--shiny-chrome-text)));
+  background: var(--dropdown-swatch-fill, transparent);
+}
+
+.boxLabelSwatch {
+  justify-items: start;
+  width: 100%;
+  height: var(--shiny-control-height);
+  padding: 6px 24px 6px 8px;
+  border-radius: var(--shiny-field-radius);
+}
+
+.embeddedLabel {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dropdown-swatch-color, var(--shiny-chrome-text));
+  font-size: var(--shiny-chrome-font-size-detail);
+  font-weight: var(--shiny-chrome-font-weight-emphasis);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sampleSwatch {
+  border: 0;
+  background: transparent;
+}
+
+.lineSample {
+  display: block;
+  width: 36px;
+  height: 10px;
+  color: var(--dropdown-swatch-stroke, var(--shiny-chrome-text-muted));
+}
+
+.longLineSwatch {
+  width: 36px;
+}
+
+.endpointSample {
+  display: block;
+  width: 32px;
+  height: 16px;
+  overflow: visible;
+  color: var(--dropdown-swatch-stroke, var(--shiny-chrome-text-muted));
+}
+
+.endpointSwatch {
+  width: 32px;
+}
+
+.endpointLine,
+.endpointOpen {
+  fill: var(--dropdown-swatch-fill, var(--shiny-chrome-field-bg));
+  stroke: currentColor;
+  stroke-width: var(--shiny-chrome-glyph-stroke-width);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.textSample {
+  color: var(--dropdown-swatch-color, var(--shiny-chrome-text-muted));
+  font-size: var(--shiny-chrome-font-size-detail);
+  font-weight: var(--shiny-chrome-font-weight-strong);
+  line-height: 1;
+}
+
+.optionText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arrow {
+  display: grid;
+  place-items: center;
+  min-height: var(--shiny-control-height);
+  color: var(--dropdown-arrow-color, var(--shiny-chrome-text-muted));
+}
+
+.boxLabelTrigger .arrow {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: var(--shiny-control-height);
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  left: 0;
+  display: grid;
+  gap: 2px;
+  max-height: 220px;
+  padding: 4px;
+  overflow: auto;
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-border);
+  border-radius: var(--shiny-chrome-popup-radius);
+  background: var(--shiny-chrome-surface);
+  box-shadow: var(--shiny-chrome-popup-elevation);
+}
+
+.option[aria-selected="true"] {
+  border-color: var(--shiny-chrome-accent-outline);
+}
+
+.iconOption[aria-selected="true"] {
+  border-color: transparent;
+  background: var(--shiny-chrome-overlay-faint);
+}

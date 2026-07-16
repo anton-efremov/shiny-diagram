@@ -16,7 +16,14 @@ import type {
   ProvenanceIndex,
 } from "../../../model/provenanceIndex";
 import type { SourceSpan } from "../../../model/sourceEdit";
-import type { BlockRef, EntryRef, StatementRef, StyleListRef, ValueRef } from "../../../translate";
+import type {
+  BlockRef,
+  ClauseRef,
+  EntryRef,
+  StatementRef,
+  StyleListRef,
+  ValueRef,
+} from "../../../translate";
 
 export function resolveStatementRef(ref: StatementRef, provenance: ProvenanceIndex): SourceSpan {
   switch (ref.kind) {
@@ -87,6 +94,38 @@ export function resolveEntryRef(ref: EntryRef, provenance: ProvenanceIndex): Sou
         provenance.styleDefinitions.get(ref.styleDefId)?.fields.properties[ref.property],
         `styleDef property ${ref.styleDefId}.${ref.property}`
       ).entry;
+  }
+}
+
+export function resolveClauseRef(ref: ClauseRef, provenance: ProvenanceIndex): SourceSpan {
+  switch (ref.kind) {
+    case "classGeneric":
+      return requireRecord(
+        provenance.classes.get(ref.classId)?.fields.genericType,
+        `class generic ${ref.classId}`
+      );
+    case "classLabel":
+      return requireRecord(
+        provenance.classes.get(ref.classId)?.fields.labelFull,
+        `class label ${ref.classId}`
+      );
+    case "relationshipLabel":
+      return requireRecord(
+        provenance.relationships.get(ref.relationshipId)?.fields.label,
+        `relationship label ${ref.relationshipId}`
+      );
+    case "relationshipSourceMultiplicity":
+    case "relationshipTargetMultiplicity": {
+      const fields = requireRecord(
+        provenance.relationships.get(ref.relationshipId),
+        `relationship ${ref.relationshipId}`
+      ).fields;
+      const span =
+        ref.kind === "relationshipSourceMultiplicity"
+          ? fields.sourceMultiplicity
+          : fields.targetMultiplicity;
+      return requireRecord(span, `${ref.kind} ${ref.relationshipId}`);
+    }
   }
 }
 

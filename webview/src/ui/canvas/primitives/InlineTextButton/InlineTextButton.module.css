@@ -1,0 +1,29 @@
+.button {
+  min-height: var(--shiny-inline-text-button-height);
+  padding: 4px 8px;
+  border: var(--shiny-inline-text-button-border-width) var(--shiny-inline-text-button-border-style)
+    var(--shiny-inline-text-button-border);
+  border-radius: var(--shiny-inline-text-button-radius);
+  color: var(--shiny-inline-text-button-foreground);
+  background: var(--shiny-inline-text-button-background);
+  box-shadow: var(--shiny-inline-text-button-elevation);
+  font: inherit;
+  font-size: var(--shiny-inline-text-button-font-size);
+  font-weight: var(--shiny-inline-text-button-font-weight);
+  cursor: var(--shiny-cursor-action);
+}
+
+.button:hover {
+  filter: var(--shiny-inline-text-button-hover-filter);
+}
+
+.button:active {
+  transform: translateY(1px);
+  box-shadow: var(--shiny-inline-text-button-active-elevation);
+}
+
+.button:focus-visible {
+  outline: var(--shiny-inline-text-button-focus-outline-width)
+    var(--shiny-inline-text-button-focus-outline-style) var(--shiny-canvas-accent-outline);
+  outline-offset: 2px;
+}

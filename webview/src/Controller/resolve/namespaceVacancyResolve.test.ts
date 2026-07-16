@@ -133,6 +133,7 @@ function reparentGraph(): DiagramGraph {
     notes: new Map(),
     styleDefinitions: new Map(),
     styleApplications: new Map(),
+    styleOccurrences: [],
   };
 }
 
@@ -160,6 +161,7 @@ function multiMoveGraph(): DiagramGraph {
     notes: new Map(),
     styleDefinitions: new Map(),
     styleApplications: new Map(),
+    styleOccurrences: [],
   };
 }
 

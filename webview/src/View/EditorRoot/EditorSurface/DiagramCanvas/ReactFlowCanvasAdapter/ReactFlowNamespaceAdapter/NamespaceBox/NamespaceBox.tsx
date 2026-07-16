@@ -3,31 +3,26 @@
  * @render Namespace hull box.
  */
 
-import type { CSSProperties, MouseEvent, PointerEvent, ReactElement } from "react";
+import { useState } from "react";
+import type { ReactElement } from "react";
 import type { NamespaceId } from "../../../../../../../shared/ids";
 import type { Point, Rect } from "../../../../../../../shared/geometry";
 import type { NamespaceView } from "../../../../../../views/schema";
+import type { EditingState } from "../../../../../../state/editorStates";
+import type { TransactionResult } from "../../../../../../commands/editorCommands";
+import BoxInteractionOverlay from "../../../../../../../ui/canvas/composites/BoxInteractionOverlay/BoxInteractionOverlay";
+import type { ResizeHandle } from "../../../../../../../ui/canvas/composites/BoxInteractionOverlay/BoxInteractionOverlay";
+import InlineCommitTextField from "../../../../../../../ui/canvas/composites/InlineCommitTextField/InlineCommitTextField";
+import InlineValidationPopup from "../../../../../../../ui/canvas/primitives/InlineValidationPopup/InlineValidationPopup";
+import HullHeaderFrame from "../../../../../../../ui/canvas/templates/HullHeaderFrame/HullHeaderFrame";
+import HullSurfaceFrame from "../../../../../../../ui/canvas/templates/HullSurfaceFrame/HullSurfaceFrame";
 import {
-  NAMESPACE_LABEL_BAND_HEIGHT,
-  NAMESPACE_LABEL_FONT_SIZE,
-  NAMESPACE_LABEL_FONT_WEIGHT,
-  NAMESPACE_LABEL_BAND_FILL_MIX_PERCENT,
-  NAMESPACE_LABEL_LINE_HEIGHT,
-  NAMESPACE_LABEL_PADDING_X,
-  NAMESPACE_LABEL_PADDING_Y,
-  NAMESPACE_DEFAULT_STROKE_WIDTH,
-  NAMESPACE_SELECTION_RING_WIDTH,
-  NAMESPACE_DEFAULT_FILL,
-  NAMESPACE_DEFAULT_STROKE,
-  NAMESPACE_PENDING_STROKE,
-  NAMESPACE_PENDING_OUTLINE_OFFSET,
-  NAMESPACE_PENDING_STROKE_WIDTH,
-  NAMESPACE_RESIZE_HANDLE_OFFSET,
-  NAMESPACE_RESIZE_HANDLE_SIZE,
+  INLINE_VALIDATION_POPUP_Z_INDEX,
+  NODE_ABOVE_CONTENT_Z_INDEX,
+  NODE_BEHIND_CONTENT_Z_INDEX,
 } from "../../../../../../config/editorUiConfig";
-import styles from "./NamespaceBox.module.css";
-
-type NamespaceResizeHandle = "nw" | "ne" | "sw" | "se";
+import { NAMESPACE_STYLE_CONSTANTS } from "../../../../../../config/styleConstants";
+import { useInteractions } from "./useInteractions";
 
 type NamespaceBoxProps = {
   readonly view: NamespaceView;
@@ -38,8 +33,17 @@ type NamespaceBoxProps = {
   readonly onNamespaceResizeHandlePress: (
     namespaceId: NamespaceId,
     bounds: Rect,
-    handle: NamespaceResizeHandle,
+    handle: ResizeHandle,
     screenPoint: Point
+  ) => void;
+  readonly editingState: EditingState;
+  readonly onTextBlockEditStart: (
+    editingState: Exclude<EditingState, { readonly kind: "none" }>
+  ) => void;
+  readonly onTextBlockEditCancel: () => void;
+  readonly onNamespaceRenameCommitted: (
+    result: TransactionResult,
+    previousNamespaceId: NamespaceId
   ) => void;
 };
 
@@ -50,87 +54,97 @@ export default function NamespaceBox({
   isPendingMember,
   onNamespaceSelect,
   onNamespaceResizeHandlePress,
+  editingState,
+  onTextBlockEditStart,
+  onTextBlockEditCancel,
+  onNamespaceRenameCommitted,
 }: NamespaceBoxProps): ReactElement {
+  // State creation: local state - blur-discard validation messages for namespace name edits
+  const [discardErrors, setDiscardErrors] = useState<readonly string[]>([]);
+
   // UI props derivation
-  const className = [
-    styles.namespaceBox,
-    isSelected ? styles.selected : "",
-    isPendingMember ? styles.pendingMember : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-  const dynamicVars = {
-    "--namespace-label-band-height": `${NAMESPACE_LABEL_BAND_HEIGHT}px`,
-    "--namespace-label-font-size": `${NAMESPACE_LABEL_FONT_SIZE}px`,
-    "--namespace-label-font-weight": NAMESPACE_LABEL_FONT_WEIGHT,
-    "--namespace-label-line-height": `${NAMESPACE_LABEL_LINE_HEIGHT}px`,
-    "--namespace-label-padding-x": `${NAMESPACE_LABEL_PADDING_X}px`,
-    "--namespace-label-padding-y": `${NAMESPACE_LABEL_PADDING_Y}px`,
-    "--namespace-label-band-fill-mix": `${NAMESPACE_LABEL_BAND_FILL_MIX_PERCENT}%`,
-    "--namespace-fill": view.style?.fill ?? NAMESPACE_DEFAULT_FILL,
-    "--namespace-stroke": view.style?.stroke ?? NAMESPACE_DEFAULT_STROKE,
-    "--namespace-stroke-width": view.style?.strokeWidth ?? `${NAMESPACE_DEFAULT_STROKE_WIDTH}px`,
-    "--namespace-selection-ring-width": `${NAMESPACE_SELECTION_RING_WIDTH}px`,
-    "--namespace-stroke-dasharray": view.style?.strokeDasharray ?? undefined,
-    "--namespace-color": view.style?.color ?? undefined,
-    "--namespace-pending-stroke": NAMESPACE_PENDING_STROKE,
-    "--namespace-pending-stroke-width": `${NAMESPACE_PENDING_STROKE_WIDTH}px`,
-    "--namespace-pending-outline-offset": `${NAMESPACE_PENDING_OUTLINE_OFFSET}px`,
-    "--namespace-resize-handle-size": `${NAMESPACE_RESIZE_HANDLE_SIZE}px`,
-    "--namespace-resize-handle-offset": `${NAMESPACE_RESIZE_HANDLE_OFFSET}px`,
-  } as CSSProperties;
+  const strokeWidth = toCssLength(view.style?.strokeWidth ?? NAMESPACE_STYLE_CONSTANTS.strokeWidth);
+  const selectionCenterOffset = toPixelLength(strokeWidth) + 2;
+  const lineStyle = toCssLineStyle(
+    view.style?.strokeDasharray ?? NAMESPACE_STYLE_CONSTANTS.strokeDasharray
+  );
 
   // Event handler props derivation
-  const onNamespaceClick = (event: MouseEvent<HTMLDivElement>) => {
-    event.stopPropagation();
-    onNamespaceSelect(view.namespaceId);
+  const { onNamespaceClick, onNamespacePress, onLabelClick, onLabelDoubleClick, onNameCommit } =
+    useInteractions({
+      namespaceId: view.namespaceId,
+      isSelected,
+      onNamespaceSelect,
+      onTextBlockEditStart,
+      onTextBlockEditCancel,
+      onNamespaceRenameCommitted,
+    });
+  const onResizeGrab = (handle: ResizeHandle, point: Point) => {
+    onNamespaceResizeHandlePress(view.namespaceId, bounds, handle, point);
   };
-  const onNamespacePress = () => {
-    onNamespaceSelect(view.namespaceId);
-  };
-  const onResizeHandlePointerDown =
-    (handle: NamespaceResizeHandle) => (event: PointerEvent<HTMLButtonElement>) => {
-      event.preventDefault();
-      event.stopPropagation();
-      onNamespaceResizeHandlePress(view.namespaceId, bounds, handle, {
-        x: event.clientX,
-        y: event.clientY,
-      });
-    };
 
   return (
-    <div
-      className={className}
-      style={dynamicVars}
+    <HullSurfaceFrame
       title={view.namespaceId}
-      onMouseDown={onNamespacePress}
+      fill={view.style?.fill ?? NAMESPACE_STYLE_CONSTANTS.fill}
+      stroke={view.style?.stroke ?? NAMESPACE_STYLE_CONSTANTS.stroke}
+      strokeWidth={strokeWidth}
+      lineStyle={lineStyle}
+      color={view.style?.color ?? NAMESPACE_STYLE_CONSTANTS.color}
+      onPressStart={onNamespacePress}
       onClick={onNamespaceClick}
     >
-      <div className={styles.labelBand}>{view.label}</div>
-      {isSelected ? (
-        <>
-          <button
-            className={`${styles.resizeHandle} ${styles.nw}`}
-            aria-label="Resize namespace from top left"
-            onPointerDown={onResizeHandlePointerDown("nw")}
-          />
-          <button
-            className={`${styles.resizeHandle} ${styles.ne}`}
-            aria-label="Resize namespace from top right"
-            onPointerDown={onResizeHandlePointerDown("ne")}
-          />
-          <button
-            className={`${styles.resizeHandle} ${styles.sw}`}
-            aria-label="Resize namespace from bottom left"
-            onPointerDown={onResizeHandlePointerDown("sw")}
-          />
-          <button
-            className={`${styles.resizeHandle} ${styles.se}`}
-            aria-label="Resize namespace from bottom right"
-            onPointerDown={onResizeHandlePointerDown("se")}
-          />
-        </>
+      {discardErrors.length > 0 ? (
+        <InlineValidationPopup
+          messages={discardErrors}
+          stacking={INLINE_VALIDATION_POPUP_Z_INDEX}
+          onDismiss={() => setDiscardErrors([])}
+        />
       ) : null}
-    </div>
+      <HullHeaderFrame>
+        <InlineCommitTextField
+          initialValue={view.label}
+          displayText={view.label}
+          onEditRequest={isSelected ? onLabelDoubleClick : onLabelClick}
+          isEditing={
+            editingState.kind === "namespaceName" && editingState.namespaceId === view.namespaceId
+          }
+          treatment="heading"
+          validate={onNameCommit}
+          ariaLabel="Namespace name"
+          validationStacking={INLINE_VALIDATION_POPUP_Z_INDEX}
+          surface={view.style?.fill ?? undefined}
+          onCommit={onTextBlockEditCancel}
+          onDiscard={(messages) => {
+            setDiscardErrors(messages);
+            onTextBlockEditCancel();
+          }}
+          onCancel={onTextBlockEditCancel}
+        />
+      </HullHeaderFrame>
+      <BoxInteractionOverlay
+        selected={isSelected}
+        pending={isPendingMember}
+        resizeVisible={isSelected}
+        centerOffset={selectionCenterOffset}
+        haloStacking={NODE_BEHIND_CONTENT_Z_INDEX}
+        affordanceStacking={NODE_ABOVE_CONTENT_Z_INDEX}
+        onResizeGrab={onResizeGrab}
+      />
+    </HullSurfaceFrame>
   );
+}
+
+function toCssLength(value: string): string {
+  return /^-?(?:\d+|\d*\.\d+)$/.test(value.trim()) ? `${value.trim()}px` : value;
+}
+
+function toPixelLength(value: string): number {
+  return Number.parseFloat(value);
+}
+
+function toCssLineStyle(value: string | null | undefined): "solid" | "dashed" | "dotted" {
+  const normalized = value?.trim().replace(/\s+/g, " ");
+  if (!normalized || normalized === "0" || normalized === "none") return "solid";
+  return normalized.startsWith("1 ") ? "dotted" : "dashed";
 }

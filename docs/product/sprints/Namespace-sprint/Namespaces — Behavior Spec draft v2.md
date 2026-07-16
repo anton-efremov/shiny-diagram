@@ -82,7 +82,7 @@ In this case, non-member carry "a hallo" of its parent namespace (or none) - a p
 Only one namespace can be selected:
 - Ctrl+click on another element switches selection to another element
 
-On selection, StylePane displays:
+On selection, EditPane displays:
 
 **Section Name:**
 

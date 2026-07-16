@@ -32,9 +32,9 @@ Created relationship:
 → click not on a class box
 Relationship placement mode is canceled. No selection
 
-## StylePane editting
+## EditPane editting
 
-When one relationship is selected Style Pane shows (full marker/line/marker model — any Mermaid-valid combination is reachable here, including non-UML ones):
+When one relationship is selected Edit Pane shows (full marker/line/marker model — any Mermaid-valid combination is reachable here, including non-UML ones):
 
 | Section                    | How it looks                                                                                  | Behavior                                                                                                                     |
 | -------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |

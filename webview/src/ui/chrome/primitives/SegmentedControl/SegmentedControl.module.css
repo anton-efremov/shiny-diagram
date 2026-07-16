@@ -1,0 +1,46 @@
+/**
+ * @render Quiet joined treatment for mutually exclusive controls.
+ */
+
+.control {
+  display: inline-flex;
+  height: var(--shiny-control-height);
+  padding: 2px;
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-button-outline);
+  border-radius: var(--shiny-chrome-button-radius);
+}
+
+.segment,
+.selectedSegment {
+  padding: 0 10px;
+  border: none;
+  border-radius: var(--shiny-chrome-button-radius);
+  font: inherit;
+  font-size: var(--shiny-chrome-font-size-control);
+  cursor: var(--shiny-chrome-cursor-action);
+}
+
+.segment {
+  color: var(--shiny-chrome-text-muted);
+  background: transparent;
+}
+
+.segment:hover {
+  color: var(--shiny-chrome-text);
+  background: var(--shiny-chrome-overlay-faint);
+}
+
+.selectedSegment {
+  color: var(--shiny-chrome-app-bg);
+  background: var(--shiny-chrome-text);
+  box-shadow: var(--shiny-chrome-shadow-clear);
+  font-weight: var(--shiny-chrome-font-weight-emphasis);
+}
+
+.segment:focus-visible,
+.selectedSegment:focus-visible {
+  outline: var(--shiny-chrome-compact-focus-outline-width) var(--shiny-chrome-focus-outline-style)
+    var(--shiny-chrome-accent-outline);
+  outline-offset: 0;
+}

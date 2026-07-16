@@ -6,19 +6,62 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 16px;
-  align-items: flex-start;
-  margin-bottom: 20px;
+  gap: 8px 16px;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: var(--shiny-chrome-layout-border-width) var(--shiny-chrome-layout-border-style)
+    var(--shiny-chrome-layout-border);
+  background: var(--shiny-header-bg);
 }
 
 .title {
-  margin: 0 0 8px;
-  font-size: 22px;
-  font-weight: 600;
+  margin: 0;
+  font-size: var(--shiny-chrome-font-size-preview);
+  font-weight: var(--shiny-chrome-font-weight-emphasis);
 }
 
-.toolbar {
+.leftGroup,
+.rightGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.leftGroup {
+  min-width: 0;
+  gap: 8px;
+}
+
+.rightGroup {
+  gap: 10px;
+  margin-left: auto;
+}
+
+.historyGroup {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+}
+
+.documentStatus {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.divider {
+  align-self: center;
+  height: 20px;
+  border-left: var(--shiny-chrome-layout-border-width) var(--shiny-chrome-layout-border-style)
+    var(--shiny-chrome-layout-border);
+}
+
+.filename {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--shiny-chrome-text-muted);
+  font-size: var(--shiny-chrome-font-size-detail);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

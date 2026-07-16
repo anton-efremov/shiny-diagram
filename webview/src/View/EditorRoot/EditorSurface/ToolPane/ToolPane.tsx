@@ -9,9 +9,11 @@ import type {
   NodePlacementState,
   RelationshipSeed,
 } from "../../../state/editorStates";
-import ClassTools from "./ClassTools/ClassTools";
+import { TOOL_PANE_WIDTH } from "../../../config/editorUiConfig";
+import PaneFrame from "../../../../ui/chrome/templates/PaneFrame/PaneFrame";
+import PaneSection from "../../../../ui/chrome/templates/PaneSection/PaneSection";
+import NodePlacementTools from "./NodePlacementTools/NodePlacementTools";
 import RelationshipTools from "./RelationshipTools/RelationshipTools";
-import styles from "./ToolPane.module.css";
 
 type ToolPaneProps = {
   readonly nodePlacementState: NodePlacementState;
@@ -40,19 +42,42 @@ export default function ToolPane({
   const isNamespacePlacementActive = namespaceGestureState.kind === "creating";
 
   return (
-    <aside className={styles.toolPane} aria-label="Diagram tools">
-      <ClassTools
-        isClassPlacementActive={isClassPlacementActive}
-        isNotePlacementActive={isNotePlacementActive}
-        isNamespacePlacementActive={isNamespacePlacementActive}
-        onPlacementStart={onClassPlacementStart}
-        onNotePlacementStart={onNotePlacementStart}
-        onNamespacePlacementStart={onNamespacePlacementStart}
-      />
-      <RelationshipTools
-        relationshipPlacementState={relationshipPlacementState}
-        onRelationshipPlacementStart={onRelationshipPlacementStart}
-      />
-    </aside>
+    <PaneFrame width={TOOL_PANE_WIDTH}>
+      <PaneSection label="Nodes">
+        <NodePlacementTools
+          kind="class"
+          isClassPlacementActive={isClassPlacementActive}
+          isNotePlacementActive={isNotePlacementActive}
+          isNamespacePlacementActive={isNamespacePlacementActive}
+          onClassPlacementStart={onClassPlacementStart}
+          onNotePlacementStart={onNotePlacementStart}
+          onNamespacePlacementStart={onNamespacePlacementStart}
+        />
+        <NodePlacementTools
+          kind="namespace"
+          isClassPlacementActive={isClassPlacementActive}
+          isNotePlacementActive={isNotePlacementActive}
+          isNamespacePlacementActive={isNamespacePlacementActive}
+          onClassPlacementStart={onClassPlacementStart}
+          onNotePlacementStart={onNotePlacementStart}
+          onNamespacePlacementStart={onNamespacePlacementStart}
+        />
+        <NodePlacementTools
+          kind="note"
+          isClassPlacementActive={isClassPlacementActive}
+          isNotePlacementActive={isNotePlacementActive}
+          isNamespacePlacementActive={isNamespacePlacementActive}
+          onClassPlacementStart={onClassPlacementStart}
+          onNotePlacementStart={onNotePlacementStart}
+          onNamespacePlacementStart={onNamespacePlacementStart}
+        />
+      </PaneSection>
+      <PaneSection label="Edges" columns={2}>
+        <RelationshipTools
+          relationshipPlacementState={relationshipPlacementState}
+          onRelationshipPlacementStart={onRelationshipPlacementStart}
+        />
+      </PaneSection>
+    </PaneFrame>
   );
 }

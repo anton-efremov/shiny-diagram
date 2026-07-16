@@ -46,7 +46,7 @@ export const reactFlowCanvasBoundaryProps = {
   selectionOnDrag: false,
   autoPanOnSelection: false,
   elevateNodesOnSelect: false,
-  elevateEdgesOnSelect: false,
+  elevateEdgesOnSelect: true,
   selectionKeyCode: null,
   multiSelectionKeyCode: null,
 
@@ -94,12 +94,12 @@ export const reactFlowCanvasBoundaryProps = {
   onEdgesDelete: undefined,
 
   /**
-   * React Flow click-connect and reconnect-end lifecycle events are intentionally
-   * not Shiny relationship-editing inputs.
+   * React Flow click-connect lifecycle events are intentionally not Shiny
+   * relationship-editing inputs. Reconnect-end is temporarily observed by the
+   * dev-only reconnect trace; it remains non-semantic and must not mutate state.
    */
   onClickConnectStart: undefined,
   onClickConnectEnd: undefined,
-  onReconnectEnd: undefined,
 
   /**
    * React Flow node/edge click events are not Shiny semantic selection.

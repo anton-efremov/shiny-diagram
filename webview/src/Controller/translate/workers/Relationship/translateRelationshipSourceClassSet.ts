@@ -1,0 +1,42 @@
+/**
+ * @fileoverview Translates relationship source class changes into write intents.
+ */
+
+import type { EditorCommandOf } from "../../../../View/commands";
+import type { DiagramGraph } from "../../../model/diagramGraph";
+import { spellIdentity } from "../../../model/identitySpelling";
+import { composeRelationshipId } from "../../../model/relationshipIdentity";
+import type { TranslateContext } from "../../translateContext";
+import type { WriteIntent } from "../../writeIntent";
+
+/**
+ * Makes one write:
+ *
+ * 1. endpoint **value** for the source endpoint
+ *    - in place
+ */
+export function translateRelationshipSourceClassSet(
+  command: EditorCommandOf<"relationship.source.class.set">,
+  graph: DiagramGraph,
+  context: TranslateContext
+): WriteIntent[] {
+  const relationship = graph.relationships.get(command.relationshipId);
+  if (relationship) {
+    context.recordRelationshipRenamed(
+      command.relationshipId,
+      composeRelationshipId(command.classId, relationship.target.classId, relationship.ordinal)
+    );
+  }
+
+  return [
+    {
+      kind: "replaceValue",
+      target: {
+        kind: "relationshipEndpoint",
+        relationshipId: command.relationshipId,
+        side: "source",
+      },
+      payload: spellIdentity(command.classId),
+    },
+  ];
+}

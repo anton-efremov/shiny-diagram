@@ -142,9 +142,17 @@ also garbage
     expect(result.status).toBe("invalidSyntax");
     if (result.status !== "invalidSyntax") return;
 
-    expect(result.diagnostics.map((diagnostic) => diagnostic.message)).toEqual([
-      "Unrecognized statement at line 3: this is garbage",
-      "Unrecognized statement at line 4: also garbage",
+    expect(result.diagnostics).toMatchObject([
+      {
+        line: 3,
+        fragment: "this is garbage",
+        message: "Expected a supported Mermaid class-diagram statement",
+      },
+      {
+        line: 4,
+        fragment: "also garbage",
+        message: "Expected a supported Mermaid class-diagram statement",
+      },
     ]);
   });
 
@@ -180,8 +188,12 @@ class UserContact {
     expect(result.status).toBe("invalidSyntax");
     if (result.status !== "invalidSyntax") return;
 
-    expect(result.diagnostics.map((diagnostic) => diagnostic.message)).toEqual([
-      'Invalid statement inside class block at line 4: ConversationThread_1 "0..1" -- ConversationThread_2 : Hi',
+    expect(result.diagnostics).toMatchObject([
+      {
+        line: 4,
+        fragment: 'ConversationThread_1 "0..1" -- ConversationThread_2 : Hi',
+        message: "Expected a class member declaration",
+      },
     ]);
   });
 
@@ -200,8 +212,12 @@ class UserContact {
     expect(result.status).toBe("invalidSyntax");
     if (result.status !== "invalidSyntax") return;
 
-    expect(result.diagnostics.map((diagnostic) => diagnostic.message)).toEqual([
-      "Invalid statement inside class block at line 4: class ConversationThread {",
+    expect(result.diagnostics).toMatchObject([
+      {
+        line: 4,
+        fragment: "class ConversationThread {",
+        message: "Expected a class member declaration",
+      },
     ]);
   });
 });
@@ -274,7 +290,7 @@ note "Free"
     });
   });
 
-  it("keeps backslashes literal in note text", () => {
+  it("decodes Mermaid note line breaks", () => {
     const result = parseDiagram(String.raw`classDiagram
 class User
 %% @spatial:User x=10 y=20 w=220 h=160
@@ -284,7 +300,7 @@ note "Line \n stays literal"
     expect(result.status).toBe("ready");
     if (result.status !== "ready") return;
 
-    expect(result.graph.notes.get(composeNoteId(0))?.text).toBe(String.raw`Line \n stays literal`);
+    expect(result.graph.notes.get(composeNoteId(0))?.text).toBe("Line \n stays literal");
   });
 
   it("records orphan and duplicate note annotation diagnostics without blocking readiness", () => {

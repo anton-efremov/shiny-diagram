@@ -1,0 +1,45 @@
+/**
+ * @render Shared text field styling.
+ */
+
+.field,
+.fieldWithEndAction {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--shiny-control-height);
+  padding: 6px 8px;
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-field-border);
+  border-radius: var(--shiny-field-radius);
+  color: var(--shiny-field-fg);
+  background: var(--shiny-chrome-field-bg);
+  font: inherit;
+  font-size: var(--shiny-chrome-font-size-control);
+}
+
+.field::placeholder,
+.fieldWithEndAction::placeholder {
+  color: var(--shiny-field-placeholder);
+}
+
+.fieldWithEndAction {
+  padding-right: 28px;
+}
+
+.field:focus-visible,
+.fieldWithEndAction:focus-visible {
+  outline: var(--shiny-chrome-focus-outline-width) var(--shiny-chrome-focus-outline-style)
+    var(--shiny-field-focus-border);
+  outline-offset: 1px;
+}
+
+.field:disabled,
+.fieldWithEndAction:disabled {
+  color: var(--shiny-chrome-text-muted);
+  opacity: 0.65;
+}
+
+.field[aria-invalid="true"],
+.fieldWithEndAction[aria-invalid="true"] {
+  border-color: var(--shiny-chrome-text-error);
+}

@@ -1,12 +1,12 @@
 /**
- * @framework React Flow connection line props and canvas coordinates to View relationship ghost line props.
+ * @framework React Flow connection geometry plus live reconnect pointer coordinates to View relationship ghost line props.
  */
 
 import type { MutableRefObject, ReactElement } from "react";
-import { type ConnectionLineComponentProps, useReactFlow, type XYPosition } from "@xyflow/react";
-import type { Point } from "../../../../../../shared/geometry";
+import { type ConnectionLineComponentProps, type XYPosition } from "@xyflow/react";
 import type { RelationshipSeed } from "../../../../../state/editorStates";
 import RelationshipGhostLine from "./RelationshipGhostLine/RelationshipGhostLine";
+import { getFlexibleEdgePath, getFloatingTargetPosition } from "../edgeGeometry";
 
 /** Ghost seed for connection drags that carry no relationship styling of their own. */
 const NEUTRAL_RELATIONSHIP_SEED: RelationshipSeed = {
@@ -21,36 +21,44 @@ const NEUTRAL_RELATIONSHIP_SEED: RelationshipSeed = {
 type RelationshipConnectionLineAdapterProps = ConnectionLineComponentProps & {
   readonly placementSeed: RelationshipSeed | null;
   readonly placementStartPointRef: MutableRefObject<XYPosition | null>;
+  readonly placementPointerRef: MutableRefObject<XYPosition | null>;
   readonly reconnectSeedRef: MutableRefObject<RelationshipSeed | null>;
+  readonly reconnectPointerRef: MutableRefObject<XYPosition | null>;
 };
 
 export default function RelationshipConnectionLineAdapter({
   fromX,
   fromY,
+  fromPosition,
   pointer,
   placementSeed,
   placementStartPointRef,
+  placementPointerRef,
   reconnectSeedRef,
+  reconnectPointerRef,
 }: RelationshipConnectionLineAdapterProps): ReactElement {
   // Framework prop and event adaptation
-  const { getViewport } = useReactFlow();
   const seed = placementSeed ?? reconnectSeedRef.current ?? NEUTRAL_RELATIONSHIP_SEED;
   const startPoint = placementStartPointRef.current ?? { x: fromX, y: fromY };
-  const endPoint = toFlowPointFromRendererPoint(pointer, getViewport());
+  const trackedPointer = placementSeed
+    ? (placementPointerRef.current ?? pointer)
+    : reconnectSeedRef.current
+      ? (reconnectPointerRef.current ?? pointer)
+      : pointer;
+  const targetPosition = getFloatingTargetPosition({
+    sourceX: startPoint.x,
+    sourceY: startPoint.y,
+    targetX: trackedPointer.x,
+    targetY: trackedPointer.y,
+  });
+  const [d] = getFlexibleEdgePath({
+    sourceX: startPoint.x,
+    sourceY: startPoint.y,
+    sourcePosition: fromPosition,
+    targetX: trackedPointer.x,
+    targetY: trackedPointer.y,
+    targetPosition,
+  });
 
-  return <RelationshipGhostLine seed={seed} startPoint={startPoint} endPoint={endPoint} />;
-}
-
-// Private helpers
-type ViewportTransform = {
-  readonly x: number;
-  readonly y: number;
-  readonly zoom: number;
-};
-
-function toFlowPointFromRendererPoint(point: Point, viewport: ViewportTransform): Point {
-  return {
-    x: (point.x - viewport.x) / viewport.zoom,
-    y: (point.y - viewport.y) / viewport.zoom,
-  };
+  return <RelationshipGhostLine seed={seed} d={d} />;
 }

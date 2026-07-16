@@ -3,8 +3,9 @@
  */
 
 import type { ReactElement } from "react";
-import { getBezierPath, type Edge as ReactFlowEdge, type EdgeProps } from "@xyflow/react";
+import { type Edge as ReactFlowEdge, type EdgeProps } from "@xyflow/react";
 import NoteAttachmentEdge from "./NoteAttachmentEdge/NoteAttachmentEdge";
+import { getFlexibleEdgePath } from "../edgeGeometry";
 
 type NoteAttachmentEdgeData = {
   readonly isActive: boolean;
@@ -21,7 +22,7 @@ export default function NoteAttachmentEdgeAdapter({
   targetPosition,
 }: EdgeProps<NoteAttachmentEdgeDescriptor>): ReactElement {
   // Framework prop and event adaptation
-  const [edgePath] = getBezierPath({
+  const [edgePath] = getFlexibleEdgePath({
     sourceX,
     sourceY,
     sourcePosition,

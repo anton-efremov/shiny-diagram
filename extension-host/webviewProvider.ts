@@ -1,8 +1,25 @@
 /**
- * @fileoverview Generates the HTML document served to the Shiny webview panel.
+ * @fileoverview Resolves Shiny custom text editors and generates their webview HTML.
  */
 
 import * as vscode from "vscode";
+import { DiagramSession } from "./diagramSession";
+
+export class DiagramEditorProvider implements vscode.CustomTextEditorProvider {
+  constructor(private readonly context: vscode.ExtensionContext) {}
+
+  /** Resolves one diagram view backed by the supplied text document. */
+  resolveCustomTextEditor(document: vscode.TextDocument, panel: vscode.WebviewPanel): void {
+    panel.webview.options = {
+      enableScripts: true,
+      localResourceRoots: [vscode.Uri.joinPath(this.context.extensionUri, "out", "webview")],
+    };
+    panel.webview.html = getWebviewHtml(this.context, panel.webview, document);
+
+    const session = new DiagramSession(document, panel);
+    panel.onDidDispose(() => session.dispose());
+  }
+}
 
 /**
  * Builds the full HTML document for the Shiny webview panel.
@@ -10,9 +27,9 @@ import * as vscode from "vscode";
 export function getWebviewHtml(
   context: vscode.ExtensionContext,
   webview: vscode.Webview,
-  document: vscode.TextDocument | undefined
+  document: vscode.TextDocument
 ): string {
-  const sourceText = document?.getText() ?? "";
+  const sourceText = document.getText();
 
   const scriptUri = webview.asWebviewUri(
     vscode.Uri.joinPath(context.extensionUri, "out", "webview", "assets", "index.js")
@@ -23,7 +40,10 @@ export function getWebviewHtml(
 
   // Nonce allows only this generated script tag under the webview CSP.
   const nonce = getNonce();
-  const initialData = serializeJsonForHtml(sourceText);
+  const initialData = serializeJsonForHtml({
+    sourceText,
+    documentName: document.uri.path.split("/").at(-1) ?? "",
+  });
 
   return /* html */ `<!DOCTYPE html>
 <html lang="en">

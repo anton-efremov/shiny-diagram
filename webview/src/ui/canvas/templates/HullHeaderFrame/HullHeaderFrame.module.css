@@ -1,0 +1,16 @@
+/**
+ * @render Fixed hull-header strip geometry.
+ */
+
+.header {
+  box-sizing: border-box;
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  height: 28px;
+  padding: 6px 10px;
+}
+
+.header > * {
+  max-width: 100%;
+}

@@ -52,7 +52,10 @@ function reconcileSelectionStateWithElements(
         : toClassSelectionState(classIds);
     }
     case "style":
-      return diagram.styles.some((styleView) => styleView.styleId === selectionState.styleDefId)
+      return diagram.styles.some(
+        (styleView) =>
+          styleView.kind === "declared" && styleView.styleDefId === selectionState.styleDefId
+      )
         ? selectionState
         : { kind: "none" };
     case "relationship":
@@ -102,6 +105,13 @@ function reconcileEditingStateWithElements(
   if (editingState.kind === "none") return editingState;
   if (editingState.kind === "noteText") {
     return diagram.notes.some((noteView) => noteView.noteId === editingState.noteId)
+      ? editingState
+      : { kind: "none" };
+  }
+  if (editingState.kind === "namespaceName") {
+    return diagram.namespaces.some(
+      (namespaceView) => namespaceView.namespaceId === editingState.namespaceId
+    )
       ? editingState
       : { kind: "none" };
   }

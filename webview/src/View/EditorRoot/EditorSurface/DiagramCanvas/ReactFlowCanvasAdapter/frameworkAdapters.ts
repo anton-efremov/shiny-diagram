@@ -9,7 +9,7 @@ import type {
   NodeChange as ReactFlowNodeChange,
 } from "@xyflow/react";
 import type { Point, Rect } from "../../../../../shared/geometry";
-import type { ClassId, NamespaceId, RelationshipId } from "../../../../../shared/ids";
+import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../../../../shared/ids";
 import { toClassId } from "../../../../../shared/ids";
 import type {
   ClassBoxPlacementState,
@@ -26,27 +26,37 @@ import type {
   NoteView,
   RelationshipView,
 } from "../../../../views/schema";
+import type { TransactionResult } from "../../../../commands/editorCommands";
 import {
   CLASS_NODE_Z_INDEX,
-  NAMESPACE_LABEL_BAND_HEIGHT,
   NAMESPACE_MARGIN,
   NAMESPACE_NODE_Z_INDEX,
   NOTE_NODE_Z_INDEX,
+  RELATIONSHIP_EDGE_Z_INDEX,
 } from "../../../../config/editorUiConfig";
 
 export type ClassBoxNodeData = {
   readonly view: ClassView;
+  readonly bounds: Rect;
   readonly isSelected: boolean;
   readonly isResizeVisible: boolean;
   readonly isConnectSourceEnabled: boolean;
   readonly isPendingMember: boolean;
   readonly haloColor: string | null;
+  readonly haloTone: "canvas" | "faint" | null;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
+  readonly onClassResizeHandlePress: (
+    classId: ClassId,
+    bounds: Rect,
+    handle: NamespaceResizeHandle,
+    screenPoint: Point
+  ) => void;
   readonly editingState: EditingState;
   readonly onTextBlockEditStart: (
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
   readonly onTextBlockEditCancel: () => void;
+  readonly onContentHeightChange: (classId: ClassId, height: number) => void;
 };
 
 export type ClassBoxNodeDescriptor = ReactFlowNode<ClassBoxNodeData, "classBox">;
@@ -62,21 +72,38 @@ export type NamespaceNodeData = {
     handle: NamespaceResizeHandle,
     screenPoint: Point
   ) => void;
+  readonly editingState: EditingState;
+  readonly onTextBlockEditStart: (
+    editingState: Exclude<EditingState, { readonly kind: "none" }>
+  ) => void;
+  readonly onTextBlockEditCancel: () => void;
+  readonly onNamespaceRenameCommitted: (
+    result: TransactionResult,
+    previousNamespaceId: NamespaceId
+  ) => void;
 };
 
 export type NamespaceNodeDescriptor = ReactFlowNode<NamespaceNodeData, "namespaceBox">;
-export type NamespaceResizeHandle = "nw" | "ne" | "sw" | "se";
+export type NamespaceResizeHandle = "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w";
 export type NoteBoxNodeData = {
   readonly view: NoteView;
+  readonly bounds: Rect;
   readonly isSelected: boolean;
   readonly isResizeVisible: boolean;
   readonly editingState: EditingState;
   readonly onNoteSelect: (noteId: NoteView["noteId"]) => void;
   readonly onNoteResizeEnd: (change: NoteBoxPlacementChange) => void;
+  readonly onNoteResizeHandlePress: (
+    noteId: NoteView["noteId"],
+    bounds: Rect,
+    handle: NamespaceResizeHandle,
+    screenPoint: Point
+  ) => void;
   readonly onTextBlockEditStart: (
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
   readonly onTextBlockEditCancel: () => void;
+  readonly onContentHeightChange: (noteId: NoteId, height: number) => void;
 };
 
 export type NoteBoxNodeDescriptor = ReactFlowNode<NoteBoxNodeData, "noteBox">;
@@ -135,9 +162,11 @@ export function toClassBoxNodeDescriptors(
   namespaceGeometry: NamespaceGeometry,
   isConnectSourceEnabled: boolean,
   onClassSelect: (classId: ClassId, additive: boolean) => void,
+  onClassResizeHandlePress: ClassBoxNodeData["onClassResizeHandlePress"],
   editingState: EditingState,
   onTextBlockEditStart: (editingState: Exclude<EditingState, { readonly kind: "none" }>) => void,
-  onTextBlockEditCancel: () => void
+  onTextBlockEditCancel: () => void,
+  onContentHeightChange: ClassBoxNodeData["onContentHeightChange"]
 ): ClassBoxNodeDescriptor[] {
   const selected = new Set<ClassId>(selectedClassIds);
   return classes.flatMap((classView) => {
@@ -151,22 +180,26 @@ export function toClassBoxNodeDescriptors(
         position: { x: placement.x, y: placement.y },
         data: {
           view: classView,
+          bounds: placement,
           isSelected: selected.has(classView.classId),
           isResizeVisible: selected.size === 1 && selected.has(classView.classId),
           isConnectSourceEnabled,
           isPendingMember: namespaceGeometry.pendingClassIds.has(classView.classId),
           haloColor: namespaceGeometry.haloColorByClassId.get(classView.classId) ?? null,
+          haloTone: namespaceGeometry.haloToneByClassId.get(classView.classId) ?? null,
           onClassSelect,
+          onClassResizeHandlePress,
           editingState,
           onTextBlockEditStart,
           onTextBlockEditCancel,
+          onContentHeightChange,
         },
         selectable: false,
         focusable: false,
         zIndex: CLASS_NODE_Z_INDEX,
         width: placement.w,
         height: placement.h,
-        style: { width: placement.w, height: placement.h },
+        style: { width: placement.w, height: placement.h, overflow: "visible" },
       },
     ];
   });
@@ -223,6 +256,7 @@ export type NamespaceGeometry = {
   readonly pendingClassIds: ReadonlySet<ClassId>;
   readonly pendingNamespaceIds: ReadonlySet<NamespaceId>;
   readonly haloColorByClassId: ReadonlyMap<ClassId, string>;
+  readonly haloToneByClassId: ReadonlyMap<ClassId, "canvas" | "faint">;
   readonly pendingParentNamespaceId: NamespaceId | null;
 };
 
@@ -299,7 +333,7 @@ export function toNamespaceGeometry(
     boundsByNamespaceId,
     pendingClassIds,
     pendingNamespaceIds,
-    haloColorByClassId: toHaloColorByClassId(view, classBoxPlacementState, boundsByNamespaceId),
+    ...toHaloTreatmentByClassId(view, classBoxPlacementState, boundsByNamespaceId),
     pendingParentNamespaceId: null,
   };
 }
@@ -309,7 +343,11 @@ export function toNamespaceNodeDescriptors(
   namespaceGeometry: NamespaceGeometry,
   selectionState: SelectionState,
   onNamespaceSelect: (namespaceId: NamespaceId) => void,
-  onNamespaceResizeHandlePress: NamespaceNodeData["onNamespaceResizeHandlePress"]
+  onNamespaceResizeHandlePress: NamespaceNodeData["onNamespaceResizeHandlePress"],
+  editingState: EditingState,
+  onTextBlockEditStart: NamespaceNodeData["onTextBlockEditStart"],
+  onTextBlockEditCancel: () => void,
+  onNamespaceRenameCommitted: NamespaceNodeData["onNamespaceRenameCommitted"]
 ): NamespaceNodeDescriptor[] {
   return namespaces.flatMap((namespaceView) => {
     const bounds = namespaceGeometry.boundsByNamespaceId.get(namespaceView.namespaceId);
@@ -328,6 +366,10 @@ export function toNamespaceNodeDescriptors(
           isPendingMember: namespaceGeometry.pendingNamespaceIds.has(namespaceView.namespaceId),
           onNamespaceSelect,
           onNamespaceResizeHandlePress,
+          editingState,
+          onTextBlockEditStart,
+          onTextBlockEditCancel,
+          onNamespaceRenameCommitted,
         },
         selectable: false,
         focusable: false,
@@ -335,7 +377,7 @@ export function toNamespaceNodeDescriptors(
         zIndex: NAMESPACE_NODE_Z_INDEX,
         width: bounds.w,
         height: bounds.h,
-        style: { width: bounds.w, height: bounds.h },
+        style: { width: bounds.w, height: bounds.h, pointerEvents: "auto" },
       },
     ];
   });
@@ -349,8 +391,10 @@ export function toNoteBoxNodeDescriptors(
   noteBoxPlacementState: NoteBoxPlacementState,
   onNoteSelect: (noteId: NoteView["noteId"]) => void,
   onNoteResizeEnd: (change: NoteBoxPlacementChange) => void,
+  onNoteResizeHandlePress: NoteBoxNodeData["onNoteResizeHandlePress"],
   onTextBlockEditStart: (editingState: Exclude<EditingState, { readonly kind: "none" }>) => void,
-  onTextBlockEditCancel: () => void
+  onTextBlockEditCancel: () => void,
+  onContentHeightChange: NoteBoxNodeData["onContentHeightChange"]
 ): NoteBoxNodeDescriptor[] {
   return notes.flatMap((noteView) => {
     const placement = noteBoxPlacementState.rectByNoteId.get(noteView.noteId);
@@ -363,20 +407,23 @@ export function toNoteBoxNodeDescriptors(
         position: { x: placement.x, y: placement.y },
         data: {
           view: noteView,
+          bounds: placement,
           isSelected,
           isResizeVisible: isSelected,
           editingState,
           onNoteSelect,
           onNoteResizeEnd,
+          onNoteResizeHandlePress,
           onTextBlockEditStart,
           onTextBlockEditCancel,
+          onContentHeightChange,
         },
         selectable: false,
         focusable: false,
         zIndex: NOTE_NODE_Z_INDEX,
         width: placement.w,
         height: placement.h,
-        style: { width: placement.w, height: placement.h },
+        style: { width: placement.w, height: placement.h, overflow: "visible" },
       },
     ];
   });
@@ -441,6 +488,9 @@ export function toRelationshipEdgeDescriptors(
 
     const sourceSide = chooseSourceSide(sourceEntry, targetEntry);
     const targetSide = oppositeSide(sourceSide);
+    const isSelected =
+      selectionState.kind === "relationship" &&
+      selectionState.relationshipId === rel.relationshipId;
 
     return [
       {
@@ -451,13 +501,14 @@ export function toRelationshipEdgeDescriptors(
         targetHandle: `target-${targetSide}`,
         data: {
           view: rel,
-          isSelected:
-            selectionState.kind === "relationship" &&
-            selectionState.relationshipId === rel.relationshipId,
+          isSelected,
           onRelationshipSelect,
         },
         type: "relationship",
-        reconnectable: !isRelationshipPlacementArmed,
+        className: `shiny-reconnect-source-${sourceSide} shiny-reconnect-target-${targetSide}`,
+        zIndex: RELATIONSHIP_EDGE_Z_INDEX,
+        selected: isSelected,
+        reconnectable: isSelected && !isRelationshipPlacementArmed,
         selectable: false,
         focusable: false,
       },
@@ -498,6 +549,7 @@ export function toNoteAttachmentEdgeDescriptors(
             noteAttachState.kind === "attaching" && noteAttachState.noteId === noteView.noteId,
         },
         type: "noteAttachment",
+        reconnectable: false,
         selectable: false,
         focusable: false,
       },
@@ -681,7 +733,7 @@ function toNamespaceBoundsFor(
   ];
   if (childRects.length === 0) return null;
 
-  const bounds = expandRect(unionRects(childRects), NAMESPACE_MARGIN, NAMESPACE_LABEL_BAND_HEIGHT);
+  const bounds = expandRect(unionRects(childRects), NAMESPACE_MARGIN);
   boundsByNamespaceId.set(namespaceView.namespaceId, bounds);
   return bounds;
 }
@@ -694,12 +746,12 @@ function unionRects(rects: readonly Rect[]): Rect {
   return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
 
-function expandRect(rect: Rect, margin: number, labelBandHeight: number): Rect {
+function expandRect(rect: Rect, margin: number): Rect {
   return {
     x: rect.x - margin,
-    y: rect.y - margin - labelBandHeight,
+    y: rect.y - margin,
     w: rect.w + margin * 2,
-    h: rect.h + margin * 2 + labelBandHeight,
+    h: rect.h + margin * 2,
   };
 }
 
@@ -712,12 +764,13 @@ export function overlaps(left: Rect, right: Rect): boolean {
   );
 }
 
-function toHaloColorByClassId(
+function toHaloTreatmentByClassId(
   view: Pick<DiagramView, "classes" | "namespaces">,
   classBoxPlacementState: ClassBoxPlacementState,
   boundsByNamespaceId: ReadonlyMap<NamespaceId, Rect>
-): ReadonlyMap<ClassId, string> {
+): Pick<NamespaceGeometry, "haloColorByClassId" | "haloToneByClassId"> {
   const haloColors = new Map<ClassId, string>();
+  const haloTones = new Map<ClassId, "canvas" | "faint">();
   for (const classView of view.classes) {
     const rect = classBoxPlacementState.rectByClassId.get(classView.classId);
     if (!rect) continue;
@@ -731,12 +784,15 @@ function toHaloColorByClassId(
     ) {
       continue;
     }
-    haloColors.set(
-      classView.classId,
-      toNamespaceHaloColor(classView.parentNamespaceId, view.namespaces)
-    );
+    const parent = classView.parentNamespaceId
+      ? view.namespaces.find(
+          (namespaceView) => namespaceView.namespaceId === classView.parentNamespaceId
+        )
+      : null;
+    if (parent?.style?.fill) haloColors.set(classView.classId, parent.style.fill);
+    else haloTones.set(classView.classId, classView.parentNamespaceId ? "faint" : "canvas");
   }
-  return haloColors;
+  return { haloColorByClassId: haloColors, haloToneByClassId: haloTones };
 }
 
 function isClassTransitiveMember(
@@ -754,15 +810,4 @@ function isClassTransitiveMember(
       null;
   }
   return false;
-}
-
-function toNamespaceHaloColor(
-  parentNamespaceId: NamespaceId | null,
-  namespaces: readonly NamespaceView[]
-): string {
-  if (!parentNamespaceId) return "var(--shiny-page-bg)";
-  const parent = namespaces.find(
-    (namespaceView) => namespaceView.namespaceId === parentNamespaceId
-  );
-  return parent?.style?.fill ?? "var(--shiny-overlay-faint)";
 }

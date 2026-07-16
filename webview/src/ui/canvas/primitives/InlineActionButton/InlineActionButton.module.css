@@ -1,0 +1,69 @@
+.button {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: var(--shiny-cursor-action);
+}
+
+.default {
+  --inline-action-default-surface: var(--shiny-canvas-surface);
+}
+
+.base {
+  --inline-action-default-surface: var(--shiny-canvas-unstyled-node-fill);
+}
+
+.neutral {
+  --inline-action-default-surface: var(--shiny-canvas-unstyled-hull-fill);
+}
+
+.cancel {
+  width: var(--shiny-inline-action-cancel-size);
+  height: var(--shiny-inline-action-cancel-size);
+  border: var(--shiny-inline-action-border-width) var(--shiny-inline-action-border-style)
+    currentColor;
+  border-radius: var(--shiny-inline-action-cancel-radius);
+  color: var(--shiny-canvas-text-error);
+  background: transparent;
+}
+
+.cancel:hover {
+  color: var(--inline-action-surface, var(--inline-action-default-surface));
+  background: var(--shiny-canvas-text-error);
+}
+
+.cancel svg {
+  width: var(--shiny-inline-action-cancel-glyph-size);
+  height: var(--shiny-inline-action-cancel-glyph-size);
+}
+
+.add {
+  width: 100%;
+  height: var(--shiny-inline-add-min-height);
+  border: none;
+  border-radius: var(--shiny-inline-action-add-radius);
+  color: inherit;
+  background: var(--shiny-inline-action-add-background);
+}
+
+.add svg {
+  width: var(--shiny-inline-action-add-glyph-size);
+  height: var(--shiny-inline-action-add-glyph-size);
+  max-height: 100%;
+}
+
+.button svg {
+  stroke-width: var(--shiny-canvas-glyph-stroke-width);
+}
+
+.dashed {
+  stroke-dasharray: var(--shiny-canvas-glyph-dash);
+}
+
+.hidden {
+  opacity: 0;
+}
+
+.hidden:focus-visible {
+  opacity: 1;
+}

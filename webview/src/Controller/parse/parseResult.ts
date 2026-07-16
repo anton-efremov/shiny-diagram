@@ -17,6 +17,8 @@ export type EditorDiagnostic = {
     | "syntaxError";
   readonly message: string;
   readonly elementId?: string;
+  readonly line?: number;
+  readonly fragment?: string;
 };
 
 /**

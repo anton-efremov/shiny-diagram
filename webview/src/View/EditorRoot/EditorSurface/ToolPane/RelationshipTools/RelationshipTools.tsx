@@ -4,10 +4,20 @@
  */
 
 import type { ReactElement } from "react";
+import type { GlyphDescriptor } from "../../../../../shared/glyph";
 import type { RelationshipType } from "../../../../../shared/uml";
 import type { NodePlacementState, RelationshipSeed } from "../../../../state/editorStates";
-import ControlButton from "../../../../ui/ControlButton/ControlButton";
-import styles from "./RelationshipTools.module.css";
+import ToggleButton from "../../../../../ui/chrome/primitives/ToggleButton/ToggleButton";
+import {
+  aggregationGlyph,
+  associationGlyph,
+  bidirectionalAssociationGlyph,
+  compositionGlyph,
+  dependencyGlyph,
+  directedAssociationGlyph,
+  inheritanceGlyph,
+  realizationGlyph,
+} from "./icons";
 
 type RelationshipToolsProps = {
   readonly relationshipPlacementState: Extract<NodePlacementState, { kind: "relationship" }> | null;
@@ -16,7 +26,7 @@ type RelationshipToolsProps = {
 
 type ToolPaneItem = {
   readonly relationshipType: RelationshipType;
-  readonly icon: string;
+  readonly icon: GlyphDescriptor;
   readonly name: string;
   readonly seed: RelationshipSeed;
 };
@@ -24,7 +34,7 @@ type ToolPaneItem = {
 const relationshipTools: readonly ToolPaneItem[] = [
   {
     relationshipType: "association",
-    icon: "--",
+    icon: associationGlyph,
     name: "Association",
     seed: {
       sourceEndpointKind: "none",
@@ -37,7 +47,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "directedAssociation",
-    icon: "-->",
+    icon: directedAssociationGlyph,
     name: "Directed association",
     seed: {
       sourceEndpointKind: "none",
@@ -50,7 +60,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "bidirectionalAssociation",
-    icon: "<-->",
+    icon: bidirectionalAssociationGlyph,
     name: "Bidirectional association",
     seed: {
       sourceEndpointKind: "arrow",
@@ -63,7 +73,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "dependency",
-    icon: "..>",
+    icon: dependencyGlyph,
     name: "Dependency",
     seed: {
       sourceEndpointKind: "none",
@@ -76,12 +86,12 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "inheritance",
-    icon: "<|--",
+    icon: inheritanceGlyph,
     name: "Inheritance",
     seed: {
-      sourceEndpointKind: "triangle",
+      sourceEndpointKind: "none",
       lineKind: "solid",
-      targetEndpointKind: "none",
+      targetEndpointKind: "triangle",
       sourceMultiplicity: null,
       targetMultiplicity: null,
       label: null,
@@ -89,7 +99,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "realization",
-    icon: "..|>",
+    icon: realizationGlyph,
     name: "Realization",
     seed: {
       sourceEndpointKind: "none",
@@ -102,7 +112,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "aggregation",
-    icon: "o--",
+    icon: aggregationGlyph,
     name: "Aggregation",
     seed: {
       sourceEndpointKind: "aggregation",
@@ -115,7 +125,7 @@ const relationshipTools: readonly ToolPaneItem[] = [
   },
   {
     relationshipType: "composition",
-    icon: "*--",
+    icon: compositionGlyph,
     name: "Composition",
     seed: {
       sourceEndpointKind: "composition",
@@ -133,28 +143,21 @@ export default function RelationshipTools({
   onRelationshipPlacementStart,
 }: RelationshipToolsProps): ReactElement {
   return (
-    <div className={styles.toolGroup} aria-label="Relationship elements">
+    <>
       {relationshipTools.map((tool) => {
         const isActive = seedsEqual(relationshipPlacementState?.seed ?? null, tool.seed);
         return (
-          <ControlButton
+          <ToggleButton
             key={tool.relationshipType}
-            className={styles.toolButton}
-            variant="compact"
-            icon={
-              <span className={styles.toolIcon} aria-hidden="true">
-                {tool.icon}
-              </span>
-            }
-            aria-label={tool.name}
-            active={isActive}
+            icon={tool.icon}
             pressed={isActive}
             title={tool.name}
+            size="glyphTile"
             onClick={() => onRelationshipPlacementStart(tool.seed)}
           />
         );
       })}
-    </div>
+    </>
   );
 }
 

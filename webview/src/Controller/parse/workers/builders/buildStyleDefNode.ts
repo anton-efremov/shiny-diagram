@@ -23,6 +23,9 @@ export function buildStyleDefNode(token: ParseToken): ParsedStyleDefNode | null 
 
   const match = /^\s*classDef\s+(\w+)\s+(.+)$/.exec(token.raw);
   if (!match) return null;
+  // Mermaid's pseudo-style is foreign to Shiny: keep the token in source, but
+  // do not admit it to the semantic style catalog or write-back provenance.
+  if (match[1] === "default") return null;
 
   const id = toStyleDefId(match[1]);
   return {

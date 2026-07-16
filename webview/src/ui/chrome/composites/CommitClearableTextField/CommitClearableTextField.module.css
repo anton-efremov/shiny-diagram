@@ -1,0 +1,49 @@
+/**
+ * @render Clearable commit text field styling.
+ */
+
+.field,
+.fieldWithoutLabel {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.field {
+  grid-template-columns: 76px minmax(0, 1fr);
+}
+
+.fieldWithoutLabel {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--shiny-chrome-text-muted);
+  font-size: var(--shiny-chrome-font-size-detail);
+  font-weight: var(--shiny-chrome-font-weight-emphasis);
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inputHost {
+  position: relative;
+  min-width: 0;
+}
+
+.clearButton {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.inputHost:focus-within .clearButton {
+  opacity: 1;
+  pointer-events: auto;
+}

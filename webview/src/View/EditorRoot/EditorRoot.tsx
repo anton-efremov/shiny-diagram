@@ -1,44 +1,47 @@
 /**
  * @behavior Editor status interface routing and command dispatch context provision.
  */
+import { useEffect, useRef } from "react";
 import type { ReactElement } from "react";
 import type { EditorViewModel } from "../views/schema";
 import type { EditorDispatch } from "../commands/editorCommands";
 import { CommandDispatchProvider } from "../contexts";
 import EditorSurface from "./EditorSurface/EditorSurface";
-import ErrorSurface from "./ErrorSurface/ErrorSurface";
-import MissingAnnotationsSurface from "./MissingAnnotationsSurface/MissingAnnotationsSurface";
+import { toMissingAnnotationsGenerateTransaction } from "./transactions";
+import ViewportFrame from "../../ui/chrome/templates/ViewportFrame/ViewportFrame";
 
 type EditorRootProps = {
   readonly view: EditorViewModel;
   readonly onTransactionDispatch: EditorDispatch;
+  readonly generateRequest: number;
 };
 
-export default function EditorRoot({ view, onTransactionDispatch }: EditorRootProps): ReactElement {
-  /** Child component routing: editor status interface selection. */
-  let editorInterface: ReactElement;
-  switch (view.status) {
-    case "ready": {
-      editorInterface = <EditorSurface view={view.diagram} />;
-      break;
-    }
-    case "invalidSyntax": {
-      editorInterface = <ErrorSurface errors={view.errors} />;
-      break;
-    }
-    case "missingAnnotations": {
-      editorInterface = (
-        <MissingAnnotationsSurface
-          view={{ missingClassIds: view.missingClassIds, diagram: view.diagram }}
-        />
-      );
-      break;
-    }
-  }
+export default function EditorRoot({
+  view,
+  onTransactionDispatch,
+  generateRequest,
+}: EditorRootProps): ReactElement {
+  // State creation: local record of the latest handled generation request
+  const handledGenerateRequest = useRef(generateRequest);
+
+  // State reconciliation
+  useEffect(() => {
+    if (view.status !== "missingAnnotations") return;
+    if (generateRequest <= handledGenerateRequest.current) return;
+    handledGenerateRequest.current = generateRequest;
+    onTransactionDispatch(
+      toMissingAnnotationsGenerateTransaction(view.missingClassIds, view.diagram.classes)
+    );
+  }, [generateRequest, onTransactionDispatch, view]);
+
+  // Child component routing
+  if (view.status !== "ready") return <></>;
 
   return (
     <CommandDispatchProvider onTransactionDispatch={onTransactionDispatch}>
-      {editorInterface}
+      <ViewportFrame>
+        <EditorSurface view={view.diagram} />
+      </ViewportFrame>
     </CommandDispatchProvider>
   );
 }

@@ -3,20 +3,23 @@
  * @render Relationship edge path, markers, multiplicities, and label.
  */
 
-import { useState } from "react";
 import type { ReactElement } from "react";
+import { useState } from "react";
 import type { RelationshipId } from "../../../../../../../shared/ids";
 import {
-  RELATIONSHIP_EDGE_DASH_PATTERN,
-  RELATIONSHIP_EDGE_HIT_PATH_STROKE_WIDTH,
   RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION,
+  RELATIONSHIP_EDGE_MULTIPLICITY_NORMAL_OFFSET,
+  INLINE_VALIDATION_POPUP_Z_INDEX,
 } from "../../../../../../config/editorUiConfig";
 import type { RelationshipView } from "../../../../../../views/schema";
-import RelationshipMarker from "../../../../../../ui/RelationshipMarker/RelationshipMarker";
-import EditableText from "./EditableText/EditableText";
+import { endpointGlyphs } from "../../RelationshipMarker/icons";
+import EditableEdgeText from "../../../../../../../ui/canvas/composites/EditableEdgeText/EditableEdgeText";
+import EdgeEndpointHandle from "../../../../../../../ui/canvas/primitives/EdgeEndpointHandle/EdgeEndpointHandle";
+import EdgeEndpointMarker from "../../../../../../../ui/canvas/primitives/EdgeEndpointMarker/EdgeEndpointMarker";
+import EdgeHitPath from "../../../../../../../ui/canvas/primitives/EdgeHitPath/EdgeHitPath";
+import EdgePath from "../../../../../../../ui/canvas/primitives/EdgePath/EdgePath";
 import type { EditTarget } from "./state";
 import { useInteractions } from "./useInteractions";
-import styles from "./RelationshipEdge.module.css";
 
 type RelationshipEdgeProps = {
   readonly view: RelationshipView;
@@ -45,24 +48,15 @@ export default function RelationshipEdge({
 }: RelationshipEdgeProps): ReactElement {
   // State creation: local state - inline text edit target and draft value
   const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
-  const [draft, setDraft] = useState("");
 
   // Event handler props derivation
-  const { onEdgeSelect, onEditStart, onDraftChange, onDraftCommit, onDraftDiscard } =
-    useInteractions({
-      view,
-      isSelected,
-      onRelationshipSelect,
-      editTarget,
-      setEditTarget,
-      draft,
-      setDraft,
-    });
-  const onLabelEditStart = () => onEditStart("label", view.label ?? "");
-  const onSourceMultiplicityEditStart = () =>
-    onEditStart("sourceMultiplicity", view.sourceMultiplicity ?? "");
-  const onTargetMultiplicityEditStart = () =>
-    onEditStart("targetMultiplicity", view.targetMultiplicity ?? "");
+  const { onEdgeSelect, onEditStart, onEditCommit, onEditCancel } = useInteractions({
+    view,
+    isSelected,
+    onRelationshipSelect,
+    editTarget,
+    setEditTarget,
+  });
 
   // UI props derivation
   const isLabelEditing = editTarget === "label";
@@ -70,7 +64,6 @@ export default function RelationshipEdge({
   const isTargetMultiplicityEditing = editTarget === "targetMultiplicity";
   const sourceMarkerId = `${view.relationshipId}-source-${view.sourceEndpointKind}`;
   const targetMarkerId = `${view.relationshipId}-target-${view.targetEndpointKind}`;
-  const className = [styles.edgePath, isSelected ? styles.selected : ""].filter(Boolean).join(" ");
   const sourceMultiplicityX =
     sourceX + (labelX - sourceX) * RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION;
   const sourceMultiplicityY =
@@ -79,8 +72,16 @@ export default function RelationshipEdge({
     targetX + (labelX - targetX) * RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION;
   const targetMultiplicityY =
     targetY + (labelY - targetY) * RELATIONSHIP_EDGE_MULTIPLICITY_POSITION_FRACTION;
+  const multiplicityNormal = toNormalOffset(
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    RELATIONSHIP_EDGE_MULTIPLICITY_NORMAL_OFFSET
+  );
 
   return (
+    // React Flow owns the edge shell, so the five edge elements remain consumer-side assembly.
     <g
       onClick={(event) => {
         event.stopPropagation();
@@ -88,82 +89,130 @@ export default function RelationshipEdge({
       }}
     >
       <defs>
-        <RelationshipMarker
-          id={sourceMarkerId}
-          endpointKind={view.sourceEndpointKind}
-          side="source"
-        />
-        <RelationshipMarker
-          id={targetMarkerId}
-          endpointKind={view.targetEndpointKind}
-          side="target"
-        />
+        {view.sourceEndpointKind === "none" ? null : (
+          <EdgeEndpointMarker
+            id={sourceMarkerId}
+            glyph={endpointGlyphs[view.sourceEndpointKind]}
+            side="source"
+            selected={isSelected}
+          />
+        )}
+        {view.targetEndpointKind === "none" ? null : (
+          <EdgeEndpointMarker
+            id={targetMarkerId}
+            glyph={endpointGlyphs[view.targetEndpointKind]}
+            side="target"
+            selected={isSelected}
+          />
+        )}
       </defs>
-      <path
-        className={styles.hitPath}
+      <EdgeHitPath d={edgePath} />
+      <EdgePath
         d={edgePath}
-        fill="none"
-        stroke="transparent"
-        strokeWidth={RELATIONSHIP_EDGE_HIT_PATH_STROKE_WIDTH}
+        lineKind={view.lineKind}
+        selected={isSelected}
+        startMarkerId={view.sourceEndpointKind === "none" ? undefined : sourceMarkerId}
+        endMarkerId={view.targetEndpointKind === "none" ? undefined : targetMarkerId}
       />
-      <path
-        className={className}
-        d={edgePath}
-        fill="none"
-        markerStart={toMarkerUrl(sourceMarkerId, view.sourceEndpointKind)}
-        markerEnd={toMarkerUrl(targetMarkerId, view.targetEndpointKind)}
-        strokeDasharray={view.lineKind === "dashed" ? RELATIONSHIP_EDGE_DASH_PATTERN : undefined}
-      />
+      <EdgeEndpointHandle point={{ x: sourceX, y: sourceY }} visible={isSelected} />
+      <EdgeEndpointHandle point={{ x: targetX, y: targetY }} visible={isSelected} />
       {view.sourceMultiplicity || isSourceMultiplicityEditing ? (
-        <EditableText
-          x={sourceMultiplicityX}
-          y={sourceMultiplicityY}
-          text={isSourceMultiplicityEditing ? draft : (view.sourceMultiplicity ?? "")}
-          tone="dark"
+        <EdgeText
+          x={sourceMultiplicityX + multiplicityNormal.x}
+          y={sourceMultiplicityY + multiplicityNormal.y}
+          text={view.sourceMultiplicity ?? ""}
+          variant="multiplicity"
           isEditing={isSourceMultiplicityEditing}
-          isEditStartEnabled={isSelected}
+          isClickEditEnabled={isSelected}
           onSelect={onEdgeSelect}
-          onEditStart={onSourceMultiplicityEditStart}
-          onDraftChange={onDraftChange}
-          onDraftCommit={onDraftCommit}
-          onDraftDiscard={onDraftDiscard}
+          onEditStart={() => onEditStart("sourceMultiplicity")}
+          onCommit={onEditCommit}
+          onEditCancel={onEditCancel}
         />
       ) : null}
       {view.targetMultiplicity || isTargetMultiplicityEditing ? (
-        <EditableText
-          x={targetMultiplicityX}
-          y={targetMultiplicityY}
-          text={isTargetMultiplicityEditing ? draft : (view.targetMultiplicity ?? "")}
-          tone="dark"
+        <EdgeText
+          x={targetMultiplicityX + multiplicityNormal.x}
+          y={targetMultiplicityY + multiplicityNormal.y}
+          text={view.targetMultiplicity ?? ""}
+          variant="multiplicity"
           isEditing={isTargetMultiplicityEditing}
-          isEditStartEnabled={isSelected}
+          isClickEditEnabled={isSelected}
           onSelect={onEdgeSelect}
-          onEditStart={onTargetMultiplicityEditStart}
-          onDraftChange={onDraftChange}
-          onDraftCommit={onDraftCommit}
-          onDraftDiscard={onDraftDiscard}
+          onEditStart={() => onEditStart("targetMultiplicity")}
+          onCommit={onEditCommit}
+          onEditCancel={onEditCancel}
         />
       ) : null}
       {view.label || isLabelEditing ? (
-        <EditableText
+        <EdgeText
           x={labelX}
           y={labelY}
-          text={isLabelEditing ? draft : (view.label ?? "")}
-          tone="light"
+          text={view.label ?? ""}
+          variant="label"
           isEditing={isLabelEditing}
-          isEditStartEnabled={isSelected}
+          isClickEditEnabled={isSelected}
           onSelect={onEdgeSelect}
-          onEditStart={onLabelEditStart}
-          onDraftChange={onDraftChange}
-          onDraftCommit={onDraftCommit}
-          onDraftDiscard={onDraftDiscard}
+          onEditStart={() => onEditStart("label")}
+          onCommit={onEditCommit}
+          onEditCancel={onEditCancel}
         />
       ) : null}
     </g>
   );
 }
 
-// Private helpers
-function toMarkerUrl(id: string, endpointKind: string): string | undefined {
-  return endpointKind === "none" ? undefined : `url(#${id})`;
+function EdgeText({
+  x,
+  y,
+  text,
+  variant,
+  isEditing,
+  isClickEditEnabled,
+  onSelect,
+  onEditStart,
+  onCommit,
+  onEditCancel,
+}: {
+  readonly x: number;
+  readonly y: number;
+  readonly text: string;
+  readonly variant: "label" | "multiplicity";
+  readonly isEditing: boolean;
+  readonly isClickEditEnabled: boolean;
+  readonly onSelect: () => void;
+  readonly onEditStart: () => void;
+  readonly onCommit: (value: string) => void;
+  readonly onEditCancel: () => void;
+}): ReactElement {
+  return (
+    <g className={isEditing ? "nopan" : undefined} transform={`translate(${x} ${y})`}>
+      <EditableEdgeText
+        text={text}
+        treatment={variant}
+        isEditing={isEditing}
+        isClickEditEnabled={isClickEditEnabled}
+        validationStacking={INLINE_VALIDATION_POPUP_Z_INDEX}
+        onSelect={onSelect}
+        onEditRequest={onEditStart}
+        onCommit={onCommit}
+        onCancel={onEditCancel}
+      />
+    </g>
+  );
+}
+
+function toNormalOffset(
+  sourceX: number,
+  sourceY: number,
+  targetX: number,
+  targetY: number,
+  distance: number
+): { readonly x: number; readonly y: number } {
+  const dx = targetX - sourceX;
+  const dy = targetY - sourceY;
+  const length = Math.hypot(dx, dy);
+  return length === 0
+    ? { x: 0, y: -distance }
+    : { x: (-dy / length) * distance, y: (dx / length) * distance };
 }

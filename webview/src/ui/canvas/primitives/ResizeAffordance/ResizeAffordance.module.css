@@ -1,0 +1,112 @@
+/**
+ * @render Eight resize squares and invisible full-edge hit zones.
+ */
+
+.handle,
+.edge {
+  position: absolute;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.edge {
+  z-index: var(--resize-affordance-stacking);
+  border: none;
+  background: transparent;
+}
+
+.handle {
+  z-index: calc(var(--resize-affordance-stacking) + 1);
+  width: var(--shiny-resize-handle-size);
+  height: var(--shiny-resize-handle-size);
+  border: var(--shiny-resize-handle-border-width) var(--shiny-resize-handle-border-style)
+    var(--shiny-canvas-surface);
+  background: var(--shiny-canvas-selection);
+}
+
+.handle:focus-visible,
+.edge:focus-visible {
+  outline: var(--shiny-resize-focus-outline-width) var(--shiny-resize-focus-outline-style)
+    var(--shiny-canvas-selection);
+  outline-offset: 2px;
+}
+
+.nw,
+.n,
+.ne {
+  top: calc(-1 * var(--resize-affordance-center-offset) - 3px);
+}
+
+.sw,
+.s,
+.se {
+  bottom: calc(-1 * var(--resize-affordance-center-offset) - 3px);
+}
+
+.nw,
+.w,
+.sw {
+  left: calc(-1 * var(--resize-affordance-center-offset) - 3px);
+}
+
+.ne,
+.e,
+.se {
+  right: calc(-1 * var(--resize-affordance-center-offset) - 3px);
+}
+
+.n,
+.s {
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: var(--shiny-cursor-resize-vertical);
+}
+
+.e,
+.w {
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: var(--shiny-cursor-resize-horizontal);
+}
+
+.nw,
+.se {
+  cursor: var(--shiny-cursor-resize-forward-diagonal);
+}
+
+.ne,
+.sw {
+  cursor: var(--shiny-cursor-resize-backward-diagonal);
+}
+
+.edgeN,
+.edgeS {
+  left: 0;
+  width: 100%;
+  height: var(--shiny-resize-edge-hit-width);
+  cursor: var(--shiny-cursor-resize-vertical);
+}
+
+.edgeE,
+.edgeW {
+  top: 0;
+  width: var(--shiny-resize-edge-hit-width);
+  height: 100%;
+  cursor: var(--shiny-cursor-resize-horizontal);
+}
+
+.edgeN {
+  top: calc(-1 * var(--resize-affordance-center-offset) - 4px);
+}
+
+.edgeE {
+  right: calc(-1 * var(--resize-affordance-center-offset) - 4px);
+}
+
+.edgeS {
+  bottom: calc(-1 * var(--resize-affordance-center-offset) - 4px);
+}
+
+.edgeW {
+  left: calc(-1 * var(--resize-affordance-center-offset) - 4px);
+}

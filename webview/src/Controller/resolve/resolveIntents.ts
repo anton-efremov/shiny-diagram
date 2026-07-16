@@ -18,9 +18,11 @@ import type { ProvenanceIndex } from "../model/provenanceIndex";
 import type { SourceEdit } from "../model/sourceEdit";
 import type { WriteIntent } from "../translate";
 import { resolveDeleteEntry } from "./workers/deleteEntry";
+import { resolveDeleteClause } from "./workers/deleteClause";
 import { resolveDeleteRange } from "./workers/deleteRange";
 import { resolveDeleteStatement } from "./workers/deleteStatement";
 import { resolveInsertEntry } from "./workers/insertEntry";
+import { resolveInsertClause } from "./workers/insertClause";
 import { resolveInsertStatement } from "./workers/insertStatement";
 import { resolveReplaceValue } from "./workers/replaceValue";
 import type { SourcePosition } from "../model/sourceEdit";
@@ -32,7 +34,7 @@ export function resolveIntents(
 ): SourceEdit[] {
   const eol = sourceText.includes("\r\n") ? "\r\n" : "\n"; // detects which EOL used in source
   const edits = intents.map((intent) => buildEdit(intent, provenance, sourceText, eol));
-  return assertNoOverlaps(coalesceInsertions(edits));
+  return assertNoOverlaps(coalesceInsertions(edits, intents));
 }
 
 function buildEdit(
@@ -50,6 +52,10 @@ function buildEdit(
       return resolveInsertEntry(intent, provenance);
     case "deleteEntry":
       return resolveDeleteEntry(intent, provenance, sourceText);
+    case "insertClause":
+      return resolveInsertClause(intent, provenance);
+    case "deleteClause":
+      return resolveDeleteClause(intent, provenance, sourceText);
     case "replaceValue":
       return resolveReplaceValue(intent, provenance);
     case "deleteRange":
@@ -66,25 +72,50 @@ function buildEdit(
  * Needed so edits to the same source locations do not get dumped by VSCode's
  * vscode.workspace.applyEdit(workspaceEdit)
  */
-function coalesceInsertions(edits: readonly SourceEdit[]): SourceEdit[] {
-  const grouped = new Map<string, SourceEdit>();
+function coalesceInsertions(
+  edits: readonly SourceEdit[],
+  intents: readonly WriteIntent[]
+): SourceEdit[] {
+  const grouped = new Map<string, { edit: SourceEdit; lastIntent: WriteIntent }>();
 
-  for (const edit of edits) {
+  for (const [index, edit] of edits.entries()) {
+    const intent = intents[index];
     const key = `${edit.start.line}:${edit.start.character}:${edit.end.line}:${edit.end.character}`;
     const existing = grouped.get(key);
-    if (existing && isInsertion(existing) && isInsertion(edit)) {
+    if (existing && isInsertion(existing.edit) && isInsertion(edit)) {
+      const appendedText = areSpatialStatementInsertions(existing.lastIntent, intent)
+        ? removeOneLeadingEol(edit.replacementText)
+        : edit.replacementText;
       grouped.set(key, {
-        ...existing,
-        replacementText: `${existing.replacementText}${edit.replacementText}`,
+        edit: {
+          ...existing.edit,
+          replacementText: `${existing.edit.replacementText}${appendedText}`,
+        },
+        lastIntent: intent,
       });
     } else if (!existing) {
-      grouped.set(key, edit);
+      grouped.set(key, { edit, lastIntent: intent });
     } else {
-      grouped.set(`${key}:${grouped.size}`, edit);
+      grouped.set(`${key}:${grouped.size}`, { edit, lastIntent: intent });
     }
   }
 
-  return [...grouped.values()].sort(compareEdits);
+  return [...grouped.values()].map(({ edit }) => edit).sort(compareEdits);
+}
+
+function areSpatialStatementInsertions(left: WriteIntent, right: WriteIntent): boolean {
+  return (
+    left.kind === "insertStatement" &&
+    right.kind === "insertStatement" &&
+    left.payload.trimStart().startsWith("%% @spatial:") &&
+    right.payload.trimStart().startsWith("%% @spatial:")
+  );
+}
+
+function removeOneLeadingEol(text: string): string {
+  if (text.startsWith("\r\n")) return text.slice(2);
+  if (text.startsWith("\n")) return text.slice(1);
+  return text;
 }
 
 /** Proves the edits are pairwise non-overlapping; throws otherwise. */

@@ -1,5 +1,5 @@
 /**
- * @behavior Relationship edge selection and inline edit semantic handlers with commit dispatch, inline edit target, and draft updates.
+ * @behavior Relationship edge selection and inline edit semantic handlers with commit dispatch.
  */
 
 import { useCallback } from "react";
@@ -15,10 +15,9 @@ import {
 
 type Interactions = {
   readonly onEdgeSelect: () => void;
-  readonly onEditStart: (target: EditTarget, value: string) => void;
-  readonly onDraftChange: (value: string) => void;
-  readonly onDraftCommit: () => void;
-  readonly onDraftDiscard: () => void;
+  readonly onEditStart: (target: EditTarget) => void;
+  readonly onEditCommit: (value: string) => void;
+  readonly onEditCancel: () => void;
 };
 
 type UseInteractionsInput = {
@@ -27,8 +26,6 @@ type UseInteractionsInput = {
   readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
   readonly editTarget: EditTarget | null;
   readonly setEditTarget: Dispatch<SetStateAction<EditTarget | null>>;
-  readonly draft: string;
-  readonly setDraft: Dispatch<SetStateAction<string>>;
 };
 
 export function useInteractions({
@@ -37,8 +34,6 @@ export function useInteractions({
   onRelationshipSelect,
   editTarget,
   setEditTarget,
-  draft,
-  setDraft,
 }: UseInteractionsInput): Interactions {
   const dispatchTransaction = useDispatchTransaction();
 
@@ -48,37 +43,35 @@ export function useInteractions({
   }, [onRelationshipSelect, view.relationshipId]);
 
   const onEditStart = useCallback(
-    (target: EditTarget, value: string) => {
+    (target: EditTarget) => {
       if (!isSelected) onRelationshipSelect(view.relationshipId);
       setEditTarget(target);
-      setDraft(value);
     },
-    [isSelected, onRelationshipSelect, setDraft, setEditTarget, view.relationshipId]
+    [isSelected, onRelationshipSelect, setEditTarget, view.relationshipId]
   );
 
-  const onDraftChange = useCallback((value: string) => setDraft(value), [setDraft]);
+  const onEditCommit = useCallback(
+    (value: string) => {
+      if (editTarget === null) return;
+      const trimmed = value.trim();
+      // Implementing interaction through command transaction
+      dispatchTransaction(
+        editTarget === "label"
+          ? toRelationshipLabelSetTransaction(view.relationshipId, trimmed === "" ? null : trimmed)
+          : toRelationshipMultiplicitySetTransaction(
+              view.relationshipId,
+              editTarget === "sourceMultiplicity" ? "source" : "target",
+              trimmed === "" ? null : trimmed
+            )
+      );
+      setEditTarget(null);
+    },
+    [dispatchTransaction, editTarget, setEditTarget, view.relationshipId]
+  );
 
-  const onDraftCommit = useCallback(() => {
-    if (editTarget === null) return;
-    const value = draft.trim();
-    // Implementing interaction through command transaction
-    dispatchTransaction(
-      editTarget === "label"
-        ? toRelationshipLabelSetTransaction(view.relationshipId, value === "" ? null : value)
-        : toRelationshipMultiplicitySetTransaction(
-            view.relationshipId,
-            editTarget === "sourceMultiplicity" ? "source" : "target",
-            value === "" ? null : value
-          )
-    );
+  const onEditCancel = useCallback(() => {
     setEditTarget(null);
-    setDraft("");
-  }, [dispatchTransaction, draft, editTarget, setDraft, setEditTarget, view.relationshipId]);
+  }, [setEditTarget]);
 
-  const onDraftDiscard = useCallback(() => {
-    setEditTarget(null);
-    setDraft("");
-  }, [setDraft, setEditTarget]);
-
-  return { onEdgeSelect, onEditStart, onDraftChange, onDraftCommit, onDraftDiscard };
+  return { onEdgeSelect, onEditStart, onEditCommit, onEditCancel };
 }

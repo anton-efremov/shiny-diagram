@@ -1,26 +1,24 @@
 /**
- * @behavior Adapter-local namespace and note gesture snapshots.
+ * @behavior Adapter-local content minima plus namespace and note gesture snapshots.
  * @framework View diagram canvas props to React Flow canvas props and events.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactElement } from "react";
 import {
-  Background,
   ConnectionMode,
   Controls,
   ReactFlow,
   type ConnectionLineComponent,
+  type IsValidConnection,
   useReactFlow,
   type XYPosition,
 } from "@xyflow/react";
 import type { Point, Rect } from "../../../../../shared/geometry";
-import type { ClassId, NamespaceId, RelationshipId } from "../../../../../shared/ids";
+import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../../../../shared/ids";
 import type { TransactionResult } from "../../../../commands/editorCommands";
 import {
   NAMESPACE_GESTURE_Z_INDEX,
-  NAMESPACE_PENDING_STROKE,
-  NAMESPACE_PENDING_STROKE_WIDTH,
   RELATIONSHIP_RECONNECT_RADIUS,
 } from "../../../../config/editorUiConfig";
 import { reactFlowCanvasBoundaryProps } from "../../../../config/reactFlowConfig";
@@ -63,8 +61,21 @@ import {
   toRelationshipEdgeDescriptors,
 } from "./frameworkAdapters";
 import { useInteractions } from "./useInteractions";
-import type { NamespaceResizePointerState } from "./useInteractions";
-import styles from "./ReactFlowCanvasAdapter.module.css";
+import CanvasGridFrame from "../../../../../ui/canvas/templates/CanvasGridFrame/CanvasGridFrame";
+import DraftRect from "../../../../../ui/canvas/primitives/DraftRect/DraftRect";
+import type {
+  ClassResizePointerState,
+  NamespaceResizePointerState,
+  NoteResizePointerState,
+} from "./useInteractions";
+
+type ReactFlowRuntimeStyle = CSSProperties & {
+  readonly "--rf-reconnect-radius": string;
+};
+
+const REACT_FLOW_RUNTIME_STYLE: ReactFlowRuntimeStyle = {
+  "--rf-reconnect-radius": `${RELATIONSHIP_RECONNECT_RADIUS}px`,
+};
 
 const nodeTypes = {
   classBox: ReactFlowClassBoxNodeAdapter,
@@ -112,6 +123,10 @@ type ReactFlowCanvasAdapterProps = {
   readonly onNamespaceResizeStart: (namespaceId: NamespaceId, rect: Rect) => void;
   readonly onNamespaceResizeCommitted: (result: TransactionResult | null) => void;
   readonly onNamespaceSelect: (namespaceId: NamespaceId) => void;
+  readonly onNamespaceRenameCommitted: (
+    result: TransactionResult,
+    previousNamespaceId: NamespaceId
+  ) => void;
   readonly onTextBlockEditStart: (
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
@@ -147,6 +162,7 @@ export default function ReactFlowCanvasAdapter({
   onNamespaceResizeStart,
   onNamespaceResizeCommitted,
   onNamespaceSelect,
+  onNamespaceRenameCommitted,
   onTextBlockEditStart,
   onTextBlockEditCancel,
 }: ReactFlowCanvasAdapterProps): ReactElement {
@@ -160,31 +176,88 @@ export default function ReactFlowCanvasAdapter({
     NamespaceId,
     Rect
   > | null>(null);
+  const [isSurfaceResizeActive, setSurfaceResizeActive] = useState(false);
+  const [classContentHeightById, setClassContentHeightById] = useState<
+    ReadonlyMap<ClassId, number>
+  >(new Map());
+  const [noteContentHeightById, setNoteContentHeightById] = useState<ReadonlyMap<NoteId, number>>(
+    new Map()
+  );
   const placementStartPointRef = useRef<XYPosition | null>(null);
+  const placementPointerRef = useRef<XYPosition | null>(null);
   const namespaceDragStartPointRef = useRef<XYPosition | null>(null);
   const namespaceDropBoundsRef = useRef<ReadonlyMap<NamespaceId, Rect> | null>(null);
   const namespaceStartPointRef = useRef<XYPosition | null>(null);
   const namespaceResizePointerStateRef = useRef<NamespaceResizePointerState | null>(null);
+  const classResizePointerStateRef = useRef<ClassResizePointerState | null>(null);
+  const noteResizePointerStateRef = useRef<NoteResizePointerState | null>(null);
   const reconnectSeedRef = useRef<RelationshipSeed | null>(null);
+  const reconnectPointerRef = useRef<XYPosition | null>(null);
   const isPlacementActive = nodePlacementState !== null;
   const isNamespaceGestureActive = namespaceGestureState.kind !== "none";
   const relationshipPlacementState =
     nodePlacementState?.kind === "relationship" ? nodePlacementState : null;
   const isRelationshipPlacementActive = relationshipPlacementState !== null;
-  const noteAttachSource = toNoteAttachSourcePoint(
-    noteAttachState,
-    noteBoxPlacementState,
-    noteAttachCursor,
-    flowToScreenPosition
+  const classIds = useMemo(
+    () => new Set(view.classes.map((classView) => classView.classId)),
+    [view.classes]
+  );
+  const isValidRelationshipConnection = useCallback<
+    IsValidConnection<RelationshipEdgeDescriptor | NoteAttachmentEdgeDescriptor>
+  >(
+    (connection) =>
+      connection.source !== null &&
+      connection.target !== null &&
+      classIds.has(connection.source as ClassId) &&
+      classIds.has(connection.target as ClassId),
+    [classIds]
   );
   const namespaceDraftStyle = toNamespaceDraftStyle(namespaceGestureState, flowToScreenPosition);
   const effectiveClassBoxPlacementState = useMemo(
     () => toNamespaceDragClassBoxPlacementState(view, classBoxPlacementState, namespaceDragState),
     [view, classBoxPlacementState, namespaceDragState]
   );
+  const renderedClassBoxPlacementState = useMemo<ClassBoxPlacementState>(() => {
+    const rectByClassId = new Map(effectiveClassBoxPlacementState.rectByClassId);
+    for (const [classId, height] of classContentHeightById) {
+      const rect = rectByClassId.get(classId);
+      if (rect) rectByClassId.set(classId, { ...rect, h: Math.max(rect.h, height) });
+    }
+    return { rectByClassId };
+  }, [classContentHeightById, effectiveClassBoxPlacementState]);
+  const onClassContentHeightChange = useCallback((classId: ClassId, height: number) => {
+    setClassContentHeightById((current) => {
+      if (current.get(classId) === height) return current;
+      const next = new Map(current);
+      next.set(classId, height);
+      return next;
+    });
+  }, []);
+  const renderedNoteBoxPlacementState = useMemo<NoteBoxPlacementState>(() => {
+    const rectByNoteId = new Map(noteBoxPlacementState.rectByNoteId);
+    for (const [noteId, height] of noteContentHeightById) {
+      const rect = rectByNoteId.get(noteId);
+      if (rect) rectByNoteId.set(noteId, { ...rect, h: Math.max(rect.h, height) });
+    }
+    return { rectByNoteId };
+  }, [noteBoxPlacementState, noteContentHeightById]);
+  const onNoteContentHeightChange = useCallback((noteId: NoteId, height: number) => {
+    setNoteContentHeightById((current) => {
+      if (current.get(noteId) === height) return current;
+      const next = new Map(current);
+      next.set(noteId, height);
+      return next;
+    });
+  }, []);
+  const noteAttachSource = toNoteAttachSourcePoint(
+    noteAttachState,
+    renderedNoteBoxPlacementState,
+    noteAttachCursor,
+    flowToScreenPosition
+  );
   const namespaceGeometry = useMemo(
-    () => toNamespaceGeometry(view, effectiveClassBoxPlacementState, namespaceGestureState),
-    [view, effectiveClassBoxPlacementState, namespaceGestureState]
+    () => toNamespaceGeometry(view, renderedClassBoxPlacementState, namespaceGestureState),
+    [view, renderedClassBoxPlacementState, namespaceGestureState]
   );
   const renderedNamespaceGeometry = useMemo(
     () =>
@@ -240,13 +313,16 @@ export default function ReactFlowCanvasAdapter({
     onNodeDragStop,
     onNodeDrag,
     onNodeDragStart,
-    onNamespaceDragCancel,
+    onCanvasGestureCancel,
+    onClassResizeHandlePress,
+    onNoteResizeHandlePress,
     onNamespaceResizeHandlePress,
     onConnect,
     onConnectStart,
     onConnectEnd,
     onReconnect,
     onReconnectStart,
+    onReconnectEnd,
     onCanvasMouseMove,
     onCanvasPointerDown,
     onCanvasPointerMove,
@@ -257,12 +333,17 @@ export default function ReactFlowCanvasAdapter({
     isRelationshipPlacementArmed: isRelationshipPlacementActive,
     noteAttachState,
     setNoteAttachCursor,
+    setSurfaceResizeActive,
     placementStartPointRef,
+    placementPointerRef,
     namespaceStartPointRef,
     namespaceDragStartPointRef,
     namespaceDropBoundsRef,
     namespaceResizePointerStateRef,
+    classResizePointerStateRef,
+    noteResizePointerStateRef,
     reconnectSeedRef,
+    reconnectPointerRef,
     screenToFlowPosition,
     namespaceGestureState,
     namespaceGeometry: renderedNamespaceGeometry,
@@ -270,21 +351,36 @@ export default function ReactFlowCanvasAdapter({
     setNamespaceDragBoundsState,
     view,
     classBoxPlacementState,
+    classContentHeightById,
+    noteContentHeightById,
   });
 
   // Keystroke listener registration
   useEffect(() => {
-    if (!namespaceDragState) return;
-
     function handleKeyDown(event: KeyboardEvent): void {
       if (event.key !== "Escape") return;
+      if (
+        !namespaceDragState &&
+        namespaceGestureState.kind === "none" &&
+        !isSurfaceResizeActive &&
+        !namespaceResizePointerStateRef.current &&
+        !classResizePointerStateRef.current &&
+        !noteResizePointerStateRef.current
+      ) {
+        return;
+      }
       event.preventDefault();
-      onNamespaceDragCancel();
+      onCanvasGestureCancel();
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [namespaceDragState, onNamespaceDragCancel]);
+  }, [
+    isSurfaceResizeActive,
+    namespaceDragState,
+    namespaceGestureState.kind,
+    onCanvasGestureCancel,
+  ]);
 
   const rfNodes = useMemo(() => {
     const selectedClassIds = selectionState.kind === "classes" ? selectionState.classIds : [];
@@ -293,45 +389,58 @@ export default function ReactFlowCanvasAdapter({
       renderedNamespaceGeometry,
       selectionState,
       onNamespaceSelect,
-      onNamespaceResizeHandlePress
+      onNamespaceResizeHandlePress,
+      editingState,
+      onTextBlockEditStart,
+      onTextBlockEditCancel,
+      onNamespaceRenameCommitted
     );
     const classNodes = toClassBoxNodeDescriptors(
       view.classes,
       selectedClassIds,
-      effectiveClassBoxPlacementState,
+      renderedClassBoxPlacementState,
       renderedNamespaceGeometry,
       isRelationshipPlacementActive,
       onClassSelect,
+      onClassResizeHandlePress,
       editingState,
       onTextBlockEditStart,
-      onTextBlockEditCancel
+      onTextBlockEditCancel,
+      onClassContentHeightChange
     );
     const noteNodes = toNoteBoxNodeDescriptors(
       view.notes,
       selectionState,
       editingState,
-      noteBoxPlacementState,
+      renderedNoteBoxPlacementState,
       onNoteSelect,
       onNoteResizeEnd,
+      onNoteResizeHandlePress,
       onTextBlockEditStart,
-      onTextBlockEditCancel
+      onTextBlockEditCancel,
+      onNoteContentHeightChange
     );
     return [...namespaceNodes, ...classNodes, ...noteNodes];
   }, [
     view,
     selectionState,
-    effectiveClassBoxPlacementState,
+    renderedClassBoxPlacementState,
     renderedNamespaceGeometry,
-    noteBoxPlacementState,
+    renderedNoteBoxPlacementState,
     isRelationshipPlacementActive,
     onClassSelect,
     onNoteSelect,
     onNoteResizeEnd,
+    onNoteResizeHandlePress,
+    onClassResizeHandlePress,
     onNamespaceSelect,
+    onNamespaceRenameCommitted,
     onNamespaceResizeHandlePress,
     editingState,
     onTextBlockEditStart,
     onTextBlockEditCancel,
+    onClassContentHeightChange,
+    onNoteContentHeightChange,
   ]);
   const rfEdges = useMemo<Array<RelationshipEdgeDescriptor | NoteAttachmentEdgeDescriptor>>(
     () => [
@@ -339,15 +448,15 @@ export default function ReactFlowCanvasAdapter({
         view.classes,
         view.relationships,
         selectionState,
-        effectiveClassBoxPlacementState,
+        renderedClassBoxPlacementState,
         isRelationshipPlacementActive,
         onRelationshipSelect
       ),
       ...toNoteAttachmentEdgeDescriptors(
         view.notes,
         view.classes,
-        effectiveClassBoxPlacementState,
-        noteBoxPlacementState,
+        renderedClassBoxPlacementState,
+        renderedNoteBoxPlacementState,
         noteAttachState
       ),
     ],
@@ -356,12 +465,19 @@ export default function ReactFlowCanvasAdapter({
       view.relationships,
       view.notes,
       selectionState,
-      effectiveClassBoxPlacementState,
-      noteBoxPlacementState,
+      renderedClassBoxPlacementState,
+      renderedNoteBoxPlacementState,
       noteAttachState,
       isRelationshipPlacementActive,
       onRelationshipSelect,
     ]
+  );
+  const renderedNodes = useMemo(
+    () =>
+      isRelationshipPlacementActive
+        ? rfNodes.map((node) => ({ ...node, style: { ...node.style, cursor: "inherit" } }))
+        : rfNodes,
+    [isRelationshipPlacementActive, rfNodes]
   );
 
   // Rendered for both placement and reconnect drags; reconnect drags carry no
@@ -378,20 +494,22 @@ export default function ReactFlowCanvasAdapter({
           {...props}
           placementSeed={placementSeed}
           placementStartPointRef={placementStartPointRef}
+          placementPointerRef={placementPointerRef}
           reconnectSeedRef={reconnectSeedRef}
+          reconnectPointerRef={reconnectPointerRef}
         />
       );
     };
   }, [relationshipPlacementState]);
 
   return (
-    <>
+    <CanvasGridFrame placementCursor={isRelationshipPlacementActive}>
       <ReactFlow<
         ClassBoxNodeDescriptor | NamespaceNodeDescriptor | NoteBoxNodeDescriptor,
         RelationshipEdgeDescriptor | NoteAttachmentEdgeDescriptor
       >
         // Editable React Flow canvas boundary.
-        nodes={rfNodes}
+        nodes={renderedNodes}
         edges={rfEdges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -404,23 +522,34 @@ export default function ReactFlowCanvasAdapter({
         onConnectEnd={onConnectEnd}
         onReconnect={onReconnect}
         onReconnectStart={onReconnectStart}
+        onReconnectEnd={onReconnectEnd}
         onMouseMove={onCanvasMouseMove}
         onPointerDown={onCanvasPointerDown}
         onPointerMove={onCanvasPointerMove}
         onPointerUp={onCanvasPointerUp}
         onPaneClick={onPaneClick}
         connectionMode={ConnectionMode.Loose}
+        isValidConnection={isValidRelationshipConnection}
         reconnectRadius={RELATIONSHIP_RECONNECT_RADIUS}
+        style={REACT_FLOW_RUNTIME_STYLE}
         connectionLineComponent={connectionLineComponent}
-        className={isRelationshipPlacementActive ? styles.relationshipPlacement : undefined}
         fitView
-        nodesDraggable={!isPlacementActive && !isNamespaceGestureActive}
-        panOnDrag={!isPlacementActive && !isNamespaceGestureActive}
+        nodesDraggable={
+          editingState.kind === "none" &&
+          !isPlacementActive &&
+          !isNamespaceGestureActive &&
+          !isSurfaceResizeActive
+        }
+        panOnDrag={
+          editingState.kind === "none" &&
+          !isPlacementActive &&
+          !isNamespaceGestureActive &&
+          !isSurfaceResizeActive
+        }
         zoomOnScroll
         // Keep last. This enforces Shiny's React Flow boundary policy.
         {...reactFlowCanvasBoundaryProps}
       >
-        <Background />
         <Controls showInteractive={false} />
         <PlacementOverlay
           nodePlacementState={nodePlacementState}
@@ -431,9 +560,14 @@ export default function ReactFlowCanvasAdapter({
         <NoteAttachGhostLine sourcePoint={noteAttachSource} targetPoint={noteAttachCursor} />
       ) : null}
       {namespaceDraftStyle ? (
-        <div className={styles.namespaceDraft} style={namespaceDraftStyle} />
+        <DraftRect
+          rect={namespaceDraftStyle}
+          tone="positive"
+          positioning="fixed"
+          stacking={NAMESPACE_GESTURE_Z_INDEX}
+        />
       ) : null}
-    </>
+    </CanvasGridFrame>
   );
 }
 
@@ -441,7 +575,7 @@ export default function ReactFlowCanvasAdapter({
 function toNamespaceDraftStyle(
   namespaceGestureState: NamespaceGestureState,
   flowToScreenPosition: (position: XYPosition) => XYPosition
-): CSSProperties | null {
+): Rect | null {
   if (namespaceGestureState.kind !== "creating") return null;
   if (namespaceGestureState.rect.w === 0 && namespaceGestureState.rect.h === 0) return null;
   const topLeft = flowToScreenPosition({
@@ -453,15 +587,11 @@ function toNamespaceDraftStyle(
     y: namespaceGestureState.rect.y + namespaceGestureState.rect.h,
   });
   return {
-    position: "fixed",
-    left: Math.min(topLeft.x, bottomRight.x),
-    top: Math.min(topLeft.y, bottomRight.y),
-    width: Math.abs(bottomRight.x - topLeft.x),
-    height: Math.abs(bottomRight.y - topLeft.y),
-    zIndex: NAMESPACE_GESTURE_Z_INDEX,
-    "--namespace-draft-stroke": NAMESPACE_PENDING_STROKE,
-    "--namespace-draft-stroke-width": `${NAMESPACE_PENDING_STROKE_WIDTH}px`,
-  } as CSSProperties;
+    x: Math.min(topLeft.x, bottomRight.x),
+    y: Math.min(topLeft.y, bottomRight.y),
+    w: Math.abs(bottomRight.x - topLeft.x),
+    h: Math.abs(bottomRight.y - topLeft.y),
+  };
 }
 
 function toNoteAttachSourcePoint(

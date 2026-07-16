@@ -1,0 +1,14 @@
+.frame {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  border: var(--hull-surface-stroke-width) var(--hull-surface-line-style)
+    var(--hull-surface-stroke, var(--shiny-canvas-unstyled-hull-stroke));
+  color: var(--hull-surface-color, var(--shiny-canvas-unstyled-hull-text));
+  background: var(--hull-surface-fill, var(--shiny-canvas-unstyled-hull-fill));
+  font-family: var(--shiny-canvas-font-family);
+  font-size: var(--shiny-canvas-font-size-secondary);
+  pointer-events: auto;
+}

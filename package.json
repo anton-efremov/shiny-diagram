@@ -11,7 +11,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:shiny.openDiagram"
+    "onCommand:shiny.openDiagram",
+    "onCustomEditor:shiny.diagram"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -22,11 +23,23 @@
         "icon": "$(preview)"
       }
     ],
+    "customEditors": [
+      {
+        "viewType": "shiny.diagram",
+        "displayName": "Shiny Diagram",
+        "selector": [
+          {
+            "filenamePattern": "*.mmd"
+          }
+        ],
+        "priority": "option"
+      }
+    ],
     "menus": {
       "editor/title": [
         {
           "command": "shiny.openDiagram",
-          "when": "resourceExtname == .mmd",
+          "when": "resourceExtname == .mmd && activeCustomEditorId != shiny.diagram",
           "group": "navigation"
         }
       ]
@@ -38,11 +51,13 @@
     "compile": "tsc -p ./",
     "typecheck": "tsc -p ./ --noEmit && tsc -p ./tsconfig.webview.json --noEmit",
     "check:boundaries": "node scripts/check-webview-boundaries.mjs",
+    "check:planes": "node scripts/check-planes.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint extension-host webview/src",
+    "planes": "node scripts/update-planes.mjs",
     "test": "vitest run",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run check:boundaries",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run check:boundaries && npm run check:planes",
     "prepare": "git config core.hooksPath .githooks"
   },
   "devDependencies": {

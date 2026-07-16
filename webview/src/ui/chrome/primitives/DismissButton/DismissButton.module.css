@@ -1,0 +1,31 @@
+/**
+ * @render Compact cross button styling.
+ */
+
+.button {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    currentColor;
+  border-radius: var(--shiny-chrome-dismiss-radius);
+  color: var(--shiny-chrome-text-error);
+  background: transparent;
+  cursor: var(--shiny-chrome-cursor-action);
+  width: 13px;
+  height: 13px;
+}
+
+.button:hover {
+  color: var(--shiny-inline-surface, var(--shiny-chrome-surface));
+  background: var(--shiny-chrome-text-error);
+}
+
+.button svg {
+  width: 11px;
+  height: 11px;
+}
+
+.button path {
+  stroke-width: var(--shiny-chrome-glyph-stroke-width);
+}

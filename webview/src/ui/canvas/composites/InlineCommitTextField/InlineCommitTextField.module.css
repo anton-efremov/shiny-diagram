@@ -1,0 +1,57 @@
+.editor {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+
+.contentSized {
+  display: inline-grid;
+  width: fit-content;
+  min-width: var(--shiny-inline-content-field-min-width);
+  max-width: 100%;
+}
+
+.contentSized > :not(.cancelAction) {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.sizer {
+  overflow: hidden;
+  visibility: hidden;
+  white-space: pre;
+}
+
+.primary {
+  font-size: var(--shiny-canvas-font-size-primary);
+  font-weight: var(--shiny-canvas-font-weight-primary);
+  line-height: var(--shiny-canvas-line-height-primary);
+  text-align: center;
+}
+
+.secondary {
+  font-size: var(--shiny-canvas-font-size-supporting);
+  line-height: var(--shiny-canvas-line-height-supporting);
+  text-align: center;
+}
+
+.heading {
+  font-size: var(--shiny-canvas-font-size-secondary);
+  font-weight: var(--shiny-canvas-font-weight-heading);
+  line-height: var(--shiny-canvas-line-height-heading);
+  text-align: left;
+}
+
+.label,
+.multiplicity {
+  font-size: var(--shiny-canvas-font-size-secondary);
+  text-align: center;
+}
+
+.cancelAction {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+}

@@ -1,45 +1,55 @@
 /**
- * @behavior Class resize command dispatch and header blur-discard popup state.
+ * @behavior Class content-height measurement, resize dispatch, and header blur-discard popup state.
  * @render Class-box node.
  */
 
-import type { ReactElement } from "react";
-import { useState } from "react";
-import type { CSSProperties } from "react";
+import type { MouseEvent, ReactElement } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import ReactFlowConnectionHandlesAdapter from "./ReactFlowConnectionHandlesAdapter/ReactFlowConnectionHandlesAdapter";
-import ReactFlowNodeResizerAdapter from "./ReactFlowNodeResizerAdapter/ReactFlowNodeResizerAdapter";
-import HeaderEditField from "./HeaderEditField/HeaderEditField";
 import MemberTable from "./MemberTable/MemberTable";
 import { useInteractions } from "./useInteractions";
+import BoxInteractionOverlay from "../../../../../../../ui/canvas/composites/BoxInteractionOverlay/BoxInteractionOverlay";
+import type { ResizeHandle } from "../../../../../../../ui/canvas/composites/BoxInteractionOverlay/BoxInteractionOverlay";
+import InlineCommitTextField from "../../../../../../../ui/canvas/composites/InlineCommitTextField/InlineCommitTextField";
+import BoxHeaderFrame from "../../../../../../../ui/canvas/templates/BoxHeaderFrame/BoxHeaderFrame";
+import StyledBoxSurfaceFrame from "../../../../../../../ui/canvas/templates/StyledBoxSurfaceFrame/StyledBoxSurfaceFrame";
+import type { Point, Rect } from "../../../../../../../shared/geometry";
 import type { ClassId } from "../../../../../../../shared/ids";
 import type { EditingState } from "../../../../../../state/editorStates";
 import type { ClassView } from "../../../../../../views/schema";
+import { CLASS_STYLE_CONSTANTS } from "../../../../../../config/styleConstants";
 import {
-  CLASS_BOX_MIN_HEIGHT,
-  CLASS_BOX_MIN_WIDTH,
-  NAMESPACE_HALO_PADDING,
-  NAMESPACE_HALO_BORDER_RADIUS,
-  NAMESPACE_PENDING_OUTLINE_OFFSET,
-  NAMESPACE_PENDING_STROKE,
-  NAMESPACE_PENDING_STROKE_WIDTH,
+  CLASS_BOX_HEADER_MIN_HEIGHT,
+  INLINE_VALIDATION_POPUP_Z_INDEX,
+  NODE_ABOVE_CONTENT_Z_INDEX,
+  NODE_BEHIND_CONTENT_Z_INDEX,
 } from "../../../../../../config/editorUiConfig";
-import ValidationPopup from "../../../../../../ui/ValidationPopup/ValidationPopup";
-import styles from "./ClassBox.module.css";
+import InlineValidationPopup from "../../../../../../../ui/canvas/primitives/InlineValidationPopup/InlineValidationPopup";
+import { STYLE_PROPERTIES } from "../../../../../../../shared/style";
 
 type ClassBoxProps = {
   readonly view: ClassView;
+  readonly bounds: Rect;
   readonly isSelected: boolean;
   readonly isDragging: boolean;
   readonly isResizeVisible: boolean;
   readonly isConnectSourceEnabled: boolean;
   readonly isPendingMember: boolean;
   readonly haloColor: string | null;
+  readonly haloTone: "canvas" | "faint" | null;
   readonly onClassSelect: (classId: ClassId, additive: boolean) => void;
+  readonly onClassResizeHandlePress: (
+    classId: ClassId,
+    bounds: Rect,
+    handle: ResizeHandle,
+    screenPoint: Point
+  ) => void;
   readonly editingState: EditingState;
   readonly onTextBlockEditStart: (
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
   readonly onTextBlockEditCancel: () => void;
+  readonly onContentHeightChange: (classId: ClassId, height: number) => void;
 };
 
 type ConnectionHandleDescriptor = {
@@ -61,204 +71,217 @@ const CONNECTION_HANDLES: readonly ConnectionHandleDescriptor[] = [
 
 export default function ClassBox({
   view,
+  bounds,
   isSelected,
   isDragging,
   isResizeVisible,
   isConnectSourceEnabled,
   isPendingMember,
   haloColor,
+  haloTone,
   onClassSelect,
+  onClassResizeHandlePress,
   editingState,
   onTextBlockEditStart,
   onTextBlockEditCancel,
+  onContentHeightChange,
 }: ClassBoxProps): ReactElement {
   // State creation: local state - blur-discard validation messages for header direct edits
   const [headerDiscardErrors, setHeaderDiscardErrors] = useState<readonly string[]>([]);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
+    const header = headerRef.current;
+    const body = bodyRef.current;
+    if (!frame || !header || !body) return undefined;
+    const measure = () => {
+      const style = window.getComputedStyle(frame);
+      const borders = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+      onContentHeightChange(
+        view.classId,
+        Math.ceil(header.offsetHeight + body.offsetHeight + borders)
+      );
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    observer.observe(body);
+    return () => observer.disconnect();
+  }, [onContentHeightChange, view.classId]);
 
   // Event handler props derivation
-  const { onClassBoxClick, onResizeEnd, onHeaderCommit } = useInteractions(
-    view.classId,
-    onClassSelect
-  );
+  const { onClassBoxClick, onHeaderCommit } = useInteractions(view.classId, onClassSelect);
 
   // UI props derivation
-  const className = [
-    styles.classBox,
-    isSelected ? styles.selected : "",
-    isDragging ? styles.dragging : "",
-    isPendingMember ? styles.pendingMember : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const resolvedStyle = Object.fromEntries(
+    STYLE_PROPERTIES.flatMap(({ name }) => {
+      return [[name, view.style?.[name] ?? CLASS_STYLE_CONSTANTS[name]]];
+    })
+  );
+  const separatorColor = resolvedStyle.stroke;
+  const separatorThickness = toCssLength(resolvedStyle.strokeWidth);
+  const separatorThicknessPixels = toPixelLength(separatorThickness);
+  const selectionCenterOffset =
+    separatorThicknessPixels === undefined ? undefined : separatorThicknessPixels + 2;
+  const separatorLineStyle = toCssLineStyle(resolvedStyle.strokeDasharray);
 
-  const dynamicVars = {
-    "--class-fill": view.style?.fill ?? undefined,
-    "--class-stroke": view.style?.stroke ?? undefined,
-    "--class-stroke-width": view.style?.strokeWidth ?? undefined,
-    "--class-stroke-dasharray": view.style?.strokeDasharray ?? undefined,
-    "--class-color": view.style?.color ?? undefined,
-    "--namespace-halo-color": haloColor ?? undefined,
-    "--namespace-halo-padding": `${NAMESPACE_HALO_PADDING}px`,
-    "--namespace-halo-border-radius": `${NAMESPACE_HALO_BORDER_RADIUS}px`,
-    "--namespace-pending-stroke-width": `${NAMESPACE_PENDING_STROKE_WIDTH}px`,
-    "--namespace-pending-outline-offset": `${NAMESPACE_PENDING_OUTLINE_OFFSET}px`,
-    "--namespace-pending-stroke": NAMESPACE_PENDING_STROKE,
-  } as CSSProperties;
+  const onResizeGrab = (handle: ResizeHandle, point: Point) => {
+    onClassResizeHandlePress(view.classId, bounds, handle, point);
+  };
+
+  const requestHeaderEdit =
+    (block: "annotation" | "name" | "label") => (event: MouseEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+      if (isSelected) {
+        onTextBlockEditStart({ kind: "header", classId: view.classId, block });
+      } else {
+        onClassSelect(view.classId, false);
+      }
+    };
+
+  const annotation = view.header.stereotype ? (
+    <InlineCommitTextField
+      initialValue={view.header.stereotype}
+      displayText={`<<${view.header.stereotype}>>`}
+      onEditRequest={requestHeaderEdit("annotation")}
+      isEditing={isHeaderEditing(editingState, view.classId, "annotation")}
+      isEditEnabled={isSelected}
+      treatment="secondary"
+      validate={(text) => onHeaderCommit("annotation", text.trim() || null)}
+      ariaLabel="Annotation"
+      validationStacking={INLINE_VALIDATION_POPUP_Z_INDEX}
+      surface={resolvedStyle.fill}
+      onCommit={onTextBlockEditCancel}
+      onDiscard={(messages) => {
+        setHeaderDiscardErrors(messages);
+        onTextBlockEditCancel();
+      }}
+      onCancel={onTextBlockEditCancel}
+    />
+  ) : null;
+  const name = (
+    <InlineCommitTextField
+      initialValue={view.header.name}
+      displayText={view.header.name}
+      onEditRequest={requestHeaderEdit("name")}
+      isEditing={isHeaderEditing(editingState, view.classId, "name")}
+      isEditEnabled={isSelected}
+      treatment="primary"
+      validate={(text) => onHeaderCommit("name", text.trim())}
+      ariaLabel="Class name"
+      validationStacking={INLINE_VALIDATION_POPUP_Z_INDEX}
+      surface={resolvedStyle.fill}
+      onCommit={onTextBlockEditCancel}
+      onCancel={onTextBlockEditCancel}
+      onDiscard={(messages) => {
+        setHeaderDiscardErrors(messages);
+        onTextBlockEditCancel();
+      }}
+    />
+  );
+  const label =
+    view.header.label !== view.header.name ? (
+      <InlineCommitTextField
+        initialValue={view.header.label}
+        displayText={`as ${view.header.label}`}
+        onEditRequest={requestHeaderEdit("label")}
+        isEditing={isHeaderEditing(editingState, view.classId, "label")}
+        isEditEnabled={isSelected}
+        treatment="secondary"
+        validate={(text) => onHeaderCommit("label", text.trim() || null)}
+        ariaLabel="Class label"
+        validationStacking={INLINE_VALIDATION_POPUP_Z_INDEX}
+        surface={resolvedStyle.fill}
+        onCommit={onTextBlockEditCancel}
+        onCancel={onTextBlockEditCancel}
+        onDiscard={(messages) => {
+          setHeaderDiscardErrors(messages);
+          onTextBlockEditCancel();
+        }}
+      />
+    ) : null;
 
   return (
-    <div className={className} style={dynamicVars} title={view.classId} onClick={onClassBoxClick}>
-      {haloColor ? <div className={styles.namespaceHalo} /> : null}
-      <ReactFlowNodeResizerAdapter
-        nodeId={view.classId}
-        isVisible={isResizeVisible}
-        minWidth={CLASS_BOX_MIN_WIDTH}
-        minHeight={CLASS_BOX_MIN_HEIGHT}
-        handleClassName={styles.resizeHandle}
-        lineClassName={styles.resizeLine}
-        onResizeEnd={onResizeEnd}
+    <StyledBoxSurfaceFrame
+      elementRef={frameRef}
+      title={view.classId}
+      fill={resolvedStyle.fill}
+      stroke={resolvedStyle.stroke}
+      strokeWidth={separatorThickness}
+      lineStyle={separatorLineStyle}
+      color={resolvedStyle.color}
+      dragging={isDragging}
+      placementCursor={isConnectSourceEnabled}
+      onClick={onClassBoxClick}
+    >
+      <BoxInteractionOverlay
+        selected={isSelected}
+        pending={isPendingMember}
+        resizeVisible={isResizeVisible}
+        centerOffset={selectionCenterOffset}
+        haloTint={haloColor ?? undefined}
+        haloTone={haloTone ?? undefined}
+        haloStacking={NODE_BEHIND_CONTENT_Z_INDEX}
+        affordanceStacking={NODE_ABOVE_CONTENT_Z_INDEX}
+        onResizeGrab={onResizeGrab}
       />
       <ReactFlowConnectionHandlesAdapter
         handles={CONNECTION_HANDLES}
-        className={styles.connectionHandle}
-        connectSourceClassName={styles.connectSourceHandle}
         isConnectSourceEnabled={isConnectSourceEnabled}
       />
-      <header className={styles.header}>
-        {headerDiscardErrors.length > 0 ? (
-          <ValidationPopup
-            messages={headerDiscardErrors}
-            onDismiss={() => setHeaderDiscardErrors([])}
-          />
-        ) : null}
-        {view.header.stereotype ? (
-          isHeaderEditing(editingState, view.classId, "annotation") ? (
-            <HeaderEditField
-              initialText={view.header.stereotype}
-              onCommit={(text) => {
-                const errors = onHeaderCommit("annotation", text || null);
-                if (errors.length === 0) onTextBlockEditCancel();
-                return errors;
-              }}
-              onCancel={onTextBlockEditCancel}
-              onEditDiscard={(messages) => {
-                setHeaderDiscardErrors(messages);
-                onTextBlockEditCancel();
-              }}
+      <BoxHeaderFrame
+        elementRef={headerRef}
+        minHeight={CLASS_BOX_HEADER_MIN_HEIGHT}
+        separatorColor={separatorColor}
+        separatorThickness={separatorThickness}
+        separatorLineStyle={separatorLineStyle}
+        validation={
+          headerDiscardErrors.length > 0 ? (
+            <InlineValidationPopup
+              messages={headerDiscardErrors}
+              stacking={INLINE_VALIDATION_POPUP_Z_INDEX}
+              onDismiss={() => setHeaderDiscardErrors([])}
             />
-          ) : (
-            <div
-              className={styles.stereotype}
-              title={view.header.stereotype}
-              onDoubleClick={(event) => {
-                event.stopPropagation();
-                onTextBlockEditStart({
-                  kind: "header",
-                  classId: view.classId,
-                  block: "annotation",
-                });
-              }}
-              onClick={(event) => {
-                event.stopPropagation();
-                if (isSelected) {
-                  onTextBlockEditStart({
-                    kind: "header",
-                    classId: view.classId,
-                    block: "annotation",
-                  });
-                } else {
-                  onClassSelect(view.classId, false);
-                }
-              }}
-            >
-              &lt;&lt;{view.header.stereotype}&gt;&gt;
-            </div>
-          )
-        ) : null}
-        {isHeaderEditing(editingState, view.classId, "name") ? (
-          <HeaderEditField
-            initialText={view.header.name}
-            onCommit={(text) => {
-              const errors = onHeaderCommit("name", text);
-              if (errors.length === 0) onTextBlockEditCancel();
-              return errors;
-            }}
-            onCancel={onTextBlockEditCancel}
-            onEditDiscard={(messages) => {
-              setHeaderDiscardErrors(messages);
-              onTextBlockEditCancel();
-            }}
-          />
-        ) : (
-          <div
-            className={styles.className}
-            title={view.header.name}
-            onDoubleClick={(event) => {
-              event.stopPropagation();
-              onTextBlockEditStart({ kind: "header", classId: view.classId, block: "name" });
-            }}
-            onClick={(event) => {
-              event.stopPropagation();
-              if (isSelected) {
-                onTextBlockEditStart({ kind: "header", classId: view.classId, block: "name" });
-              } else {
-                onClassSelect(view.classId, false);
-              }
-            }}
-          >
-            {view.header.name}
-          </div>
-        )}
-        {view.header.label !== view.header.name ? (
-          isHeaderEditing(editingState, view.classId, "label") ? (
-            <HeaderEditField
-              initialText={view.header.label}
-              onCommit={(text) => {
-                const errors = onHeaderCommit("label", text || null);
-                if (errors.length === 0) onTextBlockEditCancel();
-                return errors;
-              }}
-              onCancel={onTextBlockEditCancel}
-              onEditDiscard={(messages) => {
-                setHeaderDiscardErrors(messages);
-                onTextBlockEditCancel();
-              }}
-            />
-          ) : (
-            <div
-              className={styles.classLabel}
-              title={view.header.label}
-              onDoubleClick={(event) => {
-                event.stopPropagation();
-                onTextBlockEditStart({ kind: "header", classId: view.classId, block: "label" });
-              }}
-              onClick={(event) => {
-                event.stopPropagation();
-                if (isSelected) {
-                  onTextBlockEditStart({
-                    kind: "header",
-                    classId: view.classId,
-                    block: "label",
-                  });
-                } else {
-                  onClassSelect(view.classId, false);
-                }
-              }}
-            >
-              as {view.header.label}
-            </div>
-          )
-        ) : null}
-      </header>
+          ) : undefined
+        }
+        leading={annotation}
+        primary={name}
+        trailing={label}
+      />
       <MemberTable
+        elementRef={bodyRef}
         view={{ classId: view.classId, members: view.members }}
         isSelected={isSelected}
+        separatorColor={separatorColor}
+        separatorThickness={separatorThickness}
+        separatorLineStyle={separatorLineStyle}
+        inlineSurface={resolvedStyle.fill}
         editingState={editingState}
         onTextBlockEditStart={onTextBlockEditStart}
         onTextBlockEditCancel={onTextBlockEditCancel}
         onClassSelect={onClassSelect}
       />
-    </div>
+    </StyledBoxSurfaceFrame>
   );
+}
+
+function toCssLength(value: string | null | undefined): string | undefined {
+  if (!value) return undefined;
+  return /^-?(?:\d+|\d*\.\d+)$/.test(value.trim()) ? `${value.trim()}px` : value;
+}
+
+function toPixelLength(value: string | undefined): number | undefined {
+  if (!value || !/^-?(?:\d+|\d*\.\d+)(?:px)?$/.test(value.trim())) return undefined;
+  return Number.parseFloat(value);
+}
+
+function toCssLineStyle(value: string | null | undefined): "solid" | "dashed" | "dotted" {
+  const normalized = value?.trim().replace(/\s+/g, " ");
+  if (!normalized || normalized === "0" || normalized === "none") return "solid";
+  return normalized.startsWith("1 ") ? "dotted" : "dashed";
 }
 
 function isHeaderEditing(

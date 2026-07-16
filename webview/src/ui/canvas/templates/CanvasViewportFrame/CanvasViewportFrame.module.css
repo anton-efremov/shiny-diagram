@@ -1,0 +1,11 @@
+/**
+ * @render Full-height clipped canvas viewport.
+ */
+
+.frame {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--shiny-canvas-bg);
+}

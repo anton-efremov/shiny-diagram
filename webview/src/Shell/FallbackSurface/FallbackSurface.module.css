@@ -1,0 +1,85 @@
+/**
+ * @fileoverview Shell-owned read-only fallback surface layout.
+ */
+
+.surface {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+  background: var(--shiny-chrome-workspace-bg);
+}
+
+.missingSurface {
+  display: flex;
+  flex: 1 1 0;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.missingPanel {
+  width: fit-content;
+  min-width: min(240px, 100%);
+  max-width: min(520px, 100%);
+  padding: 6px 0 6px 16px;
+  border-left: 3px var(--shiny-chrome-control-border-style) var(--shiny-chrome-status-attention);
+}
+
+.missingHeading {
+  margin: 0 0 10px;
+  color: var(--shiny-chrome-text-muted);
+  font-size: var(--shiny-chrome-font-size-detail);
+  font-weight: var(--shiny-chrome-font-weight-emphasis);
+}
+
+.missingList {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0 0 0 8px;
+  color: var(--shiny-chrome-text);
+  font-family: var(--shiny-code-font-family);
+  font-size: var(--shiny-chrome-font-size-control);
+  list-style: none;
+}
+
+.missingGuidance {
+  margin: 12px 0 0;
+  color: var(--shiny-chrome-text-muted);
+  font-size: var(--shiny-chrome-font-size-detail);
+}
+
+.errorLog {
+  display: grid;
+  gap: 10px;
+  max-width: 720px;
+}
+
+.errorEntry {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-chrome-status-error);
+  border-radius: var(--shiny-chrome-button-radius);
+  background: var(--shiny-chrome-surface);
+}
+
+.errorLocation {
+  color: var(--shiny-chrome-text-error);
+  font-size: var(--shiny-chrome-font-size-detail);
+  font-weight: var(--shiny-chrome-font-weight-emphasis);
+}
+
+.errorFragment {
+  overflow-wrap: anywhere;
+  color: var(--shiny-chrome-text);
+  font-family: var(--shiny-code-font-family);
+  font-size: var(--shiny-chrome-font-size-control);
+}
+
+.errorMessage {
+  color: var(--shiny-chrome-text);
+  font-size: var(--shiny-chrome-font-size-primary);
+}

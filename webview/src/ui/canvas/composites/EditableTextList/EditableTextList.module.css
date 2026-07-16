@@ -1,0 +1,65 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rowHost {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+}
+
+.editable {
+  cursor: var(--shiny-cursor-default);
+}
+
+.editable:hover {
+  background: var(--shiny-canvas-overlay-strong);
+}
+
+.underlined {
+  text-decoration-line: underline;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.dragged {
+  opacity: var(--shiny-reorder-drag-opacity);
+}
+
+.dragging {
+  user-select: none;
+}
+
+.dragging .editable,
+.dragging .editable > * {
+  cursor: var(--shiny-cursor-move-active);
+}
+
+.addCell {
+  flex: 0 0 auto;
+  display: flex;
+  box-sizing: content-box;
+  min-height: var(--shiny-inline-add-min-height);
+  padding: 2px 0;
+  align-items: stretch;
+}
+
+.addCell > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.editorHost {
+  flex: 0 0 auto;
+  width: 100%;
+  font-size: var(--shiny-canvas-font-size-secondary);
+  line-height: var(--shiny-canvas-line-height-secondary);
+}

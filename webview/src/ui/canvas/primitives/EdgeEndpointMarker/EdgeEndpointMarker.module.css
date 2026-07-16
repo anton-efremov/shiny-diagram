@@ -1,0 +1,25 @@
+.open,
+.filled {
+  stroke: var(--shiny-edge-marker-stroke);
+  stroke-width: var(--shiny-edge-marker-stroke-width);
+}
+
+.open {
+  fill: var(--shiny-edge-marker-background);
+}
+
+.filled {
+  fill: var(--shiny-edge-marker-stroke);
+}
+
+.selected {
+  stroke: var(--shiny-canvas-selection);
+}
+
+.filled.selected {
+  fill: var(--shiny-canvas-selection);
+}
+
+.dashed {
+  stroke-dasharray: var(--shiny-canvas-glyph-dash);
+}

@@ -1,0 +1,107 @@
+/**
+ * @render Anchored validation pill styling.
+ */
+
+.anchor {
+  position: absolute;
+  inset: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.popup {
+  position: fixed;
+  inset: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--shiny-chrome-validation-dismiss-size);
+  gap: 6px;
+  align-items: center;
+  max-width: calc(100vw - 16px);
+  padding: 6px 12px;
+  overflow: hidden;
+  border: var(--shiny-chrome-validation-border-width) var(--shiny-chrome-validation-border-style)
+    var(--shiny-chrome-validation-border);
+  border-radius: var(--shiny-chrome-validation-radius);
+  color: var(--shiny-chrome-validation-foreground);
+  background: var(--shiny-chrome-validation-surface);
+  font-size: var(--shiny-chrome-font-size-control);
+  font-weight: var(--shiny-chrome-validation-font-weight);
+  line-height: var(--shiny-chrome-validation-line-height);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  filter: var(--shiny-chrome-validation-elevation);
+  pointer-events: auto;
+  transform: translate(-50%, -100%);
+  margin: 0;
+}
+
+.message {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dismiss {
+  display: grid;
+  place-items: center;
+  width: var(--shiny-chrome-validation-dismiss-size);
+  min-width: var(--shiny-chrome-validation-dismiss-size);
+  height: var(--shiny-chrome-validation-dismiss-size);
+  min-height: var(--shiny-chrome-validation-dismiss-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--shiny-chrome-validation-dismiss-radius);
+  color: inherit;
+  background: transparent;
+  cursor: var(--shiny-chrome-cursor-action);
+}
+
+.dismiss:hover,
+.dismiss:active {
+  background: var(--shiny-chrome-validation-dismiss-background);
+}
+
+.dismiss:focus-visible {
+  outline: var(--shiny-chrome-compact-focus-outline-width) var(--shiny-chrome-focus-outline-style)
+    currentColor;
+  outline-offset: 1px;
+}
+
+.dismiss svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.dismiss path {
+  stroke-width: var(--shiny-chrome-glyph-stroke-width);
+}
+
+.popup::after {
+  position: absolute;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: var(--shiny-chrome-validation-border-width)
+    var(--shiny-chrome-validation-border-style) var(--shiny-chrome-validation-border);
+  border-bottom: var(--shiny-chrome-validation-border-width)
+    var(--shiny-chrome-validation-border-style) var(--shiny-chrome-validation-border);
+  background: var(--shiny-chrome-validation-surface);
+  content: "";
+}
+
+.above::after {
+  bottom: -5px;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.below {
+  transform: translate(-50%, 0);
+}
+
+.below::after {
+  top: -5px;
+  transform: translateX(-50%) rotate(225deg);
+}

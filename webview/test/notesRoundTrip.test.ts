@@ -28,13 +28,11 @@ describe("note command round trips", () => {
     });
 
     source = dispatch(source, [
-      { type: "note.text.set", noteId: composeNoteId(1), text: String.raw`Edited \n note` },
+      { type: "note.text.set", noteId: composeNoteId(1), text: "Edited\nacross lines" },
     ]).source;
 
-    expect(source).toContain(String.raw`note "Edited \n note"`);
-    expect(parseReady(source).graph.notes.get(composeNoteId(1))?.text).toBe(
-      String.raw`Edited \n note`
-    );
+    expect(source).toContain(String.raw`note "Edited\nacross lines"`);
+    expect(parseReady(source).graph.notes.get(composeNoteId(1))?.text).toBe("Edited\nacross lines");
   });
 
   it("creates the first note with its annotation directly adjacent to the note statement", () => {

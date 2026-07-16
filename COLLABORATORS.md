@@ -36,6 +36,7 @@ This document is the primary engineering entry point for human developers and th
 │   │   ├── development-process.md  # Environment, build, validation, and commit workflow
 │   │   └── architecture/
 │   │       ├── architectural-standards.md # Maintained structural source of truth
+│   │       ├── UI-library-architecture.md # Maintained UI library: tiers, index, and boundaries
 │   │       ├── stack.md            # Technology choices and runtime/tooling stack
 │   │       └── system-architecture.md     # Target responsibilities, contracts, and calculations
 │   │

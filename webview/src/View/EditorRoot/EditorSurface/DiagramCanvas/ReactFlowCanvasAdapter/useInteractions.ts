@@ -1,17 +1,19 @@
 /**
- * @behavior Namespace creation, namespace movement, and canvas interaction callbacks.
+ * @behavior Namespace gestures, canvas callbacks, and native reconnect-drag suppression.
  * @framework React Flow canvas events to View class selection and placement callbacks.
  */
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
+import { flushSync } from "react-dom";
 import type {
   Connection,
   NodeChange,
   OnConnectEnd,
   OnConnectStart,
   OnNodeDrag,
+  ReactFlowProps,
   XYPosition,
 } from "@xyflow/react";
 import type {
@@ -45,7 +47,14 @@ import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../../../.
 import type { Point, Rect } from "../../../../../shared/geometry";
 import { useDispatchTransaction } from "../../../../contexts";
 import {
+  CLASS_BOX_MIN_HEIGHT,
+  CLASS_BOX_MIN_WIDTH,
+  NOTE_MIN_HEIGHT,
+  NOTE_MIN_WIDTH,
+} from "../../../../config/editorUiConfig";
+import {
   toClassDropTransaction,
+  toClassResizeTransaction,
   toNamespaceCreateTransaction,
   toNamespaceDropTransaction,
   toNamespaceResizeTransaction,
@@ -86,17 +95,38 @@ export type NamespaceResizePointerState = {
   readonly startPoint: Point;
 };
 
+export type ClassResizePointerState = {
+  readonly classId: ClassId;
+  readonly handle: NamespaceResizeHandle;
+  readonly startRect: Rect;
+  readonly startPoint: Point;
+  readonly minHeight: number;
+};
+
+export type NoteResizePointerState = {
+  readonly noteId: NoteId;
+  readonly handle: NamespaceResizeHandle;
+  readonly startRect: Rect;
+  readonly startPoint: Point;
+  readonly minHeight: number;
+};
+
 type UseInteractionsInput = {
   readonly callbacks: ReactFlowCanvasAdapterCallbacks;
   readonly isRelationshipPlacementArmed: boolean;
   readonly noteAttachState: NoteAttachState;
   readonly setNoteAttachCursor: Dispatch<SetStateAction<Point | null>>;
+  readonly setSurfaceResizeActive: Dispatch<SetStateAction<boolean>>;
   readonly placementStartPointRef: MutableRefObject<XYPosition | null>;
+  readonly placementPointerRef: MutableRefObject<XYPosition | null>;
   readonly namespaceStartPointRef: MutableRefObject<XYPosition | null>;
   readonly namespaceDragStartPointRef: MutableRefObject<XYPosition | null>;
   readonly namespaceDropBoundsRef: MutableRefObject<ReadonlyMap<NamespaceId, Rect> | null>;
   readonly namespaceResizePointerStateRef: MutableRefObject<NamespaceResizePointerState | null>;
+  readonly classResizePointerStateRef: MutableRefObject<ClassResizePointerState | null>;
+  readonly noteResizePointerStateRef: MutableRefObject<NoteResizePointerState | null>;
   readonly reconnectSeedRef: MutableRefObject<RelationshipSeed | null>;
+  readonly reconnectPointerRef: MutableRefObject<XYPosition | null>;
   readonly screenToFlowPosition: (position: XYPosition) => XYPosition;
   readonly namespaceGestureState: NamespaceGestureState;
   readonly namespaceGeometry: NamespaceGeometry;
@@ -106,6 +136,8 @@ type UseInteractionsInput = {
   >;
   readonly view: Pick<DiagramView, "classes" | "namespaces">;
   readonly classBoxPlacementState: ClassBoxPlacementState;
+  readonly classContentHeightById: ReadonlyMap<ClassId, number>;
+  readonly noteContentHeightById: ReadonlyMap<NoteId, number>;
 };
 
 type Interactions = {
@@ -122,7 +154,19 @@ type Interactions = {
   readonly onNodeDragStart: OnNodeDrag<
     ClassBoxNodeDescriptor | NamespaceNodeDescriptor | NoteBoxNodeDescriptor
   >;
-  readonly onNamespaceDragCancel: () => void;
+  readonly onCanvasGestureCancel: () => void;
+  readonly onClassResizeHandlePress: (
+    classId: ClassId,
+    bounds: Rect,
+    handle: NamespaceResizeHandle,
+    screenPoint: Point
+  ) => void;
+  readonly onNoteResizeHandlePress: (
+    noteId: NoteId,
+    bounds: Rect,
+    handle: NamespaceResizeHandle,
+    screenPoint: Point
+  ) => void;
   readonly onNamespaceResizeHandlePress: (
     namespaceId: NamespaceId,
     bounds: Rect,
@@ -137,6 +181,7 @@ type Interactions = {
     newConnection: Connection
   ) => void;
   readonly onReconnectStart: OnReconnectStart;
+  readonly onReconnectEnd: ReconnectEndHandler;
   readonly onCanvasMouseMove: (event: ReactMouseEvent) => void;
   readonly onCanvasPointerDown: (event: ReactMouseEvent) => void;
   readonly onCanvasPointerMove: (event: ReactMouseEvent) => void;
@@ -150,17 +195,29 @@ type OnReconnectStart = (
   handleType: "source" | "target"
 ) => void;
 
+type ReconnectEndHandler = NonNullable<
+  ReactFlowProps<
+    ClassBoxNodeDescriptor | NamespaceNodeDescriptor | NoteBoxNodeDescriptor,
+    RelationshipEdgeDescriptor | NoteAttachmentEdgeDescriptor
+  >["onReconnectEnd"]
+>;
+
 export function useInteractions({
   callbacks,
   isRelationshipPlacementArmed,
   noteAttachState,
   setNoteAttachCursor,
+  setSurfaceResizeActive,
   placementStartPointRef,
+  placementPointerRef,
   namespaceStartPointRef,
   namespaceDragStartPointRef,
   namespaceDropBoundsRef,
   namespaceResizePointerStateRef,
+  classResizePointerStateRef,
+  noteResizePointerStateRef,
   reconnectSeedRef,
+  reconnectPointerRef,
   screenToFlowPosition,
   namespaceGestureState,
   namespaceGeometry,
@@ -168,8 +225,95 @@ export function useInteractions({
   setNamespaceDragBoundsState,
   view,
   classBoxPlacementState,
+  classContentHeightById,
+  noteContentHeightById,
 }: UseInteractionsInput): Interactions {
+  const suppressPaneClickRef = useRef(false);
+  const edgeGestureActiveRef = useRef(false);
+  const reconnectPressPendingRef = useRef(false);
+  const tracedReconnectMoveRef = useRef(false);
   const dispatchTransaction = useDispatchTransaction();
+  useEffect(() => {
+    function suppressNativeSelection(event: Event): void {
+      if (!edgeGestureActiveRef.current) return;
+      traceReconnect("selection.suppressed", {
+        eventType: event.type,
+        target: describeEventTarget(event.target),
+      });
+      event.preventDefault();
+    }
+
+    function traceUpdaterPress(event: MouseEvent): void {
+      const target = event.target instanceof Element ? event.target : null;
+      if (event.button !== 0 || !target?.closest(".react-flow__edgeupdater")) return;
+      reconnectPressPendingRef.current = true;
+      edgeGestureActiveRef.current = true;
+      tracedReconnectMoveRef.current = false;
+      event.preventDefault();
+      traceReconnect("native.updater-mousedown", {
+        button: event.button,
+        defaultPrevented: event.defaultPrevented,
+        target: describeEventTarget(event.target),
+        transport: "document-mouse-listeners-no-pointer-capture",
+      });
+      traceReconnect("suppression.on", { owner: "updater-mousedown" });
+      window.setTimeout(() => {
+        traceReconnect("native.updater-mousedown-after-dispatch", {
+          defaultPrevented: event.defaultPrevented,
+          target: describeEventTarget(event.target),
+        });
+      }, 0);
+    }
+
+    function traceReconnectMove(event: MouseEvent): void {
+      if (!edgeGestureActiveRef.current || tracedReconnectMoveRef.current) return;
+      tracedReconnectMoveRef.current = true;
+      traceReconnect("native.first-mousemove-after-start", {
+        buttons: event.buttons,
+        defaultPrevented: event.defaultPrevented,
+        target: describeEventTarget(event.target),
+      });
+    }
+
+    function traceReconnectRelease(event: MouseEvent): void {
+      if (!edgeGestureActiveRef.current && !reconnectPressPendingRef.current) return;
+      traceReconnect("native.mouseup-capture", {
+        button: event.button,
+        defaultPrevented: event.defaultPrevented,
+        target: describeEventTarget(event.target),
+        reconnectStarted: edgeGestureActiveRef.current,
+      });
+      reconnectPressPendingRef.current = false;
+      // RF's document mouseup listener runs after this capture observer. Defer
+      // the threshold-free cleanup so RF can report connect/reconnect end first.
+      window.setTimeout(() => {
+        if (!edgeGestureActiveRef.current) return;
+        edgeGestureActiveRef.current = false;
+        traceReconnect("suppression.off", { owner: "mouseup-fallback" });
+      }, 0);
+    }
+
+    function traceWindowBlur(): void {
+      if (!edgeGestureActiveRef.current) return;
+      traceReconnect("native.window-blur-while-active");
+      reconnectPressPendingRef.current = false;
+      edgeGestureActiveRef.current = false;
+      traceReconnect("suppression.off", { owner: "window-blur" });
+    }
+
+    window.addEventListener("selectstart", suppressNativeSelection);
+    window.addEventListener("mousedown", traceUpdaterPress, true);
+    window.addEventListener("mousemove", traceReconnectMove, true);
+    window.addEventListener("mouseup", traceReconnectRelease, true);
+    window.addEventListener("blur", traceWindowBlur);
+    return () => {
+      window.removeEventListener("selectstart", suppressNativeSelection);
+      window.removeEventListener("mousedown", traceUpdaterPress, true);
+      window.removeEventListener("mousemove", traceReconnectMove, true);
+      window.removeEventListener("mouseup", traceReconnectRelease, true);
+      window.removeEventListener("blur", traceWindowBlur);
+    };
+  }, []);
   // Framework prop and event adaptation
   useEffect(() => {
     function updatePointerPosition(event: PointerEvent): void {
@@ -374,19 +518,81 @@ export function useInteractions({
     ]
   );
 
-  const onNamespaceDragCancel = useCallback(() => {
+  const onCanvasGestureCancel = useCallback(() => {
+    const classResizeState = classResizePointerStateRef.current;
+    if (classResizeState) {
+      classResizePointerStateRef.current = null;
+      setSurfaceResizeActive(false);
+      callbacks.onClassBoxPlacementChange([
+        { classId: classResizeState.classId, ...classResizeState.startRect },
+      ]);
+      return;
+    }
+    const noteResizeState = noteResizePointerStateRef.current;
+    if (noteResizeState) {
+      noteResizePointerStateRef.current = null;
+      setSurfaceResizeActive(false);
+      callbacks.onNoteBoxPlacementChange([
+        { noteId: noteResizeState.noteId, ...noteResizeState.startRect },
+      ]);
+      return;
+    }
     namespaceDragStartPointRef.current = null;
     namespaceDropBoundsRef.current = null;
     namespaceResizePointerStateRef.current = null;
+    namespaceStartPointRef.current = null;
+    setSurfaceResizeActive(false);
     setNamespaceDragBoundsState(null);
     setNamespaceDragState(null);
+    if (namespaceGestureState.kind !== "none") callbacks.onNamespaceGestureCancel();
   }, [
+    callbacks,
+    classResizePointerStateRef,
     namespaceDragStartPointRef,
     namespaceDropBoundsRef,
+    namespaceGestureState.kind,
     namespaceResizePointerStateRef,
+    namespaceStartPointRef,
+    noteResizePointerStateRef,
+    setSurfaceResizeActive,
     setNamespaceDragBoundsState,
     setNamespaceDragState,
   ]);
+
+  const onClassResizeHandlePress = useCallback(
+    (classId: ClassId, bounds: Rect, handle: NamespaceResizeHandle, screenPoint: Point) => {
+      const startPoint = screenToFlowPosition(screenPoint);
+      classResizePointerStateRef.current = {
+        classId,
+        handle,
+        startRect: bounds,
+        startPoint,
+        minHeight: Math.max(CLASS_BOX_MIN_HEIGHT, classContentHeightById.get(classId) ?? 0),
+      };
+      setSurfaceResizeActive(true);
+    },
+    [
+      classContentHeightById,
+      classResizePointerStateRef,
+      screenToFlowPosition,
+      setSurfaceResizeActive,
+    ]
+  );
+
+  const onNoteResizeHandlePress = useCallback(
+    (noteId: NoteId, bounds: Rect, handle: NamespaceResizeHandle, screenPoint: Point) => {
+      const startPoint = screenToFlowPosition(screenPoint);
+      noteResizePointerStateRef.current = {
+        noteId,
+        handle,
+        startRect: bounds,
+        startPoint,
+        minHeight: Math.max(NOTE_MIN_HEIGHT, noteContentHeightById.get(noteId) ?? 0),
+      };
+      setSurfaceResizeActive(true);
+    },
+    [noteContentHeightById, noteResizePointerStateRef, screenToFlowPosition, setSurfaceResizeActive]
+  );
 
   const onNamespaceResizeHandlePress = useCallback(
     (namespaceId: NamespaceId, bounds: Rect, handle: NamespaceResizeHandle, screenPoint: Point) => {
@@ -397,9 +603,10 @@ export function useInteractions({
         startRect: bounds,
         startPoint,
       };
+      setSurfaceResizeActive(true);
       callbacks.onNamespaceResizeStart(namespaceId, bounds);
     },
-    [callbacks, namespaceResizePointerStateRef, screenToFlowPosition]
+    [callbacks, namespaceResizePointerStateRef, screenToFlowPosition, setSurfaceResizeActive]
   );
 
   // Framework prop and event adaptation
@@ -420,22 +627,48 @@ export function useInteractions({
     (event) => {
       if (!isRelationshipPlacementArmed) return;
 
+      edgeGestureActiveRef.current = true;
+
       const screenPoint = toScreenPoint(event);
       placementStartPointRef.current = screenPoint ? screenToFlowPosition(screenPoint) : null;
+      placementPointerRef.current = placementStartPointRef.current;
     },
-    [isRelationshipPlacementArmed, placementStartPointRef, screenToFlowPosition]
+    [
+      isRelationshipPlacementArmed,
+      placementPointerRef,
+      placementStartPointRef,
+      screenToFlowPosition,
+    ]
   );
 
   // Framework prop and event adaptation
   const onConnectEnd = useCallback<OnConnectEnd>(
-    (_event, connectionState) => {
+    (event, connectionState) => {
+      traceReconnect("rf.connect-end", {
+        eventType: event.type,
+        isValid: connectionState.isValid,
+        fromNodeId: connectionState.fromNode?.id ?? null,
+        toNodeId: connectionState.toNode?.id ?? null,
+        toHandleId: connectionState.toHandle?.id ?? null,
+      });
+      traceReconnect("suppression.off", { owner: "onConnectEnd" });
+      edgeGestureActiveRef.current = false;
       placementStartPointRef.current = null;
+      placementPointerRef.current = null;
       reconnectSeedRef.current = null;
+      reconnectPointerRef.current = null;
       if (connectionState.isValid === true) return;
       if (!isRelationshipPlacementArmed) return;
       callbacks.onConnectAborted();
     },
-    [callbacks, isRelationshipPlacementArmed, placementStartPointRef, reconnectSeedRef]
+    [
+      callbacks,
+      isRelationshipPlacementArmed,
+      placementStartPointRef,
+      placementPointerRef,
+      reconnectPointerRef,
+      reconnectSeedRef,
+    ]
   );
 
   // Framework prop and event adaptation
@@ -444,6 +677,14 @@ export function useInteractions({
       oldEdge: RelationshipEdgeDescriptor | NoteAttachmentEdgeDescriptor,
       newConnection: Connection
     ) => {
+      traceReconnect("rf.reconnect-commit", {
+        edgeId: oldEdge.id,
+        edgeType: oldEdge.type,
+        source: newConnection.source,
+        target: newConnection.target,
+        sourceHandle: newConnection.sourceHandle,
+        targetHandle: newConnection.targetHandle,
+      });
       if (oldEdge.type !== "relationship") return;
       const reconnect = toRelationshipReconnect(oldEdge, newConnection);
       if (!reconnect) return;
@@ -458,26 +699,76 @@ export function useInteractions({
 
   // Framework prop and event adaptation
   const onReconnectStart = useCallback<OnReconnectStart>(
-    (_event, edge, handleType) => {
+    (event, edge, handleType) => {
+      traceReconnect("rf.reconnect-start", {
+        edgeId: edge.id,
+        edgeType: edge.type,
+        eventType: event.type,
+        handleType,
+      });
       if (edge.type !== "relationship") {
         reconnectSeedRef.current = null;
+        reconnectPointerRef.current = null;
         return;
       }
+      traceReconnect("suppression.confirmed", { owner: "onReconnectStart" });
       const relationshipView = edge.data?.view;
       reconnectSeedRef.current = relationshipView
         ? toReconnectRelationshipSeed(relationshipView, handleType)
         : null;
+      reconnectPointerRef.current = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
     },
-    [reconnectSeedRef]
+    [reconnectPointerRef, reconnectSeedRef, screenToFlowPosition]
+  );
+
+  // TODO(reconnect-trace): remove this diagnostic-only callback after the
+  // reconnect investigation. It observes RF cleanup without changing state.
+  const onReconnectEnd = useCallback<ReconnectEndHandler>(
+    (event, edge, handleType, connectionState) => {
+      traceReconnect("rf.reconnect-end", {
+        edgeId: edge.id,
+        edgeType: edge.type,
+        eventType: event.type,
+        handleType,
+        isValid: connectionState.isValid,
+        fromNodeId: connectionState.fromNode?.id ?? null,
+        toNodeId: connectionState.toNode?.id ?? null,
+        suppressionActive: edgeGestureActiveRef.current,
+      });
+    },
+    []
   );
 
   // Framework prop and event adaptation
   const onCanvasMouseMove = useCallback(
     (event: ReactMouseEvent) => {
+      if (isRelationshipPlacementArmed) {
+        placementPointerRef.current = screenToFlowPosition({
+          x: event.clientX,
+          y: event.clientY,
+        });
+      }
+      if (reconnectSeedRef.current) {
+        reconnectPointerRef.current = screenToFlowPosition({
+          x: event.clientX,
+          y: event.clientY,
+        });
+      }
       if (noteAttachState.kind !== "attaching") return;
       setNoteAttachCursor({ x: event.clientX, y: event.clientY });
     },
-    [noteAttachState.kind, setNoteAttachCursor]
+    [
+      noteAttachState.kind,
+      isRelationshipPlacementArmed,
+      placementPointerRef,
+      reconnectPointerRef,
+      reconnectSeedRef,
+      screenToFlowPosition,
+      setNoteAttachCursor,
+    ]
   );
 
   const onCanvasPointerDown = useCallback(
@@ -494,17 +785,65 @@ export function useInteractions({
 
   const onCanvasPointerMove = useCallback(
     (event: ReactMouseEvent) => {
+      const classResizeState = classResizePointerStateRef.current;
+      if (classResizeState) {
+        event.preventDefault();
+        event.stopPropagation();
+        const point = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        const rect = resizeClampedRect(
+          classResizeState.startRect,
+          classResizeState.handle,
+          {
+            x: point.x - classResizeState.startPoint.x,
+            y: point.y - classResizeState.startPoint.y,
+          },
+          CLASS_BOX_MIN_WIDTH,
+          Math.max(
+            classResizeState.minHeight,
+            classContentHeightById.get(classResizeState.classId) ?? 0
+          )
+        );
+        flushSync(() => {
+          callbacks.onClassBoxPlacementChange([{ classId: classResizeState.classId, ...rect }]);
+        });
+        return;
+      }
+      const noteResizeState = noteResizePointerStateRef.current;
+      if (noteResizeState) {
+        event.preventDefault();
+        event.stopPropagation();
+        const point = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        const rect = resizeClampedRect(
+          noteResizeState.startRect,
+          noteResizeState.handle,
+          {
+            x: point.x - noteResizeState.startPoint.x,
+            y: point.y - noteResizeState.startPoint.y,
+          },
+          NOTE_MIN_WIDTH,
+          Math.max(
+            noteResizeState.minHeight,
+            noteContentHeightById.get(noteResizeState.noteId) ?? 0
+          )
+        );
+        flushSync(() => {
+          callbacks.onNoteBoxPlacementChange([{ noteId: noteResizeState.noteId, ...rect }]);
+        });
+        return;
+      }
       const resizeState = namespaceResizePointerStateRef.current;
       if (resizeState) {
         event.preventDefault();
         event.stopPropagation();
         const point = screenToFlowPosition({ x: event.clientX, y: event.clientY });
-        callbacks.onNamespaceGestureChange(
-          resizeNamespaceRect(resizeState.startRect, resizeState.handle, {
-            x: point.x - resizeState.startPoint.x,
-            y: point.y - resizeState.startPoint.y,
-          })
-        );
+        flushSync(() => {
+          callbacks.onNamespaceGestureChange(
+            resizeNamespaceRect(resizeState.startRect, resizeState.handle, {
+              x: point.x - resizeState.startPoint.x,
+              y: point.y - resizeState.startPoint.y,
+            })
+          );
+        });
         return;
       }
       if (namespaceGestureState.kind !== "creating") return;
@@ -516,20 +855,81 @@ export function useInteractions({
     },
     [
       callbacks,
+      classContentHeightById,
+      classResizePointerStateRef,
       namespaceGestureState.kind,
       namespaceResizePointerStateRef,
       namespaceStartPointRef,
+      noteResizePointerStateRef,
+      noteContentHeightById,
       screenToFlowPosition,
     ]
   );
 
   const onCanvasPointerUp = useCallback(
     (event: ReactMouseEvent) => {
+      const classResizeState = classResizePointerStateRef.current;
+      if (classResizeState) {
+        event.preventDefault();
+        event.stopPropagation();
+        classResizePointerStateRef.current = null;
+        setSurfaceResizeActive(false);
+        const point = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        const rect = resizeClampedRect(
+          classResizeState.startRect,
+          classResizeState.handle,
+          {
+            x: point.x - classResizeState.startPoint.x,
+            y: point.y - classResizeState.startPoint.y,
+          },
+          CLASS_BOX_MIN_WIDTH,
+          Math.max(
+            classResizeState.minHeight,
+            classContentHeightById.get(classResizeState.classId) ?? 0
+          )
+        );
+        callbacks.onClassBoxPlacementChange([{ classId: classResizeState.classId, ...rect }]);
+        dispatchTransaction(toClassResizeTransaction(classResizeState.classId, rect));
+        suppressPaneClickRef.current = true;
+        window.setTimeout(() => {
+          suppressPaneClickRef.current = false;
+        }, 0);
+        return;
+      }
+      const noteResizeState = noteResizePointerStateRef.current;
+      if (noteResizeState) {
+        event.preventDefault();
+        event.stopPropagation();
+        noteResizePointerStateRef.current = null;
+        setSurfaceResizeActive(false);
+        const point = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        const rect = resizeClampedRect(
+          noteResizeState.startRect,
+          noteResizeState.handle,
+          {
+            x: point.x - noteResizeState.startPoint.x,
+            y: point.y - noteResizeState.startPoint.y,
+          },
+          NOTE_MIN_WIDTH,
+          Math.max(
+            noteResizeState.minHeight,
+            noteContentHeightById.get(noteResizeState.noteId) ?? 0
+          )
+        );
+        callbacks.onNoteBoxPlacementChange([{ noteId: noteResizeState.noteId, ...rect }]);
+        onNoteResizeEnd({ noteId: noteResizeState.noteId, ...rect });
+        suppressPaneClickRef.current = true;
+        window.setTimeout(() => {
+          suppressPaneClickRef.current = false;
+        }, 0);
+        return;
+      }
       const resizeState = namespaceResizePointerStateRef.current;
       if (resizeState && namespaceGestureState.kind === "resizing") {
         event.preventDefault();
         event.stopPropagation();
         namespaceResizePointerStateRef.current = null;
+        setSurfaceResizeActive(false);
         const transaction = toNamespaceResizeTransaction(
           resizeState.namespaceId,
           [...namespaceGeometry.pendingClassIds],
@@ -538,6 +938,10 @@ export function useInteractions({
         );
         const result = transaction.length > 0 ? dispatchTransaction(transaction) : null;
         callbacks.onNamespaceResizeCommitted(result);
+        suppressPaneClickRef.current = true;
+        window.setTimeout(() => {
+          suppressPaneClickRef.current = false;
+        }, 0);
         return;
       }
       if (namespaceGestureState.kind !== "creating") return;
@@ -555,11 +959,18 @@ export function useInteractions({
     },
     [
       callbacks,
+      classContentHeightById,
+      classResizePointerStateRef,
       dispatchTransaction,
       namespaceGeometry,
       namespaceGestureState.kind,
       namespaceResizePointerStateRef,
       namespaceStartPointRef,
+      noteResizePointerStateRef,
+      noteContentHeightById,
+      onNoteResizeEnd,
+      screenToFlowPosition,
+      setSurfaceResizeActive,
       view,
     ]
   );
@@ -567,6 +978,10 @@ export function useInteractions({
   // Framework prop and event adaptation
   const onPaneClick = useCallback(
     (event: ReactMouseEvent) => {
+      if (suppressPaneClickRef.current) {
+        suppressPaneClickRef.current = false;
+        return;
+      }
       if (event.target !== event.currentTarget) return;
       if (noteAttachState.kind === "attaching") {
         callbacks.onNoteAttachCancel();
@@ -583,13 +998,16 @@ export function useInteractions({
     onNodeDragStop,
     onNodeDrag,
     onNodeDragStart,
-    onNamespaceDragCancel,
+    onCanvasGestureCancel,
+    onClassResizeHandlePress,
+    onNoteResizeHandlePress,
     onNamespaceResizeHandlePress,
     onConnect,
     onConnectStart,
     onConnectEnd,
     onReconnect,
     onReconnectStart,
+    onReconnectEnd,
     onCanvasMouseMove,
     onCanvasPointerDown,
     onCanvasPointerMove,
@@ -598,7 +1016,62 @@ export function useInteractions({
   };
 }
 
+// TODO(reconnect-trace): remove this dev-only logger after the reconnect
+// investigation. Keep the prefix stable so traces can be filtered as one stream.
+function traceReconnect(transition: string, details: Record<string, unknown> = {}): void {
+  if ((globalThis as typeof globalThis & { SHINY_TRACE?: boolean }).SHINY_TRACE !== true) return;
+  // eslint-disable-next-line no-console
+  console.debug("SHINY_RECONNECT_TRACE", {
+    timestampMs: Math.round(performance.now() * 100) / 100,
+    transition,
+    ...details,
+  });
+}
+
+function describeEventTarget(target: EventTarget | null): string | null {
+  if (!(target instanceof Element)) return null;
+  const classes = [...target.classList].slice(0, 4).join(".");
+  return `${target.tagName.toLowerCase()}${target.id ? `#${target.id}` : ""}${
+    classes ? `.${classes}` : ""
+  }`;
+}
+
 // Private helpers
+function resizeClampedRect(
+  rect: Rect,
+  handle: NamespaceResizeHandle,
+  delta: Point,
+  minWidth: number,
+  minHeight: number
+): Rect {
+  let left = handle.includes("w") ? rect.x + delta.x : rect.x;
+  let right = handle.includes("e") ? rect.x + rect.w + delta.x : rect.x + rect.w;
+  let top = handle.includes("n") ? rect.y + delta.y : rect.y;
+  let bottom = handle.includes("s") ? rect.y + rect.h + delta.y : rect.y + rect.h;
+
+  if (right - left < minWidth) {
+    if (handle.includes("w")) {
+      left = right - minWidth;
+    } else {
+      right = left + minWidth;
+    }
+  }
+  if (bottom - top < minHeight) {
+    if (handle.includes("n")) {
+      top = bottom - minHeight;
+    } else {
+      bottom = top + minHeight;
+    }
+  }
+
+  return {
+    x: Math.round(left),
+    y: Math.round(top),
+    w: Math.round(right - left),
+    h: Math.round(bottom - top),
+  };
+}
+
 function resizeNamespaceRect(rect: Rect, handle: NamespaceResizeHandle, delta: Point): Rect {
   const left = handle.includes("w") ? rect.x + delta.x : rect.x;
   const right = handle.includes("e") ? rect.x + rect.w + delta.x : rect.x + rect.w;

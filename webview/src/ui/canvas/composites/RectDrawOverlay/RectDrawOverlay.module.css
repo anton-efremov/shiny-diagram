@@ -1,0 +1,8 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  cursor: var(--shiny-cursor-placement);
+  user-select: none;
+  -webkit-user-drag: none;
+}

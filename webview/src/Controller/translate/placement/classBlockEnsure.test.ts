@@ -1,13 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { toClassId } from "../../../shared/ids";
 import type { ProvenanceIndex } from "../../model/provenanceIndex";
-import { insertFirstClassBlockChildIntoBlocklessClass } from "./classBlockEnsure";
+import type { DiagramGraph } from "../../model/diagramGraph";
+import { rewriteBlocklessClassWithFirstChild } from "./classBlockEnsure";
 
-describe("insertFirstClassBlockChildIntoBlocklessClass", () => {
-  it("rewrites the final class header token into a block containing the first child", () => {
+describe("rewriteBlocklessClassWithFirstChild", () => {
+  it("deletes and reinserts the declaration with a non-empty first body", () => {
     const classId = toClassId("User");
-    const intents = insertFirstClassBlockChildIntoBlocklessClass(
+    const intents = rewriteBlocklessClassWithFirstChild(
       classId,
+      {
+        classes: new Map([[classId, { id: classId, parentNamespaceId: null }]]),
+      } as unknown as DiagramGraph,
       toProvenance(),
       'classDiagram\n  class User["Human User"]',
       "+id"
@@ -15,9 +19,13 @@ describe("insertFirstClassBlockChildIntoBlocklessClass", () => {
 
     expect(intents).toEqual([
       {
-        kind: "replaceValue",
-        target: { kind: "classLabelFull", classId },
-        payload: '["Human User"] {\n    +id\n  }',
+        kind: "deleteStatement",
+        target: { kind: "class", classId },
+      },
+      {
+        kind: "insertStatement",
+        anchor: { kind: "atBlockOpening", block: { kind: "diagram" } },
+        payload: 'class User["Human User"] {\n  +id\n}',
       },
     ]);
   });

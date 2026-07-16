@@ -10,11 +10,14 @@
  * Operations, named by the grammar unit they touch:
  *   - statement (a member, class, relationship, style line): insert / delete;
  *   - entry (a `key:value` pair, e.g. a style property): insert / delete;
+ *   - clause (an optional statement component, markers included): insert / delete;
  *   - value (a single span — a name, endpoint, coordinate, property value): replace.
  *
- * Rule: standalone units (statement, entry) can be inserted or deleted; a value
+ * Rule: standalone units (statement, entry, clause) can be inserted or deleted; a value
  * can only be replaced (it cannot exist without its key, nor be removed without
- * removing its entry). There is no `replaceStatement` — a whole-statement
+ * removing its entry). A clause is inserted and deleted whole, including its
+ * markers; its inner content is replaced as a value. There is no `replaceClause`
+ * or `replaceStatement` — a whole-statement
  * rewrite is `delete` + `insert`, resolved atomically against one snapshot.
  *
  * Every reference is flat: `{ kind; id; selector? }`. Boundaries: translation
@@ -77,6 +80,14 @@ export type EntryRef =
       readonly styleDefId: StyleDefId;
       readonly property: StylePropertyName;
     };
+
+/** An optional statement component (delete target / insert identity). */
+export type ClauseRef =
+  | { readonly kind: "classGeneric"; readonly classId: ClassId }
+  | { readonly kind: "classLabel"; readonly classId: ClassId }
+  | { readonly kind: "relationshipLabel"; readonly relationshipId: RelationshipId }
+  | { readonly kind: "relationshipSourceMultiplicity"; readonly relationshipId: RelationshipId }
+  | { readonly kind: "relationshipTargetMultiplicity"; readonly relationshipId: RelationshipId };
 
 /** A single overwrite-able span (replace target). */
 export type ValueRef =
@@ -145,6 +156,13 @@ export type EntryAnchor =
   | { readonly kind: "afterEntry"; readonly entry: EntryRef } // next in the list
   | { readonly kind: "afterListOpening"; readonly list: StyleListRef }; // first in the list
 
+/** Where a new clause lands; the clause identity selects its presentation join. */
+export type ClauseAnchor = {
+  readonly kind: "afterComponent";
+  readonly clause: ClauseRef;
+  readonly component: ValueRef;
+};
+
 // ============================================================================
 // Intents
 // ============================================================================
@@ -175,6 +193,19 @@ export type DeleteEntryIntent = {
   readonly target: EntryRef;
 };
 
+/** Insert a whole optional clause; resolution owns its join to the neighboring component. */
+export type InsertClauseIntent = {
+  readonly kind: "insertClause";
+  readonly payload: string;
+  readonly anchor: ClauseAnchor;
+};
+
+/** Remove a whole optional clause, including its markers and joining whitespace. */
+export type DeleteClauseIntent = {
+  readonly kind: "deleteClause";
+  readonly target: ClauseRef;
+};
+
 /** Overwrite a single value span in place (no newline/indent/separator). */
 export type ReplaceValueIntent = {
   readonly kind: "replaceValue";
@@ -193,5 +224,7 @@ export type WriteIntent =
   | DeleteStatementIntent
   | InsertEntryIntent
   | DeleteEntryIntent
+  | InsertClauseIntent
+  | DeleteClauseIntent
   | ReplaceValueIntent
   | DeleteRangeIntent;

@@ -1,0 +1,7 @@
+/**
+ * @render Shared standalone text block.
+ */
+
+.text {
+  color: var(--shiny-chrome-text-muted);
+}

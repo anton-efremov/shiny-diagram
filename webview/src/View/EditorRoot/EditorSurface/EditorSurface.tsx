@@ -13,8 +13,10 @@ import type {
   SelectionState,
 } from "../../state/editorStates";
 import type { DiagramView } from "../../views/schema";
+import { TOOL_PANE_WIDTH } from "../../config/editorUiConfig";
+import WorkspaceFrame from "../../../ui/chrome/templates/WorkspaceFrame/WorkspaceFrame";
 import ClassDiagram from "./DiagramCanvas/DiagramCanvas";
-import StylePane from "./StylePane/StylePane";
+import EditPane from "./EditPane/EditPane";
 import ToolPane from "./ToolPane/ToolPane";
 import {
   toInitialEditingState,
@@ -25,7 +27,6 @@ import {
 } from "./state";
 import { useInteractions } from "./useInteractions";
 import { useStateReconciliation } from "./useStateReconciliation";
-import styles from "./EditorSurface.module.css";
 
 type EditorSurfaceProps = {
   readonly view: DiagramView;
@@ -81,12 +82,16 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
     onRelationshipSelect,
     onRelationshipDuplicate,
     onStyleSelect,
+    onSelectionRestore,
+    onStyleCreateCommitted,
+    onStyleRenameCommitted,
     onBackgroundClick,
     onConnectAborted,
     onPlacementComplete,
     onTextBlockEditStart,
     onTextBlockEditCancel,
   } = useInteractions({
+    classIds: view.classes.map((classView) => classView.classId),
     relationships: view.relationships,
     editingState,
     nodePlacementState,
@@ -122,16 +127,20 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
   ]);
 
   return (
-    <section className={styles.editorShell} aria-label="Class diagram editor">
-      <ToolPane
-        nodePlacementState={nodePlacementState}
-        namespaceGestureState={namespaceGestureState}
-        onClassPlacementStart={onClassPlacementStart}
-        onNotePlacementStart={onNotePlacementStart}
-        onNamespacePlacementStart={onNamespacePlacementStart}
-        onRelationshipPlacementStart={onRelationshipPlacementStart}
-      />
-      <div className={styles.canvasRegion}>
+    <WorkspaceFrame
+      leadingWidth={TOOL_PANE_WIDTH}
+      ariaLabel="Class diagram editor"
+      leading={
+        <ToolPane
+          nodePlacementState={nodePlacementState}
+          namespaceGestureState={namespaceGestureState}
+          onClassPlacementStart={onClassPlacementStart}
+          onNotePlacementStart={onNotePlacementStart}
+          onNamespacePlacementStart={onNamespacePlacementStart}
+          onRelationshipPlacementStart={onRelationshipPlacementStart}
+        />
+      }
+      content={
         <ClassDiagram
           view={view}
           selectionState={selectionState}
@@ -156,20 +165,26 @@ export default function EditorSurface({ view }: EditorSurfaceProps): ReactElemen
           onNamespaceResizeStart={onNamespaceResizeStart}
           onNamespaceResizeCommitted={onNamespaceResizeCommitted}
           onNamespaceSelect={onNamespaceSelect}
+          onNamespaceRenameCommitted={onNamespaceRenameCommitted}
           onTextBlockEditStart={onTextBlockEditStart}
           onTextBlockEditCancel={onTextBlockEditCancel}
         />
-      </div>
-      <StylePane
-        view={view}
-        selectionState={selectionState}
-        onStyleSelect={onStyleSelect}
-        onNoteAttachStart={onNoteAttachStart}
-        onNoteDuplicateCommitted={onNoteDuplicateCommitted}
-        onNamespaceRenameCommitted={onNamespaceRenameCommitted}
-        onRelationshipSelect={onRelationshipSelect}
-        onRelationshipDuplicate={onRelationshipDuplicate}
-      />
-    </section>
+      }
+      trailing={
+        <EditPane
+          view={view}
+          selectionState={selectionState}
+          onStyleSelect={onStyleSelect}
+          onSelectionRestore={onSelectionRestore}
+          onStyleCreateCommitted={onStyleCreateCommitted}
+          onStyleRenameCommitted={onStyleRenameCommitted}
+          onNoteAttachStart={onNoteAttachStart}
+          onNoteDuplicateCommitted={onNoteDuplicateCommitted}
+          onNamespaceRenameCommitted={onNamespaceRenameCommitted}
+          onRelationshipSelect={onRelationshipSelect}
+          onRelationshipDuplicate={onRelationshipDuplicate}
+        />
+      }
+    />
   );
 }

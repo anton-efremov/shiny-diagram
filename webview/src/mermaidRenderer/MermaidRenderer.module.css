@@ -5,14 +5,14 @@
 .canvas {
   min-height: 420px;
   padding: 20px;
-  border: 1px solid var(--shiny-border);
-  background: var(--shiny-surface);
+  border: 1px solid var(--vscode-panel-border);
+  background: var(--vscode-editorWidget-background);
   overflow: auto;
 }
 
 .error {
   white-space: pre-wrap;
-  color: var(--shiny-text-error);
+  color: var(--vscode-errorForeground);
 }
 
 .mermaidOutput :global(svg) {

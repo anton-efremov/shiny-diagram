@@ -1,0 +1,103 @@
+.anchor {
+  position: absolute;
+  inset: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.popup {
+  position: fixed;
+  inset: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--shiny-validation-dismiss-size);
+  gap: 6px;
+  align-items: center;
+  max-width: calc(100vw - 16px);
+  padding: 6px 12px;
+  overflow: hidden;
+  border: var(--shiny-validation-border-width) var(--shiny-validation-border-style)
+    var(--shiny-canvas-validation-border);
+  border-radius: var(--shiny-validation-radius);
+  color: var(--shiny-canvas-validation-foreground);
+  background: var(--shiny-canvas-validation-surface);
+  font-size: var(--shiny-canvas-font-size-secondary);
+  font-weight: var(--shiny-validation-font-weight);
+  line-height: var(--shiny-validation-line-height);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  filter: var(--shiny-validation-elevation);
+  pointer-events: auto;
+  transform: translate(-50%, -100%);
+  margin: 0;
+}
+
+.message {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dismiss {
+  display: grid;
+  place-items: center;
+  width: var(--shiny-validation-dismiss-size);
+  min-width: var(--shiny-validation-dismiss-size);
+  height: var(--shiny-validation-dismiss-size);
+  min-height: var(--shiny-validation-dismiss-size);
+  padding: 0;
+  border: none;
+  border-radius: var(--shiny-validation-dismiss-radius);
+  color: inherit;
+  background: transparent;
+  cursor: var(--shiny-cursor-action);
+}
+
+.dismiss:hover,
+.dismiss:active {
+  background: var(--shiny-validation-dismiss-background);
+}
+
+.dismiss:focus-visible {
+  outline: var(--shiny-validation-dismiss-focus-outline-width)
+    var(--shiny-validation-dismiss-focus-outline-style) currentColor;
+  outline-offset: 1px;
+}
+
+.dismiss svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.dismiss path {
+  stroke-width: var(--shiny-canvas-glyph-stroke-width);
+}
+
+.popup::after {
+  position: absolute;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-right: var(--shiny-validation-border-width) var(--shiny-validation-border-style)
+    var(--shiny-canvas-validation-border);
+  border-bottom: var(--shiny-validation-border-width) var(--shiny-validation-border-style)
+    var(--shiny-canvas-validation-border);
+  background: var(--shiny-canvas-validation-surface);
+  content: "";
+}
+
+.above::after {
+  bottom: -5px;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.below {
+  transform: translate(-50%, 0);
+}
+
+.below::after {
+  top: -5px;
+  transform: translateX(-50%) rotate(225deg);
+}

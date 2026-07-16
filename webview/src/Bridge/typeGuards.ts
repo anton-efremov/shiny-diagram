@@ -12,6 +12,10 @@ export function isHostMessage(data: unknown): data is HostToWebviewMessage {
     typeof data === "object" &&
     data !== null &&
     "type" in data &&
-    typeof (data as { type: unknown }).type === "string"
+    (data as { type: unknown }).type === "sourceUpdate" &&
+    "sourceText" in data &&
+    typeof data.sourceText === "string" &&
+    "documentName" in data &&
+    typeof data.documentName === "string"
   );
 }

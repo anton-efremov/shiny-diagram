@@ -1,0 +1,51 @@
+/**
+ * @render Edge-mounted pane collapse tab styling.
+ */
+
+.tab {
+  position: absolute;
+  top: 8px;
+  left: -22px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 30px;
+  padding: 0;
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-chrome-layout-border);
+  border-right: 0;
+  border-radius: var(--shiny-chrome-pane-tab-radius);
+  color: var(--shiny-chrome-text-muted);
+  background: var(--shiny-pane-bg);
+  cursor: var(--shiny-chrome-cursor-action);
+}
+
+.tab:hover {
+  color: var(--shiny-chrome-text);
+  background: var(--shiny-chrome-surface);
+}
+
+.tab:focus-visible {
+  outline: var(--shiny-chrome-focus-outline-width) var(--shiny-chrome-focus-outline-style)
+    var(--shiny-chrome-selection);
+  outline-offset: 1px;
+}
+
+.inward,
+.outward {
+  width: 16px;
+  height: 16px;
+}
+
+.inward path,
+.outward path {
+  stroke-width: var(--shiny-chrome-glyph-stroke-width);
+}
+
+.outward {
+  transform: none;
+}
+
+.inward {
+  transform: rotate(180deg);
+}

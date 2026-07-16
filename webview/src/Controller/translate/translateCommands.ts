@@ -8,7 +8,7 @@ import type {
   EditorCommandTransaction,
   TransactionOutcome,
 } from "../../View/commands";
-import type { ClassId, RelationshipId } from "../../shared/ids";
+import type { ClassId, NoteId, RelationshipId } from "../../shared/ids";
 import type { RelationshipEndpointKind, RelationshipLineKind } from "../../shared/uml";
 import type { DiagramGraph } from "../model/diagramGraph";
 import type { ProvenanceIndex } from "../model/provenanceIndex";
@@ -16,20 +16,20 @@ import { createTranslateContext } from "./translateContext";
 import type { TranslateContext } from "./translateContext";
 import type { WriteIntent } from "./writeIntent";
 import { applyVacancyPostPass } from "./vacancyPostPass";
-import { translateClassCreate } from "./workers/translateClassCreate";
-import { translateClassAppliedStyleSet } from "./workers/translateClassAppliedStyleSet";
-import { translateClassDelete } from "./workers/translateClassDelete";
-import { translateClassDirectStyleSet } from "./workers/translateClassDirectStylePropertySet";
+import { translateClassCreate } from "./workers/Class/translateClassCreate";
+import { translateClassAppliedStyleSet } from "./workers/Class/translateClassAppliedStyleSet";
+import { translateClassDelete } from "./workers/Class/translateClassDelete";
+import { translateClassDirectStyleSet } from "./workers/Class/translateClassDirectStylePropertySet";
 import {
   translateClassDirectStyleClear,
   translateClassDirectStyleSet as translateClassFullDirectStyleSet,
-} from "./workers/translateClassDirectStyleSet";
-import { translateClassDuplicate } from "./workers/translateClassDuplicate";
+} from "./workers/Class/translateClassDirectStyleSet";
+import { translateClassDuplicate } from "./workers/Class/translateClassDuplicate";
 import {
   translateClassAnnotationSet,
   translateClassLabelSet,
   translateClassNameSet,
-} from "./workers/translateClassHeader";
+} from "./workers/Class/translateClassHeader";
 import {
   translateClassAttributeCreate,
   translateClassAttributeDelete,
@@ -39,42 +39,40 @@ import {
   translateClassMethodDelete,
   translateClassMethodMove,
   translateClassMethodSet,
-} from "./workers/translateClassMember";
-import { translateClassSpatialSet } from "./workers/translateClassSpatialSet";
-import {
-  translateClassParentNamespaceSet,
-  translateNamespaceParentNamespaceSet,
-} from "./workers/translateParentNamespaceSet";
-import { translateRelationshipCreate } from "./workers/translateRelationshipCreate";
-import { translateRelationshipDelete } from "./workers/translateRelationshipDelete";
-import { translateRelationshipEndpointsPatch } from "./workers/translateRelationshipEndpointsPatch";
-import { translateRelationshipLabelSet } from "./workers/translateRelationshipLabelSet";
-import { translateRelationshipLineKindSet } from "./workers/translateRelationshipLineKindSet";
-import { translateRelationshipOperatorPatch } from "./workers/translateRelationshipOperatorPatch";
-import { translateRelationshipSourceClassSet } from "./workers/translateRelationshipSourceClassSet";
-import { translateRelationshipSourceEndpointKindSet } from "./workers/translateRelationshipSourceEndpointKindSet";
-import { translateRelationshipSourceMultiplicitySet } from "./workers/translateRelationshipSourceMultiplicitySet";
-import { translateRelationshipTargetClassSet } from "./workers/translateRelationshipTargetClassSet";
-import { translateRelationshipTargetEndpointKindSet } from "./workers/translateRelationshipTargetEndpointKindSet";
-import { translateRelationshipTargetMultiplicitySet } from "./workers/translateRelationshipTargetMultiplicitySet";
-import { translateNoteAttachmentSet } from "./workers/translateNoteAttachmentSet";
-import { translateNoteCreate } from "./workers/translateNoteCreate";
-import { translateNoteDelete } from "./workers/translateNoteDelete";
-import { translateNoteDuplicate } from "./workers/translateNoteDuplicate";
-import { translateNoteSpatialSet } from "./workers/translateNoteSpatialSet";
-import { translateNoteTextSet } from "./workers/translateNoteTextSet";
-import { translateNamespaceCreate } from "./workers/translateNamespaceCreate";
+} from "./workers/Class/translateClassMember";
+import { translateClassSpatialSet } from "./workers/Class/translateClassSpatialSet";
+import { translateClassParentNamespaceSet } from "./workers/Class/translateClassParentNamespaceSet";
+import { translateNamespaceParentNamespaceSet } from "./workers/Namespace/translateNamespaceParentNamespaceSet";
+import { translateRelationshipCreate } from "./workers/Relationship/translateRelationshipCreate";
+import { translateRelationshipDelete } from "./workers/Relationship/translateRelationshipDelete";
+import { translateRelationshipEndpointsPatch } from "./workers/Relationship/translateRelationshipEndpointsPatch";
+import { translateRelationshipLabelSet } from "./workers/Relationship/translateRelationshipLabelSet";
+import { translateRelationshipLineKindSet } from "./workers/Relationship/translateRelationshipLineKindSet";
+import { translateRelationshipOperatorPatch } from "./workers/Relationship/translateRelationshipOperatorPatch";
+import { translateRelationshipSourceClassSet } from "./workers/Relationship/translateRelationshipSourceClassSet";
+import { translateRelationshipSourceEndpointKindSet } from "./workers/Relationship/translateRelationshipSourceEndpointKindSet";
+import { translateRelationshipSourceMultiplicitySet } from "./workers/Relationship/translateRelationshipSourceMultiplicitySet";
+import { translateRelationshipTargetClassSet } from "./workers/Relationship/translateRelationshipTargetClassSet";
+import { translateRelationshipTargetEndpointKindSet } from "./workers/Relationship/translateRelationshipTargetEndpointKindSet";
+import { translateRelationshipTargetMultiplicitySet } from "./workers/Relationship/translateRelationshipTargetMultiplicitySet";
+import { translateNoteAttachmentSet } from "./workers/Note/translateNoteAttachmentSet";
+import { translateNoteCreate } from "./workers/Note/translateNoteCreate";
+import { translateNoteDelete } from "./workers/Note/translateNoteDelete";
+import { translateNoteDuplicate } from "./workers/Note/translateNoteDuplicate";
+import { translateNoteSpatialSet } from "./workers/Note/translateNoteSpatialSet";
+import { translateNoteTextSet } from "./workers/Note/translateNoteTextSet";
+import { translateNamespaceCreate } from "./workers/Namespace/translateNamespaceCreate";
 import {
   translateNamespaceDelete,
   translateNamespaceNameSet,
   translateNamespaceStyleSet,
-} from "./workers/translateNamespaceProperties";
+} from "./workers/Namespace/translateNamespaceProperties";
 import {
   translateStyleDefinitionCreate,
   translateStyleDefinitionDelete,
   translateStyleDefinitionNameSet,
   translateStyleDefinitionPropertySet,
-} from "./workers/translateStyleDefinition";
+} from "./workers/Style/translateStyleDefinition";
 
 export function translateCommands(
   transaction: EditorCommandTransaction,
@@ -82,6 +80,7 @@ export function translateCommands(
   provenance: ProvenanceIndex,
   sourceText: string
 ): { readonly intents: WriteIntent[]; readonly outcome: TransactionOutcome } {
+  assertRelationshipClassEndpoints(transaction, graph);
   const context = createTranslateContext(graph);
   const operatorPatchBatch = collectRelationshipOperatorPatches(transaction, graph);
   const endpointsPatchBatch = collectRelationshipEndpointsPatches(transaction);
@@ -114,6 +113,28 @@ export function translateCommands(
   return { intents, outcome: context.toTransactionOutcome() };
 }
 
+function assertRelationshipClassEndpoints(
+  transaction: EditorCommandTransaction,
+  graph: DiagramGraph
+): void {
+  const requireClass = (classId: ClassId) => {
+    if (graph.classes.has(classId) && !graph.notes.has(classId as unknown as NoteId)) return;
+    throw new Error(`Relationship endpoint ${classId} is not a class identity`);
+  };
+
+  for (const command of transaction) {
+    if (command.type === "relationship.create") {
+      requireClass(command.source.classId);
+      requireClass(command.target.classId);
+    } else if (
+      command.type === "relationship.source.class.set" ||
+      command.type === "relationship.target.class.set"
+    ) {
+      requireClass(command.classId);
+    }
+  }
+}
+
 function translateCommand(
   command: EditorCommand,
   graph: DiagramGraph,
@@ -133,7 +154,7 @@ function translateCommand(
     case "class.label.set":
       return translateClassLabelSet(command, graph, provenance);
     case "class.annotation.set":
-      return translateClassAnnotationSet(command, provenance, sourceText);
+      return translateClassAnnotationSet(command, graph, provenance, sourceText);
     case "class.spatial.set":
       return translateClassSpatialSet(command, graph, provenance);
     case "class.parentNamespace.set":
@@ -177,11 +198,11 @@ function translateCommand(
     case "relationship.lineKind.set":
       return translateRelationshipLineKindSet(command, graph);
     case "relationship.source.multiplicity.set":
-      return translateRelationshipSourceMultiplicitySet(command, graph, provenance);
+      return translateRelationshipSourceMultiplicitySet(command, graph);
     case "relationship.target.multiplicity.set":
-      return translateRelationshipTargetMultiplicitySet(command, graph, provenance);
+      return translateRelationshipTargetMultiplicitySet(command, graph);
     case "relationship.label.set":
-      return translateRelationshipLabelSet(command, graph, provenance);
+      return translateRelationshipLabelSet(command, graph);
     case "note.create":
       return translateNoteCreate(command, graph, provenance, context);
     case "note.delete":
@@ -189,7 +210,7 @@ function translateCommand(
     case "note.text.set":
       return translateNoteTextSet(command);
     case "note.spatial.set":
-      return translateNoteSpatialSet(command);
+      return translateNoteSpatialSet(command, graph, provenance);
     case "note.attachment.set":
       return translateNoteAttachmentSet(command, graph, provenance);
     case "note.duplicate":
@@ -205,11 +226,11 @@ function translateCommand(
     case "namespace.parentNamespace.set":
       return translateNamespaceParentNamespaceSet(command, graph, provenance, sourceText, context);
     case "style.definition.create":
-      return translateStyleDefinitionCreate(command, graph, provenance);
+      return translateStyleDefinitionCreate(command, graph, provenance, context);
     case "style.definition.delete":
       return translateStyleDefinitionDelete(command, graph, provenance);
     case "style.definition.name.set":
-      return translateStyleDefinitionNameSet(command, graph);
+      return translateStyleDefinitionNameSet(command, graph, context);
     case "style.definition.property.set":
       return translateStyleDefinitionPropertySet(command, provenance);
     default:

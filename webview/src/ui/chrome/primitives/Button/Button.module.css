@@ -1,0 +1,123 @@
+/**
+ * @render Shared command button styling.
+ */
+
+.button,
+.dangerButton {
+  display: inline-grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--shiny-control-height);
+  padding: 7px 10px;
+  border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
+    var(--shiny-chrome-button-border);
+  border-radius: var(--shiny-chrome-button-radius);
+  color: var(--shiny-button-secondary-fg);
+  background: var(--shiny-button-secondary-bg);
+  box-shadow: var(--shiny-chrome-button-elevation-rest);
+  font: inherit;
+  font-size: var(--shiny-chrome-font-size-control);
+  font-weight: var(--shiny-chrome-font-weight-emphasis);
+  cursor: var(--shiny-chrome-cursor-action);
+}
+
+.button:hover:not(:disabled) {
+  border-color: var(--shiny-chrome-accent-outline);
+  color: var(--shiny-chrome-button-fg);
+  background: var(--shiny-chrome-button-bg);
+}
+
+.button {
+  border-color: var(--shiny-button-outline);
+}
+
+.button:active:not(:disabled),
+.dangerButton:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: var(--shiny-chrome-button-elevation-pressed);
+}
+
+.button:focus-visible,
+.dangerButton:focus-visible {
+  outline: var(--shiny-chrome-focus-outline-width) var(--shiny-chrome-focus-outline-style)
+    var(--shiny-chrome-accent-outline);
+  outline-offset: 2px;
+}
+
+.button:disabled,
+.dangerButton:disabled {
+  color: var(--shiny-chrome-text-muted);
+  cursor: var(--shiny-chrome-cursor-unavailable);
+  opacity: 0.58;
+}
+
+.dangerButton {
+  border-color: var(--shiny-chrome-text-error);
+  color: var(--shiny-chrome-text-error);
+  background: var(--shiny-chrome-surface);
+}
+
+.dangerButton:hover:not(:disabled) {
+  color: var(--shiny-chrome-surface);
+  background: var(--shiny-chrome-text-error);
+}
+
+.icon {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+}
+
+.glyph {
+  stroke-width: var(--shiny-chrome-glyph-stroke-width);
+}
+
+.dashedGlyphPath {
+  stroke-dasharray: var(--shiny-chrome-glyph-dash);
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.compact {
+  min-height: 26px;
+  padding: 4px 8px;
+  font-size: var(--shiny-chrome-font-size-detail);
+  justify-self: end;
+  width: auto;
+}
+
+.iconOnly {
+  grid-template-columns: 1fr;
+  width: var(--shiny-control-height);
+  min-width: var(--shiny-control-height);
+  height: var(--shiny-control-height);
+  min-height: var(--shiny-control-height);
+  padding: 0;
+}
+
+.ghost {
+  border-color: transparent;
+  color: var(--shiny-chrome-text-muted);
+  background: transparent;
+  box-shadow: var(--shiny-chrome-shadow-clear);
+}
+
+.ghost:hover:not(:disabled),
+.ghost:active:not(:disabled) {
+  border-color: transparent;
+  color: var(--shiny-chrome-text);
+  background: var(--shiny-chrome-overlay-faint);
+}
+
+.hidden {
+  visibility: hidden;
+}

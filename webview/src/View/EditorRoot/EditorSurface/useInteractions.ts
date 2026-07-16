@@ -53,7 +53,19 @@ type Interactions = {
   ) => void;
   readonly onRelationshipSelect: (relationshipId: RelationshipId) => void;
   readonly onRelationshipDuplicate: (seed: RelationshipSeed) => void;
-  readonly onStyleSelect: (styleDefId: StyleDefId) => void;
+  readonly onStyleSelect: (
+    styleDefId: StyleDefId,
+    origin?: Extract<SelectionState, { readonly kind: "classes" }>
+  ) => void;
+  readonly onSelectionRestore: (selectionState: SelectionState) => void;
+  readonly onStyleCreateCommitted: (
+    result: TransactionResult,
+    origin?: Extract<SelectionState, { readonly kind: "classes" }>
+  ) => void;
+  readonly onStyleRenameCommitted: (
+    result: TransactionResult,
+    previousStyleDefId: StyleDefId
+  ) => void;
   readonly onBackgroundClick: () => void;
   readonly onConnectAborted: () => void;
   readonly onPlacementComplete: (result: TransactionResult | null) => void;
@@ -64,6 +76,7 @@ type Interactions = {
 };
 
 type UseInteractionsInput = {
+  readonly classIds: readonly ClassId[];
   readonly relationships: readonly RelationshipView[];
   readonly editingState: EditingState;
   readonly nodePlacementState: NodePlacementState;
@@ -76,6 +89,7 @@ type UseInteractionsInput = {
 };
 
 export function useInteractions({
+  classIds,
   relationships,
   editingState,
   nodePlacementState,
@@ -245,6 +259,7 @@ export function useInteractions({
   const onRelationshipConnect = useCallback(
     (sourceClassId: ClassId, targetClassId: ClassId) => {
       if (nodePlacementState?.kind !== "relationship") return;
+      if (!classIds.includes(sourceClassId) || !classIds.includes(targetClassId)) return;
       // Implementing interaction through command transaction
       dispatchTransaction(
         toRelationshipCreateTransaction(nodePlacementState.seed, sourceClassId, targetClassId)
@@ -252,7 +267,7 @@ export function useInteractions({
       setNodePlacementState(null);
       setSelectionState((selectionState) => clearSelectionState(selectionState));
     },
-    [dispatchTransaction, nodePlacementState, setNodePlacementState, setSelectionState]
+    [classIds, dispatchTransaction, nodePlacementState, setNodePlacementState, setSelectionState]
   );
 
   const onRelationshipReconnect = useCallback(
@@ -261,6 +276,7 @@ export function useInteractions({
         (relationshipView) => relationshipView.relationshipId === relationshipId
       );
       if (!relationship) return;
+      if (!classIds.includes(newClassId)) return;
       const existingClassId =
         end === "source" ? relationship.sourceClassId : relationship.targetClassId;
       if (existingClassId === newClassId) return;
@@ -277,7 +293,7 @@ export function useInteractions({
         updateSelectedRelationshipId(selectionState, nextRelationshipId)
       );
     },
-    [dispatchTransaction, relationships, setSelectionState]
+    [classIds, dispatchTransaction, relationships, setSelectionState]
   );
 
   const onRelationshipSelect = useCallback(
@@ -306,8 +322,41 @@ export function useInteractions({
   );
 
   const onStyleSelect = useCallback(
-    (styleDefId: StyleDefId) => {
-      setSelectionState((state) => updateSelectedStyleDefId(state, styleDefId));
+    (styleDefId: StyleDefId, origin?: Extract<SelectionState, { readonly kind: "classes" }>) => {
+      setSelectionState((state) => updateSelectedStyleDefId(state, styleDefId, origin));
+    },
+    [setSelectionState]
+  );
+
+  const onSelectionRestore = useCallback(
+    (selectionState: SelectionState) => {
+      setSelectionState(selectionState);
+    },
+    [setSelectionState]
+  );
+
+  const onStyleCreateCommitted = useCallback(
+    (result: TransactionResult, origin?: Extract<SelectionState, { readonly kind: "classes" }>) => {
+      const createdStyleId =
+        result.status === "committed" ? result.outcome.styles.created.at(-1) : undefined;
+      if (!createdStyleId) return;
+      setSelectionState({ kind: "style", styleDefId: createdStyleId, origin });
+    },
+    [setSelectionState]
+  );
+
+  const onStyleRenameCommitted = useCallback(
+    (result: TransactionResult, previousStyleDefId: StyleDefId) => {
+      if (result.status !== "committed") return;
+      const nextStyleDefId = result.outcome.styles.renamed.find(
+        (renamed) => renamed.from === previousStyleDefId
+      )?.to;
+      if (!nextStyleDefId) return;
+      setSelectionState((selectionState) =>
+        selectionState.kind === "style"
+          ? { ...selectionState, styleDefId: nextStyleDefId }
+          : selectionState
+      );
     },
     [setSelectionState]
   );
@@ -360,6 +409,8 @@ export function useInteractions({
     (nextEditingState: Exclude<EditingState, { readonly kind: "none" }>) => {
       if (nextEditingState.kind === "noteText") {
         setSelectionState({ kind: "note", noteId: nextEditingState.noteId });
+      } else if (nextEditingState.kind === "namespaceName") {
+        setSelectionState({ kind: "namespace", namespaceId: nextEditingState.namespaceId });
       } else {
         setSelectionState({ kind: "classes", classIds: [nextEditingState.classId] });
       }
@@ -396,6 +447,9 @@ export function useInteractions({
     onRelationshipSelect,
     onRelationshipDuplicate,
     onStyleSelect,
+    onSelectionRestore,
+    onStyleCreateCommitted,
+    onStyleRenameCommitted,
     onBackgroundClick,
     onConnectAborted,
     onPlacementComplete,
@@ -453,21 +507,20 @@ function toToggledClassIds(
     : [...selectedClassIds, classId];
 }
 
-function updateSelectedStyleDefId(
-  selectionState: SelectionState,
-  styleDefId: StyleDefId
-): SelectionState {
-  return selectionState.kind === "style" && selectionState.styleDefId === styleDefId
-    ? selectionState
-    : toStyleSelectionState(styleDefId);
-}
-
 function clearSelectionState(selectionState: SelectionState): SelectionState {
   return selectionState.kind === "none" ? selectionState : { kind: "none" };
 }
 
-function toStyleSelectionState(styleDefId: StyleDefId): SelectionState {
-  return { kind: "style", styleDefId };
+function updateSelectedStyleDefId(
+  selectionState: SelectionState,
+  styleDefId: StyleDefId,
+  origin?: Extract<SelectionState, { readonly kind: "classes" }>
+): SelectionState {
+  return selectionState.kind === "style" &&
+    selectionState.styleDefId === styleDefId &&
+    selectionState.origin === origin
+    ? selectionState
+    : { kind: "style", styleDefId, origin };
 }
 
 function toClassSelectionState(classIds: readonly ClassId[]): SelectionState {

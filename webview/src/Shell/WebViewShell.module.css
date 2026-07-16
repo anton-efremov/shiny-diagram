@@ -3,7 +3,10 @@
  */
 
 .shell {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  padding: 24px;
-  background: var(--shiny-page-bg);
+  height: 100vh;
+  overflow: hidden;
+  background: var(--shiny-chrome-app-bg);
 }

@@ -32,4 +32,53 @@ export default [
       "no-console": "error",
     },
   },
+  {
+    files: ["webview/src/**/*.tsx"],
+    ignores: ["webview/src/ui/**/*.tsx"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "JSXOpeningElement > JSXIdentifier[name=/^(input|button|select|textarea)$/]",
+          message: "Intrinsic interactive elements are allowed only inside ui.",
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      "webview/src/View/EditorRoot/EditorSurface/ToolPane/**/*.tsx",
+      "webview/src/View/EditorRoot/EditorSurface/EditPane/**/*.tsx",
+    ],
+    ignores: ["**/icons.tsx"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "JSXOpeningElement > JSXIdentifier[name=/^[a-z]/]",
+          message: "Chrome components must render through ui components, not intrinsic JSX.",
+        },
+      ],
+    },
+  },
+  {
+    files: ["**/icons.ts"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "JSXElement",
+          message: "icons.ts files are descriptor catalogs and must not contain JSX.",
+        },
+        {
+          selector: "JSXFragment",
+          message: "icons.ts files are descriptor catalogs and must not contain JSX.",
+        },
+        {
+          selector: "Literal[value=/#[0-9a-fA-F]{3,8}|rgba?\\(|hsla?\\(|var\\(--/]",
+          message: "icons.ts files must not contain color or CSS-variable literals.",
+        },
+      ],
+    },
+  },
 ];

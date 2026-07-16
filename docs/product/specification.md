@@ -259,7 +259,7 @@ Actions:
 
 - **Move** — drag the box; on drop, Shiny writes the new `x`/`y` to its `@spatial` annotation
 - **Resize** — drag a handle on the border to change `w`/`h`; writes back to `@spatial`
-- **Select** — click to select; drives the style pane; click empty canvas to deselect
+- **Select** — click to select; drives the edit pane; click empty canvas to deselect
 - **Edit header** — edits the display label, not the Mermaid class ID
 - **Edit member row** — edits the Mermaid member text
 - **Change member prefix** — prefix dropdown writes the row's leading Mermaid marker: none, `+`, `-`, `#`, `~`, `$`, or `*`
@@ -279,8 +279,8 @@ Rendered as a labeled border around its member classes.
 Actions:
 
 - **Move** — drag the namespace box; all member and descendant-member classes move by the same delta; each moved class's `@spatial` is updated
-- **Select** — click border or label; drives the style pane
-- **Style** — fill, stroke, text color, stroke width, and dash pattern editable via style pane; writes back to `@style` annotation
+- **Select** — click border or label; drives the edit pane
+- **Style** — fill, stroke, text color, stroke width, and dash pattern editable via edit pane; writes back to `@style` annotation
 
 #### 4.3.1.c Note
 
@@ -298,7 +298,7 @@ Actions:
 Actions:
 
 - **Create** — choose source class, target class, relationship type, optional source multiplicity, optional target multiplicity, and optional label
-- **Select** — click connector or label; drives the style pane
+- **Select** — click connector or label; drives the edit pane
 - **Reconnect** — drag endpoint to another class; updates relationship source or target
 - **Change type** — updates Mermaid relationship syntax
 - **Change multiplicity** — updates quoted multiplicity at the relevant endpoint
@@ -344,7 +344,7 @@ Relationship type selector options:
 - solid link
 - dashed link
 
-#### 4.3.3 Style pane
+#### 4.3.3 Edit pane
 
 Shows controls for the currently selected element. Empty when nothing is selected.
 

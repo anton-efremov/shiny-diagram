@@ -17,8 +17,8 @@ Note: for method declaration, Mermaid source separates return type from the meth
 ## Editing text block
 #### General editing rules
 
-There is no separate style pane for text block
-Text blocks of class header are editable from Style pane and with direct edits
+There is no separate edit pane for text block
+Text blocks of class header are editable from Edit pane and with direct edits
 Member blocks are editable only with direct edits
 #### Enter direct editing mode
 
@@ -42,7 +42,7 @@ Click outside of edited text block -> exit editing mode but doesn't change selec
 - If no text - delete current member
 Escape -> cancel change
 
-#### Edit through StylePane (Header blocks only)
+#### Edit through EditPane (Header blocks only)
 
 - annotation - Combobox with common values: e.g. interface, custom. Common values are committed on selection, custom - on enter
 - name - text area, commit on enter or click outside with validity check

@@ -5,4 +5,4 @@
 
 export { parseDiagram } from "./parseDiagram";
 
-export type { ParseResult } from "./parseResult";
+export type { EditorDiagnostic, ParseResult } from "./parseResult";

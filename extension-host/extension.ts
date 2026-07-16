@@ -1,34 +1,35 @@
 /**
- * @fileoverview Registers the Shiny VS Code command and webview panel lifecycle.
+ * @fileoverview Registers the Shiny custom text editor and its open command.
  */
 
 import * as vscode from "vscode";
-import { getWebviewHtml } from "./webviewProvider";
-import { DiagramSession } from "./diagramSession";
+import { DiagramEditorProvider } from "./webviewProvider";
+
+const DIAGRAM_VIEW_TYPE = "shiny.diagram";
 
 /**
  * Activates the extension and registers its commands.
  */
 export function activate(context: vscode.ExtensionContext): void {
-  const openDiagramCommand = vscode.commands.registerCommand("shiny.openDiagram", () => {
-    const activeDocument = vscode.window.activeTextEditor?.document;
-    const panel = vscode.window.createWebviewPanel(
-      "shinyDiagram",
-      "Shiny Diagram",
-      vscode.ViewColumn.Beside,
-      {
-        enableScripts: true,
-        localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, "out", "webview")],
-      }
-    );
+  const provider = new DiagramEditorProvider(context);
+  const providerRegistration = vscode.window.registerCustomEditorProvider(
+    DIAGRAM_VIEW_TYPE,
+    provider,
+    { webviewOptions: { retainContextWhenHidden: false } }
+  );
+  const openDiagramCommand = vscode.commands.registerCommand(
+    "shiny.openDiagram",
+    async (resource?: vscode.Uri) => {
+      const uri = resource ?? vscode.window.activeTextEditor?.document.uri;
+      if (!uri) return;
 
-    panel.webview.html = getWebviewHtml(context, panel.webview, activeDocument);
-
-    if (activeDocument) {
-      const session = new DiagramSession(activeDocument, panel);
-      panel.onDidDispose(() => session.dispose());
+      await vscode.commands.executeCommand("vscode.openWith", uri, DIAGRAM_VIEW_TYPE, {
+        viewColumn: vscode.ViewColumn.Beside,
+        preserveFocus: false,
+        preview: false,
+      });
     }
-  });
+  );
 
-  context.subscriptions.push(openDiagramCommand);
+  context.subscriptions.push(providerRegistration, openDiagramCommand);
 }

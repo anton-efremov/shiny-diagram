@@ -64,7 +64,8 @@ As a general rule, written code must be optimized for **reducing the cognitive l
 **Rules:**
 
 - Prefer early returns (guard clauses) over nested conditionals — each guard removes one case, leaving only the remaining real case to read.
-- Prefer explicitly named functions over inline closures that act like sub-components — a name tells the reader what a block does without reading its body. A one-line closure (`() => onChange(option.value)`) is fine inline — its whole behavior fits at the call site. A closure with multiple steps or branches is worth naming, so the call site documents _what_ happens and the named function documents _how_.
+- Prefer explicitly named functions over inline closures that act like sub-components — a name tells the reader what a block does without reading its body.
+- A one-line closure (`() => onChange(option.value)`) is fine inline — its whole behavior fits at the call site. A closure with multiple steps or branches is worth naming, so the call site documents _what_ happens and the named function documents _how_.
 - Prefer a named type over an indexed-access type (`Foo["bar"]`) when a named type for that shape already exists — don't make the reader look up a second type to find a third.
 
 **Examples**
@@ -104,7 +105,13 @@ const edits = missingIds.map((classId, idx) => {
   const position = malformedAnnotations.has(classId)
     ? computeMalformedBoxLayout(idx, startY)
     : computeNewBoxLayout(idx, startY);
-  return formatSpatialAnnotation(classId, position.x, position.y, position.width, position.height);
+  return formatSpatialAnnotation(
+    classId,
+    position.x,
+    position.y,
+    position.width,
+    position.height
+  );
 });
 ```
 
@@ -124,11 +131,14 @@ function placeClass(classId: ClassId, idx: number, startY: number): string {
 ### Non-bloated code
 
 Special attention to be paid to code redundancy. Agents tend to add extended safeguards to code, leading to code bloat — e.g. conditional branches that cannot be reached are checked anyway. This should not happen; code should remain concise to **reduce cognitive load** for a human reader.
+
 If an invariant might genuinely not hold and silent failure would be dangerous, assert it (throw) rather than silently early-returning — a silent early return hides a broken invariant from whoever debugs it later.
 
 ### Naming
 
-Shiny follows the [Google TypeScript Style Guide](https://google.github.io/styleguide/tsguide.html) for naming. Summary:
+Shiny follows the [Google TypeScript Style Guide](https://google.github.io/styleguide/tsguide.html) for naming.
+
+Summary:
 
 - `camelCase` — variables, functions, module-scope constants, CSS module class names
 - `PascalCase` — React components, classes, type aliases, interfaces
@@ -141,16 +151,17 @@ Shiny follows the [Google TypeScript Style Guide](https://google.github.io/style
 
 Shiny uses [JSDoc](https://jsdoc.app/) annotation style, aligned with Google's TSDoc conventions.
 
-The goal of comments and annotations is to **reduce a cognitive load of human reader**. Thus comments and annotations should
+The goal of comments and annotations is to **reduce a cognitive load of human reader**. Thus comments and annotations should:
 
-- note be too extensive - requires much attention
-- be concise and up to the point
-- placed only when they are need
-- if has to be long - structured well, e.g. with logically parallel bullet points
+- not be too extensive;
+- require little attention;
+- be concise and up to the point;
+- be placed only when they are needed;
+- be structured well when they have to be long, e.g. with logically parallel bullet points.
 
 #### File-level annotation
 
-Every non-component TypeScript and CSS module file begins with a `@fileoverview` block:
+Every non-component TypeScript module and non-library CSS module begins with a `@fileoverview` block:
 
 ```ts
 /**
@@ -161,6 +172,12 @@ Every non-component TypeScript and CSS module file begins with a `@fileoverview`
 ```
 
 React component files (`.tsx`) are exempt.
+
+UI library files under `webview/src/ui/**` follow [UI Library Standards](./architecture/UI-library-standards.md) instead:
+
+- component `.tsx` files may use a `@behavior` or `@render` header for non-derivable facts, or omit the header;
+- component `.module.css` files may use a `@render` header for non-derivable facts, or omit the header;
+- utility modules that are not component files still use `@fileoverview`.
 
 #### Function annotation
 
@@ -194,19 +211,31 @@ export function formatStyleProperty(
 
 Non-exported functions: JSDoc block if non-trivial; omit for obvious one-liners.
 
+#### CSS style ownership
+
+Style value ownership is architectural, not local preference. For `webview/src/ui/**` and the temporary allowlisted legacy canvas surface CSS modules, the [UI Library Standards property ownership table](./architecture/UI-library-standards.md#property-ownership) is authoritative:
+
+- token-owned properties use `var(--shiny-*)` reads, not raw values;
+- local literals are allowed only for properties owned by the component or arranging template;
+- a needed value with no defined home requires a table amendment, not a local exception;
+- `tokens.css` is governed by its own header annotation.
+
 #### Inline comments
 
 **When needed:**
 
-- when code is not self-explanatory of WHAT it is doing
-- when it might be unclear WHY we are doing that
+- when code is not self-explanatory of WHAT it is doing;
+- when it might be unclear WHY we are doing that.
 
-**Format:** Written with double slash `//`:
+**Format:**
 
-- long comments are written above the explained line
-- short comments are written after the explained line
+Written with double slash `//`:
+
+- long comments are written above the explained line;
+- short comments are written after the explained line.
 
 **Examples:**
+
 Wrong: code is self-explanatory
 
 ```ts
@@ -217,7 +246,8 @@ for (const cls of classes) {
 Right: WHY we are doing it
 
 ```ts
-// Stop at a closing brace — caller consumes it. Mermaid requires closing "}" on its own line.
+// Stop at a closing brace — caller consumes it.
+// Mermaid requires closing "}" on its own line.
 if (/^\s*\}\s*$/.test(raw)) {
   break;
 }

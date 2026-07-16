@@ -1,0 +1,17 @@
+/**
+ * @render Full canvas grid and placement treatment.
+ */
+
+.frame {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: var(--shiny-canvas-bg);
+  background-image: radial-gradient(circle, var(--shiny-grid-dot) 1px, transparent 1px);
+  background-position: 0 0;
+  background-size: 20px 20px;
+}
+
+.placement {
+  cursor: var(--shiny-cursor-placement);
+}

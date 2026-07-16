@@ -1,0 +1,99 @@
+/**
+ * @behavior Class header text-block edit transaction dispatch.
+ */
+
+import { useCallback } from "react";
+import type { ClassId } from "../../../../../shared/ids";
+import type { SelectionState } from "../../../../state/editorStates";
+import type { ClassAnnotation } from "../../../../../shared/uml";
+import { useDispatchTransaction } from "../../../../contexts";
+import type { TransactionResult } from "../../../../commands/editorCommands";
+import type { ClassView, DeclaredStyleView } from "../../../../views/schema";
+import {
+  toClassAnnotationCommitTransaction,
+  toClassLabelCommitTransaction,
+  toClassNameCommitTransaction,
+  toClassStyleSaveTransaction,
+} from "./transactions";
+
+type UseInteractionsInput = {
+  readonly styles: readonly DeclaredStyleView[];
+  readonly selectedNamedStyle: DeclaredStyleView | undefined;
+  readonly selectedDirectStyle: ClassView | undefined;
+  readonly origin: Extract<SelectionState, { readonly kind: "classes" }>;
+  readonly onStyleSelect: (
+    styleDefId: DeclaredStyleView["styleDefId"],
+    origin: Extract<SelectionState, { readonly kind: "classes" }>
+  ) => void;
+  readonly onStyleCreateCommitted: (
+    result: TransactionResult,
+    origin: Extract<SelectionState, { readonly kind: "classes" }>
+  ) => void;
+};
+
+type Interactions = {
+  readonly onNameCommit: (classId: ClassId, name: string) => readonly string[];
+  readonly onAnnotationCommit: (
+    classId: ClassId,
+    annotation: ClassAnnotation | null
+  ) => readonly string[];
+  readonly onLabelCommit: (classId: ClassId, label: string | null) => readonly string[];
+  readonly onStyleAction: () => void;
+};
+
+export function useInteractions({
+  styles,
+  selectedNamedStyle,
+  selectedDirectStyle,
+  origin,
+  onStyleSelect,
+  onStyleCreateCommitted,
+}: UseInteractionsInput): Interactions {
+  const dispatchTransaction = useDispatchTransaction();
+
+  // Event handler props derivation
+  const onNameCommit = useCallback(
+    (classId: ClassId, name: string) => {
+      const result = dispatchTransaction(toClassNameCommitTransaction(classId, name));
+      return result.status === "rejected" ? result.errors.map((error) => error.message) : [];
+    },
+    [dispatchTransaction]
+  );
+
+  const onAnnotationCommit = useCallback(
+    (classId: ClassId, annotation: ClassAnnotation | null) => {
+      const result = dispatchTransaction(toClassAnnotationCommitTransaction(classId, annotation));
+      return result.status === "rejected" ? result.errors.map((error) => error.message) : [];
+    },
+    [dispatchTransaction]
+  );
+
+  const onLabelCommit = useCallback(
+    (classId: ClassId, label: string | null) => {
+      const result = dispatchTransaction(toClassLabelCommitTransaction(classId, label));
+      return result.status === "rejected" ? result.errors.map((error) => error.message) : [];
+    },
+    [dispatchTransaction]
+  );
+
+  const onStyleAction = useCallback(() => {
+    if (selectedNamedStyle) {
+      onStyleSelect(selectedNamedStyle.styleDefId, origin);
+      return;
+    }
+    if (selectedDirectStyle) {
+      const result = dispatchTransaction(toClassStyleSaveTransaction(selectedDirectStyle, styles));
+      onStyleCreateCommitted(result, origin);
+    }
+  }, [
+    dispatchTransaction,
+    onStyleCreateCommitted,
+    onStyleSelect,
+    origin,
+    selectedDirectStyle,
+    selectedNamedStyle,
+    styles,
+  ]);
+
+  return { onNameCommit, onAnnotationCommit, onLabelCommit, onStyleAction };
+}

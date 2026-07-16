@@ -421,6 +421,7 @@ function graphWith(input: {
     notes: new Map(),
     styleDefinitions: new Map(),
     styleApplications: new Map(),
+    styleOccurrences: [],
   };
 }
 

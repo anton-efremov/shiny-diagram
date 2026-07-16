@@ -1,0 +1,4 @@
+.indicator {
+  height: 2px;
+  background: var(--shiny-accent-tint);
+}

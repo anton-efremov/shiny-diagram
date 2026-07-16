@@ -5,7 +5,11 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ReactElement } from "react";
 import type { SourceEdit as ControllerSourceEdit } from "../Controller/model/sourceEdit";
-import type { ApplyEditsMessage, SourceEdit as ProtocolSourceEdit } from "./protocol";
+import type {
+  ApplyEditsMessage,
+  HistoryMessage,
+  SourceEdit as ProtocolSourceEdit,
+} from "./protocol";
 import { readInitialData } from "./initialData";
 import { isHostMessage } from "./typeGuards";
 import { vscode } from "./vscodeApi";
@@ -23,14 +27,14 @@ function toProtocolEdit(edit: ControllerSourceEdit): ProtocolSourceEdit {
  * Owns webview source state and dispatches source edits to the extension host.
  */
 export default function ExtensionBridge(): ReactElement {
-  const [sourceText, setSourceText] = useState<string>(readInitialData);
+  const [documentSnapshot, setDocumentSnapshot] = useState(readInitialData);
 
   useEffect(() => {
     function handleMessage(event: MessageEvent<unknown>): void {
       if (!isHostMessage(event.data)) return;
       const msg = event.data;
       if (msg.type === "sourceUpdate") {
-        setSourceText(msg.sourceText);
+        setDocumentSnapshot({ sourceText: msg.sourceText, documentName: msg.documentName });
       }
     }
     window.addEventListener("message", handleMessage);
@@ -43,5 +47,17 @@ export default function ExtensionBridge(): ReactElement {
     vscode.postMessage(message);
   }, []);
 
-  return <WebViewShell sourceText={sourceText} onApplyEdits={handleApplyEdits} />;
+  const handleHistory = useCallback((action: "undo" | "redo") => {
+    const message: HistoryMessage = { type: `history.${action}` };
+    vscode.postMessage(message);
+  }, []);
+
+  return (
+    <WebViewShell
+      sourceText={documentSnapshot.sourceText}
+      documentName={documentSnapshot.documentName}
+      onApplyEdits={handleApplyEdits}
+      onHistory={handleHistory}
+    />
+  );
 }

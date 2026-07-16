@@ -13,11 +13,11 @@
  *   record renames and creates explicitly through the recorder methods.
  * - Namespace creates are Controller-allocated. Namespace renames are recorded
  *   by the rename worker because parent renames can cascade through descendants.
- * - No current command renames or creates styles through a Controller-allocated
- *   ID that View consumes, so the `styles` delta stays empty.
+ * - Style IDs are source-derived from command names, so style workers record
+ *   creates and renames explicitly for View selection reconciliation.
  */
 
-import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../shared/ids";
+import type { ClassId, NamespaceId, NoteId, RelationshipId, StyleDefId } from "../../shared/ids";
 import type { TransactionOutcome } from "../../View/commands";
 import type { DiagramGraph } from "../model/diagramGraph";
 import { allocateClassId, generateDuplicateClassId } from "./classIdentity";
@@ -32,6 +32,8 @@ export type TranslateContext = {
   readonly recordRelationshipRenamed: (from: RelationshipId, to: RelationshipId) => void;
   readonly recordRelationshipCreated: (id: RelationshipId) => void;
   readonly recordNoteCreated: (id: NoteId) => void;
+  readonly recordStyleCreated: (id: StyleDefId) => void;
+  readonly recordStyleRenamed: (from: StyleDefId, to: StyleDefId) => void;
   /** Relationship creates recorded so far in this transaction, for ordinal math. */
   readonly relationshipCreateCount: () => number;
   /** Note creates recorded so far in this transaction, for ordinal math. */
@@ -51,6 +53,8 @@ export function createTranslateContext(graph: DiagramGraph): TranslateContext {
   const renamedNamespaceIds: Array<{ readonly from: NamespaceId; readonly to: NamespaceId }> = [];
   const createdRelationshipIds: RelationshipId[] = [];
   const createdNoteIds: NoteId[] = [];
+  const createdStyleIds: StyleDefId[] = [];
+  const renamedStyleIds: Array<{ readonly from: StyleDefId; readonly to: StyleDefId }> = [];
 
   return {
     allocateClassId(requestedName) {
@@ -84,6 +88,12 @@ export function createTranslateContext(graph: DiagramGraph): TranslateContext {
     recordNoteCreated(id) {
       createdNoteIds.push(id);
     },
+    recordStyleCreated(id) {
+      createdStyleIds.push(id);
+    },
+    recordStyleRenamed(from, to) {
+      renamedStyleIds.push({ from, to });
+    },
     relationshipCreateCount() {
       return createdRelationshipIds.length;
     },
@@ -96,7 +106,7 @@ export function createTranslateContext(graph: DiagramGraph): TranslateContext {
         namespaces: { renamed: renamedNamespaceIds, created: createdNamespaceIds },
         relationships: { renamed: renamedRelationships, created: createdRelationshipIds },
         notes: { renamed: [], created: createdNoteIds },
-        styles: { renamed: [], created: [] },
+        styles: { renamed: renamedStyleIds, created: createdStyleIds },
       };
     },
   };

@@ -8,6 +8,7 @@ import type { ReactElement } from "react";
 import type { ClassId, NamespaceId, NoteId, RelationshipId } from "../../../../shared/ids";
 import type { Rect } from "../../../../shared/geometry";
 import type { TransactionResult } from "../../../commands/editorCommands";
+import { DIAGRAM_EMPTY_STATE_Z_INDEX } from "../../../config/editorUiConfig";
 import type { DiagramView } from "../../../views/schema";
 import type {
   EditingState,
@@ -21,7 +22,8 @@ import { useInteractions } from "./useInteractions";
 import { useStateReconciliation } from "./useStateReconciliation";
 import ReactFlowCanvasAdapter from "./ReactFlowCanvasAdapter/ReactFlowCanvasAdapter";
 import ReactFlowProviderAdapter from "./ReactFlowProviderAdapter/ReactFlowProviderAdapter";
-import styles from "./DiagramCanvas.module.css";
+import EmptyStateMessage from "../../../../ui/canvas/primitives/EmptyStateMessage/EmptyStateMessage";
+import CanvasViewportFrame from "../../../../ui/canvas/templates/CanvasViewportFrame/CanvasViewportFrame";
 
 type DiagramCanvasProps = {
   readonly view: DiagramView;
@@ -51,6 +53,10 @@ type DiagramCanvasProps = {
   readonly onNamespaceResizeStart: (namespaceId: NamespaceId, rect: Rect) => void;
   readonly onNamespaceResizeCommitted: (result: TransactionResult | null) => void;
   readonly onNamespaceSelect: (namespaceId: NamespaceId) => void;
+  readonly onNamespaceRenameCommitted: (
+    result: TransactionResult,
+    previousNamespaceId: NamespaceId
+  ) => void;
   readonly onTextBlockEditStart: (
     editingState: Exclude<EditingState, { readonly kind: "none" }>
   ) => void;
@@ -81,6 +87,7 @@ export default function DiagramCanvas({
   onNamespaceResizeStart,
   onNamespaceResizeCommitted,
   onNamespaceSelect,
+  onNamespaceRenameCommitted,
   onTextBlockEditStart,
   onTextBlockEditCancel,
 }: DiagramCanvasProps): ReactElement {
@@ -107,11 +114,13 @@ export default function DiagramCanvas({
     setClassBoxPlacementState,
     setNoteBoxPlacementState,
   });
-
   return (
-    <section className={styles.diagramShell} aria-label="Static editor boxes">
+    <CanvasViewportFrame ariaLabel="Static editor boxes">
       {view.classes.length === 0 ? (
-        <p className={styles.emptyState}>No spatial annotations found.</p>
+        <EmptyStateMessage
+          message="No spatial annotations found."
+          stacking={DIAGRAM_EMPTY_STATE_Z_INDEX}
+        />
       ) : null}
       <ReactFlowProviderAdapter>
         <ReactFlowCanvasAdapter
@@ -143,10 +152,11 @@ export default function DiagramCanvas({
           onNamespaceResizeStart={onNamespaceResizeStart}
           onNamespaceResizeCommitted={onNamespaceResizeCommitted}
           onNamespaceSelect={onNamespaceSelect}
+          onNamespaceRenameCommitted={onNamespaceRenameCommitted}
           onTextBlockEditStart={onTextBlockEditStart}
           onTextBlockEditCancel={onTextBlockEditCancel}
         />
       </ReactFlowProviderAdapter>
-    </section>
+    </CanvasViewportFrame>
   );
 }

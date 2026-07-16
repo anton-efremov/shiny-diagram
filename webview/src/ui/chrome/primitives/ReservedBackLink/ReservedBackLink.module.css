@@ -1,0 +1,31 @@
+/**
+ * @render Quiet back-navigation affordance with reservable layout space.
+ */
+
+.link,
+.reservedBlank {
+  justify-self: start;
+  min-height: 26px;
+  padding: 3px 2px;
+  border: 0;
+  color: var(--shiny-chrome-text);
+  background: transparent;
+  font: inherit;
+  font-size: var(--shiny-chrome-font-size-control);
+  cursor: var(--shiny-chrome-cursor-action);
+}
+
+.link:hover {
+  color: var(--shiny-field-hover-fg);
+}
+
+.link:focus-visible {
+  outline: var(--shiny-chrome-focus-outline-width) var(--shiny-chrome-focus-outline-style)
+    var(--shiny-field-focus-border);
+  outline-offset: 1px;
+}
+
+.reservedBlank {
+  visibility: hidden;
+  pointer-events: none;
+}
