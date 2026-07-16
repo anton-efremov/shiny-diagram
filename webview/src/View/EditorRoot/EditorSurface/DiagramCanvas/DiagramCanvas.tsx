@@ -22,8 +22,8 @@ import { useInteractions } from "./useInteractions";
 import { useStateReconciliation } from "./useStateReconciliation";
 import ReactFlowCanvasAdapter from "./ReactFlowCanvasAdapter/ReactFlowCanvasAdapter";
 import ReactFlowProviderAdapter from "./ReactFlowProviderAdapter/ReactFlowProviderAdapter";
-import EmptyStateMessage from "../../../../ui/canvas/primitives/EmptyStateMessage/EmptyStateMessage";
-import CanvasViewportFrame from "../../../../ui/canvas/templates/CanvasViewportFrame/CanvasViewportFrame";
+import EmptyStateMessage from "../../../../Ui/canvas/primitives/EmptyStateMessage/EmptyStateMessage";
+import CanvasViewportFrame from "../../../../Ui/canvas/templates/CanvasViewportFrame/CanvasViewportFrame";
 
 type DiagramCanvasProps = {
   readonly view: DiagramView;

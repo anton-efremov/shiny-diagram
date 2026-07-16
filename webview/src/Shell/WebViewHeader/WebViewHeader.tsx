@@ -3,9 +3,9 @@
  */
 
 import type { ReactElement } from "react";
-import Button from "../../ui/chrome/primitives/Button/Button";
-import SegmentedControl from "../../ui/chrome/primitives/SegmentedControl/SegmentedControl";
-import StatusDot from "../../ui/chrome/primitives/StatusDot/StatusDot";
+import Button from "../../Ui/chrome/primitives/Button/Button";
+import SegmentedControl from "../../Ui/chrome/primitives/SegmentedControl/SegmentedControl";
+import StatusDot from "../../Ui/chrome/primitives/StatusDot/StatusDot";
 import type { DocumentStatus, WebViewMode } from "../state";
 import { redoGlyph, undoGlyph } from "./icons";
 import styles from "./WebViewHeader.module.css";

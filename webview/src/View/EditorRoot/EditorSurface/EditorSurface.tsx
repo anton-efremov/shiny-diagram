@@ -14,7 +14,7 @@ import type {
 } from "../../state/editorStates";
 import type { DiagramView } from "../../views/schema";
 import { TOOL_PANE_WIDTH } from "../../config/editorUiConfig";
-import WorkspaceFrame from "../../../ui/chrome/templates/WorkspaceFrame/WorkspaceFrame";
+import WorkspaceFrame from "../../../Ui/chrome/templates/WorkspaceFrame/WorkspaceFrame";
 import ClassDiagram from "./DiagramCanvas/DiagramCanvas";
 import EditPane from "./EditPane/EditPane";
 import ToolPane from "./ToolPane/ToolPane";

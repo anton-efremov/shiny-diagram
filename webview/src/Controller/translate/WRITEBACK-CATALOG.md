@@ -775,6 +775,7 @@ a. note annotation already written → Makes four writes:
       - in place
    4. spatial coordinate **value** for h
       - in place
+
 b. otherwise → note annotation **statement**, in **diagram body** (anchored at first match)
    - immediately before the bound note statement
    - at block opening

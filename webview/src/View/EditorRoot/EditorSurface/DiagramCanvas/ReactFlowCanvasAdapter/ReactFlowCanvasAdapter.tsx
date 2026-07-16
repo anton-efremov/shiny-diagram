@@ -61,8 +61,8 @@ import {
   toRelationshipEdgeDescriptors,
 } from "./frameworkAdapters";
 import { useInteractions } from "./useInteractions";
-import CanvasGridFrame from "../../../../../ui/canvas/templates/CanvasGridFrame/CanvasGridFrame";
-import DraftRect from "../../../../../ui/canvas/primitives/DraftRect/DraftRect";
+import CanvasGridFrame from "../../../../../Ui/canvas/templates/CanvasGridFrame/CanvasGridFrame";
+import DraftRect from "../../../../../Ui/canvas/primitives/DraftRect/DraftRect";
 import type {
   ClassResizePointerState,
   NamespaceResizePointerState,

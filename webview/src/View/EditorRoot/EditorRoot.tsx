@@ -8,7 +8,7 @@ import type { EditorDispatch } from "../commands/editorCommands";
 import { CommandDispatchProvider } from "../contexts";
 import EditorSurface from "./EditorSurface/EditorSurface";
 import { toMissingAnnotationsGenerateTransaction } from "./transactions";
-import ViewportFrame from "../../ui/chrome/templates/ViewportFrame/ViewportFrame";
+import ViewportFrame from "../../Ui/chrome/templates/ViewportFrame/ViewportFrame";
 
 type EditorRootProps = {
   readonly view: EditorViewModel;
