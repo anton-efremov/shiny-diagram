@@ -127,6 +127,10 @@ export type DiagramView = {
 
 export type EditorViewModel =
   | {
+      readonly status: "unsupportedDiagramType";
+      readonly diagramType: string;
+    }
+  | {
       readonly status: "invalidSyntax";
       readonly errors: readonly string[];
     }

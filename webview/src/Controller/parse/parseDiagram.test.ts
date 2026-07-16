@@ -3,6 +3,60 @@ import { toAttributeId, toClassId, toMethodId, toNamespaceId } from "../../share
 import { composeNoteId } from "../model/noteIdentity";
 import { parseDiagram } from "./parseDiagram";
 
+describe("parseDiagram unsupported diagram types", () => {
+  it.each([
+    ["sequenceDiagram", "sequenceDiagram"],
+    ["flowchart LR", "flowchart"],
+    ["erDiagram", "erDiagram"],
+    ["stateDiagram-v2", "stateDiagram-v2"],
+    ["pie title Pets", "pie"],
+  ])("returns unsupportedDiagramType for %s", (declaration, expectedType) => {
+    const result = parseDiagram(`${declaration}
+this syntax is not validated by Shiny
+`);
+
+    expect(result).toEqual({
+      status: "unsupportedDiagramType",
+      diagramType: expectedType,
+    });
+  });
+
+  it("detects the declaration after frontmatter, comments, blanks, and init directives", () => {
+    const result = parseDiagram(`---
+title: Checkout
+---
+
+%% explanatory comment
+%%{init: {"theme": "dark"}}%%
+sequenceDiagram
+Alice->>Bob: Hello
+`);
+
+    expect(result).toEqual({
+      status: "unsupportedDiagramType",
+      diagramType: "sequenceDiagram",
+    });
+  });
+
+  it.each(["classDiagram", "classDiagram-v2"])(
+    "keeps %s on the class-diagram parse path",
+    (declaration) => {
+      expect(
+        parseDiagram(`${declaration}
+class A
+`).status
+      ).toBe("missingAnnotations");
+    }
+  );
+
+  it.each(["notADiagram", "SequenceDiagram"])(
+    "keeps an unrecognized declaration on the invalidSyntax path",
+    (declaration) => {
+      expect(parseDiagram(declaration).status).toBe("invalidSyntax");
+    }
+  );
+});
+
 describe("parseDiagram direction provenance", () => {
   it("records the direction line span", () => {
     const result = parseDiagram(`classDiagram
@@ -10,7 +64,7 @@ describe("parseDiagram direction provenance", () => {
 `);
 
     expect(result.status).not.toBe("invalidSyntax");
-    if (result.status === "invalidSyntax") return;
+    if (result.status === "invalidSyntax" || result.status === "unsupportedDiagramType") return;
     expect(result.provenance.diagram.direction).toEqual({
       start: { line: 1, character: 0 },
       end: { line: 1, character: 14 },
@@ -22,7 +76,7 @@ describe("parseDiagram direction provenance", () => {
 `);
 
     expect(result.status).not.toBe("invalidSyntax");
-    if (result.status === "invalidSyntax") return;
+    if (result.status === "invalidSyntax" || result.status === "unsupportedDiagramType") return;
     expect(result.provenance.diagram.direction).toBeNull();
   });
 });
@@ -35,7 +89,7 @@ describe("parseDiagram config-directive provenance", () => {
 `);
 
     expect(result.status).not.toBe("invalidSyntax");
-    if (result.status === "invalidSyntax") return;
+    if (result.status === "invalidSyntax" || result.status === "unsupportedDiagramType") return;
     expect(result.provenance.diagram.configDirectives).toEqual([
       {
         start: { line: 1, character: 0 },
@@ -53,7 +107,7 @@ describe("parseDiagram config-directive provenance", () => {
 `);
 
     expect(result.status).not.toBe("invalidSyntax");
-    if (result.status === "invalidSyntax") return;
+    if (result.status === "invalidSyntax" || result.status === "unsupportedDiagramType") return;
     expect(result.provenance.diagram.configDirectives).toEqual([]);
   });
 });

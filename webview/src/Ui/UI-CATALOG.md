@@ -103,12 +103,13 @@ Lifecycle:
 - `disabled` — on shows the command as unavailable and it cannot be pressed
 - `visible` — off preserves the command's layout space while removing it
   from sight, focus order, and accessibility
+- `title` — supplies explanatory hover text, including disabled-state reasons
 
 Modifiers:
 
 - `variant` — the command's designed situation:
   - `default` uses the ordinary full-width command surface. Used by:
-    duplicate, style, generation, and attachment commands
+    duplicate, style, generation, export, and attachment commands
   - `danger` uses error emphasis that fills on hover. Used by: delete commands
   - `rowAction` sizes to its content at the trailing edge with reduced height,
     padding, and type size. Used by: note detachment, relationship reversal,
@@ -117,7 +118,7 @@ Modifiers:
     press. Used by: document undo and redo
 - `presentation` — the command's content presentation:
   - `labeled` shows command text and an optional glyph. Used by: duplicate,
-    style, generation, attachment, delete, detachment, and reversal commands
+    style, generation, export, attachment, delete, detachment, and reversal commands
   - `iconOnly` shows only a glyph in a compact square. Used by: document undo
     and redo
 
@@ -126,6 +127,7 @@ type ButtonProps = {
   readonly label?: string;
   readonly icon?: GlyphDescriptor;
   readonly ariaLabel?: string;
+  readonly title?: string;
   readonly disabled?: boolean;
   readonly visible?: boolean;
   readonly variant?: "default" | "danger" | "rowAction" | "ghost";
@@ -1689,11 +1691,13 @@ Used by: the diagram canvas.
 Lifecycle:
 
 - `placementCursor` — on shows that placement is available
+- `frameRef` — exposes the owned canvas frame for full-bounds image capture
 
 ```ts
 type CanvasGridFrameProps = {
   readonly children: ReactNode;
   readonly placementCursor?: boolean;
+  readonly frameRef?: Ref<HTMLDivElement>;
 };
 ```
 
