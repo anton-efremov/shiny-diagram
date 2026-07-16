@@ -764,16 +764,20 @@ Makes one write:
 }
 ```
 
-Makes four writes:
+Makes one of two write options:
 
-1. spatial coordinate **value** for x
-   - in place
-2. spatial coordinate **value** for y
-   - in place
-3. spatial coordinate **value** for w
-   - in place
-4. spatial coordinate **value** for h
-   - in place
+a. note annotation already written → Makes four writes:
+   1. spatial coordinate **value** for x
+      - in place
+   2. spatial coordinate **value** for y
+      - in place
+   3. spatial coordinate **value** for w
+      - in place
+   4. spatial coordinate **value** for h
+      - in place
+b. otherwise → note annotation **statement**, in **diagram body** (anchored at first match)
+   - immediately before the bound note statement
+   - at block opening
 
 ### [`note.attachment.set`](./workers/Note/translateNoteAttachmentSet.ts)
 

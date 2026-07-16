@@ -9,7 +9,7 @@
   gap: 6px;
   align-items: center;
   justify-content: center;
-  min-height: 32px;
+  min-height: var(--shiny-control-height);
   padding: 7px 10px;
   border: var(--shiny-chrome-control-border-width) var(--shiny-chrome-control-border-style)
     var(--shiny-chrome-button-border);
@@ -93,6 +93,29 @@
   font-size: var(--shiny-chrome-font-size-detail);
   justify-self: end;
   width: auto;
+}
+
+.iconOnly {
+  grid-template-columns: 1fr;
+  width: var(--shiny-control-height);
+  min-width: var(--shiny-control-height);
+  height: var(--shiny-control-height);
+  min-height: var(--shiny-control-height);
+  padding: 0;
+}
+
+.ghost {
+  border-color: transparent;
+  color: var(--shiny-chrome-text-muted);
+  background: transparent;
+  box-shadow: var(--shiny-chrome-shadow-clear);
+}
+
+.ghost:hover:not(:disabled),
+.ghost:active:not(:disabled) {
+  border-color: transparent;
+  color: var(--shiny-chrome-text);
+  background: var(--shiny-chrome-overlay-faint);
 }
 
 .hidden {

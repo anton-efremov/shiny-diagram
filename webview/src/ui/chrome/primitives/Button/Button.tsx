@@ -1,7 +1,9 @@
 /**
- * Button for a labeled command with an optional glyph.
+ * Button for a labeled or icon-only command.
  *
- * Renders `label` beside `icon` when supplied; clicking it reports `onClick`.
+ * In labeled presentation, renders `label` beside `icon` when supplied. In
+ * icon-only presentation, renders `icon` and uses `ariaLabel` as its accessible
+ * name and tooltip. Clicking reports `onClick`.
  *
  * Lifecycle:
  * - `disabled` — on shows the command as unavailable and it cannot be pressed
@@ -16,6 +18,13 @@
  *   - `rowAction` sizes to its content at the trailing edge with reduced height,
  *     padding, and type size. Used by: note detachment, relationship reversal,
  *     and class-style actions
+ *   - `ghost` removes the resting container and uses a quiet wash on hover and
+ *     press. Used by: document undo and redo
+ * - `presentation` — the command's content presentation:
+ *   - `labeled` shows command text and an optional glyph. Used by: duplicate,
+ *     style, generation, attachment, delete, detachment, and reversal commands
+ *   - `iconOnly` shows only a glyph in a compact square. Used by: document undo
+ *     and redo
  */
 
 import type { ReactElement } from "react";
@@ -24,25 +33,31 @@ import { GLYPH_EMPTY_FILL, GLYPH_STROKE_LINE_CAP, GLYPH_STROKE_LINE_JOIN } from 
 import styles from "./Button.module.css";
 
 type ButtonProps = {
-  readonly label: string;
+  readonly label?: string;
   readonly icon?: GlyphDescriptor;
+  readonly ariaLabel?: string;
   readonly disabled?: boolean;
   readonly visible?: boolean;
-  readonly variant?: "default" | "danger" | "rowAction";
+  readonly variant?: "default" | "danger" | "rowAction" | "ghost";
+  readonly presentation?: "labeled" | "iconOnly";
   readonly onClick?: () => void;
 };
 
 export default function Button({
   label,
   icon,
+  ariaLabel,
   disabled = false,
   variant = "default",
+  presentation = "labeled",
   visible = true,
   onClick,
 }: ButtonProps): ReactElement {
   const className = [
     variant === "danger" ? styles.dangerButton : styles.button,
     variant === "rowAction" ? styles.compact : "",
+    variant === "ghost" ? styles.ghost : "",
+    presentation === "iconOnly" ? styles.iconOnly : "",
     visible ? "" : styles.hidden,
   ]
     .filter(Boolean)
@@ -53,16 +68,18 @@ export default function Button({
       type="button"
       className={className}
       disabled={disabled || !visible}
+      aria-label={presentation === "iconOnly" ? ariaLabel : undefined}
       aria-hidden={!visible}
       tabIndex={visible ? undefined : -1}
       onClick={onClick}
+      title={presentation === "iconOnly" ? ariaLabel : undefined}
     >
       {icon === undefined ? null : (
         <span className={styles.icon} aria-hidden="true">
           <ButtonGlyph glyph={icon} />
         </span>
       )}
-      <span className={styles.label}>{label}</span>
+      {label === undefined ? null : <span className={styles.label}>{label}</span>}
     </button>
   );
 }

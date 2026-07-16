@@ -210,7 +210,7 @@ function translateCommand(
     case "note.text.set":
       return translateNoteTextSet(command);
     case "note.spatial.set":
-      return translateNoteSpatialSet(command);
+      return translateNoteSpatialSet(command, graph, provenance);
     case "note.attachment.set":
       return translateNoteAttachmentSet(command, graph, provenance);
     case "note.duplicate":

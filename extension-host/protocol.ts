@@ -8,6 +8,7 @@
 export type SourceUpdateMessage = {
   readonly type: "sourceUpdate";
   readonly sourceText: string;
+  readonly documentName: string;
 };
 
 /** Union of all messages the extension host sends to the webview. */
@@ -35,5 +36,10 @@ export type ApplyEditsMessage = {
   readonly edits: readonly SourceEdit[];
 };
 
+/** Requests a native history command for the custom text editor document. */
+export type HistoryMessage = {
+  readonly type: "history.undo" | "history.redo";
+};
+
 /** Union of all messages the webview sends to the extension host. */
-export type WebviewToHostMessage = ApplyEditsMessage;
+export type WebviewToHostMessage = ApplyEditsMessage | HistoryMessage;

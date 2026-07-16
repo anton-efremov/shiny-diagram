@@ -11,7 +11,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:shiny.openDiagram"
+    "onCommand:shiny.openDiagram",
+    "onCustomEditor:shiny.diagram"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -22,11 +23,23 @@
         "icon": "$(preview)"
       }
     ],
+    "customEditors": [
+      {
+        "viewType": "shiny.diagram",
+        "displayName": "Shiny Diagram",
+        "selector": [
+          {
+            "filenamePattern": "*.mmd"
+          }
+        ],
+        "priority": "option"
+      }
+    ],
     "menus": {
       "editor/title": [
         {
           "command": "shiny.openDiagram",
-          "when": "resourceExtname == .mmd",
+          "when": "resourceExtname == .mmd && activeCustomEditorId != shiny.diagram",
           "group": "navigation"
         }
       ]

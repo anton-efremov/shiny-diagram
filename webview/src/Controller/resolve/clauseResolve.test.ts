@@ -75,6 +75,41 @@ describe("clause resolution", () => {
   });
 });
 
+describe("co-located spatial insertion", () => {
+  it("keeps one family separator and no blank line between generated annotations", () => {
+    const classId = toClassId("Existing");
+    const source = "classDiagram\nclass Existing\n";
+    const provenance = {
+      classes: new Map([
+        [
+          classId,
+          {
+            self: span(1, 0, 1, 14),
+            header: span(1, 0, 1, 14),
+            body: null,
+            fields: { declaredName: span(1, 6, 1, 14) },
+          },
+        ],
+      ]),
+    } as unknown as ProvenanceIndex;
+    const anchor = {
+      kind: "afterDifferentKind" as const,
+      statement: { kind: "class" as const, classId },
+    };
+    const edits = resolveIntents(
+      [
+        { kind: "insertStatement", payload: "%% @spatial:A x=0 y=0 w=1 h=1", anchor },
+        { kind: "insertStatement", payload: "%% @spatial:B x=1 y=1 w=1 h=1", anchor },
+      ],
+      provenance,
+      source
+    );
+    expect(applyEdits(source, edits)).toBe(
+      "classDiagram\nclass Existing\n\n%% @spatial:A x=0 y=0 w=1 h=1\n%% @spatial:B x=1 y=1 w=1 h=1\n"
+    );
+  });
+});
+
 function resolveRelationship(
   statement: string,
   target:

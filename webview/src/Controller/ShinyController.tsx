@@ -11,6 +11,7 @@ import { translateCommands, validateTransaction } from "./translate";
 import type { DiagramGraph } from "./model/diagramGraph";
 import type { ProvenanceIndex } from "./model/provenanceIndex";
 import type { SourceEdit } from "./model/sourceEdit";
+import type { EditorDiagnostic } from "./parse";
 import { EditorView } from "../View/EditorRoot";
 import type { EditorDispatch } from "../View/commands";
 import type { DiagramView, EditorViewModel } from "../View/views";
@@ -18,7 +19,22 @@ import type { DiagramView, EditorViewModel } from "../View/views";
 type ShinyControllerProps = {
   sourceText: string;
   onApplyEdits: (edits: SourceEdit[]) => void;
+  onStatusChange: (status: ShinyDocumentStatus) => void;
+  generateRequest: number;
+  visible: boolean;
 };
+
+export type ShinyDocumentStatus =
+  | { readonly status: "ready" }
+  | { readonly status: "missingAnnotations"; readonly missingClassIds: readonly string[] }
+  | {
+      readonly status: "invalidSyntax";
+      readonly errors: readonly {
+        readonly line: number;
+        readonly fragment: string;
+        readonly message: string;
+      }[];
+    };
 
 type CommandExecutionInputs = {
   readonly context: NewCommandContext | null;
@@ -37,8 +53,15 @@ type NewCommandContext = {
 export default function ShinyController({
   sourceText,
   onApplyEdits,
+  onStatusChange,
+  generateRequest,
+  visible,
 }: ShinyControllerProps): ReactElement {
   const parseResult = useMemo(() => parseDiagram(sourceText), [sourceText]);
+
+  useLayoutEffect(() => {
+    onStatusChange(toDocumentStatus(parseResult));
+  }, [onStatusChange, parseResult]);
 
   const graph = parseResult.status !== "invalidSyntax" ? parseResult.graph : null;
   const provenance = parseResult.status !== "invalidSyntax" ? parseResult.provenance : null;
@@ -130,5 +153,42 @@ export default function ShinyController({
 
   commandExecutionInputsRef.current = commandExecutionInputs;
 
-  return <EditorView view={editorViewModel} onTransactionDispatch={dispatch} />;
+  return visible ? (
+    <EditorView
+      view={editorViewModel}
+      onTransactionDispatch={dispatch}
+      generateRequest={generateRequest}
+    />
+  ) : (
+    <></>
+  );
+}
+
+function toDocumentStatus(parseResult: ReturnType<typeof parseDiagram>): ShinyDocumentStatus {
+  switch (parseResult.status) {
+    case "ready":
+      return { status: "ready" };
+    case "missingAnnotations":
+      return {
+        status: "missingAnnotations",
+        missingClassIds: parseResult.missingIds,
+      };
+    case "invalidSyntax":
+      return {
+        status: "invalidSyntax",
+        errors: parseResult.diagnostics.map(toSyntaxErrorDetail),
+      };
+  }
+}
+
+function toSyntaxErrorDetail(diagnostic: EditorDiagnostic): {
+  readonly line: number;
+  readonly fragment: string;
+  readonly message: string;
+} {
+  return {
+    line: diagnostic.line ?? 1,
+    fragment: diagnostic.fragment ?? diagnostic.elementId ?? "",
+    message: diagnostic.message,
+  };
 }

@@ -18,9 +18,17 @@ import { validateTextBlocks } from "./workers/validateTextBlocks";
 export function parseDiagram(source: string): ParseResult {
   try {
     if (!hasClassDiagramHeader(source)) {
+      const firstSourceLine = toFirstSourceLine(source);
       return {
         status: "invalidSyntax",
-        diagnostics: [{ kind: "syntaxError", message: "Source must begin with 'classDiagram'" }],
+        diagnostics: [
+          {
+            kind: "syntaxError",
+            message: "Expected a classDiagram declaration",
+            line: firstSourceLine.line,
+            fragment: firstSourceLine.fragment,
+          },
+        ],
       };
     }
 
@@ -50,7 +58,7 @@ export function parseDiagram(source: string): ParseResult {
       provenance,
       diagnostics: noteDiagnostics,
     } = attachNoteAnnotations(spatiallyAware.graph, spatiallyAware.provenance, tokens);
-    const validationDiagnostics = validateTextBlocks(graph);
+    const validationDiagnostics = validateTextBlocks(graph, source);
     if (validationDiagnostics.length > 0) {
       return { status: "invalidSyntax", diagnostics: validationDiagnostics };
     }
@@ -89,7 +97,18 @@ export function parseDiagram(source: string): ParseResult {
     };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown parse error";
-    return { status: "invalidSyntax", diagnostics: [{ kind: "syntaxError", message }] };
+    const firstSourceLine = toFirstSourceLine(source);
+    return {
+      status: "invalidSyntax",
+      diagnostics: [
+        {
+          kind: "syntaxError",
+          message,
+          line: firstSourceLine.line,
+          fragment: firstSourceLine.fragment,
+        },
+      ],
+    };
   }
 }
 
@@ -109,9 +128,9 @@ function collectInvalidClassBodyDiagnosticsInto(
         if (isInvalidClassBodyStatement(bodyToken)) {
           diagnostics.push({
             kind: "syntaxError",
-            message: `Invalid statement inside class block at line ${
-              bodyToken.lineNumber + 1
-            }: ${bodyToken.raw.trim()}`,
+            message: "Expected a class member declaration",
+            line: bodyToken.lineNumber + 1,
+            fragment: bodyToken.raw.trim(),
           });
         }
       }
@@ -161,7 +180,9 @@ function collectEmptyNamespaceDiagnosticsInto(
     if (token.type === "namespace" && (token.blockTokens?.length ?? 0) === 0) {
       diagnostics.push({
         kind: "syntaxError",
-        message: `Empty namespace block at line ${token.lineNumber + 1} is not valid Mermaid`,
+        message: "Expected at least one declaration inside the namespace",
+        line: token.lineNumber + 1,
+        fragment: token.raw.trim(),
       });
     }
     if (token.blockTokens) {
@@ -204,7 +225,9 @@ function collectUnrecognizedDiagnosticsInto(
     if (token.type === "unrecognized") {
       diagnostics.push({
         kind: "syntaxError",
-        message: `Unrecognized statement at line ${token.lineNumber + 1}: ${token.raw.trim()}`,
+        message: "Expected a supported Mermaid class-diagram statement",
+        line: token.lineNumber + 1,
+        fragment: token.raw.trim(),
       });
     }
     if (token.blockTokens && token.type !== "classDeclaration") {
@@ -224,4 +247,11 @@ function hasClassDiagramHeader(source: string): boolean {
     );
   }
   return false;
+}
+
+function toFirstSourceLine(source: string): { readonly line: number; readonly fragment: string } {
+  const lines = source.split("\n");
+  const index = lines.findIndex((line) => line.trim().length > 0);
+  const sourceIndex = index === -1 ? 0 : index;
+  return { line: sourceIndex + 1, fragment: lines[sourceIndex]?.trim() ?? "" };
 }

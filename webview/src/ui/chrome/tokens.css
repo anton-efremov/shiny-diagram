@@ -48,6 +48,12 @@ body[data-vscode-theme-kind="vscode-high-contrast"] {
   --shiny-chrome-text: var(--vscode-editor-foreground);
   --shiny-chrome-text-muted: var(--vscode-descriptionForeground);
   --shiny-chrome-text-error: var(--vscode-errorForeground);
+  --shiny-chrome-status-positive: #2fbf71;
+  --shiny-chrome-status-attention: var(
+    --vscode-inputValidation-warningBorder,
+    var(--shiny-chrome-accent-outline)
+  );
+  --shiny-chrome-status-error: var(--shiny-chrome-validation-border);
   --shiny-chrome-glyph-stroke-width: 1.5px;
   --shiny-chrome-glyph-dash: 2 2;
   --shiny-chrome-font-size-detail: 11px;

@@ -3,6 +3,7 @@
  */
 
 import * as vscode from "vscode";
+import * as path from "node:path";
 import type { HostToWebviewMessage, SourceEdit, WebviewToHostMessage } from "./protocol";
 
 const DEBOUNCE_MS = 500;
@@ -29,6 +30,15 @@ export class DiagramSession {
         this.onDocumentChange(event);
       })
     );
+
+    this.disposables.push(
+      vscode.workspace.onDidRenameFiles((event) => {
+        const rename = event.files.find(
+          ({ oldUri }) => oldUri.toString() === this.document.uri.toString()
+        );
+        if (rename) this.pushSourceUpdate(path.basename(rename.newUri.fsPath));
+      })
+    );
   }
 
   /** Releases all listeners and cancels any pending debounce timer. */
@@ -47,7 +57,11 @@ export class DiagramSession {
   handleWebviewMessage(msg: WebviewToHostMessage): void {
     if (msg.type === "applyEdits") {
       void this.onApplyEdits(msg.edits);
+      return;
     }
+
+    if (this.document.isClosed) return;
+    void vscode.commands.executeCommand(msg.type === "history.undo" ? "undo" : "redo");
   }
 
   /**
@@ -96,10 +110,11 @@ export class DiagramSession {
     }, DEBOUNCE_MS);
   }
 
-  private pushSourceUpdate(): void {
+  private pushSourceUpdate(documentName = path.basename(this.document.fileName)): void {
     const message: HostToWebviewMessage = {
       type: "sourceUpdate",
       sourceText: this.document.getText(),
+      documentName,
     };
     void this.panel.webview.postMessage(message);
   }

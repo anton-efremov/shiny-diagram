@@ -4,13 +4,13 @@
 
 | Wing        | Tier       | Annotated |  Total |
 | ----------- | ---------- | --------: | -----: |
-| Chrome      | Primitives |        10 |     10 |
+| Chrome      | Primitives |        12 |     12 |
 | Chrome      | Composites |         7 |      7 |
-| Chrome      | Templates  |         7 |      7 |
+| Chrome      | Templates  |         6 |      6 |
 | Canvas      | Primitives |        19 |     19 |
 | Canvas      | Composites |         9 |      9 |
 | Canvas      | Templates  |        10 |     10 |
-| **Overall** |            |    **62** | **62** |
+| **Overall** |            |    **63** | **63** |
 
 # Contents
 
@@ -20,7 +20,9 @@
     - [DismissButton](#dismissbutton)
     - [PaneCollapseTab](#panecollapsetab)
     - [ReservedBackLink](#reservedbacklink)
+    - [SegmentedControl](#segmentedcontrol)
     - [SelectorChevron](#selectorchevron)
+    - [StatusDot](#statusdot)
     - [StyledBoxSwatch](#styledboxswatch)
     - [TextBlock](#textblock)
     - [TextField](#textfield)
@@ -39,7 +41,6 @@
     - [FieldGrid](#fieldgrid)
     - [PaneFrame](#paneframe)
     - [PaneSection](#panesection)
-    - [StatusSurfaceFrame](#statussurfaceframe)
     - [ViewportFrame](#viewportframe)
     - [WorkspaceFrame](#workspaceframe)
 - [Canvas](#canvas)
@@ -91,9 +92,11 @@
 
 ### [Button](./chrome/primitives/Button/Button.tsx)
 
-Button for a labeled command with an optional glyph.
+Button for a labeled or icon-only command.
 
-Renders `label` beside `icon` when supplied; clicking it reports `onClick`.
+In labeled presentation, renders `label` beside `icon` when supplied. In
+icon-only presentation, renders `icon` and uses `ariaLabel` as its accessible
+name and tooltip. Clicking reports `onClick`.
 
 Lifecycle:
 
@@ -110,14 +113,23 @@ Modifiers:
   - `rowAction` sizes to its content at the trailing edge with reduced height,
     padding, and type size. Used by: note detachment, relationship reversal,
     and class-style actions
+  - `ghost` removes the resting container and uses a quiet wash on hover and
+    press. Used by: document undo and redo
+- `presentation` — the command's content presentation:
+  - `labeled` shows command text and an optional glyph. Used by: duplicate,
+    style, generation, attachment, delete, detachment, and reversal commands
+  - `iconOnly` shows only a glyph in a compact square. Used by: document undo
+    and redo
 
 ```ts
 type ButtonProps = {
-  readonly label: string;
+  readonly label?: string;
   readonly icon?: GlyphDescriptor;
+  readonly ariaLabel?: string;
   readonly disabled?: boolean;
   readonly visible?: boolean;
-  readonly variant?: "default" | "danger" | "rowAction";
+  readonly variant?: "default" | "danger" | "rowAction" | "ghost";
+  readonly presentation?: "labeled" | "iconOnly";
   readonly onClick?: () => void;
 };
 ```
@@ -183,6 +195,31 @@ type ReservedBackLinkProps = {
 };
 ```
 
+### [SegmentedControl](./chrome/primitives/SegmentedControl/SegmentedControl.tsx)
+
+Segmented control for one selection from a labeled option set.
+
+Renders `options` as a radiogroup named by `ariaLabel`, marks `value` as
+selected, supports arrow, Home, and End navigation, and reports a selected
+option through `onChange`.
+
+Used by: Mermaid/Shiny mode selection.
+
+```ts
+// props type not found
+```
+
+#### SegmentedControlOption
+
+One selectable value and its visible label.
+
+```ts
+export type SegmentedControlOption<T extends string> = {
+  readonly value: T;
+  readonly label: string;
+};
+```
+
 ### [SelectorChevron](./chrome/primitives/SelectorChevron/SelectorChevron.tsx)
 
 Downward chevron marking a control that opens a choice list.
@@ -193,6 +230,27 @@ Used by: color, line, annotation, named-style, and relationship choices.
 
 ```ts
 // This component accepts no props.
+```
+
+### [StatusDot](./chrome/primitives/StatusDot/StatusDot.tsx)
+
+Status indicator with a tooltip.
+
+Renders a circular indicator selected by `variant` and exposes `title` as
+its tooltip and accessible name.
+
+Modifiers:
+
+- `variant` — the represented status:
+  - `positive` uses affirmative status emphasis. Used by: rendered document
+  - `attention` uses attention status emphasis. Used by: missing annotations
+  - `error` uses error status emphasis. Used by: invalid syntax
+
+```ts
+type StatusDotProps = {
+  readonly title: string;
+  readonly variant: "positive" | "attention" | "error";
+};
 ```
 
 ### [StyledBoxSwatch](./chrome/primitives/StyledBoxSwatch/StyledBoxSwatch.tsx)
@@ -734,30 +792,6 @@ type PaneSectionProps = {
   readonly children?: ReactNode;
   readonly columns?: 1 | 2;
   readonly spacingAfter?: "default" | "compact";
-};
-```
-
-### [StatusSurfaceFrame](./chrome/templates/StatusSurfaceFrame/StatusSurfaceFrame.tsx)
-
-Status surface pairing a prominent status row with a detailed list.
-
-Renders `status` above a padded detail surface, optionally introduces
-`items` with `label`, and preserves item order in a list.
-
-Modifiers:
-
-- `variant` — the status-detail situation:
-  - `errorList` stacks error-colored items with wider separation. Used by:
-    editor syntax errors
-  - `codeList` uses compact code-type list treatment. Used by: missing
-    annotation details
-
-```ts
-type StatusSurfaceFrameProps = {
-  readonly status: ReactNode;
-  readonly label?: string;
-  readonly items: readonly ReactNode[];
-  readonly variant: "errorList" | "codeList";
 };
 ```
 

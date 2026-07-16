@@ -5,6 +5,7 @@
 export type SourceUpdateMessage = {
   readonly type: "sourceUpdate";
   readonly sourceText: string;
+  readonly documentName: string;
 };
 
 export type HostToWebviewMessage = SourceUpdateMessage;
@@ -25,4 +26,8 @@ export type ApplyEditsMessage = {
   readonly edits: readonly SourceEdit[];
 };
 
-export type WebviewToHostMessage = ApplyEditsMessage;
+export type HistoryMessage = {
+  readonly type: "history.undo" | "history.redo";
+};
+
+export type WebviewToHostMessage = ApplyEditsMessage | HistoryMessage;

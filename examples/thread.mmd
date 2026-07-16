@@ -1,99 +1,140 @@
 classDiagram
-						  			class ConversationThread_1["addd"] {
-						  					<<interface>>
-						  					+addParticipant(UserContact participant) void
-						  					+addMessage(TextMessage message)
-						  					+UUID id
-						  					+List~UserContact~ participants
-						  					+List~TextMessage~ messages
-						  			}
-						  											class UserContact {
-						  												+UUID id
-						  												+List~CommunicationChannel~ preferredChannels
-						  												+String emailAddress
-						  												+String name
-						  												+removeCommunicationChannel(UUID channelId) void
-						  											}
-																	class ConversationThread {
-																		+addParticipant(UserContact participant) void
-																		+UUID id
-																		<<interface>>
-																		
-																		+List~UserContact~ participants
-																		+List~TextMessage~ messages
-																		+ ListShmist
-																		ffff
-																		+addMessage(TextMessage message) void
-																	}
-																	class NewClass {
-																	  f()
-																	}
+direction LR
 
-direction TB
+class ConversationThread {
+  <<interface>>
+  +UUID id
+  +MessageStatus status
+  +addParticipant(contact: UserContact) void
+  +removeParticipant(contactId: UUID) void
+  +sendMessage(body: string) TextMessage
+  +markAsRead(userId: UUID) void
+}
 
+class DirectThread {
+  +UserContact peer
+  +isBlocked() boolean
+}
 
-	UserContact "0..1" <--> "0..*" ConversationThread_1 : hahaddkkkkk
-	ConversationThread_1 "0..1" --> NewClass : hoi
-	NewClass ..|> ConversationThread
+class GroupThread {
+  +string title
+  +UserContact owner
+  +rename(title: string) void
+  +transferOwnership(userId: UUID) void
+}
 
+class UserContact {
+  +UUID id
+  +string displayName
+  +string handle
+  +Presence presence
+  +avatarUrl() string
+}
 
-    %% Native Style Applications
+class TextMessage {
+  +UUID id
+  +string body
+  +DateTime createdAt
+  +MessageStatus status
+  +edit(body: string) void
+  +delete() void
+}
 
+class Attachment {
+  <<abstract>>
+  +UUID id
+  +string fileName
+  +int sizeBytes
+  +downloadUrl() string
+}
 
+class ImageAttachment {
+  +int width
+  +int height
+  +string thumbnailUrl
+}
 
-    %% Native Style Definitions
-    classDef PineSelected stroke:#275340,fill:#779c8c,color:#FFFFFF
-    classDef style2 fill:#50317f,stroke:#ed8936,stroke-width:1px,stroke-dasharray:none,color:#ffffff
-    classDef style1 fill:#ed8936,stroke:#ffffff,stroke-width:4,stroke-dasharray:4 4,color:#ffffff
-    classDef style3 stroke:#FFFFFF,stroke-width:4,color:#ccefeb
+class FileAttachment {
+  +string mimeType
+  +string checksum
+}
 
-    class ConversationThread_1:::style2
-    class NewClass:::PineSelected
-    class ConversationThread:::PineSelected
+class MessageStatus {
+  <<enumeration>>
+  Draft
+  Sent
+  Delivered
+  Read
+  Failed
+}
 
-    style UserContact fill:#ed8936
+class Presence {
+  <<enumeration>>
+  Online
+  Away
+  Offline
+}
 
+class ThreadRepository {
+  +findById(id: UUID) ConversationThread
+  +save(thread: ConversationThread) void
+  +delete(id: UUID) void
+}
 
-    %% @style:`NewNamespace.NewNamespace2` fill=#934343
+class NotificationService {
+  +notifyMention(message: TextMessage) void
+  +notifyNewMessage(thread: ConversationThread) void
+}
 
-    %% @note: x=600 y=-429 w=262 h=86
-    note for ConversationThread "Changed note"
-    %% @note: x=-324 y=1106 w=18426=96639300393
+ConversationThread <|.. DirectThread
+ConversationThread <|.. GroupThread
 
+ConversationThread "1" o-- "*" UserContact : participants
+ConversationThread "1" *-- "*" TextMessage : messages
+TextMessage "1" --> "1" UserContact : author
+TextMessage "1" o-- "*" Attachment : attachments
 
-	%% @spatial:ConversationThread x=598 y=-285 w=289 h=338
+Attachment <|-- ImageAttachment
+Attachment <|-- FileAttachment
 
-	%% @spatial:UserContact x=135 y=159 w=358 h=358
-	%% @spatial:ConversationThread_1 x=688 y=185 w=172 h=291
-	%% @spatial:NewClass x=242 y=-238 w=237 h=280
-	%% @spatial:`note:0` x=40 y=572 w=200 h=150
+ConversationThread --> MessageStatus : status
+UserContact --> Presence : presence
+ThreadRepository ..> ConversationThread : persists
+NotificationService ..> TextMessage : observes
+NotificationService ..> ConversationThread : notifies
+%% @note: x=174 y=-180 w=180 h=96
 
+note for ConversationThread "Central aggregate for a chat thread"
+note for TextMessage "Good resize test: fields, methods, and edges"
+note for NotificationService "Dependency-only service for edge rendering"
 
+classDef pine fill:#779c8c,stroke:#275340,color:#ffffff
+classDef serviceStyle fill:#2f4f6f,stroke:#7fb3d5,color:#ffffff
+classDef enumStyle fill:#3b3b3b,stroke:#8f8f8f,color:#ffffff
+classDef attachmentStyle fill:#6f5a7f,stroke:#b79ad1,color:#ffffff
 
+class ConversationThread pine
+class DirectThread pine
+class GroupThread pine
+class ThreadRepository serviceStyle
+class NotificationService serviceStyle
+class MessageStatus enumStyle
+class Presence enumStyle
+class Attachment attachmentStyle
+class ImageAttachment attachmentStyle
+class FileAttachment attachmentStyle
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+%% @spatial:ConversationThread x=40 y=40 w=200 h=150
+%% @spatial:DirectThread x=280 y=40 w=200 h=150
+%% @spatial:GroupThread x=520 y=40 w=200 h=150
+%% @spatial:UserContact x=760 y=40 w=200 h=150
+%% @spatial:TextMessage x=1000 y=40 w=200 h=150
+%% @spatial:Attachment x=1240 y=40 w=200 h=150
+%% @spatial:ImageAttachment x=1480 y=40 w=200 h=150
+%% @spatial:FileAttachment x=1720 y=40 w=200 h=150
+%% @spatial:MessageStatus x=1960 y=40 w=200 h=150
+%% @spatial:Presence x=2200 y=40 w=200 h=150
+%% @spatial:ThreadRepository x=2440 y=40 w=200 h=150
+%% @spatial:NotificationService x=2680 y=40 w=200 h=150
 
 

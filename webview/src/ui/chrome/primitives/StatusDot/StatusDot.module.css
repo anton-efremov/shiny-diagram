@@ -1,0 +1,19 @@
+.dot {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--shiny-chrome-dismiss-radius);
+}
+
+.positive {
+  background: var(--shiny-chrome-status-positive);
+}
+
+.attention {
+  background: var(--shiny-chrome-status-attention);
+}
+
+.error {
+  background: var(--shiny-chrome-status-error);
+}
