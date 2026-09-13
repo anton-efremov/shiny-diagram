@@ -676,7 +676,7 @@ function toStyleDefRecord(token: ParseToken): StyleDefRecord {
 }
 
 function toStyleApplicationRecord(token: ParseToken): StyleApplicationRecord {
-  const match = new RegExp(`^(\\s*class\\s+)(${IDENTITY_PATTERN})(:::)(\\w+)`).exec(token.raw);
+  const match = new RegExp(`^(\\s*class\\s+)(${IDENTITY_PATTERN})(:::|\\s+)(\\w+)`).exec(token.raw);
   if (!match) {
     return {
       self: toSourceSpan(token),

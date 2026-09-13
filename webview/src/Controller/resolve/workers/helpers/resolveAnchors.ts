@@ -104,6 +104,7 @@ function deriveIndentStep(
   provenance: ProvenanceIndex,
   sourceText: string
 ): string {
+  if (block.kind === "diagram") return "";
   const record = resolveBlockRef(block, provenance);
   const body = record.body;
   if (body) {

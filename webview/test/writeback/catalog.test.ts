@@ -150,7 +150,13 @@ const cases: readonly Case[] = [
       styleDefId: toStyleDefId("alternate"),
     }),
     targets: [/:::/],
-    verify: (_g, s) => expect(s).toContain(":::alternate"),
+    verify: (g) =>
+      expect(
+        [...g.styleApplications.values()].some(
+          (application) =>
+            application.targetId === alpha && application.styleDefId === toStyleDefId("alternate")
+        )
+      ).toBe(true),
   },
   {
     title: "class.attribute.create — c. otherwise",
@@ -463,14 +469,115 @@ const cases: readonly Case[] = [
 describe("write-back catalog", () => {
   it.each(cases)("$title", ({ command, targets, verify }) => {
     const parsed = parseForCommand(source);
-    for (const input of [source, source.replace(/\n/g, "\r\n")]) {
+    for (const input of [
+      source,
+      source.replace("class Alpha:::warning", "  class Alpha   warning  "),
+    ].flatMap((variant) => [variant, variant.replace(/\n/g, "\r\n")])) {
       expectWriteback(command(parsed), input, {
         targetLines: targets,
         assertGraph: (graph, result) => {
           expect(result).not.toBe(input);
           verify?.(graph, result);
+          const action = command(parsed);
+          const applicationLine = input
+            .split(/\r?\n/)
+            .find((line) => /^\s*class Alpha(?:\s+|:::)warning/.test(line));
+          if (applicationLine && action.type === "class.name.set")
+            expect(result).toContain(applicationLine.replace("Alpha", "Renamed"));
+          if (applicationLine && action.type === "class.appliedStyle.set" && action.styleDefId)
+            expect(result).toContain(applicationLine.replace("warning", action.styleDefId));
+          if (applicationLine && action.type === "style.definition.name.set")
+            expect(result).toContain(applicationLine.replace("warning", action.name));
         },
       });
+    }
+    const move = command(parsed);
+    if (
+      move.type === "class.parentNamespace.set" ||
+      move.type === "namespace.parentNamespace.set"
+    ) {
+      for (const eol of ["\n", "\r\n"]) {
+        let movingSource = source.replace(/\n/g, eol);
+        for (let round = 0; round < 3; round++) {
+          for (const parent of [other, null]) {
+            const action: EditorCommand =
+              move.type === "class.parentNamespace.set"
+                ? { ...move, parentNamespaceId: parent }
+                : {
+                    ...move,
+                    namespaceId: toNamespaceId(parent ? "Domain" : "Other.Domain"),
+                    parentNamespaceId: parent,
+                  };
+            movingSource = expectWriteback(action, movingSource, {
+              targetLines: [],
+              assertGraph: (_graph, result) => {
+                const indent = parent ? "  " : "";
+                const lines = result.split(/\r?\n/);
+                const header =
+                  move.type === "class.parentNamespace.set"
+                    ? lines.find((line) => line.includes("class Alpha~T~"))
+                    : lines.find((line) => line.includes("namespace Domain"));
+                expect(header).toBe(
+                  indent +
+                    (move.type === "class.parentNamespace.set"
+                      ? 'class Alpha~T~["Alpha label"] {'
+                      : "namespace Domain {")
+                );
+                const child =
+                  move.type === "class.parentNamespace.set" ? "  +field$" : "  class Nested";
+                expect(lines).toContain(indent + child);
+                expect(result).not.toContain("\r\r\n");
+              },
+            }).source;
+          }
+        }
+      }
+    }
+    if (move.type === "namespace.parentNamespace.set") {
+      for (const eol of ["\n", "\r\n"]) {
+        const input = [
+          "classDiagram",
+          "namespace Outer {",
+          "  class Keep",
+          "  namespace Inner {",
+          "    class Moved",
+          "  }",
+          "}",
+          "%% @spatial:Keep x=0 y=0 w=150 h=100",
+          "%% @spatial:Moved x=300 y=0 w=150 h=100",
+          "",
+        ].join(eol);
+        expectWriteback(
+          {
+            type: "namespace.parentNamespace.set",
+            namespaceId: toNamespaceId("Outer.Inner"),
+            parentNamespaceId: null,
+          },
+          input,
+          {
+            targetLines: [],
+            assertGraph: (graph, result) => {
+              expect(graph.namespaces.has(toNamespaceId("Outer"))).toBe(true);
+              expect(result).toContain(["}", "namespace Inner {", "  class Moved", "}"].join(eol));
+              expect(result.indexOf("namespace Inner")).toBeLessThan(result.indexOf("%% @spatial"));
+            },
+          }
+        );
+      }
+    }
+    if (move.type === "namespace.create") {
+      const input = "classDiagram\nclass A {\n  +field\n}\n%% @spatial:A x=0 y=0 w=150 h=100\n";
+      expectWriteback(
+        { type: "namespace.create", initialClassIds: [toClassId("A")], initialNamespaceIds: [] },
+        input,
+        {
+          targetLines: [],
+          assertGraph: (_graph, result) =>
+            expect(result).toContain(
+              "classDiagram\nnamespace NewNamespace {\n  class A {\n    +field\n  }\n}"
+            ),
+        }
+      );
     }
     const create = command(parsed);
     if (

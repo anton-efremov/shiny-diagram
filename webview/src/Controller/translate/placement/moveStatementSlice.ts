@@ -51,10 +51,9 @@ function toRelativeBlockIndent(
   sourceText: string,
   startPosition: SourcePosition
 ): string {
-  const lines = text.split("\n");
+  const lines = text.split(/\r?\n/);
   const sourceLine = sourceText.split("\n")[startPosition.line] ?? "";
-  const baseIndent = sourceLine.slice(0, startPosition.character);
-  if (baseIndent === "") return text;
+  const baseIndent = sourceLine.match(/^[ \t]*/)?.[0] ?? "";
   return lines.map((line) => removeIndentPrefix(line, baseIndent)).join("\n");
 }
 
