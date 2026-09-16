@@ -87,7 +87,12 @@ const cases: readonly Case[] = [
     title: "class.name.set — class name value and references",
     command: () => ({ type: "class.name.set", classId: alpha, name: "Renamed<T>" }),
     targets: [/Alpha/],
-    verify: (g) => expect(g.classes.has(toClassId("Renamed"))).toBe(true),
+    verify: (g) => {
+      expect(g.classes.has(toClassId("Renamed"))).toBe(true);
+      const note = [...g.notes.values()].find((entry) => entry.text === "remember");
+      expect(note?.attachedToClassId).toBe(toClassId("Renamed"));
+      expect(note?.spatial?.position).toEqual({ x: 100, y: 400 });
+    },
   },
   {
     title: "class.label.set — a. class label already written and new label non-null",
@@ -578,6 +583,58 @@ describe("write-back catalog", () => {
             ),
         }
       );
+    }
+    if (move.type === "class.delete") {
+      for (const eol of ["\n", "\r\n"]) {
+        for (const declaration of ["class A", ""]) {
+          const input = [
+            "classDiagram",
+            declaration,
+            "A : +field",
+            "A : +method()",
+            "AB : +keep",
+            "%% @spatial:A x=0 y=0 w=150 h=100",
+            "%% @spatial:AB x=300 y=0 w=150 h=100",
+            "",
+          ].join(eol);
+          expectWriteback({ type: "class.delete", classId: toClassId("A") }, input, {
+            targetLines: [],
+            assertGraph: (graph, result) => {
+              expect(graph.classes.has(toClassId("A"))).toBe(false);
+              expect(graph.classes.get(toClassId("AB"))?.attributes).toHaveLength(1);
+              expect(result).toContain("AB : +keep");
+              expect(result).not.toContain("A :");
+              expect(parseDiagram(result).status).toBe("ready");
+            },
+          });
+        }
+      }
+    }
+    if (move.type === "class.name.set") {
+      for (const eol of ["\n", "\r\n"]) {
+        const input = [
+          "classDiagram",
+          "class A",
+          'note for A "first"',
+          'note for A "second"',
+          'note "unattached"',
+          "%% @spatial:A x=0 y=0 w=150 h=100",
+          "",
+        ].join(eol);
+        expectWriteback({ type: "class.name.set", classId: toClassId("A"), name: "B" }, input, {
+          targetLines: [/note for A/],
+          assertGraph: (graph, result) => {
+            expect([...graph.notes.values()].map((note) => note.attachedToClassId)).toEqual([
+              toClassId("B"),
+              toClassId("B"),
+              null,
+            ]);
+            expect(result).toContain(
+              ['note for B "first"', 'note for B "second"', 'note "unattached"'].join(eol)
+            );
+          },
+        });
+      }
     }
     const create = command(parsed);
     if (

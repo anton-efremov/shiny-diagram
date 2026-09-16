@@ -44,14 +44,6 @@ export class DiagramSession {
         if (rename) this.pushSourceUpdate(path.basename(rename.newUri.fsPath));
       })
     );
-
-    this.disposables.push(
-      vscode.workspace.onDidSaveTextDocument((savedDocument) => {
-        if (savedDocument.uri.toString() === this.document.uri.toString()) {
-          log.logSave(savedDocument);
-        }
-      })
-    );
   }
 
   /** Releases all listeners and cancels any pending debounce timer. */

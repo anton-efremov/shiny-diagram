@@ -199,6 +199,8 @@ export function toClassBoxNodeDescriptors(
         zIndex: CLASS_NODE_Z_INDEX,
         width: placement.w,
         height: placement.h,
+        // Preserve measured geometry so React Flow retains connection handle bounds on updates.
+        measured: { width: placement.w, height: placement.h },
         style: {
           width: placement.w,
           height: placement.h,
@@ -383,6 +385,7 @@ export function toNamespaceNodeDescriptors(
         zIndex: NAMESPACE_NODE_Z_INDEX,
         width: bounds.w,
         height: bounds.h,
+        measured: { width: bounds.w, height: bounds.h },
         style: { width: bounds.w, height: bounds.h, pointerEvents: "auto" },
       },
     ];
@@ -429,6 +432,8 @@ export function toNoteBoxNodeDescriptors(
         zIndex: NOTE_NODE_Z_INDEX,
         width: placement.w,
         height: placement.h,
+        // Preserve measured geometry so React Flow retains connection handle bounds on updates.
+        measured: { width: placement.w, height: placement.h },
         style: {
           width: placement.w,
           height: placement.h,

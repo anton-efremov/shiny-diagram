@@ -8,13 +8,15 @@ import type { DiagramGraph } from "../../../model/diagramGraph";
 import type { ProvenanceIndex } from "../../../model/provenanceIndex";
 import { spellIdentity } from "../../../model/identitySpelling";
 import { toSourceGenericTypes } from "../../../model/memberText";
+import { noteReplacementAnchor } from "../../placement/noteAttachmentPlacement";
+import { composeNoteStatement } from "../../syntax/noteSyntax";
 import { anchorBlockOpening } from "../../anchors/statementAnchors";
 import { rewriteBlocklessClassWithFirstChild } from "../../placement/classBlockEnsure";
 import type { TranslateContext } from "../../translateContext";
 import type { WriteIntent } from "../../writeIntent";
 
 /**
- * Makes nine groups of writes — the class name is always written; remaining groups only
+ * Makes ten groups of writes — the class name is always written; remaining groups only
  * under their stated source conditions:
  *
  * 1. class name **value**
@@ -40,6 +42,8 @@ import type { WriteIntent } from "../../writeIntent";
  * 9. member owner **value**, for every short member statement owned by the class when the
  *    class name changes
  *    - in place
+ * 10. attached note **statement** deleted and reinserted at its old location with the new
+ *     attachment identity, for every note attached to the class when its name changes
  */
 export function translateClassNameSet(
   command: EditorCommandOf<"class.name.set">,
@@ -253,6 +257,21 @@ function renameClassReferences(
         target: { kind: "styleApplicationTarget", styleApplicationId: styleApplication.id },
         payload,
       });
+    }
+  }
+  const attachedNotes = [...graph.notes.values()].filter((note) => note.attachedToClassId === from);
+  const rewrittenNotes = new Set(attachedNotes.map((note) => note.id));
+  for (const note of attachedNotes) {
+    if (note.attachedToClassId === from) {
+      const target = { kind: "note" as const, noteId: note.id };
+      intents.push(
+        { kind: "deleteStatement", target },
+        {
+          kind: "insertStatement",
+          payload: composeNoteStatement({ text: note.text, attachedToClassId: to }),
+          anchor: noteReplacementAnchor(note.id, provenance, rewrittenNotes),
+        }
+      );
     }
   }
   for (const [memberId] of provenance.shortMembers) {

@@ -83,6 +83,10 @@ An attended run leaves VS Code open after the scenario finishes. A normal run cl
 
 Each run uses a fresh workspace. Files opened through `openWith` are copied into that workspace, so fixtures remain unchanged.
 
+In unattended scenarios, save edited temporary documents before explicitly closing
+their tabs or switching editors in a way that closes them. Await the save before
+the close operation so VS Code does not interrupt the user with a save prompt.
+
 ## 4. Evidence from a run
 
 The terminal receives:
@@ -99,6 +103,28 @@ The run workspace is kept after completion. Relevant artifacts include:
 - screenshots explicitly created by the scenario.
 
 `readSource()` returns the in-memory document text, including unsaved edits. To inspect persisted content, save the document through a VS Code command before reading the workspace file.
+
+The session log retains prior activations when the window reloads. Each activation
+has a full timestamp. Once a document has opened in Shiny, its source changes and
+saves are recorded for the rest of that activation, including while editing its
+text with the Shiny tab hidden or closed.
+
+- `document-snapshot` contains the document URI, version, and exact source as JSON.
+  Unlike the readable initial-source block, it preserves CRLF and escaped characters.
+- `document-change` contains the URI, previous and resulting versions, the change
+  reason (`edit`, `undo`, or `redo`), and all range replacements. Each replacement
+  records zero-based line/character positions, UTF-16 offsets and lengths, removed
+  text, and inserted text. Changes are captured before the webview update debounce,
+  including unsaved and temporarily invalid source.
+- To reconstruct a document, start at its latest snapshot and apply each event's
+  replacements in descending offset order against the previous document version.
+  Check the removed text against that version. All replacements within an event
+  refer to the same pre-change source; process events in log order.
+
+These host records describe actual applied changes, whether initiated by Shiny,
+the source editor, or another editor command. The existing behavior and controller
+entries provide context for Shiny actions; an `edit` reason alone does not identify
+which editor initiated it.
 
 ## 5. Shiny-specific operations
 
