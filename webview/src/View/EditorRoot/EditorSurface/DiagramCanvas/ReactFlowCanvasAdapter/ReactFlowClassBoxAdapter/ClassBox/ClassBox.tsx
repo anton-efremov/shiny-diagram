@@ -146,6 +146,8 @@ export default function ClassBox({
     <InlineCommitTextField
       initialValue={view.header.stereotype}
       displayText={`<<${view.header.stereotype}>>`}
+      targetRole="stereotype"
+      targetName=""
       onEditRequest={requestHeaderEdit("annotation")}
       isEditing={isHeaderEditing(editingState, view.classId, "annotation")}
       isEditEnabled={isSelected}
@@ -213,6 +215,8 @@ export default function ClassBox({
       strokeWidth={separatorThickness}
       lineStyle={separatorLineStyle}
       color={resolvedStyle.color}
+      targetRole="class-box"
+      targetName={view.classId}
       dragging={isDragging}
       placementCursor={isConnectSourceEnabled}
       onClick={onClassBoxClick}
@@ -226,6 +230,8 @@ export default function ClassBox({
         haloTone={haloTone ?? undefined}
         haloStacking={NODE_BEHIND_CONTENT_Z_INDEX}
         affordanceStacking={NODE_ABOVE_CONTENT_Z_INDEX}
+        resizeTargetRole="resize-handle"
+        toResizeTargetName={(handle) => handle}
         onResizeGrab={onResizeGrab}
       />
       <ReactFlowConnectionHandlesAdapter
@@ -235,6 +241,8 @@ export default function ClassBox({
       <BoxHeaderFrame
         elementRef={headerRef}
         minHeight={CLASS_BOX_HEADER_MIN_HEIGHT}
+        targetRole="header"
+        targetName=""
         separatorColor={separatorColor}
         separatorThickness={separatorThickness}
         separatorLineStyle={separatorLineStyle}

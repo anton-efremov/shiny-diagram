@@ -9,6 +9,8 @@
  * reports nothing: an outside press leaves focus where the click placed it,
  * while keyboard dismissal returns focus to the control. The six-column grid is
  * keyboard-navigable, and the popup paints at the supplied `stacking` plane.
+ * `targetRole` and `targetName` identify the trigger; `optionTargetRole`
+ * identifies options, whose names come from preset names or document colors.
  *
  * Lifecycle:
  * - `disabled` — on means the list cannot be opened and shows the control as
@@ -59,6 +61,9 @@ type ColorSelectProps = {
   readonly documentColors: readonly string[];
   readonly constantValue: string;
   readonly stacking: number;
+  readonly targetRole?: string;
+  readonly targetName?: string;
+  readonly optionTargetRole?: string;
   readonly disabled?: boolean;
   readonly preview: "fill" | "stroke" | "text";
   readonly onChange: (value: string | null) => void;
@@ -74,6 +79,9 @@ export default function ColorSelect({
   documentColors,
   constantValue,
   stacking,
+  targetRole,
+  targetName,
+  optionTargetRole,
   disabled = false,
   onChange,
 }: ColorSelectProps): ReactElement {
@@ -162,6 +170,8 @@ export default function ColorSelect({
         type="button"
         className={styles.trigger}
         disabled={disabled}
+        data-target-role={targetRole}
+        data-target-name={targetName}
         aria-haspopup="grid"
         aria-expanded={isOpen}
         onClick={openPopup}
@@ -183,6 +193,8 @@ export default function ColorSelect({
                   <ColorOption
                     key={color}
                     value={color}
+                    targetRole={optionTargetRole}
+                    targetName={color}
                     selected={!isMultiple && colorsEqual(color, value)}
                     onSelect={selectValue}
                   />
@@ -196,6 +208,8 @@ export default function ColorSelect({
                 key={preset.value}
                 value={preset.value}
                 label={preset.name}
+                targetRole={optionTargetRole}
+                targetName={preset.name}
                 selected={
                   !isMultiple && colorsEqual(preset.value, value === null ? constantValue : value)
                 }
@@ -245,6 +259,8 @@ function ColorPreview({
 function ColorOption({
   value,
   label,
+  targetRole,
+  targetName,
   selected,
   buttonRef,
   tabIndex,
@@ -254,6 +270,8 @@ function ColorOption({
 }: {
   readonly value: string;
   readonly label?: string;
+  readonly targetRole?: string;
+  readonly targetName?: string;
   readonly selected: boolean;
   readonly buttonRef?: (element: HTMLButtonElement | null) => void;
   readonly tabIndex?: number;
@@ -267,6 +285,8 @@ function ColorOption({
       ref={buttonRef}
       type="button"
       role="gridcell"
+      data-target-role={targetRole}
+      data-target-name={targetName}
       className={styles.colorOption}
       style={dynamicStyle}
       aria-label={label ?? value}

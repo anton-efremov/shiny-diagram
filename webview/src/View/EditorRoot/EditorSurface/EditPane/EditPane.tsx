@@ -113,6 +113,7 @@ export default function EditPane({
         <ClassEditPane
           view={view}
           selectionState={editPaneScenario.selectionState}
+          onSelectionRestore={onSelectionRestore}
           onStyleSelect={onStyleSelect}
           onStyleCreateCommitted={onStyleCreateCommitted}
         />
@@ -163,10 +164,13 @@ export default function EditPane({
     <PaneFrame
       width={EDIT_PANE_WIDTH}
       collapsed={isCollapsed}
+      targetRole="edit-pane"
+      targetName=""
       edgeControl={
         <PaneCollapseTab
           collapsed={isCollapsed}
           stacking={CHROME_PANE_EDGE_CONTROL_ABOVE_PANE_Z_INDEX}
+          targetRole="button"
           onToggle={onCollapseToggle}
         />
       }

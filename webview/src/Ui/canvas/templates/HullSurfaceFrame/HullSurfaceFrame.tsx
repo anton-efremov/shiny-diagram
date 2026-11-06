@@ -4,6 +4,10 @@
  * Fills its host with `children`, uses `title` as the tooltip, applies `fill`,
  * `stroke`, `strokeWidth`, `lineStyle`, and `color` with neutral fallbacks.
  * Pressing it reports `onPressStart`; clicking it reports `onClick`.
+ * `targetRole` and `targetName` are transcribed onto the surface.
+ *
+ * Gesture targets:
+ * - `surface()` — `data-gesture-target=surface`
  *
  * Used by: a namespace hull.
  */
@@ -19,6 +23,8 @@ type HullSurfaceFrameProps = {
   readonly lineStyle: "solid" | "dashed" | "dotted";
   readonly color?: string;
   readonly children: ReactNode;
+  readonly targetRole?: string;
+  readonly targetName?: string;
   readonly onPressStart: () => void;
   readonly onClick: (event: MouseEvent<HTMLDivElement>) => void;
 };
@@ -31,6 +37,8 @@ export default function HullSurfaceFrame({
   lineStyle,
   color,
   children,
+  targetRole,
+  targetName,
   onPressStart,
   onClick,
 }: HullSurfaceFrameProps): ReactElement {
@@ -44,6 +52,9 @@ export default function HullSurfaceFrame({
   return (
     <div
       className={styles.frame}
+      data-gesture-target="surface"
+      data-target-role={targetRole}
+      data-target-name={targetName}
       style={style}
       title={title}
       onMouseDown={onPressStart}

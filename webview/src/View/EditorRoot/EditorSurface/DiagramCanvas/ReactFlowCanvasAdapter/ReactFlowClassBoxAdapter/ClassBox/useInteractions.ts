@@ -8,6 +8,7 @@ import type { MouseEvent } from "react";
 import type { ClassId } from "../../../../../../../shared/ids";
 import { useDispatchTransaction } from "../../../../../../contexts";
 import { toClassHeaderCommitTransaction } from "./transactions";
+import { logAction } from "../../../../../../../shared/logging";
 
 type Interactions = {
   readonly onClassBoxClick: (event: MouseEvent<HTMLDivElement>) => void;
@@ -34,10 +35,15 @@ export function useInteractions(
 
   const onHeaderCommit = useCallback(
     (block: "annotation" | "name" | "label", value: string | null) => {
+      logAction(`${block}-set`, classId, { value });
       const result = dispatchCommand(toClassHeaderCommitTransaction(classId, block, value));
+      if (result.status === "committed") {
+        const renamed = result.outcome.classes.renamed.find((entry) => entry.from === classId);
+        if (renamed) onClassSelect(renamed.to, false);
+      }
       return result.status === "rejected" ? result.errors.map((error) => error.message) : [];
     },
-    [classId, dispatchCommand]
+    [classId, dispatchCommand, onClassSelect]
   );
 
   return { onClassBoxClick, onHeaderCommit };

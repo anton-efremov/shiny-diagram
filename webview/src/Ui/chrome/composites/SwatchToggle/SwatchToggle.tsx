@@ -2,7 +2,11 @@
  * Toggle button containing a styled box swatch.
  *
  * Renders `label` and the supplied box `styleValues`, exposes `pressed`, and
- * reports `onClick` when clicked.
+ * reports `onClick` when clicked. `targetRole` and `targetName` are transcribed
+ * onto the button.
+ *
+ * Gesture targets:
+ * - `swatchToggle()` — `role=button`
  *
  * Used by: saved-style selection.
  *
@@ -21,6 +25,8 @@ type SwatchToggleProps = {
   readonly label: string;
   readonly pressed: boolean;
   readonly disabled?: boolean;
+  readonly targetRole?: string;
+  readonly targetName?: string;
   readonly onClick?: () => void;
 };
 
@@ -29,6 +35,8 @@ export default function SwatchToggle({
   label,
   pressed,
   disabled = false,
+  targetRole,
+  targetName,
   onClick,
 }: SwatchToggleProps): ReactElement {
   return (
@@ -37,6 +45,8 @@ export default function SwatchToggle({
       className={styles.toggle}
       aria-pressed={pressed}
       disabled={disabled}
+      data-target-role={targetRole}
+      data-target-name={targetName}
       onClick={onClick}
     >
       <StyledBoxSwatch styleValues={styleValues} label={label} />

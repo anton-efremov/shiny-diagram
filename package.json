@@ -37,6 +37,10 @@
       {
         "command": "shiny.exportPng",
         "title": "Shiny: Export PNG"
+      },
+      {
+        "command": "shiny.mark",
+        "title": "Shiny: Mark"
       }
     ],
     "customEditors": [
@@ -65,15 +69,16 @@
     "build": "npm run compile && npm run build:webview",
     "build:webview": "vite build",
     "compile": "tsc -p ./tsconfig.build.json",
-    "typecheck": "tsc -p ./ --noEmit && tsc -p ./tsconfig.webview.json --noEmit",
+    "debug": "vscode-custom-editor-harness",
+    "typecheck": "tsc -p ./ --noEmit && tsc -p ./tsconfig.webview.json --noEmit && tsc -p ./debug/tsconfig.json --noEmit",
     "check:boundaries": "node scripts/check-webview-boundaries.mjs",
     "check:planes": "node scripts/check-planes.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint extension-host webview/src",
+    "lint": "eslint extension-host webview/src debug/targets",
     "planes": "node scripts/update-planes.mjs",
-    "test": "vitest run && vitest run --config vitest.extension.config.ts",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run check:boundaries && npm run check:planes",
+    "test": "node scripts/check-test-coverage.mjs && vitest run && vitest run --config vitest.extension.config.ts",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run check:boundaries && npm run check:planes && npm run test",
     "prepare": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
@@ -97,6 +102,7 @@
     "react-dom": "^19.2.7",
     "typescript": "^5.5.2",
     "vite": "^8.0.16",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "vscode-custom-editor-harness": "github:anton-efremov/vscode-custom-editor-harness#f106ce3712f1e255a88080b2341ea837a2529972"
   }
 }

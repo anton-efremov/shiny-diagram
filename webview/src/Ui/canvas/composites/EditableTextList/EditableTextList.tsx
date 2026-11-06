@@ -11,8 +11,10 @@
  * row and destination gap, while preventing a host drag from starting; a drag
  * can be cancelled from the keyboard, leaving the order unchanged. Actions use
  * `actionStacking`, validation uses `validationStacking`, and `surface` supplies
- * an explicit action ground over the class-member fallback. Editing lifecycle
- * is reported through `onEditStart` and `onEditEnd`.
+ * an explicit action ground over the class-member fallback. Row target values
+ * are transcribed from row data; `addTargetRole` and `addTargetName` are
+ * transcribed onto the add control. Editing lifecycle is reported through
+ * `onEditStart` and `onEditEnd`.
  *
  * Used by: class attribute and operation rows.
  *
@@ -40,18 +42,23 @@ export type { TextEmphasis };
 /**
  * EditableTextList entry carrying text and optional emphasis content.
  *
- * `text` supplies the row value and `emphasis` supplies its initial underline,
- * italic, or unemphasized state.
+ * `text` supplies the row value, `emphasis` supplies its initial underline,
+ * italic, or unemphasized state, and `targetRole` and `targetName` are
+ * transcribed onto the row host.
  */
 export type EditableTextListRow = {
   readonly text: string;
   readonly emphasis?: TextEmphasis | null;
+  readonly targetRole?: string;
+  readonly targetName?: string;
 };
 
 type EditableTextListProps = {
   readonly rows: readonly EditableTextListRow[];
   readonly addLabel: string;
   readonly addTitle: string;
+  readonly addTargetRole?: string;
+  readonly addTargetName?: string;
   readonly surface?: string;
   readonly actionStacking: number;
   readonly validationStacking: number;
@@ -75,6 +82,8 @@ export default function EditableTextList({
   rows,
   addLabel,
   addTitle,
+  addTargetRole,
+  addTargetName,
   validate,
   isEditable,
   isEmphasisEditable,
@@ -129,6 +138,9 @@ export default function EditableTextList({
               <Editor
                 initialValue={row.text}
                 initialEmphasis={isEmphasisEditable ? (row.emphasis ?? null) : null}
+                targetRole={row.targetRole}
+                targetName={row.targetName}
+                emphasisTargetRole="emphasis"
                 validate={validate}
                 actionStacking={actionStacking}
                 validationStacking={validationStacking}
@@ -145,6 +157,8 @@ export default function EditableTextList({
                 type="button"
                 className={`${styles.rowHost} ${styles.editable} ${isDragged ? styles.dragged : ""} ${row.emphasis === "underline" ? styles.underlined : ""} ${row.emphasis === "italic" ? styles.italic : ""}`}
                 data-reorder-row="true"
+                data-target-role={row.targetRole}
+                data-target-name={row.targetName}
                 onPointerDown={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
@@ -199,6 +213,8 @@ export default function EditableTextList({
             ) : (
               <div
                 className={`${styles.rowHost} ${row.emphasis === "underline" ? styles.underlined : ""} ${row.emphasis === "italic" ? styles.italic : ""}`}
+                data-target-role={row.targetRole}
+                data-target-name={row.targetName}
               >
                 <InlineTextBlock
                   text={row.text}
@@ -241,6 +257,8 @@ export default function EditableTextList({
             glyph={ADD_GLYPH}
             label={addLabel}
             title={addTitle}
+            targetRole={addTargetRole}
+            targetName={addTargetName}
             treatment="add"
             visible={isAddHovered}
             onClick={() => beginEditing("new")}
@@ -258,6 +276,9 @@ function toRenderedDropGap(dragState: ReorderDragState): number {
 function Editor({
   initialValue,
   initialEmphasis,
+  targetRole,
+  targetName,
+  emphasisTargetRole,
   validate,
   actionStacking,
   validationStacking,
@@ -268,6 +289,9 @@ function Editor({
 }: {
   readonly initialValue: string;
   readonly initialEmphasis: TextEmphasis | null;
+  readonly targetRole?: string;
+  readonly targetName?: string;
+  readonly emphasisTargetRole?: string;
   readonly validate: (draft: string) => readonly string[];
   readonly actionStacking: number;
   readonly validationStacking: number;
@@ -281,6 +305,9 @@ function Editor({
       <InlineEmphasisCommitTextField
         initialValue={initialValue}
         initialEmphasis={initialEmphasis}
+        targetRole={targetRole}
+        targetName={targetName}
+        emphasisTargetRole={emphasisTargetRole}
         validate={validate}
         actionStacking={actionStacking}
         validationStacking={validationStacking}

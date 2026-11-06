@@ -11,7 +11,12 @@
  * While the menu is open, keyboard dismissal closes it and returns focus to its
  * control without cancelling the field draft; an outside press closes it without
  * moving focus. The menu paints at `menuStacking`, and validation paints at
- * `validationStacking`.
+ * `validationStacking`. `targetRole` and `targetName` are transcribed onto the
+ * value control, while `optionTargetRole` identifies each named option.
+ *
+ * Gesture targets:
+ * - `comboBox()` — `data-gesture-target=combo-box`
+ * - `comboBox().option(name)` — `role=option; accessible-name=name`
  *
  * Used by: class stereotypes and relationship endpoint multiplicities.
  *
@@ -41,6 +46,9 @@ type CommitComboBoxProps = {
   readonly validate: (draft: string) => readonly string[];
   readonly disabled?: boolean;
   readonly isLabelVisible?: boolean;
+  readonly targetRole?: string;
+  readonly targetName?: string;
+  readonly optionTargetRole?: string;
   readonly onCommit: (value: string) => void;
   readonly onDiscard: (messages: readonly string[]) => void;
   readonly onCancel: () => void;
@@ -55,6 +63,9 @@ export default function CommitComboBox({
   isLabelVisible = true,
   menuStacking,
   validationStacking,
+  targetRole,
+  targetName,
+  optionTargetRole,
   onCommit,
   onDiscard,
   onCancel,
@@ -107,6 +118,8 @@ export default function CommitComboBox({
             invalid={lifecycle.messages.length > 0}
             ariaLabel={ariaLabel}
             hasEndAction
+            targetRole={targetRole}
+            targetName={targetName}
             onChange={lifecycle.onDraftChange}
             onBlur={lifecycle.onBlur}
             onKeyDown={lifecycle.onKeyDown}
@@ -118,6 +131,8 @@ export default function CommitComboBox({
             disabled={disabled}
             aria-haspopup="listbox"
             aria-expanded={isOpen}
+            data-target-role={targetRole}
+            data-target-name={targetName}
             onClick={() => setIsOpen((current) => !current)}
           >
             {selectedOption?.label ?? ""}
@@ -127,6 +142,7 @@ export default function CommitComboBox({
           ref={menuButtonRef}
           type="button"
           className={styles.menuButton}
+          data-gesture-target="combo-box"
           disabled={disabled}
           aria-label={ariaLabel === undefined ? "Options" : `${ariaLabel} options`}
           aria-haspopup="listbox"
@@ -149,6 +165,8 @@ export default function CommitComboBox({
                     ? isCustom
                     : !isCustom && option.value === initialValue
                 }
+                data-target-role={optionTargetRole}
+                data-target-name={option.label}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => selectValue(option.value)}
               >

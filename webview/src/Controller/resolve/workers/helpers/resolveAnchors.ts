@@ -70,6 +70,9 @@ export function resolveStatementAnchor(
   }
 
   const header = resolveBlockRef(anchor.block, provenance).header;
+  if (anchor.block.kind === "diagram" && sourceText.trim() === "") {
+    return { side: "above", position: header.start, indent: "" };
+  }
   return {
     side: "after",
     position: header.end,
@@ -101,6 +104,7 @@ function deriveIndentStep(
   provenance: ProvenanceIndex,
   sourceText: string
 ): string {
+  if (block.kind === "diagram") return "";
   const record = resolveBlockRef(block, provenance);
   const body = record.body;
   if (body) {

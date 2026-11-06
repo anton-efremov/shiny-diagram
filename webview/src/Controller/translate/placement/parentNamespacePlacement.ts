@@ -72,9 +72,18 @@ function toOldAncestorNamespaceStatements(
   graph: DiagramGraph
 ): readonly StatementRef[] {
   const statements: StatementRef[] = [];
+  let removedChild = namespaceId;
   let current = graph.namespaces.get(namespaceId)?.parentNamespaceId ?? null;
   while (current) {
+    const hasRemainingClass = [...graph.classes.values()].some(
+      (node) => node.parentNamespaceId === current
+    );
+    const hasRemainingNamespace = [...graph.namespaces.values()].some(
+      (node) => node.parentNamespaceId === current && node.id !== removedChild
+    );
+    if (hasRemainingClass || hasRemainingNamespace) break;
     statements.push({ kind: "namespace", namespaceId: current });
+    removedChild = current;
     current = graph.namespaces.get(current)?.parentNamespaceId ?? null;
   }
   return statements;

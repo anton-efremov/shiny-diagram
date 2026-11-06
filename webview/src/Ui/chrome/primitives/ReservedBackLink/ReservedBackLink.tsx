@@ -2,6 +2,10 @@
  * Back-navigation button that keeps its place when unavailable.
  *
  * Renders `label` as the button content; clicking it reports `onClick`.
+ * `targetRole` and `targetName` are transcribed while the link is `visible`.
+ *
+ * Gesture targets:
+ * - `backLink()` — `role=button`
  *
  * Used by: return from a diagram style reached through a class.
  *
@@ -16,12 +20,16 @@ import styles from "./ReservedBackLink.module.css";
 type ReservedBackLinkProps = {
   readonly label: string;
   readonly visible?: boolean;
+  readonly targetRole?: string;
+  readonly targetName?: string;
   readonly onClick?: () => void;
 };
 
 export default function ReservedBackLink({
   label,
   visible = true,
+  targetRole,
+  targetName,
   onClick,
 }: ReservedBackLinkProps): ReactElement {
   return (
@@ -30,6 +38,8 @@ export default function ReservedBackLink({
       className={visible ? styles.link : styles.reservedBlank}
       aria-hidden={!visible}
       tabIndex={visible ? 0 : -1}
+      data-target-role={visible ? targetRole : undefined}
+      data-target-name={visible ? targetName : undefined}
       onClick={onClick}
     >
       {label}

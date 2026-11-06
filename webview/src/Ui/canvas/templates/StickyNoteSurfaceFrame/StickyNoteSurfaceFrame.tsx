@@ -3,7 +3,11 @@
  *
  * Fills its host with `children`, uses `title` as the tooltip, and reports
  * `onClick` when clicked. `elementRef` exposes the surface host for
- * consumer-owned measurement.
+ * consumer-owned measurement. `targetRole` and `targetName` are transcribed onto
+ * the surface.
+ *
+ * Gesture targets:
+ * - `surface()` — `data-gesture-target=surface`
  *
  * Used by: note surfaces.
  *
@@ -19,6 +23,8 @@ type StickyNoteSurfaceFrameProps = {
   readonly title: string;
   readonly children: ReactNode;
   readonly dragging: boolean;
+  readonly targetRole?: string;
+  readonly targetName?: string;
   readonly onClick: (event: MouseEvent<HTMLDivElement>) => void;
   readonly elementRef?: Ref<HTMLDivElement>;
 };
@@ -26,6 +32,8 @@ type StickyNoteSurfaceFrameProps = {
 export default function StickyNoteSurfaceFrame({
   title,
   dragging,
+  targetRole,
+  targetName,
   children,
   onClick,
   elementRef,
@@ -33,6 +41,9 @@ export default function StickyNoteSurfaceFrame({
   return (
     <div
       className={`${styles.frame} ${dragging ? styles.dragging : ""}`}
+      data-gesture-target="surface"
+      data-target-role={targetRole}
+      data-target-name={targetName}
       ref={elementRef}
       title={title}
       onClick={onClick}

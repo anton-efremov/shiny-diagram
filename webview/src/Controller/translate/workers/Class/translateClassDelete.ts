@@ -4,7 +4,7 @@ import type { ProvenanceIndex } from "../../../model/provenanceIndex";
 import type { WriteIntent } from "../../writeIntent";
 
 /**
- * Makes five groups of writes — each group only where the statement exists:
+ * Makes six groups of writes — each group only where the statement exists:
  *
  * 1. class declaration **statement** deleted, incl. members
  * 2. spatial annotation **statement** deleted
@@ -12,6 +12,7 @@ import type { WriteIntent } from "../../writeIntent";
  *    the source or the target endpoint
  * 4. direct style **statement** deleted
  * 5. style application **statements** deleted, for every application targeting the class
+ * 6. short member **statements** deleted, for every separate attribute or method owned by the class
  */
 export function translateClassDelete(
   command: EditorCommandOf<"class.delete">,
@@ -49,6 +50,16 @@ export function translateClassDelete(
       intents.push({
         kind: "deleteStatement",
         target: { kind: "styleApplication", styleApplicationId: styleApplication.id },
+      });
+    }
+  }
+
+  const node = graph.classes.get(classId);
+  for (const member of [...(node?.attributes ?? []), ...(node?.methods ?? [])]) {
+    if (provenance.shortMembers.has(member.id)) {
+      intents.push({
+        kind: "deleteStatement",
+        target: { kind: "shortMember", memberId: member.id },
       });
     }
   }

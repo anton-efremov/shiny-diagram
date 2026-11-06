@@ -1,5 +1,11 @@
 # React Standards Diagnostic Agent Manifest
 
+> **Kind:** Defining  
+> **Document state:** Stale  
+> **Implementation state:** Aspirational  
+> **Last reviewed:** 2026-08-19  
+> **Scope:** Instructions for an agent diagnosing React components against the repository's React standards  
+
 ## Purpose
 
 You are a coding agent working on View React components.
@@ -13,12 +19,12 @@ You do not edit files.
 Before diagnosing a component, read:
 
 * `COLLABORATORS.md` for repository orientation
-* `docs/engineering/architecture/react-standards.md` for the current React component standards
+* `docs/system/layers/react-standards.md` for the current React component standards
 * the named component file, its own support files, and owned child component imports needed to understand its boundaries
 
 Use `COLLABORATORS.md` as orientation only.
 
-Use the current React standards at `docs/engineering/architecture/react-standards.md` as the source of truth for React component compliance. If current code diverges from the standards, diagnose the code as divergent.
+Use the current React standards at `docs/system/layers/react-standards.md` as the source of truth for React component compliance. If current code diverges from the standards, diagnose the code as divergent.
 
 If the component name is ambiguous, missing, or cannot be located under `webview/src/View/**`, stop and report the blocker.
 

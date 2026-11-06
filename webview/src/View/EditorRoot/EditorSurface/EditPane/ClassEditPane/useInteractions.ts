@@ -15,8 +15,10 @@ import {
   toClassNameCommitTransaction,
   toClassStyleSaveTransaction,
 } from "./transactions";
+import { logAction } from "../../../../../shared/logging";
 
 type UseInteractionsInput = {
+  readonly onSelectionRestore: (selectionState: SelectionState) => void;
   readonly styles: readonly DeclaredStyleView[];
   readonly selectedNamedStyle: DeclaredStyleView | undefined;
   readonly selectedDirectStyle: ClassView | undefined;
@@ -42,6 +44,7 @@ type Interactions = {
 };
 
 export function useInteractions({
+  onSelectionRestore,
   styles,
   selectedNamedStyle,
   selectedDirectStyle,
@@ -54,14 +57,25 @@ export function useInteractions({
   // Event handler props derivation
   const onNameCommit = useCallback(
     (classId: ClassId, name: string) => {
+      logAction("name-set", classId, { name });
       const result = dispatchTransaction(toClassNameCommitTransaction(classId, name));
+      if (result.status === "committed") {
+        const renamed = result.outcome.classes.renamed.find((entry) => entry.from === classId);
+        if (renamed) {
+          onSelectionRestore({
+            kind: "classes",
+            classIds: origin.classIds.map((id) => (id === renamed.from ? renamed.to : id)),
+          });
+        }
+      }
       return result.status === "rejected" ? result.errors.map((error) => error.message) : [];
     },
-    [dispatchTransaction]
+    [dispatchTransaction, onSelectionRestore, origin.classIds]
   );
 
   const onAnnotationCommit = useCallback(
     (classId: ClassId, annotation: ClassAnnotation | null) => {
+      logAction("annotation-set", classId, { annotation });
       const result = dispatchTransaction(toClassAnnotationCommitTransaction(classId, annotation));
       return result.status === "rejected" ? result.errors.map((error) => error.message) : [];
     },
@@ -70,6 +84,7 @@ export function useInteractions({
 
   const onLabelCommit = useCallback(
     (classId: ClassId, label: string | null) => {
+      logAction("label-set", classId, { label });
       const result = dispatchTransaction(toClassLabelCommitTransaction(classId, label));
       return result.status === "rejected" ? result.errors.map((error) => error.message) : [];
     },
