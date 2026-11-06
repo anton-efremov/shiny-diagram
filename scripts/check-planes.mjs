@@ -54,7 +54,7 @@ async function checkPlaneStaleness() {
       continue;
     }
 
-    if (actual !== expected) {
+    if (withoutGenerationDate(actual) !== withoutGenerationDate(expected)) {
       addViolation({
         location: plane.outputPath,
         rule: "plane staleness",
@@ -439,4 +439,8 @@ function componentViolation(component, rule, message, fix) {
 
 function addViolation(violation) {
   violations.push(violation);
+}
+
+function withoutGenerationDate(content) {
+  return content.replace(/^(> \*\*Last reviewed:\*\* )\d{4}-\d{2}-\d{2}(  )$/m, "$1<date>$2");
 }
